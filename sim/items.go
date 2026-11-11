@@ -1,0 +1,310 @@
+package sim
+
+// Item est une marchandise que l'on peut porter, transformer ou vendre.
+// (L'ordre ne doit pas changer : les sauvegardes s'en servent. On ajoute à la fin.)
+type Item int
+
+const (
+	Ble Item = iota
+	Mais
+	Farine
+	Pain
+	Oeuf
+	Legume
+	Lait
+	Fleur
+	Miel
+	Gateau
+	Canne
+	Fromage
+	Saucisse
+	FarineMais
+	Fruit
+	Creme
+	Sucre
+	Cacao
+	Chocolat
+	BaguetteMais
+	PainMele
+	Brioche
+	PainEpices
+	Tarte
+	GateauFruits
+	GlaceVanille
+	GlaceFruits
+	GlaceChoco
+	Crayons // fournitures de l'école (ne se vendent pas)
+	Cahiers
+	Geometrie
+	Atlas
+	Calculatrice
+	Microscope
+	Ordinateur
+	Blouse
+	GlaceFruitLait // (ajoutée à la fin : les sauvegardes rangent les produits par numéro)
+	// version 4.0
+	LaitChevre
+	LaitBrebis
+	CuisseCanard
+	CafeVert
+	CafeGrains
+	CafeMoulu
+	Beurre
+	FromageBlanc
+	FromageChevre
+	FromageBrebis
+	Yaourt
+	YaourtChevre
+	YaourtBrebis
+	Croissant
+	PainChoco
+	// version 4.1 : la serre, le verger, le sucre en deux étapes, les glaces aux fruits
+	Carotte
+	Tomate
+	Courgette
+	Poireau
+	Chou
+	PommeDeTerre
+	Fraise
+	Pomme
+	Poire
+	Cerise
+	Abricot
+	Figue
+	GrainesCarotte // sachets de graines (gratuits, ne se vendent pas)
+	GrainesTomate
+	GrainesCourgette
+	GrainesPoireau
+	GrainesChou
+	PlantsPdt
+	SucreRoux
+	SucreMorceaux
+	SucrePoudre
+	SorbetFraise
+	SorbetCerise
+	GlaceFraise
+	GlaceCerise
+	GlacePoireChoco
+	// étape 6 : la ferme d'élevage et la boucherie-charcuterie
+	Foin
+	Poulet // vivants (ferme d'élevage)
+	Canard
+	Vache
+	Veau
+	Mouton
+	Agneau
+	Cochon
+	PouletAbattu // carcasses (frigos de la ferme d'élevage)
+	CanardAbattu
+	Boeuf
+	VeauCarcasse
+	MoutonCarcasse
+	AgneauCarcasse
+	Porc
+	PouletCru // boucherie-charcuterie
+	PouletRoti
+	CuissePoulet
+	Aiguillettes
+	Magret
+	FoieGras
+	Steak
+	SteakHache
+	RotiBoeuf
+	MorceauxVeau
+	Gigot
+	CoteAgneau
+	Jambon
+	Cotelette
+	Pate
+	// la ferme exotique
+	Ananas
+	Banane
+	NoixCoco
+	Mangue
+	Riz
+	Vanille
+	FeuillesThe
+	The
+	Cannelle
+	// le port
+	Sardine
+	Cabillaud
+	Thon
+	Saumon
+	Huitre
+	Moule
+	SaintJacques
+	Gambas
+	// le glacier (nouvelles recettes)
+	SorbetMangue
+	SorbetAnanas
+	GlaceCoco
+	NItems
+)
+
+type ItemInfo struct {
+	Name  string
+	Price float64
+}
+
+var Items = [NItems]ItemInfo{
+	Ble:              {"Blé", 3},
+	Mais:             {"Maïs", 5},
+	Farine:           {"Farine de blé", 10},
+	Pain:             {"Baguette", 30},
+	Oeuf:             {"Œufs", 12},
+	Legume:           {"Légumes", 15},
+	Lait:             {"Lait", 30},
+	Fleur:            {"Fleurs", 24},
+	Miel:             {"Miel", 40},
+	Gateau:           {"Gâteau au chocolat", 160},
+	Canne:            {"Canne à sucre", 20},
+	Fromage:          {"Fromage de vache", 55},
+	Saucisse:         {"Saucisses", 90},
+	FarineMais:       {"Farine de maïs", 12},
+	Fruit:            {"Fruits", 22},
+	Creme:            {"Crème", 40},
+	Sucre:            {"Sucre", 32},
+	Cacao:            {"Cacao", 35},
+	Chocolat:         {"Chocolat (tablette)", 60},
+	BaguetteMais:     {"Baguette de maïs", 34},
+	PainMele:         {"Pain blé-maïs", 45},
+	Brioche:          {"Brioche", 70},
+	PainEpices:       {"Pain d'épices", 80},
+	Tarte:            {"Tarte aux fruits", 90},
+	GateauFruits:     {"Gâteau aux fruits", 85},
+	GlaceVanille:     {"Glace nature", 42},
+	GlaceFruits:      {"Sorbet aux fruits", 55},
+	GlaceFruitLait:   {"Glace aux fruits", 90},
+	GlaceChoco:       {"Glace au chocolat", 180},
+	Crayons:          {"Crayons de couleur", 0},
+	Cahiers:          {"Cahiers", 0},
+	Geometrie:        {"Trousse de géométrie", 0},
+	Atlas:            {"Atlas", 0},
+	Calculatrice:     {"Calculatrice", 0},
+	Microscope:       {"Microscope", 0},
+	Ordinateur:       {"Ordinateur portable", 0},
+	Blouse:           {"Blouse de labo", 0},
+	LaitChevre:       {"Lait de chèvre", 30},
+	LaitBrebis:       {"Lait de brebis", 30},
+	CuisseCanard:     {"Cuisses de canard", 22},
+	CafeVert:         {"Café vert", 45},
+	CafeGrains:       {"Café en grains", 130},
+	CafeMoulu:        {"Café moulu", 190},
+	Beurre:           {"Beurre", 75},
+	FromageBlanc:     {"Fromage blanc", 35},
+	FromageChevre:    {"Fromage de chèvre", 75},
+	FromageBrebis:    {"Fromage de brebis", 85},
+	Yaourt:           {"Yaourt de vache", 30},
+	YaourtChevre:     {"Yaourt de chèvre", 50},
+	YaourtBrebis:     {"Yaourt de brebis", 58},
+	Croissant:        {"Croissant", 75},
+	PainChoco:        {"Pain au chocolat / chocolatine", 95},
+	Carotte:          {"Carottes", 16},
+	Tomate:           {"Tomates", 20},
+	Courgette:        {"Courgettes", 24},
+	Poireau:          {"Poireaux", 28},
+	Chou:             {"Choux", 32},
+	PommeDeTerre:     {"Pommes de terre", 36},
+	Fraise:           {"Fraises", 26},
+	Pomme:            {"Pommes", 30},
+	Poire:            {"Poires", 34},
+	Cerise:           {"Cerises", 40},
+	Abricot:          {"Abricots", 46},
+	Figue:            {"Figues", 54},
+	GrainesCarotte:   {"Graines de carotte", 0},
+	GrainesTomate:    {"Graines de tomate", 0},
+	GrainesCourgette: {"Graines de courgette", 0},
+	GrainesPoireau:   {"Graines de poireau", 0},
+	GrainesChou:      {"Graines de chou", 0},
+	PlantsPdt:        {"Plants de pomme de terre", 0},
+	SucreRoux:        {"Sucre roux", 30},
+	SucreMorceaux:    {"Sucre en morceaux", 45},
+	SucrePoudre:      {"Sucre en poudre", 50},
+	SorbetFraise:     {"Sorbet à la fraise", 60},
+	SorbetCerise:     {"Sorbet à la cerise", 80},
+	GlaceFraise:      {"Glace à la fraise", 140},
+	GlaceCerise:      {"Glace à la cerise", 160},
+	GlacePoireChoco:  {"Glace poire-chocolat", 210},
+	Foin:             {"Foin", 0},
+	Poulet:           {"Poulet", 0},
+	Canard:           {"Canard", 0},
+	Vache:            {"Vache", 0},
+	Veau:             {"Veau", 0},
+	Mouton:           {"Mouton", 0},
+	Agneau:           {"Agneau", 0},
+	Cochon:           {"Cochon", 0},
+	PouletAbattu:     {"Poulet abattu", 0},
+	CanardAbattu:     {"Canard abattu", 0},
+	Boeuf:            {"Carcasse de bœuf", 0},
+	VeauCarcasse:     {"Carcasse de veau", 0},
+	MoutonCarcasse:   {"Carcasse de mouton", 0},
+	AgneauCarcasse:   {"Carcasse d'agneau", 0},
+	Porc:             {"Carcasse de porc", 0},
+	PouletCru:        {"Poulet cru entier", 70},
+	PouletRoti:       {"Poulet rôti", 110},
+	CuissePoulet:     {"Cuisses de poulet", 85},
+	Aiguillettes:     {"Aiguillettes de canard", 120},
+	Magret:           {"Magret de canard", 150},
+	FoieGras:         {"Foie gras", 280},
+	Steak:            {"Steak", 130},
+	SteakHache:       {"Steak haché", 150},
+	RotiBoeuf:        {"Rôti de bœuf", 170},
+	MorceauxVeau:     {"Morceaux de veau", 160},
+	Gigot:            {"Gigot de mouton", 180},
+	CoteAgneau:       {"Côtes d'agneau", 200},
+	Jambon:           {"Jambon", 120},
+	Cotelette:        {"Côtelettes de porc", 110},
+	Pate:             {"Pâté", 140},
+	Ananas:           {"Ananas", 45},
+	Banane:           {"Bananes", 32},
+	NoixCoco:         {"Noix de coco", 50},
+	Mangue:           {"Mangues", 58},
+	Riz:              {"Riz (sachet)", 28},
+	Vanille:          {"Gousses de vanille", 120},
+	FeuillesThe:      {"Feuilles de thé", 20},
+	The:              {"Thé (boîte)", 95},
+	Cannelle:         {"Bâtons de cannelle", 75},
+	Sardine:          {"Sardines", 30},
+	Cabillaud:        {"Cabillaud", 50},
+	Thon:             {"Thon", 70},
+	Saumon:           {"Saumon", 90},
+	Huitre:           {"Huîtres", 110},
+	Moule:            {"Moules", 125},
+	SaintJacques:     {"Saint-Jacques", 150},
+	Gambas:           {"Gambas", 170},
+	SorbetMangue:     {"Sorbet à la mangue", 75},
+	SorbetAnanas:     {"Sorbet à l'ananas", 85},
+	GlaceCoco:        {"Glace à la noix de coco", 170},
+}
+
+// Legumes, Fruits : la serre et le verger (une colonne chacun), et leurs graines.
+var Legumes = []Item{Carotte, Tomate, Courgette, Poireau, Chou, PommeDeTerre}
+var Fruits = []Item{Fraise, Pomme, Poire, Cerise, Abricot, Figue}
+var SeedOf = map[Item]Item{Carotte: GrainesCarotte, Tomate: GrainesTomate, Courgette: GrainesCourgette, Poireau: GrainesPoireau, Chou: GrainesChou, PommeDeTerre: PlantsPdt}
+
+// IsSeed : un sachet de graines (ou des plants de pommes de terre).
+func IsSeed(it Item) bool { return it >= GrainesCarotte && it <= PlantsPdt }
+
+// FarmSold : ce que vendent les étals de la ferme, dans l'ordre où on les débloque
+// (le blé, les fleurs, la canne, le cacao et le café vert ne se vendent pas tels quels).
+// (4.1 : plus de viande ; la canne, le cacao et le café partiront à la ferme exotique)
+var FarmSold = append(append(append([]Item{Mais, FarineMais, Oeuf, Farine, Lait, LaitChevre, LaitBrebis}, Legumes...), Fruits...), Miel)
+
+// BakerySold, CremerieSold et IceSold : ce que fabriquent la boulangerie
+// (pains et viennoiseries), la crèmerie et le glacier. Les gâteaux, tartes et
+// pains d'épices iront à la future pâtisserie.
+var BakerySold = []Item{Pain, BaguetteMais, PainMele, Brioche, Croissant, PainChoco}
+var CremerieSold = []Item{Creme, Beurre, FromageBlanc, Yaourt, Fromage, YaourtChevre, FromageChevre, YaourtBrebis, FromageBrebis}
+var IceSold = []Item{SorbetFraise, SorbetMangue, SorbetAnanas, GlaceCerise, GlaceCoco, GlaceChoco, GlacePoireChoco}
+
+// ExoFruits : les arbres de la ferme exotique (une colonne chacun, comme le verger).
+var ExoFruits = []Item{Ananas, Banane, NoixCoco, Mangue}
+
+// ExoticSold : ce que vendent les étals de la ferme exotique (la canne, le cacao,
+// le café vert et les feuilles de thé ne se vendent pas tels quels).
+var ExoticSold = []Item{Ananas, Banane, NoixCoco, Mangue, SucreMorceaux, SucrePoudre, Chocolat, CafeGrains, CafeMoulu, Riz, Vanille, The, Cannelle}
+
+// BoucherieSold : ce que vend la boucherie-charcuterie (par espace).
+var BoucherieSold = []Item{PouletCru, PouletRoti, CuissePoulet, Aiguillettes, Magret, FoieGras,
+	Steak, SteakHache, RotiBoeuf, MorceauxVeau, Gigot, CoteAgneau, Saucisse, Jambon, Cotelette, Pate}

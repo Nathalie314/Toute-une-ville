@@ -1,0 +1,7 @@
+# Fichiers fabriqués (pas du code)
+*.exe
+/dist/
+/ville
+/ville.exe
+# sauvegardes de partie
+*sauvegarde*.json
