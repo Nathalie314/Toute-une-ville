@@ -139,6 +139,7 @@ const (
 	SorbetMangue
 	SorbetAnanas
 	GlaceCoco
+	GlaceCafe // (ajoutée à la fin : les sauvegardes rangent les produits par numéro)
 	NItems
 )
 
@@ -173,7 +174,7 @@ var Items = [NItems]ItemInfo{
 	PainEpices:       {"Pain d'épices", 80},
 	Tarte:            {"Tarte aux fruits", 90},
 	GateauFruits:     {"Gâteau aux fruits", 85},
-	GlaceVanille:     {"Glace nature", 42},
+	GlaceVanille:     {"Glace à la vanille", 160},
 	GlaceFruits:      {"Sorbet aux fruits", 55},
 	GlaceFruitLait:   {"Glace aux fruits", 90},
 	GlaceChoco:       {"Glace au chocolat", 180},
@@ -276,6 +277,7 @@ var Items = [NItems]ItemInfo{
 	SorbetMangue:     {"Sorbet à la mangue", 75},
 	SorbetAnanas:     {"Sorbet à l'ananas", 85},
 	GlaceCoco:        {"Glace à la noix de coco", 170},
+	GlaceCafe:        {"Glace au café", 165},
 }
 
 // Legumes, Fruits : la serre et le verger (une colonne chacun), et leurs graines.
@@ -296,7 +298,7 @@ var FarmSold = append(append(append([]Item{Mais, FarineMais, Oeuf, Farine, Lait,
 // pains d'épices iront à la future pâtisserie.
 var BakerySold = []Item{Pain, BaguetteMais, PainMele, Brioche, Croissant, PainChoco}
 var CremerieSold = []Item{Creme, Beurre, FromageBlanc, Yaourt, Fromage, YaourtChevre, FromageChevre, YaourtBrebis, FromageBrebis}
-var IceSold = []Item{SorbetFraise, SorbetMangue, SorbetAnanas, GlaceCerise, GlaceCoco, GlaceChoco, GlacePoireChoco}
+var IceSold = []Item{SorbetFraise, SorbetMangue, SorbetAnanas, GlaceVanille, GlaceCafe, GlaceCoco, GlaceChoco, GlacePoireChoco}
 
 // ExoFruits : les arbres de la ferme exotique (une colonne chacun, comme le verger).
 var ExoFruits = []Item{Ananas, Banane, NoixCoco, Mangue}

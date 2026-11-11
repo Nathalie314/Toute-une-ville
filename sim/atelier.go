@@ -78,20 +78,21 @@ var cremerieSpec = workshopSpec{
 }
 
 // iceSpec : le glacier. Les sorbets : seulement le fruit (et de l'eau) ; les
-// glaces : lait, crème, sucre en poudre, œufs et le fruit (ou le chocolat).
+// glaces : crème, œufs et le parfum (vanille, café, noix de coco, chocolat, poire et chocolat).
 var iceSpec = workshopSpec{
 	id: "glacier", name: "Le glacier", price: 80000, seed: 37, w: 3300,
-	inputs: []Item{Fraise, Mangue, Ananas, Cerise, NoixCoco, Lait, Creme, SucrePoudre, Oeuf, Chocolat, Poire},
+	inputs: []Item{Fraise, Mangue, Ananas, Vanille, CafeMoulu, NoixCoco, Creme, Oeuf, Chocolat, Poire},
 	recipes: []recipe{
 		{"sorbet_fraise", "Sorbet à la fraise", SorbetFraise, []Item{Fraise}, 3, 0, "", ""},
 		{"sorbet_mangue", "Sorbet à la mangue", SorbetMangue, []Item{Mangue}, 4, 15000, "Des mangues (ferme exotique).", "exotique:manguier"},
 		{"sorbet_ananas", "Sorbet à l'ananas", SorbetAnanas, []Item{Ananas}, 4, 25000, "Des ananas (ferme exotique).", "exotique:ananas"},
-		{"glace_cerise", "Glace à la cerise", GlaceCerise, []Item{Lait, Creme, SucrePoudre, Oeuf, Cerise}, 5, 35000, "Lait, crème, sucre, œufs et cerises.", "cremerie:creme,exotique:moulin_sucre"},
-		{"glace_coco", "Glace à la noix de coco", GlaceCoco, []Item{Lait, Creme, SucrePoudre, Oeuf, NoixCoco}, 5, 50000, "Lait, crème, sucre, œufs et noix de coco.", "cremerie:creme,exotique:moulin_sucre,exotique:cocotier"},
-		{"glace_choco", "Glace au chocolat", GlaceChoco, []Item{Lait, Creme, SucrePoudre, Oeuf, Chocolat}, 6, 65000, "Lait, crème, sucre, œufs et chocolat.", "cremerie:creme,exotique:chocolaterie"},
-		{"glace_poire", "Glace poire-chocolat", GlacePoireChoco, []Item{Lait, Creme, SucrePoudre, Oeuf, Poire, Chocolat}, 7, 90000, "Lait, crème, sucre, œufs, poires et chocolat.", "cremerie:creme,exotique:chocolaterie"},
+		{"glace_vanille", "Glace à la vanille", GlaceVanille, []Item{Creme, Oeuf, Vanille}, 5, 35000, "Crème, œufs et vanille.", "cremerie:creme,exotique:vanille"},
+		{"glace_cafe", "Glace au café", GlaceCafe, []Item{Creme, Oeuf, CafeMoulu}, 5, 42000, "Crème, œufs et café moulu.", "cremerie:creme,exotique:moulin_cafe"},
+		{"glace_coco", "Glace à la noix de coco", GlaceCoco, []Item{Creme, Oeuf, NoixCoco}, 5, 50000, "Crème, œufs et noix de coco.", "cremerie:creme,exotique:cocotier"},
+		{"glace_choco", "Glace au chocolat", GlaceChoco, []Item{Creme, Oeuf, Chocolat}, 6, 65000, "Crème, œufs et chocolat.", "cremerie:creme,exotique:chocolaterie"},
+		{"glace_poire", "Glace poire-chocolat", GlacePoireChoco, []Item{Creme, Oeuf, Poire, Chocolat}, 7, 90000, "Crème, œufs, poires et chocolat.", "cremerie:creme,exotique:chocolaterie"},
 	},
-	staff: "Serveurs", cashCost: 6000, staffCosts: []float64{8000, 20000, 50000, 120000, 300000, 700000}, upBase: 9000,
+	staff: "Serveurs", cashCost: 6000, staffCosts: []float64{8000, 20000, 50000, 120000, 300000, 700000, 1500000, 3200000}, upBase: 9000, // (un par fabrique)
 	sign: "Parasols", bio: "Recettes maison", shift2: true, tall: true,
 	gap: 320, dockNear: true, // (fabriques larges : on circule bien entre elles)
 }
@@ -309,7 +310,8 @@ func needsText(needs string) string {
 		"exotique:moulin_sucre": "le sucre en poudre (ferme exotique)",
 		"exotique:manguier":     "les mangues (ferme exotique)", "exotique:ananas": "les ananas (ferme exotique)",
 		"exotique:cocotier": "les noix de coco (ferme exotique)",
-		"elevage:mare":      "les canards (ferme d'élevage)", "elevage:bovin": "les bovins (ferme d'élevage)",
+		"exotique:vanille":  "la vanille (ferme exotique)", "exotique:moulin_cafe": "le café moulu (ferme exotique)",
+		"elevage:mare": "les canards (ferme d'élevage)", "elevage:bovin": "les bovins (ferme d'élevage)",
 		"elevage:ovin": "les ovins (ferme d'élevage)", "elevage:porc": "les porcs (ferme d'élevage)"}
 	var parts []string
 	for _, n := range strings.Split(needs, ",") {

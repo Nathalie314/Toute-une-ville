@@ -738,3 +738,12 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Captures d'une vraie sauvegarde (shots_save.go) : `CAPSAVE=sauvegarde.json ./jeu -captures dossier`
   (CAPPLACES=boulangerie,glacier pour quelques lieux ; CAPSEC, CAPZOOM). Sous Linux : paquets libasound2-dev,
   libgl1-mesa-dev, libx*-dev, xvfb-run, et un ~/.asoundrc « pcm.!default { type null } ».
+- Glacier (8 recettes) : la glace à la cerise devient la glace à la vanille (même place, 35 000 € de base ;
+  produit GlaceVanille, renommé « Glace à la vanille », 160 €) ; nouvelle glace au café juste après (GlaceCafe,
+  ajoutée en fin de liste des produits, 165 € ; 42 000 € de base). Les glaces n'ont plus ni lait ni sucre :
+  vanille = crème, œufs, vanille ; café = crème, œufs, café moulu ; coco = crème, œufs, noix de coco ;
+  chocolat = crème, œufs, chocolat ; poire-chocolat = crème, œufs, poires, chocolat. Réserve du glacier : fraises,
+  mangues, ananas, vanille, café moulu, noix de coco, crème, œufs, chocolat, poires (plus de lait, sucre, cerises).
+  8 serveurs (un par fabrique : 1,5 M et 3,2 M de base en plus). Supermarché : rayons Glace à la vanille et
+  Glace au café. Sauvegarde : ce qui était payé pour la glace à la cerise (fabrique, stock, drone, rayon du
+  supermarché) passe à la vanille (migrateGlaces, au chargement).

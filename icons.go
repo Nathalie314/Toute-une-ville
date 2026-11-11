@@ -140,7 +140,12 @@ func drawItem(dst *ebiten.Image, it sim.Item, x, y, r float64) {
 		circle(dst, x, y-r*0.35, r*0.5, rgb(c))
 		circle(dst, x-r*0.3, y-r*0.15, r*0.25, rgb(c))
 		circle(dst, x+r*0.3, y-r*0.15, r*0.25, rgb(c))
-		circle(dst, x+r*0.1, y-r*0.75, r*0.12, rgb(0xd62839))
+		if it == sim.GlaceVanille {
+			// une gousse de vanille posée sur la boule
+			line(dst, x-r*0.3, y-r*0.7, x+r*0.35, y-r*0.85, r*0.09, rgb(0x3a2418))
+		} else {
+			circle(dst, x+r*0.1, y-r*0.75, r*0.12, rgb(0xd62839))
+		}
 		if it == sim.GlaceFruitLait {
 			circle(dst, x-r*0.2, y-r*0.4, r*0.09, rgb(0xd62839)) // des morceaux de fruits
 			circle(dst, x+r*0.25, y-r*0.25, r*0.09, rgb(0xf08a24))

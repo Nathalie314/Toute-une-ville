@@ -589,7 +589,7 @@ func drawItemNew(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		circle(dst, x-r*0.3, y-r*0.05, r*0.38, rgb(c))
 		circle(dst, x+r*0.3, y-r*0.05, r*0.38, shade(c, 1.15))
 		circle(dst, x, y-r*0.45, r*0.36, rgb(c))
-	case sim.GlaceFraise, sim.GlaceCerise, sim.GlacePoireChoco, sim.GlaceCoco:
+	case sim.GlaceFraise, sim.GlaceCerise, sim.GlacePoireChoco, sim.GlaceCoco, sim.GlaceCafe:
 		// cornet
 		polygon(dst, []V{{X: x - r*0.45, Y: y}, {X: x + r*0.45, Y: y}, {X: x, Y: y + r}}, rgb(0xd9a55a))
 		line(dst, x-r*0.25, y+r*0.1, x+r*0.15, y+r*0.6, r*0.05, rgb(0xb07d3a))
@@ -601,11 +601,16 @@ func drawItemNew(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 			top, bot = 0x6b3e26, 0xe8f0b0
 		case sim.GlaceCoco:
 			top, bot = 0xfbfaf4, 0xf0ebdc
+		case sim.GlaceCafe:
+			top, bot = 0xa8774f, 0x8a5c3a
 		}
 		circle(dst, x, y-r*0.15, r*0.48, rgb(bot))
 		circle(dst, x, y-r*0.6, r*0.4, rgb(top))
 		if it == sim.GlaceCerise {
 			circle(dst, x+r*0.1, y-r*1.0, r*0.15, rgb(0x9e1530))
+		}
+		if it == sim.GlaceCafe { // un grain de café
+			ellipse(dst, x+r*0.1, y-r*0.98, r*0.15, r*0.1, rgb(0x3a2418))
 		}
 	default:
 		return false

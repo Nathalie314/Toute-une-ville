@@ -1458,7 +1458,7 @@ func (g *game) drawBuyPlace(dst *ebiten.Image) {
 	case "boucherie":
 		txt = "La boucherie-charcuterie découpe la viande de la ferme d'élevage : poulets, canards, bœuf, veau, mouton, agneau, porc. Ses clients sont rares mais achètent cher, et elle remplit l'espace boucherie du supermarché. Chaque espace a ses bouchers."
 	case "glacier":
-		txt = "Le glacier fait des sorbets (fraise, cerise) avec les fruits du verger, et plus tard des glaces (lait, crème, œufs, sucre et fruits ou chocolat). Les ingrédients arrivent en camion depuis le quai « → glacier » de la ferme."
+		txt = "Le glacier fait des sorbets (fraise, mangue, ananas) avec les fruits, puis des glaces : crème et œufs avec de la vanille, du café, de la noix de coco, du chocolat ou des poires. Les ingrédients arrivent en camion (ferme, crèmerie, ferme exotique)."
 	}
 	for i, l := range wrap(txt, 26, w-120, false) {
 		say(dst, l, x+w/2, y+56+float64(i)*36, 26, false, 0, rgb(0x5a4a3a))

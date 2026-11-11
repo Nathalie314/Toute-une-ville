@@ -106,6 +106,7 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 	for i, p := range g.Places {
 		p.rng = rand.New(rand.NewSource(nowUnix + int64(i)*7919 + time.Now().UnixNano()))
 	}
+	migrateGlaces(s)
 	g.Money = s.Money
 	if s.Levels != nil {
 		g.Levels = s.Levels
@@ -323,4 +324,37 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 	}
 	g.Boost = s.Cadeau // (après les gains d'absence : un cadeau ne travaille pas jeu fermé)
 	return
+}
+
+// migrateGlaces : la glace à la cerise est devenue la glace à la vanille (même
+// place au glacier, même prix) : ce qui avait été payé pour elle (fabrique,
+// stock, drone de sa vitrine, rayon du supermarché) passe à la vanille.
+func migrateGlaces(s *Save) {
+	move := func(m map[string]float64, from, to string) {
+		if v, ok := m[from]; ok && m != nil {
+			if m[to] < v {
+				m[to] = v
+			}
+			delete(m, from)
+		}
+	}
+	if s.Levels != nil {
+		for _, k := range [][2]string{
+			{"glacier.glace_cerise_stock", "glacier.glace_vanille_stock"},
+			{"glacier." + droneKey(GlaceCerise), "glacier." + droneKey(GlaceVanille)},
+		} {
+			if v, ok := s.Levels[k[0]]; ok {
+				s.Levels[k[1]] = max(s.Levels[k[1]], v)
+				delete(s.Levels, k[0])
+			}
+		}
+	}
+	if ps := s.Places["glacier"]; ps != nil {
+		move(ps.Paid, "glace_cerise", "glace_vanille")
+		move(ps.StockPaye, "glace_cerise", "glace_vanille")
+		move(ps.CasePaye, droneKey(GlaceCerise), droneKey(GlaceVanille))
+	}
+	if ps := s.Places["super"]; ps != nil {
+		move(ps.Paid, "r_"+itoa(int(GlaceCerise)), "r_"+itoa(int(GlaceVanille)))
+	}
 }
