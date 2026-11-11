@@ -109,11 +109,11 @@ func (g *Game) DockActive(dock *Station) bool {
 	return true
 }
 
-// DockMult : au supermarché, chaque produit livré en devient 10
+// DockMult : au supermarché, chaque produit livré en devient 3
 // (il achète en gros : sinon ses rayons se vident bien plus vite qu'on ne les remplit).
 func DockMult(to *Place) int {
 	if to != nil && to.ID == "super" {
-		return 2 // (4.1 : 1 objet livré = 2 en réserve ; avant : 10)
+		return 3 // (4.1 : 1 objet livré = 3 en réserve ; avant : 2, et au tout début 10)
 	}
 	return 1
 }

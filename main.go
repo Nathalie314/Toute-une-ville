@@ -94,6 +94,7 @@ type game struct {
 	lastPay            float64
 	coinSnd            float64
 	shots              *shotScript
+	saveShots          *saveShots
 	capName            string
 	helpSeen           bool
 	quit               bool
@@ -111,6 +112,9 @@ func newGame() *game {
 
 func (g *game) Update() error {
 	const dt = 1.0 / 60
+	if g.saveShots != nil {
+		return g.saveShots.update(g)
+	}
 	if g.shots != nil {
 		return g.shots.update(g)
 	}
@@ -361,6 +365,9 @@ func main() {
 		g.load()
 	} else {
 		g.shots = newShotScript(*capDir)
+		if f := os.Getenv("CAPSAVE"); f != "" {
+			g.saveShots = newSaveShots(*capDir, f)
+		}
 	}
 
 	ebiten.SetWindowTitle("Toute une Ville")

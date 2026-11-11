@@ -3,6 +3,7 @@ package sim
 import (
 	"math"
 	"math/rand"
+	"sort"
 	"strings"
 )
 
@@ -85,11 +86,19 @@ func (u *Upgrade) Cost(lvl int) float64 {
 	} else {
 		c = math.Round(u.Base * math.Pow(u.Mult, float64(lvl)))
 	}
+	if CostScale != nil {
+		if s := CostScale(u.Key); s != 1 {
+			c = niceRound(c * s) // (lieu loin sur la carte : prices.go)
+		}
+	}
 	if CostMult != nil {
 		c = math.Round(c * CostMult(u.Key))
 	}
 	return c
 }
+
+// CostScale : coefficient des prix selon le rang du lieu de l'amélioration sur la carte.
+var CostScale func(key string) float64
 
 // CostMult : réduction des prix (négociation, points de lycée), selon le lieu de l'amélioration.
 var CostMult func(key string) float64
@@ -174,7 +183,7 @@ func NewGame() *Game {
 		g.Fav[k] = v
 	}
 	g.Places = []*Place{newFarm(g), newSuper(g), newWorkshop(g, bakerySpec), newWorkshop(g, cremerieSpec), newWorkshop(g, iceSpec), newSchool(g), newElevage(g), newBoucherie(g), newExotic(g), newPort(g)}
-	g.fixRayonCosts()
+	g.sortPlaces()
 	for _, p := range g.Places {
 		p.applyCaps()
 		for _, s := range p.Stations {
@@ -189,6 +198,11 @@ func NewGame() *Game {
 		}
 		return 1 / (1 + float64(g.Levels[id+".pts_nego"])/100)
 	}
+	// les rayons du supermarché (d'après les prix de base des lieux d'origine : le
+	// supermarché garde ses prix), puis les prix selon le rang du lieu sur la carte
+	g.fixRayonCosts()
+	CostScale = g.keyScale
+	g.applyMapPrices()
 	// l'école est ouverte dès le début, gratuitement, avec une table et un prof
 	if sc := g.Place("ecole"); sc != nil {
 		sc.Owned, sc.Price = true, 0
@@ -198,6 +212,35 @@ func NewGame() *Game {
 	g.Enter(g.Places[0])
 	g.Money = 0
 	return g
+}
+
+// MapOrder : les lieux dans l'ordre de la carte de la ville (ui.go, drawMap). Il
+// fixe l'ordre des listes (points d'école…) et le rang de chaque lieu, qui fixe
+// ses prix (PlaceScale). Un nouveau lieu se met ici, à sa place sur la carte.
+var MapOrder = []string{"ferme", "ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "port", "elevage", "boucherie"}
+
+// MapRank : position du lieu sur la carte (1 : ma ferme) ; 0 si inconnu.
+func MapRank(id string) int {
+	for i, m := range MapOrder {
+		if m == id {
+			return i + 1
+		}
+	}
+	return 0
+}
+
+// sortPlaces : g.Places dans l'ordre de la carte (les lieux inconnus à la fin).
+func (g *Game) sortPlaces() {
+	sort.SliceStable(g.Places, func(i, j int) bool {
+		ri, rj := MapRank(g.Places[i].ID), MapRank(g.Places[j].ID)
+		if ri == 0 {
+			ri = 1 << 20
+		}
+		if rj == 0 {
+			rj = 1 << 20
+		}
+		return ri < rj
+	})
 }
 
 func (g *Game) Place(id string) *Place {
@@ -511,7 +554,7 @@ func (g *Game) hireOK(key string) bool {
 	for _, t := range FarmTeams {
 		if key == "ferme."+teamKey(t.ID) {
 			f := g.farm().Station(teamAnchor(t.ID))
-			if isColumnTeam(t.ID) && g.Levels[key] >= g.farm().columnsBuiltOf(t.ID) {
+			if isColumnTeam(t.ID) && g.Levels[key] >= g.farm().columnHires(t.ID) {
 				return false // (un ouvrier par colonne ouverte)
 			}
 			return f != nil && f.Built

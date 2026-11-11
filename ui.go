@@ -1443,7 +1443,7 @@ func (g *game) drawBuyPlace(dst *ebiten.Image) {
 	}
 	w, h := 940.0, 520.0
 	x, y := g.panelFrame(dst, "Acheter "+strings.ToLower(p.Name[:1])+p.Name[1:]+" ?", w, h)
-	txt := "L'immense supermarché vend les produits de tes lieux, espace par espace (ferme, légumes, fruits, puis crèmerie, boulangerie, glaces…). Ce qui part en camion arrive dans son entrepôt (1 objet livré = 2 en réserve). Les clients viennent en voiture et prennent un caddie : achète des places et des caddies !"
+	txt := "L'immense supermarché vend les produits de tes lieux, espace par espace (ferme, légumes, fruits, puis crèmerie, boulangerie, glaces…). Ce qui part en camion arrive dans son entrepôt (1 objet livré = 3 en réserve). Les clients viennent en voiture et prennent un caddie : achète des places et des caddies !"
 	switch p.ID {
 	case "boulangerie":
 		txt = "La boulangerie fait du pain et des viennoiseries : baguettes, pain blé-maïs, brioches, puis croissants et pains au chocolat (avec le beurre de la crèmerie). Les ingrédients arrivent en camion depuis le quai « → boulangerie » de la ferme."

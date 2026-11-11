@@ -382,20 +382,20 @@ type Team struct {
 
 var FarmTeams = func() []*Team {
 	ts := []*Team{
-		{ID: "mais", Name: "du maïs", Max: 3, Items: []Item{Mais, FarineMais, Oeuf}, Field: "le champ de maïs"}, // champ, moulin, poulailler
+		{ID: "mais", Name: "du maïs", Max: 4, Items: []Item{Mais, FarineMais, Oeuf}, Field: "le champ de maïs"}, // champ, moulin, poulailler (+1 demandé par la conceptrice)
 		{ID: "ble", Name: "du blé", Max: 5, // champ, moulin, étable, chèvrerie, bergerie
 			Items: []Item{Ble, Farine, Lait, LaitChevre, LaitBrebis, Foin}, Field: "le champ de blé"},
 	}
 	// la serre et le verger : une équipe chacun (un ouvrier n'est pas attaché à un
 	// légume ou à un fruit : il va où il y a du travail), autant d'ouvriers que de colonnes
-	ts = append(ts, &Team{ID: "serre", Name: "de la serre", Max: 6, Items: append([]Item{}, Legumes...), Field: "la serre"},
+	ts = append(ts, &Team{ID: "serre", Name: "de la serre", Max: 7, Items: append([]Item{}, Legumes...), Field: "la serre"},
 		&Team{ID: "verger", Name: "du verger", Max: 6, Items: append([]Item{}, Fruits...), Field: "le verger"})
 	return append(ts, &Team{ID: "fleurs", Name: "des fleurs", Max: 2, Items: []Item{Fleur, Miel}, Field: "le champ de fleurs"})
 }()
 
 // HireOrder : ordre conseillé des embauches ; il fixe les prix (le 1er le moins cher).
 var HireOrder = []string{"mais", "ble", "mais", "ble", "serre", "ble", "serre", "verger", "ble", "serre", "verger", "ble",
-	"serre", "verger", "serre", "verger", "mais", "serre", "verger", "verger", "fleurs", "fleurs"}
+	"serre", "verger", "serre", "verger", "mais", "serre", "verger", "verger", "fleurs", "fleurs", "mais", "serre"}
 
 // teamAnchor : le champ d'une équipe (serre : la colonne des carottes ; verger : les fraisiers).
 func teamAnchor(id string) string {
@@ -406,6 +406,21 @@ func teamAnchor(id string) string {
 		return "fraisier"
 	}
 	return id
+}
+
+// columnHires : ouvriers possibles dans la serre (ou le verger) : un par colonne
+// ouverte ; toutes les colonnes ouvertes, le maximum de l'équipe (la serre a un
+// 7e ouvrier).
+func (p *Place) columnHires(team string) int {
+	n := p.columnsBuiltOf(team)
+	if n >= 6 {
+		for _, t := range FarmTeams {
+			if t.ID == team {
+				return t.Max
+			}
+		}
+	}
+	return n
 }
 
 // columnsBuiltOf : colonnes ouvertes de la serre (ou du verger).
@@ -424,7 +439,7 @@ func (p *Place) columnsBuiltOf(team string) int {
 }
 
 var HireCosts = []float64{250, 1000, 3500, 6000, 7000, 8000, 9000, 10000, 12000, 13000, 14000, 16000,
-	18000, 20000, 23000, 26000, 30000, 34000, 40000, 48000, 60000, 75000}
+	18000, 20000, 23000, 26000, 30000, 34000, 40000, 48000, 60000, 75000, 95000, 120000}
 
 func teamOf(it Item) string {
 	for _, t := range FarmTeams {

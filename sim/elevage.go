@@ -28,10 +28,10 @@ type ShopZone struct {
 func (z *ShopZone) Max() int { return len(z.Costs) }
 
 var elevageZones = []*ShopZone{
-	{ID: "volaille", Name: "Volaille", X0: 150, X1: 850, RestY: 1262, Costs: []float64{3000, 9000, 24000, 55000}},
-	{ID: "bovin", Name: "Bovins", X0: 900, X1: 1550, RestY: 1262, Costs: []float64{12000, 30000, 70000}},
-	{ID: "ovin", Name: "Ovins", X0: 1600, X1: 2250, RestY: 1262, Costs: []float64{18000, 42000, 90000}},
-	{ID: "porc", Name: "Porcs", X0: 2300, X1: 2700, RestY: 1262, Costs: []float64{24000, 55000}},
+	{ID: "volaille", Name: "Volaille", X0: 150, X1: 1110, RestY: 1262, Costs: []float64{3000, 9000, 24000, 55000}},
+	{ID: "bovin", Name: "Bovins", X0: 1160, X1: 1810, RestY: 1262, Costs: []float64{12000, 30000, 70000}},
+	{ID: "ovin", Name: "Ovins", X0: 1860, X1: 2510, RestY: 1262, Costs: []float64{18000, 42000, 90000}},
+	{ID: "porc", Name: "Porcs", X0: 2560, X1: 3010, RestY: 1262, Costs: []float64{24000, 55000}},
 }
 
 var boucherieZones = []*ShopZone{
@@ -85,7 +85,7 @@ const (
 var elevageAnimals = map[string]bool{"poulailler": true, "mare": true, "pre_bovin": true, "pre_ovin": true, "porcherie": true}
 
 func newElevage(g *Game) *Place {
-	W := 3400.0
+	W := 3500.0 // (bâtiments d'animaux espacés : leur case « Stock + » à droite)
 	p := &Place{ID: "elevage", Name: "La ferme d'élevage", W: W, H: 1800, g: g, rng: rand.New(rand.NewSource(53)),
 		Rep: 3, Price: elevagePrice, SellMult: 1, SpawnBase: 5, WantMax: 3, MaxCust: 0, LeaveOff: V{170, 60}, OnlyStocked: true}
 	p.SpawnL = V{350, roadY + 40}
@@ -99,7 +99,7 @@ func newElevage(g *Game) *Place {
 	for _, pl := range []struct {
 		it Item
 		x  float64
-	}{{Mais, 330}, {Foin, 1480}, {PommeDeTerre, 2360}} {
+	}{{Mais, 330}, {Foin, 1760}, {PommeDeTerre, 2700}} {
 		s := &Station{ID: "palette_" + itoa(int(pl.it)), Name: "Palette : " + Items[pl.it].Name, Kind: Pallet, Item: pl.it, PileMax: 40, Built: true}
 		s.Body = Rect{pl.x, 150, 160, 90}
 		s.Zone = Rect{pl.x - 5, 258, 170, 90}
@@ -127,34 +127,35 @@ func newElevage(g *Game) *Place {
 		p.Stations = append(p.Stations, s)
 	}
 	// volaille : le poulailler et la mare (maïs), l'abattoir à deux entrées
+	// (chaque bâtiment d'animaux a sa case « Stock + » à sa droite : on laisse la place)
 	mach("poulailler", "Poulailler", "volaille", Mais, Poulet, 200, rowA, 260, 180, 4, "")
-	mach("mare", "Mare aux canards", "volaille", Mais, Canard, 560, rowA, 260, 180, 5, "mare")
+	mach("mare", "Mare aux canards", "volaille", Mais, Canard, 680, rowA, 260, 180, 5, "mare")
 	mach("abattoir_poulet", "Abattoir : poulets", "volaille", Poulet, PouletAbattu, 200, rowB, 260, 140, 3, "")
-	mach("abattoir_canard", "Abattoir : canards", "volaille", Canard, CanardAbattu, 480, rowB, 260, 140, 3, "mare")
+	mach("abattoir_canard", "Abattoir : canards", "volaille", Canard, CanardAbattu, 600, rowB, 260, 140, 3, "mare")
 	frigo("volaille", PouletAbattu, 200, "")
-	frigo("volaille", CanardAbattu, 420, "mare")
+	frigo("volaille", CanardAbattu, 600, "mare")
 	// bovins : un grand pré (foin → vaches et veaux), son abattoir
-	pre("pre_bovin", "Pré des bovins", "bovin", Foin, Vache, Veau, 950, 6, "bovin")
-	mach("abattoir_boeuf", "Abattoir : bœufs", "bovin", Vache, Boeuf, 950, rowB, 260, 140, 4, "bovin")
-	mach("abattoir_veau", "Abattoir : veaux", "bovin", Veau, VeauCarcasse, 1230, rowB, 260, 140, 4, "bovin")
-	frigo("bovin", Boeuf, 950, "bovin")
-	frigo("bovin", VeauCarcasse, 1170, "bovin")
+	pre("pre_bovin", "Pré des bovins", "bovin", Foin, Vache, Veau, 1210, 6, "bovin")
+	mach("abattoir_boeuf", "Abattoir : bœufs", "bovin", Vache, Boeuf, 1210, rowB, 260, 140, 4, "bovin")
+	mach("abattoir_veau", "Abattoir : veaux", "bovin", Veau, VeauCarcasse, 1530, rowB, 260, 140, 4, "bovin")
+	frigo("bovin", Boeuf, 1210, "bovin")
+	frigo("bovin", VeauCarcasse, 1450, "bovin")
 	// ovins : un grand pré (foin → moutons et agneaux), son abattoir
-	pre("pre_ovin", "Pré des ovins", "ovin", Foin, Mouton, Agneau, 1650, 5, "ovin")
-	mach("abattoir_mouton", "Abattoir : moutons", "ovin", Mouton, MoutonCarcasse, 1650, rowB, 260, 140, 4, "ovin")
-	mach("abattoir_agneau", "Abattoir : agneaux", "ovin", Agneau, AgneauCarcasse, 1930, rowB, 260, 140, 4, "ovin")
-	frigo("ovin", MoutonCarcasse, 1650, "ovin")
-	frigo("ovin", AgneauCarcasse, 1870, "ovin")
+	pre("pre_ovin", "Pré des ovins", "ovin", Foin, Mouton, Agneau, 1910, 5, "ovin")
+	mach("abattoir_mouton", "Abattoir : moutons", "ovin", Mouton, MoutonCarcasse, 1910, rowB, 260, 140, 4, "ovin")
+	mach("abattoir_agneau", "Abattoir : agneaux", "ovin", Agneau, AgneauCarcasse, 2230, rowB, 260, 140, 4, "ovin")
+	frigo("ovin", MoutonCarcasse, 1910, "ovin")
+	frigo("ovin", AgneauCarcasse, 2150, "ovin")
 	// porcs : la porcherie (pommes de terre), son abattoir
-	mach("porcherie", "Porcherie", "porc", PommeDeTerre, Cochon, 2350, rowA, 260, 180, 5, "porc")
-	mach("abattoir_porc", "Abattoir : porcs", "porc", Cochon, Porc, 2350, rowB, 260, 140, 4, "porc")
-	frigo("porc", Porc, 2400, "porc")
+	mach("porcherie", "Porcherie", "porc", PommeDeTerre, Cochon, 2610, rowA, 260, 180, 5, "porc")
+	mach("abattoir_porc", "Abattoir : porcs", "porc", Cochon, Porc, 2610, rowB, 260, 140, 4, "porc")
+	frigo("porc", Porc, 2660, "porc")
 
 	trash := &Station{ID: "poubelle", Name: "Poubelle", Kind: Trash}
-	trash.Body = Rect{2700, rowA + 50, 70, 70} // (le compost, à droite de la porcherie)
-	trash.Zone = Rect{2680, rowA + 10, 110, 150}
+	trash.Body = Rect{3130, rowA + 50, 70, 70} // (le compost, à droite de la porcherie et de sa case « Stock + »)
+	trash.Zone = Rect{3110, rowA + 10, 110, 150}
 	p.Stations = append(p.Stations, trash)
-	p.dock("quai", "boucherie", 1420) // le camion frigorifique (entre les frigos des bovins et ceux des ovins)
+	p.dock("quai", "boucherie", 1680) // le camion frigorifique (entre les frigos des bovins et ceux des ovins)
 
 	// déblocages, espace par espace
 	unlock := func(id, name string, cost float64, hint, needs, locked string) {
@@ -289,12 +290,12 @@ func newBoucherie(g *Game) *Place {
 	p := newWorkshop(g, boucherieSpec)
 	p.SpawnBase = 11 // les clients sont rares (mais achètent cher)
 	// machines et vitrines : chaque espace dans ses colonnes
-	sy := float64(shelfY + 60)
+	sy := float64(workshopShY)
 	for _, r := range boucherieSpec.recipes {
 		c := boucherieCell[r.id]
 		team := boucherieZones[c[2]].ID
 		x := 500 + float64(c[0])*620
-		y := 470 + float64(c[1])*350
+		y := workshopRow0 + float64(c[1])*workshopRowG
 		s := p.Station(r.id)
 		s.Team = team
 		s.Body = Rect{x, y, 260, 150}

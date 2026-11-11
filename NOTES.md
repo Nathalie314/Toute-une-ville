@@ -700,3 +700,41 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   violet, usine rouge + l'ingrédient qui manque, cadenas gris), selon la cause la plus fréquente des ~30 dernières
   secondes ; devant le rayon, une bulle explique et dit quoi faire (taille constante à l'écran) ; le message du bas
   résume les deux causes principales (après les conseils urgents, avant les achats possibles).
+
+## 4.1 — prix selon la carte, ateliers aérés (12 novembre)
+- Constat sur sa sauvegarde (8 500 €/s, 10 lieux) : le supermarché fait 96 % des revenus (8 111 €/s ; port 80,
+  crèmerie 61, exotique 48, glacier 48, boulangerie 40, ferme 31, boucherie 10). Les lieux tardifs étaient presque
+  gratuits : ferme exotique 35 000 € et tout son contenu ≈ 1,9 M (≈ 3 min de revenus) ; le bot humain achetait
+  exotique, boulangerie et glacier en 20 min.
+- ⚠️ Règle : les prix dépendent de la POSITION DU LIEU SUR LA CARTE (sim.MapOrder, = ordre des tuiles de drawMap),
+  pas de l'ordre d'achat : il faut inciter à ouvrir les lieux dans l'ordre de la carte. Un nouveau lieu se met dans
+  MapOrder, à sa place. g.Places est trié dans cet ordre (points d'école, listes…).
+- sim/prices.go : les 4 premiers lieux (ferme, école, supermarché, crèmerie) gardent leurs prix (début rapide). Dès
+  le 5e (ferme exotique), chaque lieu coûte 2 × plus que le précédent : achat 500 000 € (exotique), 1 M, 2 M, 4 M,
+  8 M, 16 M (boucherie) ; contenu complet = contenu de la crèmerie (≈ 16 M) × 2^(rang − 4). Place.Scale = cible /
+  contenu de base : tous les prix du lieu (déblocages, améliorations au sol, stocks, drones, employés, pousses) sont
+  multipliés par ce même coefficient (exotique ×17, boulangerie ×15, glacier ×13, port ×45, élevage ×144, boucherie
+  ×43), arrondis à 3 chiffres. Les rayons du supermarché gardent leurs prix (calculés avant).
+  Choix de la conceptrice : ×2 à chaque lieu, POUR TOUJOURS ; pour que ça tienne jusqu'au 20e lieu, les futurs lieux
+  devront vendre plus cher (chaque nouveau lieu doit à peu près doubler les revenus). Elle prévoit aussi des lieux
+  qui n'envoient rien au supermarché (pour qu'il ne soit plus le centre de tout).
+- Sauvegarde : les montants payés (déblocages, cases au sol, stocks, pousses) sont écrits SANS le coefficient du lieu
+  et remultipliés au chargement : une ancienne sauvegarde garde tout ce qui était payé (pas de SaveVersion changée).
+- Supermarché : 1 objet livré = 3 en réserve (avant 2).
+- Ateliers (atelier.go) : chaque machine est placée selon sa vraie largeur + sa case « Stock + » (stockBoxW 118) +
+  une allée (machineGap 240 ; glacier 320) ; le lieu s'élargit s'il le faut (boulangerie 3 140, crèmerie 3 620,
+  glacier 4 020). Rangées à 450 et 800, vitrines plus bas (shelfY + 120) : un couloir de ~100 sous la 2e rangée
+  (on passe sans marcher dans une zone). Bases des drones plus près des vitrines (Station.PadOff 85 : le mur du
+  bas est à 1 514). Compost contre le mur de droite, à hauteur de la 1re rangée (crèmerie : il n'est plus dans
+  l'allée ; glacier : il ne chevauche plus le « Stock + » de la glace cerise). Quais juste après la dernière vitrine
+  (boulangerie : à droite des pains au chocolat). Boucherie : mêmes rangées et vitrines.
+- Ferme d'élevage : cases « Stock + » pour les bâtiments d'animaux (poulailler, mare, prés, porcherie ; pas les
+  abattoirs) ; le lieu s'élargit (3 500) et tout est espacé (espaces 150–1110, 1160–1810, 1860–2510, 2560–3010 ;
+  quai à 1680 ; compost à 3130).
+- Boucherie : « Il faut les bovins » alors qu'ils étaient achetés : needsMet cherchait une station « bovin » (le pré
+  s'appelle pre_bovin) ; il accepte maintenant aussi l'identifiant d'un déblocage payé (builtOrUnlocked).
+- Ferme : un 4e ouvrier du maïs (95 000 €) et un 7e ouvrier de la serre (120 000 €, quand les 6 colonnes sont
+  ouvertes), en fin d'ordre d'embauche (demandés par la conceptrice, au-delà de la règle « un par ressource »).
+- Captures d'une vraie sauvegarde (shots_save.go) : `CAPSAVE=sauvegarde.json ./jeu -captures dossier`
+  (CAPPLACES=boulangerie,glacier pour quelques lieux ; CAPSEC, CAPZOOM). Sous Linux : paquets libasound2-dev,
+  libgl1-mesa-dev, libx*-dev, xvfb-run, et un ~/.asoundrc « pcm.!default { type null } ».

@@ -28,7 +28,8 @@ NOTES.md raconte l'histoire du projet et chaque décision de conception : lis-le
 - Tests de la simulation : `go test ./sim`.
 - Équilibrage : `go run ./cmd/balance N` (bot rapide) ; `go run ./cmd/balance -humain [jours]` (bot qui joue comme
   elle : séances courtes, gros gains hors ligne) ; `BALANCE_SAVE=fichier.json` écrit la sauvegarde finale.
-- Captures d'écran : l'exe accepte `-captures <dossier>` (shots.go : un bot joue puis on photographie les écrans).
+- Captures d'écran : l'exe accepte `-captures <dossier>` (shots.go : un bot joue puis on photographie les écrans) ;
+  avec `CAPSAVE=sauvegarde.json`, il charge sa partie et photographie chaque lieu (shots_save.go).
 - Pour étudier sa partie : charger sa sauvegarde dans un test (`struct{ Jeu *Save \`json:"jeu"\` }` puis
   `g.Restore(f.Jeu, f.Jeu.Unix)`), faire tourner `g.Step(1.0/30)` et mesurer. Supprimer ces tests de débogage après.
 

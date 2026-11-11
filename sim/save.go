@@ -44,9 +44,12 @@ func (g *Game) Snapshot(unix int64) *Save {
 		Rate: g.RateLong(), Unix: unix, Places: map[string]*PlaceSave{}, Badges: g.Badges, Commande: g.Order, Cadeau: g.Boost, Favoris: g.Fav}
 	for _, p := range g.Places {
 		ps := &PlaceSave{Paid: map[string]float64{}, Stock: map[string]int{}, Pile: map[string]int{}, Buf: map[string][]int{}, Pousses: map[string]int{}, PoussePaye: map[string]float64{}, NiveauPaye: map[string]float64{}, StockPaye: map[string]float64{}, CasePaye: map[string]float64{}}
+		// les montants payés sont écrits sans le coefficient du lieu (prices.go) :
+		// si la courbe des prix change, ce qui était payé reste payé
+		k := p.scale1()
 		for _, u := range p.Unlocks {
 			if u.Paid > 0 {
-				ps.Paid[u.ID] = u.Paid
+				ps.Paid[u.ID] = u.Paid / k
 			}
 		}
 		ps.Reputation = p.Rep
@@ -57,7 +60,7 @@ func (g *Game) Snapshot(unix int64) *Save {
 		}
 		for _, sp := range p.Spots {
 			if sp.Paid > 0 {
-				ps.CasePaye[sp.ID] = sp.Paid
+				ps.CasePaye[sp.ID] = sp.Paid / k
 			}
 		}
 		for _, st := range p.Stations {
@@ -68,15 +71,15 @@ func (g *Game) Snapshot(unix int64) *Save {
 				ps.Pile[st.ID] = st.Pile
 			}
 			if st.LvlPaid > 0 {
-				ps.NiveauPaye[st.ID] = st.LvlPaid
+				ps.NiveauPaye[st.ID] = st.LvlPaid / k
 			}
 			if st.StkPaid > 0 {
-				ps.StockPaye[st.ID] = st.StkPaid
+				ps.StockPaye[st.ID] = st.StkPaid / k
 			}
 			if st.Kind == Field {
 				ps.Pousses[st.ID] = len(st.Plants)
 				if st.PlantPaid > 0 {
-					ps.PoussePaye[st.ID] = st.PlantPaid
+					ps.PoussePaye[st.ID] = st.PlantPaid / k
 				}
 			}
 			if st.Kind == Machine || st.Kind == Dock {
@@ -209,8 +212,11 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 		if ps == nil {
 			continue
 		}
+		// (montants écrits sans le coefficient du lieu : voir Snapshot ; une sauvegarde
+		// d'avant la courbe des prix, avec les anciens prix, redonne donc tout ce qui était payé)
+		k := p.scale1()
 		for _, sp := range p.Spots {
-			sp.Paid = ps.CasePaye[sp.ID]
+			sp.Paid = ps.CasePaye[sp.ID] * k
 		}
 		if ps.Reputation >= 1 {
 			p.Rep = ps.Reputation
@@ -232,8 +238,9 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 			}
 		}
 		for _, u := range p.Unlocks {
-			u.Paid = ps.Paid[u.ID]
-			if u.Paid >= u.Cost-1e-6 && u.Cost > 0 {
+			u.Paid = ps.Paid[u.ID] * k
+			if u.Paid >= u.Cost*0.99 && u.Cost > 0 { // (prix arrondis : niceRound)
+				u.Paid = u.Cost
 				u.Done = false
 				p.complete(u)
 			}
@@ -250,10 +257,10 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 				for i := 0; i < n; i++ {
 					st.Plants = append(st.Plants, Plant{P: st.Slots[i], G: 1})
 				}
-				st.PlantPaid = ps.PoussePaye[st.ID]
+				st.PlantPaid = ps.PoussePaye[st.ID] * k
 			}
-			st.LvlPaid = ps.NiveauPaye[st.ID]
-			st.StkPaid = ps.StockPaye[st.ID]
+			st.LvlPaid = ps.NiveauPaye[st.ID] * k
+			st.StkPaid = ps.StockPaye[st.ID] * k
 			st.Stock = min(ps.Stock[st.ID], st.StockMax)
 			st.Pile = min(ps.Pile[st.ID], st.PileMax)
 			if b, ok := ps.Buf[st.ID]; ok {

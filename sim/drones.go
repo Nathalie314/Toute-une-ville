@@ -28,7 +28,11 @@ func DroneCap(pts int) int { return 1 + pts/2 }
 
 // DronePad : base du drone, sous son étal.
 func (s *Station) DronePad() Rect {
-	return Rect{s.Body.X + 15, s.Body.Y + s.Body.H + 140, 120, 104}
+	off := 140.0
+	if s.PadOff > 0 {
+		off = s.PadOff
+	}
+	return Rect{s.Body.X + 15, s.Body.Y + s.Body.H + off, 120, 104}
 }
 
 // hasDrones : lieux où les vitrines ont des drones.
