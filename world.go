@@ -538,6 +538,9 @@ func (g *game) drawZones(dst *ebiten.Image, p *sim.Place, s *sim.Station) {
 				lbl = "ACCUEIL"
 			}
 			say(dst, lbl, s.Zone.C().X, s.Zone.C().Y, 22, true, 0, rgb(0x8a6a10))
+		} else if p.PlayerHelps(s) {
+			// le joueur à côté de la caissière : ils encaissent à deux
+			sayOutlined(dst, "Tu l'aides : ça va plus vite !", s.Spot.X, s.Spot.Y-70, 17, 0, rgb(0xffffff), rgb(0x2f8a4a))
 		}
 	case sim.Trash:
 		if s.Zone.W > 0 {

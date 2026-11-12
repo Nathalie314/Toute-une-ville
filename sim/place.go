@@ -1281,15 +1281,28 @@ func FieldYield(level int) int {
 }
 
 // CashTime : secondes par objet passé en caisse (caissière ; le joueur va plus vite).
+// Le joueur à côté d'une caissière l'aide : leurs vitesses s'additionnent.
 func (p *Place) CashTime(r *Station) float64 {
 	if r.Cashier == nil {
 		return CashPlayer // le joueur
 	}
+	t := CashBase / (1 + 2*p.ptsF("pts_caisse")) // (4.1 : seulement les points « Caisses » de l'école)
 	if p.ID == "super" {
-		return CashPlayer / (1 + 2*p.ptsF("pts_caisse")) // caisses à scanner
+		t = CashPlayer / (1 + 2*p.ptsF("pts_caisse")) // caisses à scanner
 	}
-	// (4.1 : plus de tiroir-caisse ni de caisse rapide : seulement les points « Caisses » de l'école)
-	return CashBase / (1 + 2*p.ptsF("pts_caisse"))
+	if p.PlayerHelps(r) {
+		t = 1 / (1/t + 1/CashPlayer)
+	}
+	return t
+}
+
+// HelpDist : distance à la caissière en deçà de laquelle le joueur l'aide.
+const HelpDist = 170.0
+
+// PlayerHelps : le joueur est-il à côté de la caissière de cette caisse ?
+func (p *Place) PlayerHelps(r *Station) bool {
+	g := p.g
+	return r.Cashier != nil && p.ID != "ecole" && g.Cur == p && g.Player != nil && g.Player.Pos.Sub(r.Spot).Len() < HelpDist // (l'accueil de l'école : pas de caisse)
 }
 
 // cashUpgrade : vitesse d'encaissement des caissières d'un lieu.

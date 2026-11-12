@@ -747,3 +747,8 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   8 serveurs (un par fabrique : 1,5 M et 3,2 M de base en plus). Supermarché : rayons Glace à la vanille et
   Glace au café. Sauvegarde : ce qui était payé pour la glace à la cerise (fabrique, stock, drone, rayon du
   supermarché) passe à la vanille (migrateGlaces, au chargement).
+- Commandes : le garagiste (cadeau camions et drones ×2) ne commande pas tant que le supermarché n'est pas acheté
+  (avant, ni camion ni drone : son cadeau ne servait à rien).
+- Caisses : le joueur à moins de 170 d'une caissière (HelpDist, Place.PlayerHelps) l'aide : leurs vitesses
+  s'additionnent (petite boutique : 1,2 s → 0,35 s par article ; supermarché : l'aide du joueur s'ajoute aux
+  points « Caisses »). Bulle « Tu l'aides : ça va plus vite ! » au-dessus de la caissière. Pas à l'accueil de l'école.

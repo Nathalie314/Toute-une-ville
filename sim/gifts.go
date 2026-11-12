@@ -71,6 +71,12 @@ func (g *Game) orderPerson0() string {
 				continue
 			}
 		}
+		if who == "le garagiste" {
+			// (camions et drones ×2 : pas avant le supermarché, sans camion ni drone ça ne sert à rien)
+			if p := g.Place("super"); p == nil || !p.Owned {
+				continue
+			}
+		}
 		return who
 	}
 }
