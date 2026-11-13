@@ -265,13 +265,31 @@ func (p *Place) superDepart(v *Vehicle) {
 func (p *Place) superCustSpeed() float64 { return 1 + p.ptsF("pts_caddie") }
 
 // superRegister : la caisse où aller (file courte, pas trop loin).
+// Le client estime le TEMPS d'attente à chaque caisse : tous les articles des
+// caddies devant lui (un caddie en a souvent 40 : compter les personnes ne
+// suffisait pas, les caisses du milieu avaient 5 clients en file, celles des
+// bouts 1), au rythme de la caisse, plus le temps de marche pour y aller.
+// Une caisse sans caissière compte pour une longue attente (on l'évite, mais
+// celui qui y va y reste : voulu).
 func (p *Place) superRegister(c *Customer) *Station {
 	var best *Station
 	bs := math.Inf(1)
+	walk := 165 * p.superCustSpeed()
 	for _, r := range p.Registers() {
-		sc := float64(p.QueueAt(r)) + c.Pos.Dist(r.QueueHead)/700
+		items := 0.0
+		for _, o := range p.Customers {
+			if o != c && o.State == cQueue && o.reg == r {
+				if o.CheckN > 0 {
+					items += math.Max(0, o.CheckT) // (ce qu'il reste à passer)
+				} else {
+					items += float64(max(1, o.gotAll()))
+				}
+			}
+		}
+		// (marcher agace bien moins qu'attendre dans la file : la marche compte pour un quart)
+		sc := items*p.CashTime(r) + 0.25*c.Pos.Dist(r.QueueHead)/walk
 		if !p.manned(r) {
-			sc += 4
+			sc += 60
 		}
 		if sc < bs {
 			best, bs = r, sc

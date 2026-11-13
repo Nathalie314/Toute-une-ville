@@ -819,3 +819,7 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Raffinerie « lente » (sa partie : 36 points de vitesse, ×2,08 → 1,44 s par sucre) : elle travaille 100 % du temps,
   la canne s'entasse devant : c'est le goulot de l'espace sucre. Décision de la conceptrice : ne rien changer, il
   faut mettre plus de points « Machines : vitesse » (pas de 2 sucres par canne, pas de temps de base plus court).
+- Supermarché, choix de la caisse (superRegister) : le client estime le TEMPS d'attente (articles de tous les
+  caddies devant lui × vitesse de la caisse) + un quart du temps de marche ; caisse sans caissière : +60 s (évitée,
+  mais celui qui y va y reste : voulu). Avant : nombre de personnes + distance/700, d'où des files de 5 au milieu et
+  de 1 aux bouts. Mesure (sa partie, 9 caisses, 10 min) : files moyennes 0,6 à 5,4 → 1,7 à 2,9.
