@@ -260,7 +260,13 @@ func newFarm(g *Game) *Place {
 		b := f.Body
 		z := Rect{b.X + b.W/2 - 56, b.Y + b.H + 14, 112, 92} // sur le chemin, sous le milieu du champ
 		if f.Column {
-			z = Rect{b.X + 9, b.Y + b.H + 14, 112, 92}
+			// serre et verger : une grande case au milieu, sous les six colonnes (les
+			// ouvriers sont pour toute la serre, tout le verger)
+			cx := SerreX + 3*ColumnW
+			if t.ID == "verger" {
+				cx = VergerX + 3*ColumnW
+			}
+			z = Rect{cx - 150, b.Y + b.H + 14, 300, 92}
 		}
 		p.Spots = append(p.Spots, &Spot{ID: teamKey(t.ID), Label: "Ouvrier", Team: t.ID, Zone: z,
 			Done: func(l int) string { return "Ouvrier " + t.Name + " +1 !" }})
