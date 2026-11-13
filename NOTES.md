@@ -812,3 +812,7 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Ressenti de la conceptrice (nouvelle partie, 4 h 55 de jeu, 1 375 €/s, ferme exotique en cours) : le délai pour
   atteindre le lieu suivant lui plaît ; elle doit bien choisir son prochain achat (c'est le but). Seule déception :
   le stock des ruches trop bon marché (corrigé). Garder ce rythme comme référence.
+- Drones, dans TOUS les lieux (plus seulement la ferme) : un drone par lieu acheté qui demande le produit de l'étal
+  (DroneMax = destCount : deux lieux → deux drones, trois → trois…), au plus un par quai du lieu ; chaque drone
+  de plus coûte 3 fois le précédent. Le drone suivant ne s'achète que quand la demande augmente (nouveau lieu
+  acheté, rayon ouvert au supermarché…). Sa partie : seuls les trois laits (supermarché + crèmerie) ont 2 lieux.

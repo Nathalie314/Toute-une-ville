@@ -1,5 +1,7 @@
 package sim
 
+import "math"
+
 // Drones de la ferme : un par étal. Chacun prend les produits de SON étal et
 // les apporte au quai d'un camion. Les ouvriers ne s'occupent plus des quais ;
 // le joueur peut toujours y déposer des produits pour aider.
@@ -70,16 +72,11 @@ func (g *Game) droneOK(key string) bool {
 	return true
 }
 
-// FarmDronesMax : à la ferme, drones par étal au plus (le 2e et le 3e coûtent
-// 3 et 9 fois le premier) quand le produit part vers au moins 2 lieux.
-const FarmDronesMax = 3
-
-// DroneMax : drones qu'on peut avoir maintenant pour cet étal.
+// DroneMax : drones qu'on peut avoir maintenant pour cet étal, dans tous les
+// lieux : un par lieu (acheté) qui demande son produit (deux lieux : deux drones…).
+// Chaque drone de plus coûte 3 fois le précédent.
 func (p *Place) DroneMax(s *Station) int {
-	if p.ID != "ferme" || p.destCount(s) < 2 {
-		return 1
-	}
-	return FarmDronesMax
+	return max(1, p.destCount(s))
 }
 
 // destCount : vers combien de lieux (achetés) le produit de cet étal peut-il partir ?
@@ -102,16 +99,24 @@ func (p *Place) droneUpgrades(scale float64) []*Upgrade {
 		}
 		it := s.Item
 		c := dronePrice[p.ID] // même prix pour tous les drones d'un lieu
-		u := &Upgrade{Key: k(droneKey(it)), Name: "Drone : " + Items[it].Name, Max: 1, Costs: []float64{c},
+		// au plus un drone par quai du lieu (un par lieu où le produit peut partir)
+		docks := 0
+		for _, q := range p.Stations {
+			if q.Kind == Dock {
+				docks++
+			}
+		}
+		var costs []float64
+		for i := 0; i < max(1, docks); i++ {
+			costs = append(costs, c*math.Pow(3, float64(i)))
+		}
+		u := &Upgrade{Key: k(droneKey(it)), Name: "Drone : " + Items[it].Name, Max: len(costs), Costs: costs,
 			Desc: func(l int) string {
 				if l > 0 {
 					return "Un drone de plus pour cet étal : ils se partagent les quais (le produit part vers plusieurs lieux)."
 				}
 				return "Il prend les produits de cette vitrine et les porte au quai du camion."
 			}}
-		if p.ID == "ferme" {
-			u.Max, u.Costs = FarmDronesMax, []float64{c, 3 * c, 9 * c}
-		}
 		ups = append(ups, u)
 	}
 	return ups
