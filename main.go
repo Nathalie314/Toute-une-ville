@@ -94,6 +94,7 @@ type game struct {
 	lastPay            float64
 	coinSnd            float64
 	shots              *shotScript
+	typed              []rune // caractères tapés à cette image
 	saveShots          *saveShots
 	capName            string
 	helpSeen           bool
@@ -149,7 +150,10 @@ func (g *game) input(dt float64) {
 	if inpututil.IsKeyJustPressed(ebiten.KeyF11) || (inpututil.IsKeyJustPressed(ebiten.KeyEnter) && ebiten.IsKeyPressed(ebiten.KeyAlt)) {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
-	if inpututil.IsKeyJustPressed(ebiten.KeyM) {
+	// les caractères tapés (et non la position des touches : sur un clavier AZERTY,
+	// la touche « , ? » est à la place du M d'un clavier anglais)
+	g.typed = ebiten.AppendInputChars(g.typed[:0])
+	if g.typedAny('m', 'M') {
 		g.toggleMute()
 	}
 	// clics sur les boutons (ceux dessinés à l'image précédente)
@@ -183,6 +187,10 @@ func (g *game) input(dt float64) {
 		}
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyEscape) && g.panel != panelNone {
 		g.closePanel()
+	}
+	// l'aide : la touche « , ? » (avec ou sans majuscule), aussi sur la carte
+	if g.panel == panelNone && g.typedAny(',', '?') {
+		g.openPanel(panelHelp)
 	}
 	if g.panel != panelNone {
 		g.scroll -= wy * 60
@@ -416,3 +424,15 @@ func appIcon() image.Image {
 }
 
 var _ = time.Now
+
+// typedAny : un de ces caractères a-t-il été tapé à cette image ?
+func (g *game) typedAny(rs ...rune) bool {
+	for _, t := range g.typed {
+		for _, r := range rs {
+			if t == r {
+				return true
+			}
+		}
+	}
+	return false
+}

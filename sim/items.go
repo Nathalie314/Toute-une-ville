@@ -217,7 +217,7 @@ var Items = [NItems]ItemInfo{
 	Tomate:           {"Tomates", 20},
 	Courgette:        {"Courgettes", 24},
 	Poireau:          {"Poireaux", 28},
-	Chou:             {"Choux", 32},
+	Chou:             {"Salades", 32}, // (Chou : la salade, qui a remplacé le chou)
 	PommeDeTerre:     {"Pommes de terre", 36},
 	Fraise:           {"Fraises", 26},
 	Pomme:            {"Pommes", 30},
@@ -229,7 +229,7 @@ var Items = [NItems]ItemInfo{
 	GrainesTomate:    {"Graines de tomate", 0},
 	GrainesCourgette: {"Graines de courgette", 0},
 	GrainesPoireau:   {"Graines de poireau", 0},
-	GrainesChou:      {"Graines de chou", 0},
+	GrainesChou:      {"Graines de salade", 0},
 	PlantsPdt:        {"Plants de pomme de terre", 0},
 	SucreRoux:        {"Sucre roux", 30},
 	SucreMorceaux:    {"Sucre en morceaux", 45},

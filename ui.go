@@ -796,7 +796,7 @@ func (g *game) drawHelp(dst *ebiten.Image) {
 		"• Tu n'arrives pas à te débarrasser de quelque chose ? Arrête-toi au compost, tout à droite.",
 		"• Supermarché, boulangerie, crèmerie, glacier (sur la carte) : chacun a son quai à la ferme, un camion y emmène les produits.",
 		"• La réputation (étoiles) monte avec les clients contents et attire du monde. B : tes badges.",
-		"• Le jeu se sauvegarde tout seul. F11 : plein écran ou fenêtre. M : couper le son.",
+		"• Le jeu se sauvegarde tout seul. F11 : plein écran ou fenêtre. M : couper le son. « , ? » : cette aide.",
 	}
 	for i, l := range lines {
 		say(dst, l, x+50, y+34+float64(i)*45, 22, false, -1, rgb(0x3b2a10))

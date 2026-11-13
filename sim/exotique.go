@@ -205,7 +205,11 @@ func newExotic(g *Game) *Place {
 		b := p.Station(first[z.ID]).Body
 		zr := Rect{b.X + b.W/2 - 56, b.Y + b.H + 14, 112, 92}
 		if z.ID == "fruits" {
-			zr = Rect{b.X + 9, b.Y + b.H + 14, 112, 92}
+			// une grande case au milieu, sous les quatre arbres, dans l'herbe entre les
+			// deux chemins (comme la serre et le verger) : l'ouvrier est pour tous les fruits
+			x0, x1 := p.Station(exoColumnIDs[0]).Body.X, p.Station(exoColumnIDs[len(exoColumnIDs)-1]).Body
+			cx := (x0 + x1.X + x1.W) / 2
+			zr = Rect{cx - 150, 684, 300, 92}
 		}
 		p.Spots = append(p.Spots, &Spot{ID: teamKey(z.ID), Label: "Ouvrier " + z.Name, Team: z.ID, Zone: zr,
 			Done: func(l int) string { return "Ouvrier (" + z.Name + ") +1 !" }})

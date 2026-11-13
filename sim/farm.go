@@ -48,7 +48,7 @@ var ColumnOrder = []columnBuy{
 	{"pommier", "Pommier", 13000, true},
 	{"poireau", "Poireaux", 16000, false},
 	{"poirier", "Poirier", 19000, true},
-	{"chou", "Choux", 22000, false},
+	{"chou", "Salades", 22000, false}, // (la salade a remplacé le chou ; l'identifiant reste « chou » : sauvegardes)
 	{"cerisier", "Cerisier", 26000, true},
 	{"pdt", "Pommes de terre", 30000, false},
 	{"abricotier", "Abricotier", 35000, true},
@@ -128,7 +128,7 @@ func newFarm(g *Game) *Place {
 		m.Spot = V{x + 75, shelfY + shelfH + 38}
 		p.Stations = append(p.Stations, m)
 	}
-	vegNames := []string{"Carottes", "Tomates", "Courgettes", "Poireaux", "Choux", "Pommes de terre"}
+	vegNames := []string{"Carottes", "Tomates", "Courgettes", "Poireaux", "Salades", "Pommes de terre"}
 	fruitNames := []string{"Fraisiers", "Pommier", "Poirier", "Cerisier", "Abricotier", "Figuier"}
 	for i, it := range Legumes {
 		column(ColumnIDs[i], vegNames[i], it, SerreX+float64(i)*ColumnW, 9+float64(i), true)
@@ -182,7 +182,7 @@ func newFarm(g *Game) *Place {
 	machine("bergerie", "Bergerie", LaitBrebis, []Item{Ble}, 5, 4, "bergerie", 5000)
 	{
 		// six ruches (avant : trois) : deux fois plus de miel (6 s → 3 s)
-		s := &Station{ID: "ruche", Name: "Ruches", Kind: Machine, Item: Miel, Inputs: []Item{Fleur}, Time: 3, PileMax: 12, BufMax: 10, Unlock: "ruche"} // les abeilles butinent les fleurs
+		s := &Station{ID: "ruche", Name: "Ruches", Kind: Machine, Item: Miel, Inputs: []Item{Fleur}, Time: 3, PileMax: 12, BufMax: 10, Unlock: "ruche", BaseCost: 12000} // les abeilles butinent les fleurs (BaseCost : prix du stock, après la bergerie)
 		s.Body = Rect{FleursX, bldY, 500, bldH}
 		s.Zone = Rect{FleursX - 10, bldY + bldH + 18, 130, 90}
 		s.OutZone = Rect{FleursX + 140, bldY + bldH + 18, 130, 90}
@@ -228,12 +228,13 @@ func newFarm(g *Game) *Place {
 	trash.Body = Rect{5290, shelfY - 10, 84, 76} // (avant le décalage de la ferme)
 	trash.Zone = Rect{5270, shelfY - 100, 124, 180}
 	// quais d'expédition : un par destination (servent une fois le lieu acheté)
+	// (les quais ne sont pas décalés avec la ferme : x définitifs ; chacun près de ce qu'il emporte)
 	p.dock("quai", "super", 1700)
 	p.dock("quai_boul", "boulangerie", 2050)
-	p.dock("quai_creme", "cremerie", 2400)
-	p.dock("quai_glace", "glacier", 2750)
-	p.dock("quai_elevage", "elevage", 3100)
-	p.dock("quai_domaine", "domaine", 3450)
+	p.dock("quai_creme", "cremerie", 2892)  // sous l'étal du lait de chèvre (au milieu des laits)
+	p.dock("quai_elevage", "elevage", 3250) // sous le lait de brebis, près du maïs et de la serre
+	p.dock("quai_domaine", "domaine", 3600) // au début de la serre (pommes de terre, pommes, poires)
+	p.dock("quai_glace", "glacier", 4380)   // juste à gauche des fruits du verger
 	// la cour, à gauche de la boutique (près du portail) : caisse des commandes et hangar
 	cmd := &Station{ID: "commande", Name: "Commandes", Kind: OrderBox, Built: true}
 	cmd.Body = Rect{230, 1110, 180, 70}

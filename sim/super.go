@@ -124,8 +124,8 @@ func init() {
 		z.X = SuperBX0 + SuperBX1 - z.X - z.W
 	}
 	SuperCartX = SuperBX1 + 40
-	SuperParkX = SuperCartX + 420
-	SuperW = SuperParkX + 2600 // (la route de sortie passe entre les places au sol et le parking à étages)
+	SuperParkX = SuperCartX + 510 // (après la route d'accès, qui va jusqu'à SuperCartX + 480 : elle ne passe plus sur le parking)
+	SuperW = SuperParkX + 2600    // (la route de sortie passe entre les places au sol et le parking à étages)
 }
 
 func newSuper(g *Game) *Place {
@@ -370,43 +370,43 @@ func (g *Game) produced(it Item) bool {
 func whereLocked(it Item) string {
 	for _, b := range BakerySold {
 		if b == it {
-			return "D'abord à la boulangerie"
+			return "Depuis la boulangerie"
 		}
 	}
 	for _, b := range CremerieSold {
 		if b == it {
-			return "D'abord à la crèmerie"
+			return "Depuis la crèmerie"
 		}
 	}
 	for _, b := range IceSold {
 		if b == it {
-			return "D'abord chez le glacier"
+			return "Depuis le glacier"
 		}
 	}
 	for _, b := range BoucherieSold {
 		if b == it {
-			return "D'abord à la boucherie"
+			return "Depuis la boucherie"
 		}
 	}
 	for _, b := range ExoticSold {
 		if b == it {
-			return "D'abord à la ferme exotique"
+			return "Depuis la ferme exotique"
 		}
 	}
 	for _, b := range PortSold {
 		if b == it {
-			return "D'abord au port"
+			return "Depuis le port"
 		}
 	}
 	if it == Raisin {
-		return "D'abord au domaine"
+		return "Depuis le domaine"
 	}
 	for _, b := range DrinksSold {
 		if b == it {
-			return "D'abord au domaine"
+			return "Depuis le domaine"
 		}
 	}
-	return "D'abord à la ferme"
+	return "Depuis la ferme"
 }
 
 // fixRayonCosts : le prix d'un rayon suit la progression du jeu (plus le produit

@@ -141,7 +141,8 @@ func drawSuperGround(dst *ebiten.Image, g *game, p *sim.Place, tl, br V) {
 		for x := px + 30; x < px+pw-30; x += 120 {
 			rect(dst, x, a-3, 50, 6, rgba(0xffe066, 0.5))
 		}
-		// l'allée rejoint la route de sortie
+		// l'allée part de la route d'accès et rejoint la route de sortie
+		rect(dst, ax+60, a-42, px-ax-50, 84, rgb(0x5f6368))
 		rect(dst, px+pw-20, a-42, ex-80-(px+pw)+40, 84, rgb(0x5f6368))
 		// les allées : vers la droite seulement
 		for x := px + 150; x < px+pw-60; x += 420 {

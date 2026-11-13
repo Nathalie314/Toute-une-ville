@@ -405,6 +405,16 @@ func (p *Place) step(dt float64, active bool) {
 		p.stepSchool(dt, active)
 		return
 	}
+	// une caissière sans client s'ennuie (elle sifflote : dessin)
+	for _, r := range p.Registers() {
+		if c := r.Cashier; c != nil {
+			if p.QueueAt(r) == 0 {
+				c.Bored += dt
+			} else {
+				c.Bored = 0
+			}
+		}
+	}
 	for _, s := range p.Stations {
 		if !s.Built {
 			continue

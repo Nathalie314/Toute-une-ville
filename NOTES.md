@@ -791,3 +791,21 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   sous les six colonnes, dans l'herbe entre les deux chemins (y 684 ; pas sur le chemin, à sa demande ; avant :
   petite case sous la 1re colonne) : le texte se lit en entier et on
   comprend que l'ouvrier est pour toute la serre, tout le verger.
+
+## 4.1 — retouches (salade, quais, parking, aide…)
+- La salade remplace le chou (nom « Salades », dessin de feuilles frisées) ; l'identifiant reste Chou / « chou »
+  (sauvegardes, rayon du supermarché, drones…).
+- Supermarché : le parking au sol est décalé de 90 vers la droite (SuperParkX = SuperCartX + 510) : la route
+  d'accès (jusqu'à SuperCartX + 480) ne passe plus dessus ; ses allées partent de la route d'accès.
+- Caissière sans client depuis 5 s (CashierBoredAfter ; Agent.Bored compté dans Place.step) : elle sifflote (notes
+  de musique, comme les ouvriers qui s'ennuient : drawNotes).
+- Ferme, quais (x définitifs, non décalés) : supermarché 1 700, boulangerie 2 050, crèmerie 2 892 (sous le lait de
+  chèvre, au milieu des laits), ferme d'élevage 3 250, domaine 3 600, glacier 4 380 (juste à gauche des fruits).
+- Supermarché, rayon d'un lieu pas encore ouvert : « Depuis la ferme exotique » (et « Depuis la crèmerie »,
+  « Depuis le glacier », « Depuis le port », « Depuis le domaine »…) au lieu de « D'abord à… ».
+- L'aide s'ouvre avec la touche « , ? » (avec ou sans majuscule), dans un lieu ou sur la carte. Les touches de
+  caractères se lisent maintenant par le caractère tapé (AppendInputChars) : sur son clavier AZERTY, la touche
+  « , ? » est à la place du M anglais (avant, elle coupait le son) ; M coupe le son (le caractère m).
+- Ruches : stock plus cher (BaseCost 12 000 : 6 000 € puis ×2,2, après la bergerie ; avant 60 €).
+- Ferme exotique : les noms des espaces (sucre, cacao, café…) au milieu de leurs champs ; la case « Ouvrier
+  Fruits +1 » est une grande case dans l'herbe, au milieu sous les quatre arbres (comme la serre et le verger).

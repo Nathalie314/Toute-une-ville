@@ -1260,6 +1260,13 @@ func drawAgent(dst *ebiten.Image, place string, a *sim.Agent, t float64) {
 		drawBored(dst, a, lk, t)
 		return
 	}
+	if a.Kind == sim.CashierAgent && a.Bored > sim.CashierBoredAfter {
+		// pas de client : elle sifflote derrière sa caisse
+		lk.mouth = 2
+		drawPerson(dst, a.Pos, a.Face, 0, false, lk, nil)
+		drawNotes(dst, a.Pos.X, a.Pos.Y, t+float64(a.Look)*1.3)
+		return
+	}
 	drawPerson(dst, a.Pos, a.Face, a.WalkT, a.Moving, lk, a.Carry)
 }
 
@@ -1289,16 +1296,21 @@ func drawBored(dst *ebiten.Image, a *sim.Agent, lk look, t float64) {
 	default: // sifflote : des notes s'envolent
 		lk.mouth = 2
 		drawPerson(dst, a.Pos, a.Face, 0, false, lk, nil)
-		for i := 0; i < 2; i++ {
-			k := math.Mod(ph*0.6+float64(i)/2, 1)
-			nx := x + 16 + k*26 + math.Sin(k*9)*4
-			ny := y - 70 - k*50
-			c := rgba(0x8e44ad, math.Min(1, 1.4-1.4*k))
-			ellipse(dst, nx, ny, 6, 4.5, c)
-			rect(dst, nx+4, ny-18, 2.5, 18, c)
-			if i == 0 {
-				rect(dst, nx+4, ny-18, 9, 3, c)
-			}
+		drawNotes(dst, x, y, ph)
+	}
+}
+
+// drawNotes : des notes de musique qui s'envolent (quelqu'un sifflote).
+func drawNotes(dst *ebiten.Image, x, y, ph float64) {
+	for i := 0; i < 2; i++ {
+		k := math.Mod(ph*0.6+float64(i)/2, 1)
+		nx := x + 16 + k*26 + math.Sin(k*9)*4
+		ny := y - 70 - k*50
+		c := rgba(0x8e44ad, math.Min(1, 1.4-1.4*k))
+		ellipse(dst, nx, ny, 6, 4.5, c)
+		rect(dst, nx+4, ny-18, 2.5, 18, c)
+		if i == 0 {
+			rect(dst, nx+4, ny-18, 9, 3, c)
 		}
 	}
 }
