@@ -809,3 +809,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Ruches : stock plus cher (BaseCost 12 000 : 6 000 € puis ×2,2, après la bergerie ; avant 60 €).
 - Ferme exotique : les noms des espaces (sucre, cacao, café…) au milieu de leurs champs ; la case « Ouvrier
   Fruits +1 » est une grande case dans l'herbe, au milieu sous les quatre arbres (comme la serre et le verger).
+- Ressenti de la conceptrice (nouvelle partie, 4 h 55 de jeu, 1 375 €/s, ferme exotique en cours) : le délai pour
+  atteindre le lieu suivant lui plaît ; elle doit bien choisir son prochain achat (c'est le but). Seule déception :
+  le stock des ruches trop bon marché (corrigé). Garder ce rythme comme référence.
