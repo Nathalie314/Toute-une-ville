@@ -788,5 +788,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   drones volent 20 à 50 % du temps ; fraises (61 %, quai en manque 27 % du temps), pommes de terre (53 %, 20 %) et
   œufs (29 %, 12 %) saturaient. Elle craint que la production de pommes de terre ne suive pas : à surveiller.
 - Ferme : la case d'embauche des ouvriers de la serre (et du verger) est une grande case (300 × 92) au milieu,
-  sous les six colonnes, sur le chemin (avant : petite case sous la 1re colonne) : le texte se lit en entier et on
+  sous les six colonnes, dans l'herbe entre les deux chemins (y 684 ; pas sur le chemin, à sa demande ; avant :
+  petite case sous la 1re colonne) : le texte se lit en entier et on
   comprend que l'ouvrier est pour toute la serre, tout le verger.
