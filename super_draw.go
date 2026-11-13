@@ -18,7 +18,7 @@ var zoneCols = map[string]uint32{
 
 // superTruckStop : où s'arrête le camion d'un lieu (derrière son espace).
 func superTruckStop(from string) float64 {
-	id := map[string]string{"ferme": "ferme", "cremerie": "cremerie", "boulangerie": "boulangerie", "glacier": "glace", "boucherie": "boucherie", "exotique": "epicerie", "port": "poisson"}[from]
+	id := map[string]string{"ferme": "ferme", "cremerie": "cremerie", "boulangerie": "boulangerie", "glacier": "glace", "boucherie": "boucherie", "exotique": "epicerie", "port": "poisson", "domaine": "alcool"}[from]
 	for _, z := range sim.SuperZones {
 		if z.ID == id {
 			return z.X + z.W/2
@@ -207,7 +207,7 @@ func drawZoneBarrier(dst *ebiten.Image, s *sim.Station) {
 	for _, z := range sim.SuperZones {
 		if "barriere_"+z.ID == s.ID && !z.Soon {
 			txt = map[string]string{"legumes": "Il faut la serre (ma ferme)", "fruits": "Il faut le verger (ma ferme)",
-				"cremerie": "Il faut la crèmerie", "boulangerie": "Il faut la boulangerie", "glace": "Il faut le glacier", "boucherie": "Il faut la boucherie", "epicerie": "Il faut la ferme exotique"}[z.ID]
+				"cremerie": "Il faut la crèmerie", "boulangerie": "Il faut la boulangerie", "glace": "Il faut le glacier", "boucherie": "Il faut la boucherie", "epicerie": "Il faut la ferme exotique", "alcool": "Il faut le domaine"}[z.ID]
 		}
 	}
 	roundRect(dst, b.C().X-170, b.C().Y-34, 340, 68, 12, rgba(0x2b2140, 0.85))

@@ -92,7 +92,7 @@ type Station struct {
 
 	claim  [NItems]int // quantités promises par des employés en route
 	booked int         // étal : articles réservés par des clients en route
-	Drone  *Drone      // étal de la ferme : son drone
+	Drones []*Drone    // étal : ses drones (un ; à la ferme, jusqu'à 3 si son produit part vers plusieurs lieux)
 }
 
 func (s *Station) Solid() bool { return s.Kind != Field }
@@ -689,7 +689,7 @@ func (p *Place) interact(a *Agent, dt float64) {
 		for _, sp := range p.Spots {
 			u := p.SpotUpgrade(sp)
 			l := g.Levels[u.Key]
-			if l >= u.Max || !p.SpotVisible(sp) || !sp.Zone.Has(a.Pos) {
+			if l >= u.Max || (sp.Shelf != nil && l >= p.DroneMax(sp.Shelf)) || !p.SpotVisible(sp) || !sp.Zone.Has(a.Pos) {
 				continue
 			}
 			cost := u.Cost(l)
@@ -1134,6 +1134,12 @@ type Spot struct {
 func (p *Place) SpotUpgrade(sp *Spot) *Upgrade {
 	for _, u := range p.PlaceUpgrades() {
 		if u.Key == p.key(sp.ID) {
+			if sp.Shelf != nil && u.Max > 1 {
+				// drones de la ferme : un 2e et un 3e seulement si le produit part vers plusieurs lieux
+				c := *u
+				c.Max = min(u.Max, max(p.DroneMax(sp.Shelf), p.g.Levels[u.Key]))
+				return &c
+			}
 			return u
 		}
 	}
@@ -1345,7 +1351,7 @@ func (p *Place) speedOf0(s *Station) (f, rent float64) {
 		return 1 + 3*p.ptsF("pts_soin"), RentSave(g.Levels[p.key("pts_soin_rent")])
 	case p.ID == "elevage" && s.Kind == Machine:
 		return 1 + 3*p.ptsF("pts_mac_vit"), RentSave(g.Levels[p.key("pts_mac_rent")])
-	case p.ID == "exotique" && s.Kind == Machine:
+	case (p.ID == "exotique" || p.ID == "domaine") && s.Kind == Machine:
 		return 1 + 3*p.ptsF("pts_mac_vit"), RentSave(g.Levels[p.key("pts_mac_rent")])
 	case p.ID == "ferme" && animalIDs[s.ID]:
 		return 1 + 3*p.ptsF("pts_soin"), RentSave(g.Levels[p.key("pts_soin_rent")]) // (sélection génétique)

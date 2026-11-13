@@ -82,11 +82,16 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 		g.exoticGround(dst, p, tl, br)
 	case "port":
 		g.portGround(dst, p, tl, br)
+	case "domaine":
+		g.domaineGround(dst, p, tl, br)
 	default:
 		g.workshopGround(dst, p, tl, br)
 	}
 	drawParking(dst, p, tl, br)
 	g.drawYard(dst, p)
+	if p.ID == "domaine" {
+		drawAlcoholNotice(dst, p)
+	}
 
 	// --- champs (au sol)
 	for _, s := range p.Stations {
@@ -210,7 +215,7 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	}
 	// les drones volent au-dessus de tout
 	for _, s := range p.Stations {
-		if d := s.Drone; d != nil {
+		for _, d := range s.Drones {
 			lift := 0.0
 			if d.Phase != 0 {
 				lift = 40
@@ -334,7 +339,7 @@ func (g *game) drawField(dst *ebiten.Image, s *sim.Station) {
 }
 
 func drawPlant(dst *ebiten.Image, it sim.Item, x, y, gr, t float64, i int) {
-	if drawExoticPlant(dst, it, x, y, gr, t) {
+	if drawExoticPlant(dst, it, x, y, gr, t) || drawDomainePlant(dst, it, x, y, gr, t) {
 		return
 	}
 	sway := 0.0
@@ -597,6 +602,11 @@ func (g *game) drawStation(dst *ebiten.Image, p *sim.Place, s *sim.Station) {
 	}
 	if strings.HasPrefix(s.ID, "barriere_") { // (tous les espaces du supermarché, même les nouveaux)
 		drawZoneBarrier(dst, s)
+		return
+	}
+	if p.ID == "domaine" && s.Kind == sim.Machine {
+		drawDomaineMachine(dst, s, g.t)
+		sign(dst, s.Body.C().X, s.Body.Y-14, s.Name)
 		return
 	}
 	if g.drawStage6(dst, p, s) {
@@ -988,6 +998,8 @@ func staffLook(place string, kind sim.AgentKind, n int) look {
 			lk.badge = true
 		case "port": // marinière, tablier ciré
 			lk.shirt, lk.mariniere, lk.apron = 0xffffff, true, 0x1f5fa8
+		case "domaine":
+			lk.shirt, lk.apron = 0x7a2a4a, 0x8a5a33
 		}
 		return lk
 	}
@@ -1012,6 +1024,10 @@ func staffLook(place string, kind sim.AgentKind, n int) look {
 	case "exotique": // chemise à fleurs, chapeau de paille
 		lk.shirt, lk.pants = 0x1fa37a, 0xe9d7a8
 		lk.hat, lk.hatC = 2, 0xe8c86a
+	case "domaine": // vigneron : chemise bordeaux, tablier de cuir, chapeau
+		lk.shirt, lk.pants = 0x7a2a4a, 0x3b3b4a
+		lk.apron = 0x8a5a33
+		lk.hat, lk.hatC = 2, 0x6e4322
 	case "elevage": // salopette, bottes, casquette
 		lk.shirt, lk.pants = 0x8a5a2b, 0x3b5998
 		lk.hat, lk.hatC = 2, 0x8a5a2b
@@ -1492,7 +1508,7 @@ func (g *game) drawSpot(dst *ebiten.Image, p *sim.Place, sp *sim.Spot) {
 			say(dst, "BIO", px, 1500, 20, true, 0, rgb(0xffffff))
 		}
 	}
-	if sp.Shelf != nil && l >= u.Max {
+	if sp.Shelf != nil && (l >= u.Max || l >= p.DroneMax(sp.Shelf)) {
 		// base du drone
 		c := r.C()
 		ellipse(dst, c.X, c.Y+8, 46, 26, rgba(0x000000, 0.12))
@@ -1545,6 +1561,8 @@ func (g *game) drawSpot(dst *ebiten.Image, p *sim.Place, sp *sim.Spot) {
 		if sim.TeamZones(p.ID) != nil {
 			title = sp.Label + " +1" // (« Bovins +1 »)
 		}
+	case sp.Shelf != nil && l > 0:
+		title = "Drone +1" // (ferme : un 2e, un 3e drone pour l'étal)
 	case sp.Room != nil && strings.HasPrefix(sp.ID, "tables_"):
 		title = "Table +1"
 	case u.Max > 1:
@@ -1726,7 +1744,7 @@ func drawTruck(dst *ebiten.Image, cx, cy float64, busy bool) {
 	}
 	ellipse(dst, cx, cy+38, 120, 10, rgba(0x000000, 0.25))
 	roundRect(dst, cx-120, cy-42, 160, 74, 8, rgb(0xf3ead8))
-	label := map[string]string{"ferme": "MA FERME", "boulangerie": "BOULANGERIE", "cremerie": "CRÈMERIE", "glacier": "GLACIER", "boucherie": "BOUCHERIE", "exotique": "EXOTIQUE", "port": "LE PORT", "elevage": "ÉLEVAGE"}[truckFrom]
+	label := map[string]string{"ferme": "MA FERME", "boulangerie": "BOULANGERIE", "cremerie": "CRÈMERIE", "glacier": "GLACIER", "boucherie": "BOUCHERIE", "exotique": "EXOTIQUE", "port": "LE PORT", "elevage": "ÉLEVAGE", "domaine": "LE DOMAINE"}[truckFrom]
 	if label == "" {
 		label = "MA FERME"
 	}
@@ -1895,6 +1913,8 @@ func placeShort(id string) string {
 		return "boucherie"
 	case "port":
 		return "port"
+	case "domaine":
+		return "domaine"
 	}
 	return id
 }
@@ -1902,6 +1922,10 @@ func placeShort(id string) string {
 // drawDock : quai d'expédition et son camion.
 func (g *game) drawDock(dst *ebiten.Image, s *sim.Station) {
 	if !g.sim.DockActive(s) {
+		return
+	}
+	if s.PlaceID() == "domaine" {
+		g.drawDockV(dst, s) // (la route des camions est verticale)
 		return
 	}
 	b := s.Body

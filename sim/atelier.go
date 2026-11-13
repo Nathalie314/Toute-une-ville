@@ -285,7 +285,7 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 func placeName(id string) string {
 	return map[string]string{"ferme": "la ferme", "super": "le supermarché", "boulangerie": "la boulangerie",
 		"cremerie": "la crèmerie", "glacier": "le glacier", "ecole": "l'école",
-		"elevage": "la ferme d'élevage", "boucherie": "la boucherie-charcuterie", "exotique": "la ferme exotique"}[id]
+		"elevage": "la ferme d'élevage", "boucherie": "la boucherie-charcuterie", "exotique": "la ferme exotique", "domaine": "le domaine"}[id]
 }
 
 // needsMet : « lieu » (acheté) ou « lieu:station » (station construite), séparés par des virgules.
@@ -310,7 +310,8 @@ func needsText(needs string) string {
 		"exotique:moulin_sucre": "le sucre en poudre (ferme exotique)",
 		"exotique:manguier":     "les mangues (ferme exotique)", "exotique:ananas": "les ananas (ferme exotique)",
 		"exotique:cocotier": "les noix de coco (ferme exotique)",
-		"exotique:vanille":  "la vanille (ferme exotique)", "exotique:moulin_cafe": "le café moulu (ferme exotique)",
+		"ferme:pommier":     "le pommier (ma ferme)", "ferme:poirier": "le poirier (ma ferme)", "ferme:pdt": "les pommes de terre (ma ferme)", "ferme:silo": "le silo à blé (ma ferme)",
+		"exotique:vanille": "la vanille (ferme exotique)", "exotique:moulin_cafe": "le café moulu (ferme exotique)",
 		"elevage:mare": "les canards (ferme d'élevage)", "elevage:bovin": "les bovins (ferme d'élevage)",
 		"elevage:ovin": "les ovins (ferme d'élevage)", "elevage:porc": "les porcs (ferme d'élevage)"}
 	var parts []string

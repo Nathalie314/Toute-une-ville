@@ -164,6 +164,13 @@ func newFarm(g *Game) *Place {
 		gr.Zone = Rect{2310, -225, 220, 92}
 		gr.Spot = V{2420, -120}
 		p.Stations = append(p.Stations, gr)
+		// le silo à blé, à gauche du grenier (il n'apparaît qu'avec le domaine) :
+		// les ouvriers du blé y rangent du blé, un drone de fret l'emporte au domaine (whisky)
+		si := &Station{ID: "silo", Name: "Silo à blé", Kind: Shelf, Item: Ble, StockMax: 30, Unlock: "silo", NoSale: true}
+		si.Body = Rect{1540, -300, 200, 66}
+		si.Zone = Rect{1530, -225, 220, 92}
+		si.Spot = V{1640, -120}
+		p.Stations = append(p.Stations, si)
 	}
 
 	// --- bâtiments
@@ -226,6 +233,7 @@ func newFarm(g *Game) *Place {
 	p.dock("quai_creme", "cremerie", 2400)
 	p.dock("quai_glace", "glacier", 2750)
 	p.dock("quai_elevage", "elevage", 3100)
+	p.dock("quai_domaine", "domaine", 3450)
 	// la cour, à gauche de la boutique (près du portail) : caisse des commandes et hangar
 	cmd := &Station{ID: "commande", Name: "Commandes", Kind: OrderBox, Built: true}
 	cmd.Body = Rect{230, 1110, 180, 70}
@@ -299,6 +307,16 @@ func newFarm(g *Game) *Place {
 		u := p.Unlocks[len(p.Unlocks)-1]
 		u.Requires = func() bool { q := g.Place("elevage"); return q != nil && q.Owned }
 		u.Locked, u.Secret = "Il faut la ferme d'élevage", true
+		p.Unlocks = append([]*Unlock{u}, p.Unlocks[:len(p.Unlocks)-1]...)
+	}
+	unlock("silo", "Silo à blé", 30000, "Les ouvriers du blé y rangent du blé ; un drone l'emporte au domaine (whisky).")
+	{
+		// comme le grenier : dès que le domaine est acheté, sans se montrer avant
+		u := p.Unlocks[len(p.Unlocks)-1]
+		c := p.Station("silo").Body.C()
+		u.Zone = Rect{c.X - 90, c.Y - 65, 180, 130}
+		u.Requires = func() bool { q := g.Place("domaine"); return q != nil && q.Owned }
+		u.Locked, u.Secret = "Il faut le domaine", true
 		p.Unlocks = append([]*Unlock{u}, p.Unlocks[:len(p.Unlocks)-1]...)
 	}
 

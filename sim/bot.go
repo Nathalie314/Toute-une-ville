@@ -111,7 +111,7 @@ func (b *Bot) Step(g *Game, dt float64) {
 }
 
 func (b *Bot) shop(g *Game) {
-	for _, id := range []string{"ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "port", "elevage", "boucherie"} {
+	for _, id := range []string{"ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "port", "elevage", "boucherie", "domaine"} {
 		if q := g.Place(id); b.Human && !q.Owned && !b.ready(g) {
 			break // (elle finit d'abord ce qu'elle a avant d'acheter un nouveau lieu)
 		}
@@ -187,7 +187,7 @@ func (b *Bot) shop(g *Game) {
 
 // nextPlace : le prochain lieu à acheter (dans l'ordre).
 func (b *Bot) nextPlace(g *Game) *Place {
-	for _, id := range []string{"super", "cremerie", "exotique", "boulangerie", "glacier", "elevage", "boucherie"} {
+	for _, id := range []string{"super", "cremerie", "exotique", "boulangerie", "glacier", "elevage", "boucherie", "domaine"} {
 		if p := g.Place(id); p != nil && !p.Owned {
 			return p
 		}

@@ -24,10 +24,11 @@ func (g *Game) meca(dock *Station) int { return g.Levels[dock.place+".pts_cam_vi
 // DockEvery : secondes entre deux camions de ce quai.
 func (g *Game) DockEvery(dock *Station) float64 { return TruckInterval(g.meca(dock)) }
 
-// pallet : palette d'un produit dans la réserve d'un lieu.
+// pallet : palette d'un produit dans la réserve d'un lieu (seulement si elle est
+// construite : au domaine, chaque palette s'achète).
 func (p *Place) pallet(it Item) *Station {
 	for _, s := range p.Stations {
-		if s.Kind == Pallet && s.Item == it {
+		if s.Kind == Pallet && s.Item == it && s.Built {
 			return s
 		}
 	}

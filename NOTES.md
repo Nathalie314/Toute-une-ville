@@ -752,3 +752,38 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Caisses : le joueur à moins de 170 d'une caissière (HelpDist, Place.PlayerHelps) l'aide : leurs vitesses
   s'additionnent (petite boutique : 1,2 s → 0,35 s par article ; supermarché : l'aide du joueur s'ajoute aux
   points « Caisses »). Bulle « Tu l'aides : ça va plus vite ! » au-dessus de la caissière. Pas à l'accueil de l'école.
+
+## 4.1 — le domaine (11e lieu), drones en plus, silo à blé (13 novembre)
+- LE DOMAINE (sim/domaine.go, domaine_draw.go), à la place de « Caviste » sur la carte (après la boucherie, rang 11 :
+  32 M à l'achat, contenu ≈ 2 milliards par la courbe des prix ; coefficient ≈ ×330). Lieu « hybride » d'après son
+  plan : au nord le houblon (gauche) et la vigne (droite) ; sous la vigne le stockage du raisin (réserve sans clients)
+  et la machine à jus de raisin ; un chemin ; les fabriques : brasserie, presse à vin blanc, presse à vin rouge (une
+  bassine, la presse et un foudre ; le rouge fermente plus longtemps : 10 s contre 6) ; à droite la distillerie en
+  colonne (whisky, vodka, alcool de poire, cidrerie, pressoir à pommes), chacune en face de sa palette ; la réserve
+  (palettes blé, pommes de terre, poires, pommes) contre une ROUTE VERTICALE des camions au bord droit (choix de la
+  conceptrice : chaque lieu doit avoir sa particularité) ; les quais (supermarché, crêperie, zoo) au nord de la
+  réserve ; le camion de ma ferme monte la route jusqu'à la réserve (backTruckV, drawDockV).
+  Boutique : caisse + étals vin blanc, vin rouge, bière, cidre, alcool de poire, vodka, whisky ; réserves sans clients
+  pour le jus de raisin et le jus de pomme (drones → quais). Le raisin ne se vend qu'au supermarché (rayon Fruits).
+  Quais crêperie (cidre) et zoo (jus) : prêts, invisibles tant que ces lieux n'existent pas.
+  Rien n'est offert : vigne, jus de raisin, vin blanc, vin rouge, houblon, brasserie, palette de pommes (il faut le
+  pommier), pressoir, cidrerie, palette de poires (poirier), alambic, palette de pommes de terre (serre), vodka,
+  palette de blé (silo à blé de ma ferme), whisky. Chaque machine de la distillerie attend sa palette.
+  Équipes : vigne 4, houblon 2, distillerie 5 (embauches dans la zone du joueur). Points : agronomes, mécaniciens
+  (machines, drones, camions), entraînement, caisses, panier, fidèles, réclame, comptables, logistique.
+  Commandes : des particuliers (comme à la ferme). Zone du joueur : « L'alcool est dangereux pour la santé.
+  À consommer avec modération. » (au-dessus du vestiaire).
+  Prix de vente (le domaine doit doubler les revenus) : raisin 60, jus de raisin 120, jus de pomme 130, vin blanc 350,
+  vin rouge 450, bière 500 (après les vins, à sa demande), cidre 550, alcool de poire 650, vodka 750, whisky 1 000.
+  Mesure (tout débloqué, champs pleins, palettes pleines, sans points, 15 min) : tout est fabriqué, ≈ 300 €/s sur
+  place, le reste part au supermarché.
+- Supermarché : l'espace « Alcools » devient « Boissons » (jus, vins, bière, cidre, alcools ; ouvert avec le domaine) ;
+  le raisin au rayon Fruits. Les rayons gardent les prix du supermarché (9 000 € + la moitié du déblocage de base).
+- Ferme : silo à blé (30 000 €, à gauche du grenier à foin, caché tant que le domaine n'est pas acheté) : les ouvriers
+  du blé y rangent du blé, un drone de fret l'emporte au quai « → domaine » (nouveau quai de la ferme).
+- Palettes : une palette pas encore construite n'existe pas pour les camions (pallet() : Built).
+- Ferme : un 2e puis un 3e drone par étal (« Drone +1 », 3 puis 9 fois le prix du 1er) quand le produit part vers au
+  moins 2 lieux (DroneMax, destCount). Station.Drones (liste) ; les drones d'un étal se partagent le stock (rien de
+  pris deux fois) et vont chacun au quai qui en manque le plus. Mesure sur sa partie à 10 lieux : la plupart des
+  drones volent 20 à 50 % du temps ; fraises (61 %, quai en manque 27 % du temps), pommes de terre (53 %, 20 %) et
+  œufs (29 %, 12 %) saturaient. Elle craint que la production de pommes de terre ne suive pas : à surveiller.

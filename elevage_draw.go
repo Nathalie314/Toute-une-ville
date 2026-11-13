@@ -103,6 +103,24 @@ func (g *game) drawStage6(dst *ebiten.Image, p *sim.Place, s *sim.Station) bool 
 		roundRect(dst, b.C().X-40, b.Y-26, 80, 24, 6, rgba(0x2b2140, 0.85))
 		say(dst, itoa(s.Stock)+"/"+itoa(s.StockMax), b.C().X, b.Y-14, 15, true, 0, rgb(0xffffff))
 		sign(dst, b.C().X, b.Y+b.H+22, "Grange à foin")
+	case s.ID == "silo":
+		// deux silos ronds en tôle, et des sacs de blé devant
+		ellipse(dst, b.C().X, b.Y+b.H, b.W*0.55, 12, rgba(0x000000, 0.18))
+		for k, x := range []float64{b.X + 20, b.X + 110} {
+			h := 150.0 - float64(k)*25
+			rect(dst, x, b.Y+b.H-h, 70, h, rgb(0xc9ced4))
+			for y := b.Y + b.H - h + 14; y < b.Y+b.H; y += 18 {
+				line(dst, x, y, x+70, y, 1.5, rgba(0x8a9096, 0.7))
+			}
+			ellipse(dst, x+35, b.Y+b.H-h, 35, 14, rgb(0xa8aeb5))
+			polygon(dst, []V{{X: x, Y: b.Y + b.H - h}, {X: x + 35, Y: b.Y + b.H - h - 34}, {X: x + 70, Y: b.Y + b.H - h}}, rgb(0x9aa1a8))
+		}
+		for i := 0; i < min(s.Stock, 10); i++ {
+			drawItem(dst, sim.Ble, b.X+20+float64(i%5)*38, b.Y+b.H-10-float64(i/5)*16, 13)
+		}
+		roundRect(dst, b.C().X-40, b.Y-130, 80, 24, 6, rgba(0x2b2140, 0.85))
+		say(dst, itoa(s.Stock)+"/"+itoa(s.StockMax), b.C().X, b.Y-118, 15, true, 0, rgb(0xffffff))
+		sign(dst, b.C().X, b.Y+b.H+22, "Silo à blé")
 	default:
 		return false
 	}

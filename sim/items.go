@@ -140,6 +140,18 @@ const (
 	SorbetAnanas
 	GlaceCoco
 	GlaceCafe // (ajoutée à la fin : les sauvegardes rangent les produits par numéro)
+	// le domaine (vigne, houblon, distillerie)
+	Houblon
+	Raisin
+	JusRaisin
+	VinBlanc
+	VinRouge
+	Biere
+	JusPomme
+	Cidre
+	AlcoolPoire
+	Vodka
+	Whisky
 	NItems
 )
 
@@ -278,7 +290,24 @@ var Items = [NItems]ItemInfo{
 	SorbetAnanas:     {"Sorbet à l'ananas", 85},
 	GlaceCoco:        {"Glace à la noix de coco", 170},
 	GlaceCafe:        {"Glace au café", 165},
+	// (le domaine : des produits chers, pour que les revenus suivent la courbe des prix)
+	Houblon:     {"Houblon", 8},
+	Raisin:      {"Raisin", 60},
+	JusRaisin:   {"Jus de raisin", 120},
+	VinBlanc:    {"Vin blanc", 350},
+	VinRouge:    {"Vin rouge", 450},
+	Biere:       {"Bière", 500},
+	JusPomme:    {"Jus de pomme", 130},
+	Cidre:       {"Cidre", 550},
+	AlcoolPoire: {"Alcool de poire", 650},
+	Vodka:       {"Vodka", 750},
+	Whisky:      {"Whisky", 1000},
 }
+
+// DomaineSold : ce que vend le domaine sur place (le raisin et les jus ne partent
+// qu'en camion : supermarché, zoo) ; DrinksSold : l'espace « Boissons » du supermarché.
+var DomaineSold = []Item{VinBlanc, VinRouge, Biere, Cidre, AlcoolPoire, Vodka, Whisky}
+var DrinksSold = []Item{JusRaisin, JusPomme, VinBlanc, VinRouge, Biere, Cidre, AlcoolPoire, Vodka, Whisky}
 
 // Legumes, Fruits : la serre et le verger (une colonne chacun), et leurs graines.
 var Legumes = []Item{Carotte, Tomate, Courgette, Poireau, Chou, PommeDeTerre}

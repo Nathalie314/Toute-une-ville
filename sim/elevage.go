@@ -52,6 +52,8 @@ func teamZonesOf(place string) []*ShopZone {
 		return boucherieZones
 	case "exotique":
 		return exoticZones
+	case "domaine":
+		return domaineZones
 	}
 	return nil
 }

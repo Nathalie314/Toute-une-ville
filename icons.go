@@ -10,7 +10,7 @@ import (
 
 // drawItem dessine une marchandise centrée en (x, y), de « rayon » r.
 func drawItem(dst *ebiten.Image, it sim.Item, x, y, r float64) {
-	if drawItemNew(dst, it, x, y, r) || drawItemMeat(dst, it, x, y, r) || drawItemExotic(dst, it, x, y, r) || drawItemPort(dst, it, x, y, r) {
+	if drawItemNew(dst, it, x, y, r) || drawItemMeat(dst, it, x, y, r) || drawItemExotic(dst, it, x, y, r) || drawItemPort(dst, it, x, y, r) || drawItemDomaine(dst, it, x, y, r) {
 		return
 	}
 	dark := rgba(0x000000, 0.25)
