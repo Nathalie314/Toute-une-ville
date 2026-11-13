@@ -816,3 +816,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   (DroneMax = destCount : deux lieux → deux drones, trois → trois…), au plus un par quai du lieu ; chaque drone
   de plus coûte 3 fois le précédent. Le drone suivant ne s'achète que quand la demande augmente (nouveau lieu
   acheté, rayon ouvert au supermarché…). Sa partie : seuls les trois laits (supermarché + crèmerie) ont 2 lieux.
+- Raffinerie « lente » (sa partie : 36 points de vitesse, ×2,08 → 1,44 s par sucre) : elle travaille 100 % du temps,
+  la canne s'entasse devant : c'est le goulot de l'espace sucre. Décision de la conceptrice : ne rien changer, il
+  faut mettre plus de points « Machines : vitesse » (pas de 2 sucres par canne, pas de temps de base plus court).
