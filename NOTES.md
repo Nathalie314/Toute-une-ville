@@ -877,7 +877,7 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 
 ## Version navigateur (pour son iPad)
 - Même code, compilé en WebAssembly (GOOS=js GOARCH=wasm) ; l'exe Windows reste identique. Les deux sont fabriqués
-  à chaque push sur main (release.yml) : le .zip dans la Release, la version web sur GitHub Pages
+  à chaque push sur main (release.yml) : le .zip dans la Release, puis une 2e tâche « web » met la version web sur GitHub Pages
   (https://nathalie314.github.io/Toute-une-ville/ ; réglage à faire une fois : Settings → Pages → Source « GitHub Actions »).
 - Sauvegarde : fichier JSON sous Windows (save_file.go), localStorage du navigateur sur le web (save_web.go,
   clé « ToutUneVille_sauvegarde »), avec une sauvegarde de plus quand on quitte ou cache la page (pagehide).
