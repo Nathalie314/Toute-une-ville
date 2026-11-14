@@ -892,3 +892,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   lieu de 22) et continue sur plusieurs pages (« Suite → », « ← Retour », 1 / 2) ; la ligne d'aide du bas grossit.
   Partout : les points de l'aide trop longs passent à la ligne (ils débordaient de la fenêtre) ; fenêtre un peu plus
   large (1 500) ; dans le navigateur, le 1er point parle du doigt et du pincement.
+- Correction : le badge « Brigade complète » (boulangerie) se donnait au 6e boulanger, alors qu'il y en a 7 depuis
+  le pain de mie. Il demande maintenant toute l'équipe (staffFull, comme les badges des autres lieux) ; « Toutes les
+  recettes » dit « tous les fours ». Les badges déjà gagnés restent gagnés. Vérifié : la ferme (24 ouvriers) est juste.
