@@ -1,5 +1,7 @@
 package sim
 
+import "strings"
+
 // Badges : de petits trophées, juste pour le plaisir (ils ne rapportent rien).
 
 type Badge struct {
@@ -189,11 +191,13 @@ var Badges = []Badge{
 	// --- le glacier
 	{ID: "i_ouvert", Place: "glacier", Name: "Il fait chaud !", Desc: "Acheter le glacier.", Icon: IconIce,
 		Check: func(g *Game) bool { return g.Place("glacier").Owned }},
-	{ID: "i_vanille", Place: "glacier", Name: "Cent boules", Desc: "Faire 100 glaces nature.", Icon: IconIce,
-		Check: func(g *Game) bool { return g.Stats.Made["Glace nature"]+g.Stats.Made["Glace vanille"] >= 100 }},
+	{ID: "i_vanille", Place: "glacier", Name: "Cent boules", Desc: "Faire 100 glaces à la vanille.", Icon: IconIce,
+		Check: func(g *Game) bool {
+			return g.Stats.Made["Glace à la vanille"]+g.Stats.Made["Glace nature"]+g.Stats.Made["Glace vanille"] >= 100
+		}},
 	{ID: "i_choco", Place: "glacier", Name: "Gourmandise", Desc: "Faire une glace au chocolat.", Icon: IconChoco,
 		Check: func(g *Game) bool { return g.Stats.Made["Glace au chocolat"] >= 1 }},
-	{ID: "i_recettes", Place: "glacier", Name: "Quatre parfums", Desc: "Construire les 4 machines du glacier.", Icon: IconStar,
+	{ID: "i_recettes", Place: "glacier", Name: "Tous les parfums", Desc: "Construire toutes les fabriques du glacier.", Icon: IconStar,
 		Check: func(g *Game) bool { return allBuilt(g.Place("glacier")) }},
 	{ID: "i_1000", Place: "glacier", Name: "File d'attente", Desc: "Servir 1 000 clients au glacier.", Icon: IconHeart,
 		Check: func(g *Game) bool { return g.Place("glacier").Served >= 1000 }},
@@ -352,4 +356,104 @@ func roomBuilt(level int) func(g *Game) bool {
 		}
 		return false
 	}
+}
+
+// ---------------------------------------------------------------- lieux récents
+// ⚠️ Règle : chaque nouveau lieu reçoit ses badges (placeBadges + quelques badges
+// propres à ce qu'il fabrique). La conceptrice n'y tient pas, mais des joueurs adorent.
+
+// placeBadges : les badges de base d'un lieu (ouvert, premier client, tout
+// débloqué, clients servis, 5 étoiles, équipe au complet).
+func placeBadges(id, short, open, all, full, star string, clients int, icon int) []Badge {
+	p := func(g *Game) *Place { return g.Place(id) }
+	bs := []Badge{
+		{ID: id + "_ouvert", Place: id, Name: open, Desc: "Acheter " + placeName(id) + ".", Icon: icon,
+			Check: func(g *Game) bool { return p(g).Owned }},
+		{ID: id + "_tout", Place: id, Name: all, Desc: "Tout débloquer : " + short + ".", Icon: IconStar,
+			Check: func(g *Game) bool { return allUnlocked(p(g)) }},
+		{ID: id + "_equipe", Place: id, Name: full, Desc: "Embaucher tous les employés : " + short + ".", Icon: IconWorker,
+			Check: func(g *Game) bool { return staffFull(p(g)) }},
+	}
+	if clients > 0 {
+		bs = append(bs,
+			Badge{ID: id + "_client", Place: id, Name: "Premier client", Desc: "Encaisser un client : " + short + ".", Icon: IconCoin,
+				Check: func(g *Game) bool { return p(g).Served >= 1 }},
+			Badge{ID: id + "_clients", Place: id, Name: "Bonne adresse", Desc: "Servir " + groupThousands(clients) + " clients : " + short + ".", Icon: IconHeart,
+				Check: func(g *Game) bool { return p(g).Served >= clients }},
+			Badge{ID: id + "_rep", Place: id, Name: star, Desc: "Atteindre 5 étoiles : " + short + ".", Icon: IconStar,
+				Check: func(g *Game) bool { q := p(g); return q.Owned && q.Rep >= 4.95 }})
+	}
+	return bs
+}
+
+// madeBadge : fabriquer n fois un produit.
+func madeBadge(id, place, name, desc string, it Item, n, icon int) Badge {
+	return Badge{ID: id, Place: place, Name: name, Desc: desc, Icon: icon,
+		Check: func(g *Game) bool { return g.Stats.Made[Items[it].Name] >= n }}
+}
+
+// allUnlocked : le lieu est acheté et tous ses déblocages sont faits.
+func allUnlocked(p *Place) bool {
+	if p == nil || !p.Owned {
+		return false
+	}
+	for _, u := range p.Unlocks {
+		if !u.Done {
+			return false
+		}
+	}
+	return true
+}
+
+// staffFull : tous les employés du lieu sont embauchés (par espace s'il en a).
+func staffFull(p *Place) bool {
+	if p == nil || !p.Owned {
+		return false
+	}
+	g := p.g
+	for _, u := range p.PlaceUpgrades() {
+		if u.Key == p.key("ouvriers") || (teamZonesOf(p.ID) != nil && strings.HasPrefix(u.Key, p.key("ouvriers_"))) {
+			if g.Levels[u.Key] < u.Max {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func groupThousands(n int) string {
+	s := itoa(n)
+	if len(s) > 3 {
+		return s[:len(s)-3] + " " + s[len(s)-3:]
+	}
+	return s
+}
+
+func init() {
+	B := func(bs ...Badge) { Badges = append(Badges, bs...) }
+	// la ferme exotique
+	B(placeBadges("exotique", "ferme exotique", "Sous les tropiques", "Paradis tropical", "Toute la jungle", "Perle des tropiques", 1000, IconFruit)...)
+	B(madeBadge("exotique_sucre", "exotique", "Doux comme le sucre", "Faire 100 sachets de sucre en poudre.", SucrePoudre, 100, IconCane),
+		madeBadge("exotique_choco", "exotique", "Chocolatier", "Faire une tablette de chocolat.", Chocolat, 1, IconChoco),
+		madeBadge("exotique_cafe", "exotique", "Petit noir", "Faire 100 paquets de café moulu.", CafeMoulu, 100, IconStar))
+	// la ferme d'élevage (pas de clients)
+	B(placeBadges("elevage", "ferme d'élevage", "Les pieds dans le foin", "Tout le troupeau", "Éleveurs au complet", "", 0, IconFarm)...)
+	B(madeBadge("elevage_poulets", "elevage", "Basse-cour", "Élever 100 poulets.", Poulet, 100, IconEgg),
+		madeBadge("elevage_vaches", "elevage", "Vaches à lait", "Élever 100 vaches.", Vache, 100, IconMilk))
+	// la boucherie-charcuterie (peu de clients, mais chers)
+	B(placeBadges("boucherie", "boucherie", "Chez le boucher", "Toute la charcuterie", "Bouchers au complet", "Boucherie étoilée", 300, IconSausage)...)
+	B(madeBadge("boucherie_steaks", "boucherie", "Bien saignant", "Faire 100 steaks.", Steak, 100, IconSausage),
+		madeBadge("boucherie_foie", "boucherie", "Repas de fête", "Faire un foie gras.", FoieGras, 1, IconStar))
+	// le port
+	B(placeBadges("port", "port", "Moussaillon", "Toute la criée", "Équipage au complet", "Port étoilé", 1000, IconTruck)...)
+	B(madeBadge("port_sardines", "port", "Serrés comme des sardines", "Pêcher 100 sardines.", Sardine, 100, IconStar),
+		madeBadge("port_huitres", "port", "Perle rare", "Récolter 100 huîtres.", Huitre, 100, IconStar))
+	// le domaine
+	B(placeBadges("domaine", "domaine", "Bienvenue au domaine", "Grand cru", "Domaine au complet", "Domaine étoilé", 1000, IconFruit)...)
+	B(madeBadge("domaine_vin", "domaine", "Vendanges", "Faire 100 bouteilles de vin rouge.", VinRouge, 100, IconFruit),
+		madeBadge("domaine_cidre", "domaine", "Cidre bouché", "Faire 100 bouteilles de cidre.", Cidre, 100, IconFruit))
+	// la pâtisserie
+	B(placeBadges("patisserie", "pâtisserie", "Bec sucré", "Toute la vitrine", "Pâtissiers au complet", "Pâtisserie étoilée", 1000, IconCake)...)
+	B(madeBadge("patisserie_tartes", "patisserie", "Tarte aux pommes", "Faire 100 tartes aux pommes.", TartePommes, 100, IconCake),
+		madeBadge("patisserie_fraisier", "patisserie", "Cerise sur le gâteau", "Faire un fraisier.", Fraisier, 1, IconCake))
 }

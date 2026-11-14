@@ -1196,7 +1196,7 @@ func (g *game) drawBadges(dst *ebiten.Image) {
 	ch := 150.0
 	total := 0.0
 	type sect struct{ id, title string }
-	sects := []sect{{"ferme", "Ma ferme"}, {"super", "Le supermarché"}, {"boulangerie", "La boulangerie"}, {"cremerie", "La crèmerie"}, {"glacier", "Le glacier"}, {"exotique", "La ferme exotique"}, {"elevage", "La ferme d'élevage"}, {"boucherie", "La boucherie"}, {"ecole", "L'école"}, {"ville", "Clairbourg"}}
+	sects := []sect{{"ferme", "Ma ferme"}, {"super", "Le supermarché"}, {"boulangerie", "La boulangerie"}, {"cremerie", "La crèmerie"}, {"glacier", "Le glacier"}, {"exotique", "La ferme exotique"}, {"elevage", "La ferme d'élevage"}, {"boucherie", "La boucherie"}, {"port", "Le port"}, {"domaine", "Le domaine"}, {"patisserie", "La pâtisserie"}, {"ecole", "L'école"}, {"ville", "Clairbourg"}}
 	for _, sc := range sects {
 		n := 0
 		for _, b := range sim.Badges {
