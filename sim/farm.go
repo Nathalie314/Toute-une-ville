@@ -203,7 +203,7 @@ func newFarm(g *Game) *Place {
 	step := (SerreX - 70 - 450) / float64(len(big))
 	for i, it := range big {
 		x := 450 + float64(i)*step
-		s := &Station{ID: "etal_" + itoa(int(it)), Name: "Étal : " + Items[it].Name, Kind: Shelf, Item: it, StockMax: 12, Unlock: unl[it]}
+		s := &Station{ID: "etal_" + itoa(int(it)), Name: "Étal : " + Items[it].Name, Kind: Shelf, Item: it, StockMax: 12, Unlock: unl[it], PadLeft: true}
 		s.Body = Rect{x, shelfY, step - 50, shelfH}
 		s.Zone = Rect{x - 10, shelfY - 95, step - 30, 92}
 		s.Spot = V{x + (step-50)/2, shelfY + shelfH + 38}

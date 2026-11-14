@@ -835,3 +835,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Ferme exotique, ordre d'achat des épices = ordre des champs : vanille 80 000, cannelliers 95 000 (avant 120 000),
   théiers 105 000 (avant 95 000), séchoir 120 000 (avant 105 000), prix de base. Sauvegarde : thé et séchoir
   payés en entier à l'ancien prix restent payés (migrateEpices).
+- Bases des drones centrées sous leur étal, quelle que soit sa largeur (DronePad) : les étals de la ferme
+  exotique (126, 220, 360 de large) avaient leur « H » décalé à gauche. Exception : les grands étals de la ferme
+  gardent leur base à gauche (Station.PadLeft) : centrée, celle du maïs tombait sur l'allée du portail.

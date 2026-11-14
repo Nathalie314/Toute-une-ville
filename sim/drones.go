@@ -34,7 +34,10 @@ func (s *Station) DronePad() Rect {
 	if s.PadOff > 0 {
 		off = s.PadOff
 	}
-	return Rect{s.Body.X + 15, s.Body.Y + s.Body.H + off, 120, 104}
+	if s.PadLeft {
+		return Rect{s.Body.X + 15, s.Body.Y + s.Body.H + off, 120, 104}
+	}
+	return Rect{s.Body.X + s.Body.W/2 - 60, s.Body.Y + s.Body.H + off, 120, 104} // (centrée sous l'étal, quelle que soit sa largeur)
 }
 
 // hasDrones : lieux où les vitrines ont des drones.

@@ -87,6 +87,7 @@ type Station struct {
 	place     string  // lieu où se trouve la station
 	scale     float64 // coefficient des prix du lieu (pousses) ; 0 : 1
 	PadOff    float64 // étal : distance entre l'étal et la base de son drone (0 : 140)
+	PadLeft   bool    // base du drone à gauche sous l'étal (grands étals de la ferme : centrée, celle du maïs tomberait sur l'allée du portail)
 	yard      bool    // ferme : dans la cour à gauche (ne se décale pas)
 	UpMult    float64 // multiplicateur du prix des niveaux (0 : normal)
 
