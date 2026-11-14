@@ -700,3 +700,153 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   violet, usine rouge + l'ingrédient qui manque, cadenas gris), selon la cause la plus fréquente des ~30 dernières
   secondes ; devant le rayon, une bulle explique et dit quoi faire (taille constante à l'écran) ; le message du bas
   résume les deux causes principales (après les conseils urgents, avant les achats possibles).
+
+## 4.1 — prix selon la carte, ateliers aérés (12 novembre)
+- Constat sur sa sauvegarde (8 500 €/s, 10 lieux) : le supermarché fait 96 % des revenus (8 111 €/s ; port 80,
+  crèmerie 61, exotique 48, glacier 48, boulangerie 40, ferme 31, boucherie 10). Les lieux tardifs étaient presque
+  gratuits : ferme exotique 35 000 € et tout son contenu ≈ 1,9 M (≈ 3 min de revenus) ; le bot humain achetait
+  exotique, boulangerie et glacier en 20 min.
+- ⚠️ Règle : les prix dépendent de la POSITION DU LIEU SUR LA CARTE (sim.MapOrder, = ordre des tuiles de drawMap),
+  pas de l'ordre d'achat : il faut inciter à ouvrir les lieux dans l'ordre de la carte. Un nouveau lieu se met dans
+  MapOrder, à sa place. g.Places est trié dans cet ordre (points d'école, listes…).
+- sim/prices.go : les 4 premiers lieux (ferme, école, supermarché, crèmerie) gardent leurs prix (début rapide). Dès
+  le 5e (ferme exotique), chaque lieu coûte 2 × plus que le précédent : achat 500 000 € (exotique), 1 M, 2 M, 4 M,
+  8 M, 16 M (boucherie) ; contenu complet = contenu de la crèmerie (≈ 16 M) × 2^(rang − 4). Place.Scale = cible /
+  contenu de base : tous les prix du lieu (déblocages, améliorations au sol, stocks, drones, employés, pousses) sont
+  multipliés par ce même coefficient (exotique ×17, boulangerie ×15, glacier ×13, port ×45, élevage ×144, boucherie
+  ×43), arrondis à 3 chiffres. Les rayons du supermarché gardent leurs prix (calculés avant).
+  Choix de la conceptrice : ×2 à chaque lieu, POUR TOUJOURS ; pour que ça tienne jusqu'au 20e lieu, les futurs lieux
+  devront vendre plus cher (chaque nouveau lieu doit à peu près doubler les revenus). Elle prévoit aussi des lieux
+  qui n'envoient rien au supermarché (pour qu'il ne soit plus le centre de tout).
+- Sauvegarde : les montants payés (déblocages, cases au sol, stocks, pousses) sont écrits SANS le coefficient du lieu
+  et remultipliés au chargement : une ancienne sauvegarde garde tout ce qui était payé (pas de SaveVersion changée).
+- Supermarché : 1 objet livré = 3 en réserve (avant 2).
+- Ateliers (atelier.go) : chaque machine est placée selon sa vraie largeur + sa case « Stock + » (stockBoxW 118) +
+  une allée (machineGap 240 ; glacier 320) ; le lieu s'élargit s'il le faut (boulangerie 3 140, crèmerie 3 620,
+  glacier 4 020). Rangées à 450 et 800, vitrines plus bas (shelfY + 120) : un couloir de ~100 sous la 2e rangée
+  (on passe sans marcher dans une zone). Bases des drones plus près des vitrines (Station.PadOff 85 : le mur du
+  bas est à 1 514). Compost contre le mur de droite, à hauteur de la 1re rangée (crèmerie : il n'est plus dans
+  l'allée ; glacier : il ne chevauche plus le « Stock + » de la glace cerise). Quais juste après la dernière vitrine
+  (boulangerie : à droite des pains au chocolat). Boucherie : mêmes rangées et vitrines.
+- Ferme d'élevage : cases « Stock + » pour les bâtiments d'animaux (poulailler, mare, prés, porcherie ; pas les
+  abattoirs) ; le lieu s'élargit (3 500) et tout est espacé (espaces 150–1110, 1160–1810, 1860–2510, 2560–3010 ;
+  quai à 1680 ; compost à 3130).
+- Boucherie : « Il faut les bovins » alors qu'ils étaient achetés : needsMet cherchait une station « bovin » (le pré
+  s'appelle pre_bovin) ; il accepte maintenant aussi l'identifiant d'un déblocage payé (builtOrUnlocked).
+- Ferme : un 4e ouvrier du maïs (95 000 €) et un 7e ouvrier de la serre (120 000 €, quand les 6 colonnes sont
+  ouvertes), en fin d'ordre d'embauche (demandés par la conceptrice, au-delà de la règle « un par ressource »).
+- Captures d'une vraie sauvegarde (shots_save.go) : `CAPSAVE=sauvegarde.json ./jeu -captures dossier`
+  (CAPPLACES=boulangerie,glacier pour quelques lieux ; CAPSEC, CAPZOOM). Sous Linux : paquets libasound2-dev,
+  libgl1-mesa-dev, libx*-dev, xvfb-run, et un ~/.asoundrc « pcm.!default { type null } ».
+- Glacier (8 recettes) : la glace à la cerise devient la glace à la vanille (même place, 35 000 € de base ;
+  produit GlaceVanille, renommé « Glace à la vanille », 160 €) ; nouvelle glace au café juste après (GlaceCafe,
+  ajoutée en fin de liste des produits, 165 € ; 42 000 € de base). Les glaces n'ont plus ni lait ni sucre :
+  vanille = crème, œufs, vanille ; café = crème, œufs, café moulu ; coco = crème, œufs, noix de coco ;
+  chocolat = crème, œufs, chocolat ; poire-chocolat = crème, œufs, poires, chocolat. Réserve du glacier : fraises,
+  mangues, ananas, vanille, café moulu, noix de coco, crème, œufs, chocolat, poires (plus de lait, sucre, cerises).
+  8 serveurs (un par fabrique : 1,5 M et 3,2 M de base en plus). Supermarché : rayons Glace à la vanille et
+  Glace au café. Sauvegarde : ce qui était payé pour la glace à la cerise (fabrique, stock, drone, rayon du
+  supermarché) passe à la vanille (migrateGlaces, au chargement).
+- Commandes : le garagiste (cadeau camions et drones ×2) ne commande pas tant que le supermarché n'est pas acheté
+  (avant, ni camion ni drone : son cadeau ne servait à rien).
+- Caisses : le joueur à moins de 170 d'une caissière (HelpDist, Place.PlayerHelps) l'aide : leurs vitesses
+  s'additionnent (petite boutique : 1,2 s → 0,35 s par article ; supermarché : l'aide du joueur s'ajoute aux
+  points « Caisses »). Bulle « Tu l'aides : ça va plus vite ! » au-dessus de la caissière. Pas à l'accueil de l'école.
+
+## 4.1 — le domaine (11e lieu), drones en plus, silo à blé (13 novembre)
+- LE DOMAINE (sim/domaine.go, domaine_draw.go), à la place de « Caviste » sur la carte (après la boucherie, rang 11 :
+  32 M à l'achat, contenu ≈ 2 milliards par la courbe des prix ; coefficient ≈ ×330). Lieu « hybride » d'après son
+  plan : au nord le houblon (gauche) et la vigne (droite) ; sous la vigne le stockage du raisin (réserve sans clients)
+  et la machine à jus de raisin ; un chemin ; les fabriques : brasserie, presse à vin blanc, presse à vin rouge (une
+  bassine, la presse et un foudre ; le rouge fermente plus longtemps : 10 s contre 6) ; à droite la distillerie en
+  colonne (whisky, vodka, alcool de poire, cidrerie, pressoir à pommes), chacune en face de sa palette ; la réserve
+  (palettes blé, pommes de terre, poires, pommes) contre une ROUTE VERTICALE des camions au bord droit (choix de la
+  conceptrice : chaque lieu doit avoir sa particularité) ; les quais (supermarché, crêperie, zoo) au nord de la
+  réserve ; le camion de ma ferme monte la route jusqu'à la réserve (backTruckV, drawDockV).
+  Boutique : caisse + étals vin blanc, vin rouge, bière, cidre, alcool de poire, vodka, whisky ; réserves sans clients
+  pour le jus de raisin et le jus de pomme (drones → quais). Le raisin ne se vend qu'au supermarché (rayon Fruits).
+  Quais crêperie (cidre) et zoo (jus) : prêts, invisibles tant que ces lieux n'existent pas.
+  Rien n'est offert : vigne, jus de raisin, vin blanc, vin rouge, houblon, brasserie, palette de pommes (il faut le
+  pommier), pressoir, cidrerie, palette de poires (poirier), alambic, palette de pommes de terre (serre), vodka,
+  palette de blé (silo à blé de ma ferme), whisky. Chaque machine de la distillerie attend sa palette.
+  Équipes : vigne 4, houblon 2, distillerie 5 (embauches dans la zone du joueur). Points : agronomes, mécaniciens
+  (machines, drones, camions), entraînement, caisses, panier, fidèles, réclame, comptables, logistique.
+  Commandes : des particuliers (comme à la ferme). Zone du joueur : « L'alcool est dangereux pour la santé.
+  À consommer avec modération. » (au-dessus du vestiaire).
+  Prix de vente (le domaine doit doubler les revenus) : raisin 60, jus de raisin 120, jus de pomme 130, vin blanc 350,
+  vin rouge 450, bière 500 (après les vins, à sa demande), cidre 550, alcool de poire 650, vodka 750, whisky 1 000.
+  Mesure (tout débloqué, champs pleins, palettes pleines, sans points, 15 min) : tout est fabriqué, ≈ 300 €/s sur
+  place, le reste part au supermarché.
+- Supermarché : l'espace « Alcools » devient « Boissons » (jus, vins, bière, cidre, alcools ; ouvert avec le domaine) ;
+  le raisin au rayon Fruits. Les rayons gardent les prix du supermarché (9 000 € + la moitié du déblocage de base).
+- Ferme : silo à blé (30 000 €, à gauche du grenier à foin, caché tant que le domaine n'est pas acheté) : les ouvriers
+  du blé y rangent du blé, un drone de fret l'emporte au quai « → domaine » (nouveau quai de la ferme).
+- Palettes : une palette pas encore construite n'existe pas pour les camions (pallet() : Built).
+- Ferme : un 2e puis un 3e drone par étal (« Drone +1 », 3 puis 9 fois le prix du 1er) quand le produit part vers au
+  moins 2 lieux (DroneMax, destCount). Station.Drones (liste) ; les drones d'un étal se partagent le stock (rien de
+  pris deux fois) et vont chacun au quai qui en manque le plus. Mesure sur sa partie à 10 lieux : la plupart des
+  drones volent 20 à 50 % du temps ; fraises (61 %, quai en manque 27 % du temps), pommes de terre (53 %, 20 %) et
+  œufs (29 %, 12 %) saturaient. Elle craint que la production de pommes de terre ne suive pas : à surveiller.
+- Ferme : la case d'embauche des ouvriers de la serre (et du verger) est une grande case (300 × 92) au milieu,
+  sous les six colonnes, dans l'herbe entre les deux chemins (y 684 ; pas sur le chemin, à sa demande ; avant :
+  petite case sous la 1re colonne) : le texte se lit en entier et on
+  comprend que l'ouvrier est pour toute la serre, tout le verger.
+
+## 4.1 — retouches (salade, quais, parking, aide…)
+- La salade remplace le chou (nom « Salades », dessin de feuilles frisées) ; l'identifiant reste Chou / « chou »
+  (sauvegardes, rayon du supermarché, drones…).
+- Supermarché : le parking au sol est décalé de 90 vers la droite (SuperParkX = SuperCartX + 510) : la route
+  d'accès (jusqu'à SuperCartX + 480) ne passe plus dessus ; ses allées partent de la route d'accès.
+- Caissière sans client depuis 5 s (CashierBoredAfter ; Agent.Bored compté dans Place.step) : elle sifflote (notes
+  de musique, comme les ouvriers qui s'ennuient : drawNotes).
+- Ferme, quais (x définitifs, non décalés) : supermarché 1 700, boulangerie 2 050, crèmerie 2 892 (sous le lait de
+  chèvre, au milieu des laits), ferme d'élevage 3 250, domaine 3 600, glacier 4 380 (juste à gauche des fruits).
+- Supermarché, rayon d'un lieu pas encore ouvert : « Depuis la ferme exotique » (et « Depuis la crèmerie »,
+  « Depuis le glacier », « Depuis le port », « Depuis le domaine »…) au lieu de « D'abord à… ».
+- L'aide s'ouvre avec la touche « , ? » (avec ou sans majuscule), dans un lieu ou sur la carte. Les touches de
+  caractères se lisent maintenant par le caractère tapé (AppendInputChars) : sur son clavier AZERTY, la touche
+  « , ? » est à la place du M anglais (avant, elle coupait le son) ; M coupe le son (le caractère m).
+- Ruches : stock plus cher (BaseCost 12 000 : 6 000 € puis ×2,2, après la bergerie ; avant 60 €).
+- Ferme exotique : les noms des espaces (sucre, cacao, café…) au milieu de leurs champs ; la case « Ouvrier
+  Fruits +1 » est une grande case dans l'herbe, au milieu sous les quatre arbres (comme la serre et le verger).
+- Ressenti de la conceptrice (nouvelle partie, 4 h 55 de jeu, 1 375 €/s, ferme exotique en cours) : le délai pour
+  atteindre le lieu suivant lui plaît ; elle doit bien choisir son prochain achat (c'est le but). Seule déception :
+  le stock des ruches trop bon marché (corrigé). Garder ce rythme comme référence.
+- Drones, dans TOUS les lieux (plus seulement la ferme) : un drone par lieu acheté qui demande le produit de l'étal
+  (DroneMax = destCount : deux lieux → deux drones, trois → trois…), au plus un par quai du lieu ; chaque drone
+  de plus coûte 3 fois le précédent. Le drone suivant ne s'achète que quand la demande augmente (nouveau lieu
+  acheté, rayon ouvert au supermarché…). Sa partie : seuls les trois laits (supermarché + crèmerie) ont 2 lieux.
+- Raffinerie « lente » (sa partie : 36 points de vitesse, ×2,08 → 1,44 s par sucre) : elle travaille 100 % du temps,
+  la canne s'entasse devant : c'est le goulot de l'espace sucre. Décision de la conceptrice : ne rien changer, il
+  faut mettre plus de points « Machines : vitesse » (pas de 2 sucres par canne, pas de temps de base plus court).
+- Supermarché, choix de la caisse (superRegister) : le client estime le TEMPS d'attente (articles de tous les
+  caddies devant lui × vitesse de la caisse) + un quart du temps de marche ; caisse sans caissière : +60 s (évitée,
+  mais celui qui y va y reste : voulu). Avant : nombre de personnes + distance/700, d'où des files de 5 au milieu et
+  de 1 aux bouts. Mesure (sa partie, 9 caisses, 10 min) : files moyennes 0,6 à 5,4 → 1,7 à 2,9.
+- Boulangerie : pain de mie (PainMie, ajouté en fin de liste des produits, 32 €), juste après la baguette : farine de
+  blé, 3,5 s, 1 500 € de base. 7 machines → 7 boulangers (800 000 € de base en plus). Supermarché : rayon Pain de mie
+  (espace Boulangerie). Le contenu de la boulangerie grandit : son coefficient de prix baisse un peu (×15 → ×12).
+- Ferme exotique : la case « Ouvrier Épices +1 » est une grande case dans l'herbe, au milieu de l'espace : l'ouvrier
+  est pour toutes les épices, pas seulement la vanille. Le séchoir doit rester sous le thé (sa demande) : les champs
+  sont dans l'ordre vanille, cannelliers, théiers (le thé en dernier, son séchoir dessous à droite, x 5 310) ; la
+  case est sous les cannelliers, au milieu. Étals dans le même ordre. L'ordre d'achat ne change pas.
+- Boulangerie : « Four à baguettes » s'appelle « Tradition », « Four à maïs » s'appelle « Baguette maïs »
+  (identifiants inchangés).
+- Ferme exotique, ordre d'achat des épices = ordre des champs : vanille 80 000, cannelliers 95 000 (avant 120 000),
+  théiers 105 000 (avant 95 000), séchoir 120 000 (avant 105 000), prix de base. Sauvegarde : thé et séchoir
+  payés en entier à l'ancien prix restent payés (migrateEpices).
+- Bases des drones centrées sous leur étal, quelle que soit sa largeur (DronePad) : les étals de la ferme
+  exotique (126, 220, 360 de large) avaient leur « H » décalé à gauche. Ferme comprise : son portail est déplacé
+  entre la caisse et l'étal du maïs (FarmGateX 1 070 ; avant 1 250, où tombait la base du drone du maïs) ; le
+  passage piéton et le parking le suivent (ParkX d'après Gate.X), clôture et panneau aussi.
+
+## Page publique (GitHub)
+- README.md bilingue (français puis anglais) : présentation, téléchargement, commandes, captures (docs/images),
+  avis (formulaires d'issues), Tipeee (https://fr.tipeee.com/nathalie314/), licence, notes pour développeurs.
+  Autrice affichée : Nathalie314.
+- Licence : CC BY-NC-SA 4.0 (son souhait : qu'on puisse modifier et utiliser le jeu, mais pas se faire de l'argent
+  dessus) ; les bibliothèques (Ebitengine, polices Go) gardent la leur. Fichier LICENSE.
+- .github/workflows/release.yml : à chaque push sur main (ou à la main, onglet Actions), tests de sim, compilation
+  Windows, ToutUneVille.zip publié dans une Release « version-N » marquée « latest ». Lien permanent :
+  https://github.com/Nathalie314/Toute-une-ville/releases/latest/download/ToutUneVille.zip
+- .github/ISSUE_TEMPLATE : « Signaler un bug » (bug.yml), « Proposer une idée » (idee.yml), lien Tipeee (config.yml).

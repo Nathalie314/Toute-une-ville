@@ -251,6 +251,9 @@ func (p *Place) findDest(w *Agent) (*Station, Item) {
 // BoredAfter : secondes sans travail avant que l'ouvrier s'installe.
 const BoredAfter = 8.0
 
+// CashierBoredAfter : secondes sans client avant que la caissière sifflote.
+const CashierBoredAfter = 5.0
+
 func (p *Place) workerAI(w *Agent, dt float64) {
 	speed := p.agentSpeed(w)
 	if w.job == nil {

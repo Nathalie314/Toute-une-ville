@@ -1,0 +1,39 @@
+name: "💡 Proposer une idée / Suggest an idea"
+description: "Un nouveau lieu, un réglage, une amélioration… / A new place, a balance tweak, an improvement…"
+title: "[Idée] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci pour ton idée ! Tu peux écrire en français ou en anglais.
+        Thanks for your idea! You can write in French or English.
+  - type: textarea
+    id: idee
+    attributes:
+      label: "Ton idée / Your idea"
+    validations:
+      required: true
+  - type: textarea
+    id: pourquoi
+    attributes:
+      label: "Pourquoi ? / Why?"
+      description: "Qu'est-ce que ça apporterait au jeu ? / What would it bring to the game?"
+  - type: dropdown
+    id: lieu
+    attributes:
+      label: "Lieu concerné / Place"
+      options:
+        - "Ma ferme / Farm"
+        - "École / School"
+        - "Supermarché / Supermarket"
+        - "Crèmerie / Dairy"
+        - "Ferme exotique / Exotic farm"
+        - "Boulangerie / Bakery"
+        - "Glacier / Ice-cream parlour"
+        - "Port / Harbour"
+        - "Ferme d'élevage / Livestock farm"
+        - "Boucherie / Butcher's"
+        - "Domaine / Wine estate"
+        - "Nouveau lieu / New place"
+        - "Tout le jeu / Whole game"

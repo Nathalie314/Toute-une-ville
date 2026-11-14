@@ -82,11 +82,16 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 		g.exoticGround(dst, p, tl, br)
 	case "port":
 		g.portGround(dst, p, tl, br)
+	case "domaine":
+		g.domaineGround(dst, p, tl, br)
 	default:
 		g.workshopGround(dst, p, tl, br)
 	}
 	drawParking(dst, p, tl, br)
 	g.drawYard(dst, p)
+	if p.ID == "domaine" {
+		drawAlcoholNotice(dst, p)
+	}
 
 	// --- champs (au sol)
 	for _, s := range p.Stations {
@@ -210,7 +215,7 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	}
 	// les drones volent au-dessus de tout
 	for _, s := range p.Stations {
-		if d := s.Drone; d != nil {
+		for _, d := range s.Drones {
 			lift := 0.0
 			if d.Phase != 0 {
 				lift = 40
@@ -334,7 +339,7 @@ func (g *game) drawField(dst *ebiten.Image, s *sim.Station) {
 }
 
 func drawPlant(dst *ebiten.Image, it sim.Item, x, y, gr, t float64, i int) {
-	if drawExoticPlant(dst, it, x, y, gr, t) {
+	if drawExoticPlant(dst, it, x, y, gr, t) || drawDomainePlant(dst, it, x, y, gr, t) {
 		return
 	}
 	sway := 0.0
@@ -538,6 +543,9 @@ func (g *game) drawZones(dst *ebiten.Image, p *sim.Place, s *sim.Station) {
 				lbl = "ACCUEIL"
 			}
 			say(dst, lbl, s.Zone.C().X, s.Zone.C().Y, 22, true, 0, rgb(0x8a6a10))
+		} else if p.PlayerHelps(s) {
+			// le joueur à côté de la caissière : ils encaissent à deux
+			sayOutlined(dst, "Tu l'aides : ça va plus vite !", s.Spot.X, s.Spot.Y-70, 17, 0, rgb(0xffffff), rgb(0x2f8a4a))
 		}
 	case sim.Trash:
 		if s.Zone.W > 0 {
@@ -594,6 +602,11 @@ func (g *game) drawStation(dst *ebiten.Image, p *sim.Place, s *sim.Station) {
 	}
 	if strings.HasPrefix(s.ID, "barriere_") { // (tous les espaces du supermarché, même les nouveaux)
 		drawZoneBarrier(dst, s)
+		return
+	}
+	if p.ID == "domaine" && s.Kind == sim.Machine {
+		drawDomaineMachine(dst, s, g.t)
+		sign(dst, s.Body.C().X, s.Body.Y-14, s.Name)
 		return
 	}
 	if g.drawStage6(dst, p, s) {
@@ -985,6 +998,8 @@ func staffLook(place string, kind sim.AgentKind, n int) look {
 			lk.badge = true
 		case "port": // marinière, tablier ciré
 			lk.shirt, lk.mariniere, lk.apron = 0xffffff, true, 0x1f5fa8
+		case "domaine":
+			lk.shirt, lk.apron = 0x7a2a4a, 0x8a5a33
 		}
 		return lk
 	}
@@ -1009,6 +1024,10 @@ func staffLook(place string, kind sim.AgentKind, n int) look {
 	case "exotique": // chemise à fleurs, chapeau de paille
 		lk.shirt, lk.pants = 0x1fa37a, 0xe9d7a8
 		lk.hat, lk.hatC = 2, 0xe8c86a
+	case "domaine": // vigneron : chemise bordeaux, tablier de cuir, chapeau
+		lk.shirt, lk.pants = 0x7a2a4a, 0x3b3b4a
+		lk.apron = 0x8a5a33
+		lk.hat, lk.hatC = 2, 0x6e4322
 	case "elevage": // salopette, bottes, casquette
 		lk.shirt, lk.pants = 0x8a5a2b, 0x3b5998
 		lk.hat, lk.hatC = 2, 0x8a5a2b
@@ -1241,6 +1260,13 @@ func drawAgent(dst *ebiten.Image, place string, a *sim.Agent, t float64) {
 		drawBored(dst, a, lk, t)
 		return
 	}
+	if a.Kind == sim.CashierAgent && a.Bored > sim.CashierBoredAfter {
+		// pas de client : elle sifflote derrière sa caisse
+		lk.mouth = 2
+		drawPerson(dst, a.Pos, a.Face, 0, false, lk, nil)
+		drawNotes(dst, a.Pos.X, a.Pos.Y, t+float64(a.Look)*1.3)
+		return
+	}
 	drawPerson(dst, a.Pos, a.Face, a.WalkT, a.Moving, lk, a.Carry)
 }
 
@@ -1270,16 +1296,21 @@ func drawBored(dst *ebiten.Image, a *sim.Agent, lk look, t float64) {
 	default: // sifflote : des notes s'envolent
 		lk.mouth = 2
 		drawPerson(dst, a.Pos, a.Face, 0, false, lk, nil)
-		for i := 0; i < 2; i++ {
-			k := math.Mod(ph*0.6+float64(i)/2, 1)
-			nx := x + 16 + k*26 + math.Sin(k*9)*4
-			ny := y - 70 - k*50
-			c := rgba(0x8e44ad, math.Min(1, 1.4-1.4*k))
-			ellipse(dst, nx, ny, 6, 4.5, c)
-			rect(dst, nx+4, ny-18, 2.5, 18, c)
-			if i == 0 {
-				rect(dst, nx+4, ny-18, 9, 3, c)
-			}
+		drawNotes(dst, x, y, ph)
+	}
+}
+
+// drawNotes : des notes de musique qui s'envolent (quelqu'un sifflote).
+func drawNotes(dst *ebiten.Image, x, y, ph float64) {
+	for i := 0; i < 2; i++ {
+		k := math.Mod(ph*0.6+float64(i)/2, 1)
+		nx := x + 16 + k*26 + math.Sin(k*9)*4
+		ny := y - 70 - k*50
+		c := rgba(0x8e44ad, math.Min(1, 1.4-1.4*k))
+		ellipse(dst, nx, ny, 6, 4.5, c)
+		rect(dst, nx+4, ny-18, 2.5, 18, c)
+		if i == 0 {
+			rect(dst, nx+4, ny-18, 9, 3, c)
 		}
 	}
 }
@@ -1489,7 +1520,7 @@ func (g *game) drawSpot(dst *ebiten.Image, p *sim.Place, sp *sim.Spot) {
 			say(dst, "BIO", px, 1500, 20, true, 0, rgb(0xffffff))
 		}
 	}
-	if sp.Shelf != nil && l >= u.Max {
+	if sp.Shelf != nil && (l >= u.Max || l >= p.DroneMax(sp.Shelf)) {
 		// base du drone
 		c := r.C()
 		ellipse(dst, c.X, c.Y+8, 46, 26, rgba(0x000000, 0.12))
@@ -1542,6 +1573,8 @@ func (g *game) drawSpot(dst *ebiten.Image, p *sim.Place, sp *sim.Spot) {
 		if sim.TeamZones(p.ID) != nil {
 			title = sp.Label + " +1" // (« Bovins +1 »)
 		}
+	case sp.Shelf != nil && l > 0:
+		title = "Drone +1" // (ferme : un 2e, un 3e drone pour l'étal)
 	case sp.Room != nil && strings.HasPrefix(sp.ID, "tables_"):
 		title = "Table +1"
 	case u.Max > 1:
@@ -1611,8 +1644,9 @@ func (g *game) farmGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	}
 	// --- route
 	road(dst, tl, br, 1640)
-	// allée du portail
-	rect(dst, 1180, 1500, 140, 140, rgb(0xcfb894))
+	// allée du portail (entre la caisse et l'étal du maïs)
+	gx := sim.FarmGateX
+	rect(dst, gx-70, 1500, 140, 140, rgb(0xcfb894))
 	// --- clôture de la boutique (avec le portail)
 	fence := func(x1, x2 float64) {
 		for x := x1; x <= x2; x += 40 {
@@ -1622,11 +1656,11 @@ func (g *game) farmGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		rect(dst, x1, 1542, x2-x1, 7, rgb(0xb07d4a))
 		rect(dst, x1, 1558, x2-x1, 7, rgb(0xb07d4a))
 	}
-	fence(60, 1170)
-	fence(1330, p.W-60)
+	fence(60, gx-80)
+	fence(gx+80, p.W-60)
 	// panneau d'entrée
-	roundRect(dst, 1150, 1475, 200, 46, 8, rgb(0x7a4a26))
-	say(dst, "MA FERME", 1250, 1498, 26, true, 0, rgb(0xffe7a8))
+	roundRect(dst, gx-100, 1475, 200, 46, 8, rgb(0x7a4a26))
+	say(dst, "MA FERME", gx, 1498, 26, true, 0, rgb(0xffe7a8))
 
 }
 
@@ -1723,7 +1757,7 @@ func drawTruck(dst *ebiten.Image, cx, cy float64, busy bool) {
 	}
 	ellipse(dst, cx, cy+38, 120, 10, rgba(0x000000, 0.25))
 	roundRect(dst, cx-120, cy-42, 160, 74, 8, rgb(0xf3ead8))
-	label := map[string]string{"ferme": "MA FERME", "boulangerie": "BOULANGERIE", "cremerie": "CRÈMERIE", "glacier": "GLACIER", "boucherie": "BOUCHERIE", "exotique": "EXOTIQUE", "port": "LE PORT", "elevage": "ÉLEVAGE"}[truckFrom]
+	label := map[string]string{"ferme": "MA FERME", "boulangerie": "BOULANGERIE", "cremerie": "CRÈMERIE", "glacier": "GLACIER", "boucherie": "BOUCHERIE", "exotique": "EXOTIQUE", "port": "LE PORT", "elevage": "ÉLEVAGE", "domaine": "LE DOMAINE"}[truckFrom]
 	if label == "" {
 		label = "MA FERME"
 	}
@@ -1892,6 +1926,8 @@ func placeShort(id string) string {
 		return "boucherie"
 	case "port":
 		return "port"
+	case "domaine":
+		return "domaine"
 	}
 	return id
 }
@@ -1899,6 +1935,10 @@ func placeShort(id string) string {
 // drawDock : quai d'expédition et son camion.
 func (g *game) drawDock(dst *ebiten.Image, s *sim.Station) {
 	if !g.sim.DockActive(s) {
+		return
+	}
+	if s.PlaceID() == "domaine" {
+		g.drawDockV(dst, s) // (la route des camions est verticale)
 		return
 	}
 	b := s.Body

@@ -1,0 +1,32 @@
+Toute une Ville
+Copyright (c) 2026 Nathalie314
+
+Ce jeu (code, images, sons et textes) est mis à disposition selon les termes de la
+licence Creative Commons Attribution - Pas d'Utilisation Commerciale - Partage dans
+les Mêmes Conditions 4.0 International (CC BY-NC-SA 4.0).
+
+  - Attribution : citer l'autrice (Nathalie314) et indiquer un lien vers
+    https://github.com/Nathalie314/Toute-une-ville ainsi que vers la licence.
+  - Pas d'utilisation commerciale : interdit d'en faire un usage commercial.
+  - Partage dans les mêmes conditions : une version modifiée doit être diffusée
+    sous la même licence.
+
+Texte de la licence : https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.fr
+
+Les bibliothèques utilisées gardent leur propre licence : Ebitengine (Apache 2.0),
+les polices Go et golang.org/x/image (licence BSD), et leurs dépendances.
+
+---
+
+This game (code, images, sounds and texts) is licensed under the Creative Commons
+Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0).
+
+  - Attribution: credit the author (Nathalie314) and link to
+    https://github.com/Nathalie314/Toute-une-ville and to the license.
+  - NonCommercial: you may not use the material for commercial purposes.
+  - ShareAlike: modified versions must be distributed under the same license.
+
+License text: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
+
+Third-party libraries keep their own licenses: Ebitengine (Apache 2.0), the Go fonts
+and golang.org/x/image (BSD license), and their dependencies.

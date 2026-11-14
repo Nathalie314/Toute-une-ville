@@ -44,9 +44,12 @@ func (g *Game) Snapshot(unix int64) *Save {
 		Rate: g.RateLong(), Unix: unix, Places: map[string]*PlaceSave{}, Badges: g.Badges, Commande: g.Order, Cadeau: g.Boost, Favoris: g.Fav}
 	for _, p := range g.Places {
 		ps := &PlaceSave{Paid: map[string]float64{}, Stock: map[string]int{}, Pile: map[string]int{}, Buf: map[string][]int{}, Pousses: map[string]int{}, PoussePaye: map[string]float64{}, NiveauPaye: map[string]float64{}, StockPaye: map[string]float64{}, CasePaye: map[string]float64{}}
+		// les montants payés sont écrits sans le coefficient du lieu (prices.go) :
+		// si la courbe des prix change, ce qui était payé reste payé
+		k := p.scale1()
 		for _, u := range p.Unlocks {
 			if u.Paid > 0 {
-				ps.Paid[u.ID] = u.Paid
+				ps.Paid[u.ID] = u.Paid / k
 			}
 		}
 		ps.Reputation = p.Rep
@@ -57,7 +60,7 @@ func (g *Game) Snapshot(unix int64) *Save {
 		}
 		for _, sp := range p.Spots {
 			if sp.Paid > 0 {
-				ps.CasePaye[sp.ID] = sp.Paid
+				ps.CasePaye[sp.ID] = sp.Paid / k
 			}
 		}
 		for _, st := range p.Stations {
@@ -68,15 +71,15 @@ func (g *Game) Snapshot(unix int64) *Save {
 				ps.Pile[st.ID] = st.Pile
 			}
 			if st.LvlPaid > 0 {
-				ps.NiveauPaye[st.ID] = st.LvlPaid
+				ps.NiveauPaye[st.ID] = st.LvlPaid / k
 			}
 			if st.StkPaid > 0 {
-				ps.StockPaye[st.ID] = st.StkPaid
+				ps.StockPaye[st.ID] = st.StkPaid / k
 			}
 			if st.Kind == Field {
 				ps.Pousses[st.ID] = len(st.Plants)
 				if st.PlantPaid > 0 {
-					ps.PoussePaye[st.ID] = st.PlantPaid
+					ps.PoussePaye[st.ID] = st.PlantPaid / k
 				}
 			}
 			if st.Kind == Machine || st.Kind == Dock {
@@ -103,6 +106,8 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 	for i, p := range g.Places {
 		p.rng = rand.New(rand.NewSource(nowUnix + int64(i)*7919 + time.Now().UnixNano()))
 	}
+	migrateGlaces(s)
+	migrateEpices(s)
 	g.Money = s.Money
 	if s.Levels != nil {
 		g.Levels = s.Levels
@@ -209,8 +214,11 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 		if ps == nil {
 			continue
 		}
+		// (montants écrits sans le coefficient du lieu : voir Snapshot ; une sauvegarde
+		// d'avant la courbe des prix, avec les anciens prix, redonne donc tout ce qui était payé)
+		k := p.scale1()
 		for _, sp := range p.Spots {
-			sp.Paid = ps.CasePaye[sp.ID]
+			sp.Paid = ps.CasePaye[sp.ID] * k
 		}
 		if ps.Reputation >= 1 {
 			p.Rep = ps.Reputation
@@ -232,8 +240,9 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 			}
 		}
 		for _, u := range p.Unlocks {
-			u.Paid = ps.Paid[u.ID]
-			if u.Paid >= u.Cost-1e-6 && u.Cost > 0 {
+			u.Paid = ps.Paid[u.ID] * k
+			if u.Paid >= u.Cost*0.99 && u.Cost > 0 { // (prix arrondis : niceRound)
+				u.Paid = u.Cost
 				u.Done = false
 				p.complete(u)
 			}
@@ -250,10 +259,10 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 				for i := 0; i < n; i++ {
 					st.Plants = append(st.Plants, Plant{P: st.Slots[i], G: 1})
 				}
-				st.PlantPaid = ps.PoussePaye[st.ID]
+				st.PlantPaid = ps.PoussePaye[st.ID] * k
 			}
-			st.LvlPaid = ps.NiveauPaye[st.ID]
-			st.StkPaid = ps.StockPaye[st.ID]
+			st.LvlPaid = ps.NiveauPaye[st.ID] * k
+			st.StkPaid = ps.StockPaye[st.ID] * k
 			st.Stock = min(ps.Stock[st.ID], st.StockMax)
 			st.Pile = min(ps.Pile[st.ID], st.PileMax)
 			if b, ok := ps.Buf[st.ID]; ok {
@@ -316,4 +325,53 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 	}
 	g.Boost = s.Cadeau // (après les gains d'absence : un cadeau ne travaille pas jeu fermé)
 	return
+}
+
+// migrateGlaces : la glace à la cerise est devenue la glace à la vanille (même
+// place au glacier, même prix) : ce qui avait été payé pour elle (fabrique,
+// stock, drone de sa vitrine, rayon du supermarché) passe à la vanille.
+func migrateGlaces(s *Save) {
+	move := func(m map[string]float64, from, to string) {
+		if v, ok := m[from]; ok && m != nil {
+			if m[to] < v {
+				m[to] = v
+			}
+			delete(m, from)
+		}
+	}
+	if s.Levels != nil {
+		for _, k := range [][2]string{
+			{"glacier.glace_cerise_stock", "glacier.glace_vanille_stock"},
+			{"glacier." + droneKey(GlaceCerise), "glacier." + droneKey(GlaceVanille)},
+		} {
+			if v, ok := s.Levels[k[0]]; ok {
+				s.Levels[k[1]] = max(s.Levels[k[1]], v)
+				delete(s.Levels, k[0])
+			}
+		}
+	}
+	if ps := s.Places["glacier"]; ps != nil {
+		move(ps.Paid, "glace_cerise", "glace_vanille")
+		move(ps.StockPaye, "glace_cerise", "glace_vanille")
+		move(ps.CasePaye, droneKey(GlaceCerise), droneKey(GlaceVanille))
+	}
+	if ps := s.Places["super"]; ps != nil {
+		move(ps.Paid, "r_"+itoa(int(GlaceCerise)), "r_"+itoa(int(GlaceVanille)))
+	}
+}
+
+// migrateEpices : les épices de la ferme exotique s'achètent maintenant dans l'ordre
+// de leurs champs (vanille, cannelle, thé, séchoir) ; le thé (95 000 → 105 000 de
+// base) et le séchoir (105 000 → 120 000) coûtent plus : ce qui était entièrement
+// payé à l'ancien prix reste payé (les montants partiels restent tels quels).
+func migrateEpices(s *Save) {
+	ps := s.Places["exotique"]
+	if ps == nil || ps.Paid == nil {
+		return
+	}
+	for id, c := range map[string][2]float64{"the": {95000, 105000}, "sechoir": {105000, 120000}} {
+		if v := ps.Paid[id]; v >= c[0]*0.99 && v < c[1] {
+			ps.Paid[id] = c[1]
+		}
+	}
 }

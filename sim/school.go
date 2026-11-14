@@ -757,7 +757,7 @@ func (p *Place) PointKinds() []PointKind {
 		ks = append(ks, PointKind{key, t, grp, name, desc, val})
 	}
 	// primaire
-	if p.ID == "ferme" || p.ID == "exotique" {
+	if p.ID == "ferme" || p.ID == "exotique" || p.ID == "domaine" {
 		add("pts_agro", "ouvrier", "Agronomes", "Champs", "Les champs poussent plus vite (+1 % par point).", pctVal)
 	}
 	if p.ID == "elevage" {
@@ -798,6 +798,10 @@ func (p *Place) PointKinds() []PointKind {
 	}
 	if p.ID == "exotique" {
 		add("pts_mac_vit", "ouvrier", "Mécaniciens", "Machines : vitesse", "Raffinerie, moulins, chocolaterie, torréfacteur, séchoir vont plus vite (+3 % par point).", func(n int) string { return pctVal(3 * n) })
+		add("pts_mac_rent", "ouvrier", "Mécaniciens", "Machines : rentabilité", "Elles produisent autant en consommant moins.", rentVal)
+	}
+	if p.ID == "domaine" {
+		add("pts_mac_vit", "ouvrier", "Mécaniciens", "Machines : vitesse", "Presses, brasserie, distilleries, pressoir vont plus vite (+3 % par point).", func(n int) string { return pctVal(3 * n) })
 		add("pts_mac_rent", "ouvrier", "Mécaniciens", "Machines : rentabilité", "Elles produisent autant en consommant moins.", rentVal)
 	}
 	if p.ID == "elevage" {

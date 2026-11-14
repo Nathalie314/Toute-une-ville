@@ -27,7 +27,7 @@ var SuperZones = []*SuperZone{
 		open: func(g *Game) bool { return true }},
 	{ID: "legumes", Name: "Légumes", Items: Legumes, Cols: 2,
 		open: func(g *Game) bool { return g.farm().Station("carotte").Built }},
-	{ID: "fruits", Name: "Fruits", Items: append(append([]Item{}, Fruits...), ExoFruits...), Cols: 4,
+	{ID: "fruits", Name: "Fruits", Items: append(append(append([]Item{}, Fruits...), ExoFruits...), Raisin), Cols: 4, // (le raisin du domaine aussi)
 		open: func(g *Game) bool { return g.farm().Station("fraisier").Built }},
 	{ID: "cremerie", Name: "Crèmerie", Items: CremerieSold, Cols: 3, open: ownedFn("cremerie")},
 	{ID: "epicerie", Name: "Épicerie exotique", Items: ExoticSold[4:], Cols: 3, open: ownedFn("exotique")},
@@ -36,7 +36,7 @@ var SuperZones = []*SuperZone{
 	{ID: "poisson", Name: "Poissonnerie", Items: PortSold, Cols: 3, open: ownedFn("port")}, // (le port s'ouvre avant la boucherie)
 	{ID: "boucherie", Name: "Boucherie-charcuterie", Items: BoucherieSold, Cols: 6, open: ownedFn("boucherie")},
 	{ID: "patisserie", Name: "Pâtisserie", Cols: 3, Soon: true},
-	{ID: "alcool", Name: "Alcools", Cols: 3, Soon: true},
+	{ID: "alcool", Name: "Boissons", Items: DrinksSold, Cols: 3, open: ownedFn("domaine")}, // (vins, bière, cidre, alcools et jus du domaine)
 }
 
 func ownedFn(id string) func(g *Game) bool {
@@ -124,8 +124,8 @@ func init() {
 		z.X = SuperBX0 + SuperBX1 - z.X - z.W
 	}
 	SuperCartX = SuperBX1 + 40
-	SuperParkX = SuperCartX + 420
-	SuperW = SuperParkX + 2600 // (la route de sortie passe entre les places au sol et le parking à étages)
+	SuperParkX = SuperCartX + 510 // (après la route d'accès, qui va jusqu'à SuperCartX + 480 : elle ne passe plus sur le parking)
+	SuperW = SuperParkX + 2600    // (la route de sortie passe entre les places au sol et le parking à étages)
 }
 
 func newSuper(g *Game) *Place {
@@ -348,12 +348,12 @@ func (g *Game) produced(it Item) bool {
 	if g.farm().shelfFor(it) != nil {
 		return true
 	}
-	for _, id := range []string{"exotique", "port"} { // (ce qu'on y vend tel quel)
+	for _, id := range []string{"exotique", "port", "domaine"} { // (ce qu'on y vend tel quel ; domaine : le raisin, les jus)
 		if q := g.Place(id); q != nil && q.Owned && q.shelfFor(it) != nil {
 			return true
 		}
 	}
-	for _, id := range []string{"boulangerie", "cremerie", "glacier", "boucherie"} {
+	for _, id := range []string{"boulangerie", "cremerie", "glacier", "boucherie", "domaine"} {
 		p := g.Place(id)
 		if p == nil || !p.Owned {
 			continue
@@ -370,35 +370,43 @@ func (g *Game) produced(it Item) bool {
 func whereLocked(it Item) string {
 	for _, b := range BakerySold {
 		if b == it {
-			return "D'abord à la boulangerie"
+			return "Depuis la boulangerie"
 		}
 	}
 	for _, b := range CremerieSold {
 		if b == it {
-			return "D'abord à la crèmerie"
+			return "Depuis la crèmerie"
 		}
 	}
 	for _, b := range IceSold {
 		if b == it {
-			return "D'abord chez le glacier"
+			return "Depuis le glacier"
 		}
 	}
 	for _, b := range BoucherieSold {
 		if b == it {
-			return "D'abord à la boucherie"
+			return "Depuis la boucherie"
 		}
 	}
 	for _, b := range ExoticSold {
 		if b == it {
-			return "D'abord à la ferme exotique"
+			return "Depuis la ferme exotique"
 		}
 	}
 	for _, b := range PortSold {
 		if b == it {
-			return "D'abord au port"
+			return "Depuis le port"
 		}
 	}
-	return "D'abord à la ferme"
+	if it == Raisin {
+		return "Depuis le domaine"
+	}
+	for _, b := range DrinksSold {
+		if b == it {
+			return "Depuis le domaine"
+		}
+	}
+	return "Depuis la ferme"
 }
 
 // fixRayonCosts : le prix d'un rayon suit la progression du jeu (plus le produit
@@ -446,6 +454,8 @@ func (g *Game) fixRayonCosts() {
 				u.Cost = 7000 + 0.5*c
 			case "exotique":
 				u.Cost = 2500 + 0.5*c
+			case "domaine":
+				u.Cost = 9000 + 0.5*c
 			}
 			u.Cost = math.Round(u.Cost/50) * 50
 		}

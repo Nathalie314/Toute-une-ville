@@ -34,13 +34,13 @@ func (g *game) elevageGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	say(dst, "RÉSERVE (camions de ma ferme)", 1150, 160, 18, true, 0, rgba(0x4a4a4a, 0.75))
 	roundRect(dst, 100, 1000, p.W-200, 30, 14, path)
 	// la chambre froide : le sol carrelé sous les frigos
-	roundRect(dst, 140, 1030, 2650, 210, 20, rgb(0xdfe9ef))
-	for x := 150.0; x < 2780; x += 48 {
+	roundRect(dst, 140, 1030, p.W-750, 210, 20, rgb(0xdfe9ef))
+	for x := 150.0; x < p.W-620; x += 48 {
 		line(dst, x, 1034, x, 1236, 1.5, rgba(0xa9bcc8, 0.6))
 	}
-	say(dst, "CHAMBRE FROIDE", 2650, 1214, 16, true, 0, rgba(0x2b4a66, 0.7))
+	say(dst, "CHAMBRE FROIDE", p.W-750, 1214, 16, true, 0, rgba(0x2b4a66, 0.7))
 	// pistes des drones
-	roundRect(dst, 140, 1320, 2650, 140, 20, rgba(0x8a8f96, 0.35))
+	roundRect(dst, 140, 1320, p.W-750, 140, 20, rgba(0x8a8f96, 0.35))
 	road(dst, tl, br, 1640)
 	// la route du haut : les camions de ma ferme y roulent jusqu'à la réserve
 	rect(dst, tl.X-10, 10, br.X-tl.X+20, 100, rgb(0x6b6f74))
@@ -103,6 +103,24 @@ func (g *game) drawStage6(dst *ebiten.Image, p *sim.Place, s *sim.Station) bool 
 		roundRect(dst, b.C().X-40, b.Y-26, 80, 24, 6, rgba(0x2b2140, 0.85))
 		say(dst, itoa(s.Stock)+"/"+itoa(s.StockMax), b.C().X, b.Y-14, 15, true, 0, rgb(0xffffff))
 		sign(dst, b.C().X, b.Y+b.H+22, "Grange à foin")
+	case s.ID == "silo":
+		// deux silos ronds en tôle, et des sacs de blé devant
+		ellipse(dst, b.C().X, b.Y+b.H, b.W*0.55, 12, rgba(0x000000, 0.18))
+		for k, x := range []float64{b.X + 20, b.X + 110} {
+			h := 150.0 - float64(k)*25
+			rect(dst, x, b.Y+b.H-h, 70, h, rgb(0xc9ced4))
+			for y := b.Y + b.H - h + 14; y < b.Y+b.H; y += 18 {
+				line(dst, x, y, x+70, y, 1.5, rgba(0x8a9096, 0.7))
+			}
+			ellipse(dst, x+35, b.Y+b.H-h, 35, 14, rgb(0xa8aeb5))
+			polygon(dst, []V{{X: x, Y: b.Y + b.H - h}, {X: x + 35, Y: b.Y + b.H - h - 34}, {X: x + 70, Y: b.Y + b.H - h}}, rgb(0x9aa1a8))
+		}
+		for i := 0; i < min(s.Stock, 10); i++ {
+			drawItem(dst, sim.Ble, b.X+20+float64(i%5)*38, b.Y+b.H-10-float64(i/5)*16, 13)
+		}
+		roundRect(dst, b.C().X-40, b.Y-130, 80, 24, 6, rgba(0x2b2140, 0.85))
+		say(dst, itoa(s.Stock)+"/"+itoa(s.StockMax), b.C().X, b.Y-118, 15, true, 0, rgb(0xffffff))
+		sign(dst, b.C().X, b.Y+b.H+22, "Silo à blé")
 	default:
 		return false
 	}

@@ -796,7 +796,7 @@ func (g *game) drawHelp(dst *ebiten.Image) {
 		"• Tu n'arrives pas à te débarrasser de quelque chose ? Arrête-toi au compost, tout à droite.",
 		"• Supermarché, boulangerie, crèmerie, glacier (sur la carte) : chacun a son quai à la ferme, un camion y emmène les produits.",
 		"• La réputation (étoiles) monte avec les clients contents et attire du monde. B : tes badges.",
-		"• Le jeu se sauvegarde tout seul. F11 : plein écran ou fenêtre. M : couper le son.",
+		"• Le jeu se sauvegarde tout seul. F11 : plein écran ou fenêtre. M : couper le son. « , ? » : cette aide.",
 	}
 	for i, l := range lines {
 		say(dst, l, x+50, y+34+float64(i)*45, 22, false, -1, rgb(0x3b2a10))
@@ -886,7 +886,7 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		g.placeTile("port", "Port", 0x2b6cd6),
 		g.placeTile("elevage", "Ferme d'élevage", 0x8a5a2b),
 		g.placeTile("boucherie", "Boucherie", 0xb03a3a),
-		{id: "caviste", name: "Caviste", status: "Bientôt", col: 0x7a2a4a},
+		g.placeTile("domaine", "Le domaine", 0x7a2a4a),
 		{id: "patisserie", name: "Pâtisserie", status: "Bientôt", col: 0xe0567f},
 		{id: "creperie", name: "Crêperie", status: "Bientôt", col: 0xd9a55a},
 		{id: "fleuriste", name: "Fleuriste", status: "Bientôt", col: 0xff6fa8},
@@ -1443,7 +1443,7 @@ func (g *game) drawBuyPlace(dst *ebiten.Image) {
 	}
 	w, h := 940.0, 520.0
 	x, y := g.panelFrame(dst, "Acheter "+strings.ToLower(p.Name[:1])+p.Name[1:]+" ?", w, h)
-	txt := "L'immense supermarché vend les produits de tes lieux, espace par espace (ferme, légumes, fruits, puis crèmerie, boulangerie, glaces…). Ce qui part en camion arrive dans son entrepôt (1 objet livré = 2 en réserve). Les clients viennent en voiture et prennent un caddie : achète des places et des caddies !"
+	txt := "L'immense supermarché vend les produits de tes lieux, espace par espace (ferme, légumes, fruits, puis crèmerie, boulangerie, glaces…). Ce qui part en camion arrive dans son entrepôt (1 objet livré = 3 en réserve). Les clients viennent en voiture et prennent un caddie : achète des places et des caddies !"
 	switch p.ID {
 	case "boulangerie":
 		txt = "La boulangerie fait du pain et des viennoiseries : baguettes, pain blé-maïs, brioches, puis croissants et pains au chocolat (avec le beurre de la crèmerie). Les ingrédients arrivent en camion depuis le quai « → boulangerie » de la ferme."
@@ -1457,8 +1457,10 @@ func (g *game) drawBuyPlace(dst *ebiten.Image) {
 		txt = "La ferme d'élevage ne reçoit pas de clients : elle élève volailles, bovins, ovins et porcs avec le maïs, le foin (grenier à foin de ta ferme) et les pommes de terre de ta ferme, puis les abat. Ses frigos partent en camion frigorifique à la boucherie. Chaque espace a ses éleveurs."
 	case "boucherie":
 		txt = "La boucherie-charcuterie découpe la viande de la ferme d'élevage : poulets, canards, bœuf, veau, mouton, agneau, porc. Ses clients sont rares mais achètent cher, et elle remplit l'espace boucherie du supermarché. Chaque espace a ses bouchers."
+	case "domaine":
+		txt = "Le domaine : la vigne, le houblon et une distillerie. Le raisin et les jus partent en camion au supermarché ; on vend sur place les vins, la bière, le cidre et les alcools (avec les pommes, poires, pommes de terre et le blé de ta ferme). Chaque espace a ses ouvriers. L'alcool est dangereux pour la santé : à consommer avec modération."
 	case "glacier":
-		txt = "Le glacier fait des sorbets (fraise, cerise) avec les fruits du verger, et plus tard des glaces (lait, crème, œufs, sucre et fruits ou chocolat). Les ingrédients arrivent en camion depuis le quai « → glacier » de la ferme."
+		txt = "Le glacier fait des sorbets (fraise, mangue, ananas) avec les fruits, puis des glaces : crème et œufs avec de la vanille, du café, de la noix de coco, du chocolat ou des poires. Les ingrédients arrivent en camion (ferme, crèmerie, ferme exotique)."
 	}
 	for i, l := range wrap(txt, 26, w-120, false) {
 		say(dst, l, x+w/2, y+56+float64(i)*36, 26, false, 0, rgb(0x5a4a3a))

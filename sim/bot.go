@@ -60,7 +60,7 @@ func (b *Bot) Step(g *Game, dt float64) {
 			if np := b.nextPlace(g); np != nil && u.Cost >= 5500 && np.Price < 600*g.Rate()+g.Money && (!b.Human || b.ready(g)) {
 				continue // (il garde de quoi acheter le prochain lieu, s'il est à portée : ~10 min de recettes)
 			}
-			if !u.Done && p.Visible(u) && g.Money >= u.Cost-u.Paid && u.Cost < 1e6 && u.Cost < best {
+			if !u.Done && p.Visible(u) && g.Money >= u.Cost-u.Paid && u.Cost < best {
 				best, b.goal = u.Cost, u
 			}
 		}
@@ -111,7 +111,7 @@ func (b *Bot) Step(g *Game, dt float64) {
 }
 
 func (b *Bot) shop(g *Game) {
-	for _, id := range []string{"ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "port", "elevage", "boucherie"} {
+	for _, id := range []string{"ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "port", "elevage", "boucherie", "domaine"} {
 		if q := g.Place(id); b.Human && !q.Owned && !b.ready(g) {
 			break // (elle finit d'abord ce qu'elle a avant d'acheter un nouveau lieu)
 		}
@@ -166,7 +166,7 @@ func (b *Bot) shop(g *Game) {
 		}
 		c := best.Cost(g.Levels[best.Key])
 		reserve := 0.0
-		if next != nil && next.Cost < 1e6 {
+		if next != nil {
 			reserve = (next.Cost - next.Paid) * 0.5
 		}
 		if best.Key == p.key("caissiere") || (b.Human && best.Key == "mairie.veilleur") || (best.Key == p.key("ouvriers") && g.Levels[best.Key] < 2) || (strings.HasPrefix(best.Key, "ferme.ouvriers_") && g.Levels["ferme.ouvriers"] < 4) || botUrgent(best.Key) {
@@ -187,7 +187,7 @@ func (b *Bot) shop(g *Game) {
 
 // nextPlace : le prochain lieu à acheter (dans l'ordre).
 func (b *Bot) nextPlace(g *Game) *Place {
-	for _, id := range []string{"super", "cremerie", "exotique", "boulangerie", "glacier", "elevage", "boucherie"} {
+	for _, id := range []string{"super", "cremerie", "exotique", "boulangerie", "glacier", "elevage", "boucherie", "domaine"} {
 		if p := g.Place(id); p != nil && !p.Owned {
 			return p
 		}

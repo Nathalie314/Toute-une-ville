@@ -10,7 +10,7 @@ import (
 
 // drawItem dessine une marchandise centrée en (x, y), de « rayon » r.
 func drawItem(dst *ebiten.Image, it sim.Item, x, y, r float64) {
-	if drawItemNew(dst, it, x, y, r) || drawItemMeat(dst, it, x, y, r) || drawItemExotic(dst, it, x, y, r) || drawItemPort(dst, it, x, y, r) {
+	if drawItemNew(dst, it, x, y, r) || drawItemMeat(dst, it, x, y, r) || drawItemExotic(dst, it, x, y, r) || drawItemPort(dst, it, x, y, r) || drawItemDomaine(dst, it, x, y, r) {
 		return
 	}
 	dark := rgba(0x000000, 0.25)
@@ -54,6 +54,15 @@ func drawItem(dst *ebiten.Image, it sim.Item, x, y, r float64) {
 		for k := -1; k <= 1; k++ {
 			cx, cy := x+float64(k)*r*0.45, y-float64(k)*r*0.33
 			line(dst, cx-r*0.1, cy-r*0.12, cx+r*0.12, cy+r*0.08, r*0.08, rgb(0xfbe3b0))
+		}
+	case sim.PainMie:
+		// un pain de mie carré, deux tranches devant
+		roundRect(dst, x-r*0.85, y-r*0.55, r*1.3, r*1.1, r*0.2, rgb(0xc98a3d))
+		roundRect(dst, x-r*0.75, y-r*0.45, r*1.1, r*0.25, r*0.1, rgb(0xe3a857))
+		for k := 0; k < 2; k++ {
+			sx := x + r*0.35 + float64(k)*r*0.25
+			roundRect(dst, sx, y-r*0.35, r*0.5, r*0.85, r*0.12, rgb(0xb5793a))
+			roundRect(dst, sx+r*0.05, y-r*0.28, r*0.4, r*0.72, r*0.1, rgb(0xfbe9c8))
 		}
 	case sim.PainMele:
 		ellipse(dst, x, y+r*0.15, r*0.95, r*0.6, rgb(0xb07a3a))
@@ -140,7 +149,12 @@ func drawItem(dst *ebiten.Image, it sim.Item, x, y, r float64) {
 		circle(dst, x, y-r*0.35, r*0.5, rgb(c))
 		circle(dst, x-r*0.3, y-r*0.15, r*0.25, rgb(c))
 		circle(dst, x+r*0.3, y-r*0.15, r*0.25, rgb(c))
-		circle(dst, x+r*0.1, y-r*0.75, r*0.12, rgb(0xd62839))
+		if it == sim.GlaceVanille {
+			// une gousse de vanille posée sur la boule
+			line(dst, x-r*0.3, y-r*0.7, x+r*0.35, y-r*0.85, r*0.09, rgb(0x3a2418))
+		} else {
+			circle(dst, x+r*0.1, y-r*0.75, r*0.12, rgb(0xd62839))
+		}
 		if it == sim.GlaceFruitLait {
 			circle(dst, x-r*0.2, y-r*0.4, r*0.09, rgb(0xd62839)) // des morceaux de fruits
 			circle(dst, x+r*0.25, y-r*0.25, r*0.09, rgb(0xf08a24))

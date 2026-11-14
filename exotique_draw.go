@@ -34,6 +34,16 @@ func (g *game) exoticGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 			a = 0.35
 		}
 		cx := (z.X0 + z.X1) / 2
+		// (au milieu de ses champs, juste sous leur nom)
+		lo, hi := math.Inf(1), math.Inf(-1)
+		for _, s := range p.Stations {
+			if s.Team == z.ID && s.Kind == sim.Field {
+				lo, hi = math.Min(lo, s.Body.X), math.Max(hi, s.Body.X+s.Body.W)
+			}
+		}
+		if lo < hi {
+			cx = (lo + hi) / 2
+		}
 		roundRect(dst, cx-90, 486, 180, 30, 10, rgba(0x1f6e4a, a))
 		say(dst, strings.ToUpper(z.Name), cx, 501, 17, true, 0, rgba(0xffffff, a))
 	}

@@ -18,7 +18,7 @@ var zoneCols = map[string]uint32{
 
 // superTruckStop : où s'arrête le camion d'un lieu (derrière son espace).
 func superTruckStop(from string) float64 {
-	id := map[string]string{"ferme": "ferme", "cremerie": "cremerie", "boulangerie": "boulangerie", "glacier": "glace", "boucherie": "boucherie", "exotique": "epicerie", "port": "poisson"}[from]
+	id := map[string]string{"ferme": "ferme", "cremerie": "cremerie", "boulangerie": "boulangerie", "glacier": "glace", "boucherie": "boucherie", "exotique": "epicerie", "port": "poisson", "domaine": "alcool"}[from]
 	for _, z := range sim.SuperZones {
 		if z.ID == id {
 			return z.X + z.W/2
@@ -141,7 +141,8 @@ func drawSuperGround(dst *ebiten.Image, g *game, p *sim.Place, tl, br V) {
 		for x := px + 30; x < px+pw-30; x += 120 {
 			rect(dst, x, a-3, 50, 6, rgba(0xffe066, 0.5))
 		}
-		// l'allée rejoint la route de sortie
+		// l'allée part de la route d'accès et rejoint la route de sortie
+		rect(dst, ax+60, a-42, px-ax-50, 84, rgb(0x5f6368))
 		rect(dst, px+pw-20, a-42, ex-80-(px+pw)+40, 84, rgb(0x5f6368))
 		// les allées : vers la droite seulement
 		for x := px + 150; x < px+pw-60; x += 420 {
@@ -207,7 +208,7 @@ func drawZoneBarrier(dst *ebiten.Image, s *sim.Station) {
 	for _, z := range sim.SuperZones {
 		if "barriere_"+z.ID == s.ID && !z.Soon {
 			txt = map[string]string{"legumes": "Il faut la serre (ma ferme)", "fruits": "Il faut le verger (ma ferme)",
-				"cremerie": "Il faut la crèmerie", "boulangerie": "Il faut la boulangerie", "glace": "Il faut le glacier", "boucherie": "Il faut la boucherie", "epicerie": "Il faut la ferme exotique"}[z.ID]
+				"cremerie": "Il faut la crèmerie", "boulangerie": "Il faut la boulangerie", "glace": "Il faut le glacier", "boucherie": "Il faut la boucherie", "epicerie": "Il faut la ferme exotique", "alcool": "Il faut le domaine"}[z.ID]
 		}
 	}
 	roundRect(dst, b.C().X-170, b.C().Y-34, 340, 68, 12, rgba(0x2b2140, 0.85))

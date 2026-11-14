@@ -31,7 +31,7 @@ func flowerArea(p *sim.Place) (sim.Rect, bool) {
 		return sim.Rect{X: sim.SuperBX0 + 30, Y: 470, W: sim.SuperBX1 - sim.SuperBX0 - 60, H: 1060}, true
 	case "ecole":
 		return sim.Rect{X: 110, Y: 140, W: sim.SchoolW - 180, H: 1370}, true
-	case "ferme", "exotique", "elevage":
+	case "ferme", "exotique", "elevage", "domaine":
 		return sim.Rect{X: 20, Y: 140, W: p.W - 40, H: 1470}, false
 	}
 	return sim.Rect{X: 40, Y: 430, W: p.W - 160, H: 1090}, true // boutiques : dans le magasin

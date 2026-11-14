@@ -85,12 +85,14 @@ type Station struct {
 	HireKey   string  // caisse : amélioration qui embauche sa caissière
 	To        string  // quai : lieu de destination du camion
 	place     string  // lieu où se trouve la station
+	scale     float64 // coefficient des prix du lieu (pousses) ; 0 : 1
+	PadOff    float64 // étal : distance entre l'étal et la base de son drone (0 : 140)
 	yard      bool    // ferme : dans la cour à gauche (ne se décale pas)
 	UpMult    float64 // multiplicateur du prix des niveaux (0 : normal)
 
 	claim  [NItems]int // quantités promises par des employés en route
 	booked int         // étal : articles réservés par des clients en route
-	Drone  *Drone      // étal de la ferme : son drone
+	Drones []*Drone    // étal : ses drones (un ; à la ferme, jusqu'à 3 si son produit part vers plusieurs lieux)
 }
 
 func (s *Station) Solid() bool { return s.Kind != Field }
@@ -271,6 +273,7 @@ type Place struct {
 	Rep         float64 // réputation, de 1 à 5 étoiles
 	Owned       bool    // lieu acheté
 	Price       float64 // prix d'achat sur la carte
+	Scale       float64 // coefficient de tous les prix du lieu (rang sur la carte, prices.go) ; 0 : 1
 	Served      int     // clients servis ici
 	SellMult    float64 // multiplicateur des prix de vente
 	SpawnBase   float64 // temps moyen entre deux clients (1 produit)
@@ -401,6 +404,16 @@ func (p *Place) step(dt float64, active bool) {
 	if p.ID == "ecole" {
 		p.stepSchool(dt, active)
 		return
+	}
+	// une caissière sans client s'ennuie (elle sifflote : dessin)
+	for _, r := range p.Registers() {
+		if c := r.Cashier; c != nil {
+			if p.QueueAt(r) == 0 {
+				c.Bored += dt
+			} else {
+				c.Bored = 0
+			}
+		}
 	}
 	for _, s := range p.Stations {
 		if !s.Built {
@@ -686,7 +699,7 @@ func (p *Place) interact(a *Agent, dt float64) {
 		for _, sp := range p.Spots {
 			u := p.SpotUpgrade(sp)
 			l := g.Levels[u.Key]
-			if l >= u.Max || !p.SpotVisible(sp) || !sp.Zone.Has(a.Pos) {
+			if l >= u.Max || (sp.Shelf != nil && l >= p.DroneMax(sp.Shelf)) || !p.SpotVisible(sp) || !sp.Zone.Has(a.Pos) {
 				continue
 			}
 			cost := u.Cost(l)
@@ -1061,13 +1074,14 @@ func (p *Place) walk(a *Agent, to V, speed, dt float64) bool {
 func (p *Place) rand() float64 { return p.rng.Float64() }
 
 // PlantCost : prix de la prochaine pousse d'un champ (de plus en plus cher).
+// (une case de serre ou de verger : bien plus chère qu'une pousse de maïs ;
+// les lieux loin sur la carte : tout est plus cher, prices.go)
 func (s *Station) PlantCost() float64 {
-	k := len(s.Plants)
-	if s.Column {
-		// une case de serre ou de verger : bien plus chère qu'une pousse de maïs
-		return math.Round(Items[s.Item].Price * 12 * math.Pow(1.4, float64(k-1)))
+	c := s.rawPlantCost(len(s.Plants))
+	if s.scale > 0 && s.scale != 1 {
+		c = niceRound(c * s.scale)
 	}
-	return math.Round(Items[s.Item].Price * math.Pow(1.18, float64(k-1)))
+	return c
 }
 
 // Empties : cases vides (à replanter) de la colonne qui utilise ces graines.
@@ -1130,6 +1144,12 @@ type Spot struct {
 func (p *Place) SpotUpgrade(sp *Spot) *Upgrade {
 	for _, u := range p.PlaceUpgrades() {
 		if u.Key == p.key(sp.ID) {
+			if sp.Shelf != nil && u.Max > 1 {
+				// drones de la ferme : un 2e et un 3e seulement si le produit part vers plusieurs lieux
+				c := *u
+				c.Max = min(u.Max, max(p.DroneMax(sp.Shelf), p.g.Levels[u.Key]))
+				return &c
+			}
 			return u
 		}
 	}
@@ -1161,7 +1181,7 @@ func (p *Place) SpotVisible(sp *Spot) bool {
 		// (les prix guident vers l'ordre maïs, blé, maïs, blé…)
 		f := p.Station(teamAnchor(sp.Team))
 		u := p.SpotUpgrade(sp)
-		if isColumnTeam(sp.Team) && p.g.Levels[u.Key] >= p.columnsBuiltOf(sp.Team) {
+		if isColumnTeam(sp.Team) && p.g.Levels[u.Key] >= p.columnHires(sp.Team) {
 			return false // (un ouvrier par colonne ouverte)
 		}
 		return f != nil && f.Built && p.g.Levels[u.Key] < u.Max
@@ -1186,7 +1206,10 @@ func (p *Place) reputation(d float64) {
 
 // Stockable : bâtiments dont on peut agrandir le stock (entrée et sortie).
 func (s *Station) Stockable() bool {
-	return (s.Kind == Machine || s.Kind == Animal) && s.place != "ecole" && s.place != "elevage"
+	if s.place == "elevage" {
+		return elevageAnimals[s.ID] // (les bâtiments d'animaux, pas les abattoirs)
+	}
+	return (s.Kind == Machine || s.Kind == Animal) && s.place != "ecole"
 }
 
 // StockZone : case « stock », sous la case de niveau, à droite du bâtiment.
@@ -1274,15 +1297,28 @@ func FieldYield(level int) int {
 }
 
 // CashTime : secondes par objet passé en caisse (caissière ; le joueur va plus vite).
+// Le joueur à côté d'une caissière l'aide : leurs vitesses s'additionnent.
 func (p *Place) CashTime(r *Station) float64 {
 	if r.Cashier == nil {
 		return CashPlayer // le joueur
 	}
+	t := CashBase / (1 + 2*p.ptsF("pts_caisse")) // (4.1 : seulement les points « Caisses » de l'école)
 	if p.ID == "super" {
-		return CashPlayer / (1 + 2*p.ptsF("pts_caisse")) // caisses à scanner
+		t = CashPlayer / (1 + 2*p.ptsF("pts_caisse")) // caisses à scanner
 	}
-	// (4.1 : plus de tiroir-caisse ni de caisse rapide : seulement les points « Caisses » de l'école)
-	return CashBase / (1 + 2*p.ptsF("pts_caisse"))
+	if p.PlayerHelps(r) {
+		t = 1 / (1/t + 1/CashPlayer)
+	}
+	return t
+}
+
+// HelpDist : distance à la caissière en deçà de laquelle le joueur l'aide.
+const HelpDist = 170.0
+
+// PlayerHelps : le joueur est-il à côté de la caissière de cette caisse ?
+func (p *Place) PlayerHelps(r *Station) bool {
+	g := p.g
+	return r.Cashier != nil && p.ID != "ecole" && g.Cur == p && g.Player != nil && g.Player.Pos.Sub(r.Spot).Len() < HelpDist // (l'accueil de l'école : pas de caisse)
 }
 
 // cashUpgrade : vitesse d'encaissement des caissières d'un lieu.
@@ -1325,7 +1361,7 @@ func (p *Place) speedOf0(s *Station) (f, rent float64) {
 		return 1 + 3*p.ptsF("pts_soin"), RentSave(g.Levels[p.key("pts_soin_rent")])
 	case p.ID == "elevage" && s.Kind == Machine:
 		return 1 + 3*p.ptsF("pts_mac_vit"), RentSave(g.Levels[p.key("pts_mac_rent")])
-	case p.ID == "exotique" && s.Kind == Machine:
+	case (p.ID == "exotique" || p.ID == "domaine") && s.Kind == Machine:
 		return 1 + 3*p.ptsF("pts_mac_vit"), RentSave(g.Levels[p.key("pts_mac_rent")])
 	case p.ID == "ferme" && animalIDs[s.ID]:
 		return 1 + 3*p.ptsF("pts_soin"), RentSave(g.Levels[p.key("pts_soin_rent")]) // (sélection génétique)

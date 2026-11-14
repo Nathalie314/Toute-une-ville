@@ -44,7 +44,7 @@ func main() {
 		g.Events = g.Events[:0]
 		if int(g.T)/600 != last {
 			last = int(g.T) / 600
-			fmt.Printf("  --- %3d min : %8.0f € en poche, %6.1f €/s, servis %d, ratés %d, réputation %.2f / %.2f, badges %d\n", last*10, g.Money, g.Rate(), g.Stats.Served, g.Stats.Missed, g.Places[0].Rep, g.Places[1].Rep, len(g.Badges))
+			fmt.Printf("  --- %3d min : %8.0f € en poche, %6.1f €/s, servis %d, ratés %d, réputation %.2f / %.2f, badges %d\n", last*10, g.Money, g.Rate(), g.Stats.Served, g.Stats.Missed, g.Places[0].Rep, g.Place("super").Rep, len(g.Badges))
 			if last%3 == 0 {
 				fmt.Printf("        fabriqués : %v\n", g.Stats.Made)
 			}

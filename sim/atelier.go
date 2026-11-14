@@ -32,29 +32,29 @@ type workshopSpec struct {
 	upBase     float64
 	sign, bio  string
 	seed       int64
-	w          float64  // largeur (2700 par défaut)
+	w          float64  // largeur minimale (2700 par défaut ; agrandie s'il faut pour les machines)
 	perRow     int      // machines par rangée (4 par défaut)
 	docks      []string // lieux où partent ses camions (le supermarché par défaut)
 	shift2     bool     // 2e rangée décalée d'un cran à droite (rien derrière la caissière)
-	colW       float64  // écart entre deux machines (620 par défaut)
-	row0, rowG float64  // haut de la 1re rangée de machines, écart entre rangées (0 : par défaut)
-	dockNear   bool     // quai juste après la dernière vitrine, compost à droite de la 4e machine
-	tall       bool     // plus d'espace entre les rangées et les vitrines (crèmerie)
+	gap        float64  // allée entre deux machines (machineGap par défaut)
+	dockNear   bool     // quais juste après la dernière vitrine
+	tall       bool     // file de la caisse plus courte (elle ne doit pas sortir par la vitrine)
 }
 
 var bakerySpec = workshopSpec{
 	id: "boulangerie", name: "La boulangerie", price: 50000, seed: 31,
 	inputs: []Item{Farine, FarineMais, Oeuf, Lait, Beurre, SucrePoudre, Chocolat},
 	recipes: []recipe{
-		{"four_baguette", "Four à baguettes", Pain, []Item{Farine}, 3, 0, "", ""},
-		{"four_mais", "Four à maïs", BaguetteMais, []Item{FarineMais}, 3, 2500, "Farine de maïs → baguette de maïs.", ""},
+		{"four_baguette", "Tradition", Pain, []Item{Farine}, 3, 0, "", ""},
+		{"pain_mie", "Pain de mie", PainMie, []Item{Farine}, 3.5, 1500, "Farine de blé → pain de mie.", ""},
+		{"four_mais", "Baguette maïs", BaguetteMais, []Item{FarineMais}, 3, 2500, "Farine de maïs → baguette de maïs.", ""},
 		{"four_mele", "Pain blé-maïs", PainMele, []Item{Farine, FarineMais}, 4, 5000, "Les deux farines ensemble.", ""},
 		{"brioches", "Brioches", Brioche, []Item{Farine, Oeuf, Beurre, SucrePoudre}, 5, 9000, "Farine, œufs, beurre et sucre.", "cremerie:beurre,exotique:moulin_sucre"},
 		{"croissants", "Croissants", Croissant, []Item{Farine, Oeuf, Lait, Beurre, SucrePoudre}, 5, 30000, "Farine, œufs, lait, beurre et sucre.", "cremerie:beurre,exotique:moulin_sucre"},
 		{"pains_choco", "Pains au chocolat / chocolatines", PainChoco, []Item{Farine, Oeuf, Beurre, Chocolat}, 6, 60000, "Farine, œufs, beurre et chocolat.", "cremerie:beurre,exotique:chocolaterie"},
 	},
-	staff: "Boulangers", cashCost: 3000, staffCosts: []float64{4000, 10000, 25000, 60000, 150000, 350000}, upBase: 5000,
-	sign: "Vitrine", bio: "Fait maison", shift2: true, tall: true,
+	staff: "Boulangers", cashCost: 3000, staffCosts: []float64{4000, 10000, 25000, 60000, 150000, 350000, 800000}, upBase: 5000, // (un boulanger par machine)
+	sign: "Vitrine", bio: "Fait maison", shift2: true, tall: true, dockNear: true, // (quai juste à droite des pains au chocolat)
 }
 
 // cremerieSpec : la crèmerie, avec les trois laits de la ferme. Le beurre se
@@ -75,37 +75,72 @@ var cremerieSpec = workshopSpec{
 	},
 	staff: "Crémiers", cashCost: 4500, staffCosts: []float64{6000, 15000, 38000, 90000, 220000, 500000, 1100000, 2400000, 5000000}, upBase: 7000,
 	sign: "Vitrine", bio: "Fermier",
-	w: 3400, perRow: 5, docks: []string{"super", "boulangerie", "glacier"}, shift2: true, tall: true,
+	w: 3400, perRow: 5, docks: []string{"super", "boulangerie", "glacier"}, shift2: true, tall: true, dockNear: true,
 }
 
 // iceSpec : le glacier. Les sorbets : seulement le fruit (et de l'eau) ; les
-// glaces : lait, crème, sucre en poudre, œufs et le fruit (ou le chocolat).
+// glaces : crème, œufs et le parfum (vanille, café, noix de coco, chocolat, poire et chocolat).
 var iceSpec = workshopSpec{
 	id: "glacier", name: "Le glacier", price: 80000, seed: 37, w: 3300,
-	inputs: []Item{Fraise, Mangue, Ananas, Cerise, NoixCoco, Lait, Creme, SucrePoudre, Oeuf, Chocolat, Poire},
+	inputs: []Item{Fraise, Mangue, Ananas, Vanille, CafeMoulu, NoixCoco, Creme, Oeuf, Chocolat, Poire},
 	recipes: []recipe{
 		{"sorbet_fraise", "Sorbet à la fraise", SorbetFraise, []Item{Fraise}, 3, 0, "", ""},
 		{"sorbet_mangue", "Sorbet à la mangue", SorbetMangue, []Item{Mangue}, 4, 15000, "Des mangues (ferme exotique).", "exotique:manguier"},
 		{"sorbet_ananas", "Sorbet à l'ananas", SorbetAnanas, []Item{Ananas}, 4, 25000, "Des ananas (ferme exotique).", "exotique:ananas"},
-		{"glace_cerise", "Glace à la cerise", GlaceCerise, []Item{Lait, Creme, SucrePoudre, Oeuf, Cerise}, 5, 35000, "Lait, crème, sucre, œufs et cerises.", "cremerie:creme,exotique:moulin_sucre"},
-		{"glace_coco", "Glace à la noix de coco", GlaceCoco, []Item{Lait, Creme, SucrePoudre, Oeuf, NoixCoco}, 5, 50000, "Lait, crème, sucre, œufs et noix de coco.", "cremerie:creme,exotique:moulin_sucre,exotique:cocotier"},
-		{"glace_choco", "Glace au chocolat", GlaceChoco, []Item{Lait, Creme, SucrePoudre, Oeuf, Chocolat}, 6, 65000, "Lait, crème, sucre, œufs et chocolat.", "cremerie:creme,exotique:chocolaterie"},
-		{"glace_poire", "Glace poire-chocolat", GlacePoireChoco, []Item{Lait, Creme, SucrePoudre, Oeuf, Poire, Chocolat}, 7, 90000, "Lait, crème, sucre, œufs, poires et chocolat.", "cremerie:creme,exotique:chocolaterie"},
+		{"glace_vanille", "Glace à la vanille", GlaceVanille, []Item{Creme, Oeuf, Vanille}, 5, 35000, "Crème, œufs et vanille.", "cremerie:creme,exotique:vanille"},
+		{"glace_cafe", "Glace au café", GlaceCafe, []Item{Creme, Oeuf, CafeMoulu}, 5, 42000, "Crème, œufs et café moulu.", "cremerie:creme,exotique:moulin_cafe"},
+		{"glace_coco", "Glace à la noix de coco", GlaceCoco, []Item{Creme, Oeuf, NoixCoco}, 5, 50000, "Crème, œufs et noix de coco.", "cremerie:creme,exotique:cocotier"},
+		{"glace_choco", "Glace au chocolat", GlaceChoco, []Item{Creme, Oeuf, Chocolat}, 6, 65000, "Crème, œufs et chocolat.", "cremerie:creme,exotique:chocolaterie"},
+		{"glace_poire", "Glace poire-chocolat", GlacePoireChoco, []Item{Creme, Oeuf, Poire, Chocolat}, 7, 90000, "Crème, œufs, poires et chocolat.", "cremerie:creme,exotique:chocolaterie"},
 	},
-	staff: "Serveurs", cashCost: 6000, staffCosts: []float64{8000, 20000, 50000, 120000, 300000, 700000}, upBase: 9000,
+	staff: "Serveurs", cashCost: 6000, staffCosts: []float64{8000, 20000, 50000, 120000, 300000, 700000, 1500000, 3200000}, upBase: 9000, // (un par fabrique)
 	sign: "Parasols", bio: "Recettes maison", shift2: true, tall: true,
-	colW: 720, row0: 440, rowG: 300, dockNear: true, // (on circule entre les fabriques, et entre elles et les vitrines)
+	gap: 320, dockNear: true, // (fabriques larges : on circule bien entre elles)
 }
 
+// Disposition des ateliers (jeu aéré) : chaque machine est suivie de sa case
+// « Stock + » (stockBoxW) puis d'une allée (machineGap) ; deux rangées de
+// machines ; sous la 2e rangée, un couloir libre (on y passe sans marcher dans
+// aucune zone) avant les vitrines.
+const (
+	stockBoxW    = 118.0 // case « Stock + » à droite d'une machine (14 + 104)
+	machineGap   = 240.0 // allée entre une machine (avec sa case) et la suivante
+	workshopRow0 = 450.0 // haut de la 1re rangée de machines
+	workshopRowG = 350.0 // d'une rangée à l'autre
+	workshopShY  = shelfY + 120.0
+	workshopPad  = 85.0 // bases des drones plus près des vitrines (le mur du bas est à 1514)
+)
+
+// machineW : largeur d'une machine (beaucoup d'ingrédients : plus large, sa zone de dépôt aussi).
+func machineW(r recipe) float64 { return 260 + 70*math.Max(0, float64(len(r.in)-2)) }
+
 func newWorkshop(g *Game, sp workshopSpec) *Place {
-	W := sp.w
-	if W == 0 {
-		W = 2700
-	}
 	per := sp.perRow
 	if per == 0 {
 		per = 4
 	}
+	gap := machineGap
+	if sp.gap > 0 {
+		gap = sp.gap
+	}
+	// positions des machines, rangée par rangée
+	mx := make([]float64, len(sp.recipes))
+	end := 0.0
+	x := 200.0
+	for i, r := range sp.recipes {
+		if i%per == 0 && i > 0 {
+			x = 200
+			if sp.shift2 && len(mx) > 1 {
+				x = mx[1] // (jamais de machine derrière la caissière : la 2e rangée commence à la 2e colonne)
+			}
+		}
+		mx[i] = x
+		x += machineW(r) + stockBoxW
+		end = math.Max(end, x)
+		x += gap
+	}
+	// assez large pour les machines, une allée, puis le compost contre le mur de droite
+	W := math.Max(math.Max(sp.w, 2700), end+gap+330)
 	if sp.docks == nil {
 		sp.docks = []string{"super"}
 	}
@@ -117,7 +152,7 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 	p.Inside = V{1250, 1390}
 	p.setupParking()
 	p.RestSpot = V{W - 550, 1440}
-	p.Start = V{1250, 1300}
+	p.Start = V{1250, 1420} // (sous les vitrines)
 
 	// réserve
 	pal := math.Min(290, (W-300)/float64(len(sp.inputs))) // (resserrées s'il y en a beaucoup)
@@ -129,30 +164,17 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 		p.Stations = append(p.Stations, s)
 	}
 	// machines (deux rangées) et vitrines
-	row0, rowGap, sy := 500.0, 300.0, float64(shelfY)
-	if sp.tall {
-		row0, rowGap, sy = 470, 350, shelfY+60
-	}
-	if sp.row0 > 0 {
-		row0, rowGap = sp.row0, sp.rowG
-	}
-	colW := 620.0
-	if sp.colW > 0 {
-		colW = sp.colW
-	}
+	row0, rowGap, sy := workshopRow0, workshopRowG, workshopShY
 	for i, r := range sp.recipes {
-		x := 200 + float64(i%per)*colW
+		x := mx[i]
 		y := row0 + float64(i/per)*rowGap
-		if sp.shift2 && i/per == 1 {
-			x += colW
-		}
 		unl := r.id
 		if r.cost == 0 {
 			unl = ""
 		}
 		s := &Station{ID: r.id, Name: r.name, Kind: Machine, Item: r.out, Inputs: r.in, Time: r.time, PileMax: 12, BufMax: 10, Unlock: unl, BaseCost: math.Max(r.cost, 3000)}
 		// beaucoup d'ingrédients : une machine et une zone de dépôt plus larges (jeu aéré)
-		mw := 260 + 70*math.Max(0, float64(len(r.in)-2))
+		mw := machineW(r)
 		s.Body = Rect{x, y, mw, 150}
 		s.Zone = Rect{x - 10, y + 150 + 18, mw - 130, 90}
 		s.OutZone = Rect{x + mw - 120, y + 150 + 18, 130, 90}
@@ -162,6 +184,7 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 		sh.Body = Rect{sx, sy, 150, shelfH}
 		sh.Zone = Rect{sx - 10, sy - 95, 170, 92}
 		sh.Spot = V{sx + 75, sy + shelfH + 38}
+		sh.PadOff = workshopPad
 		p.Stations = append(p.Stations, sh)
 	}
 	qd := 5
@@ -174,26 +197,16 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 	reg.Zone = Rect{200, sy - 100, 170, 96}
 	reg.QueueHead = V{285, sy + shelfH + 40}
 	p.Stations = append(p.Stations, reg)
+	// le compost contre le mur de droite, à hauteur de la 1re rangée : hors des
+	// allées et loin des cases (le mur est à W - 96)
 	trash := &Station{ID: "poubelle", Name: "Poubelle", Kind: Trash}
-	trash.Body = Rect{W - 220, 1010, 70, 70} // (bien à l'intérieur : le mur est à W - 96)
-	trash.Zone = Rect{W - 250, 960, 130, 150}
-	// crèmerie : les quais juste après la dernière vitrine (le premier vers le
-	// supermarché), et le compost dans la boutique, à droite des vitrines
+	trash.Body = Rect{W - 250, row0 + 40, 70, 70}
+	trash.Zone = Rect{W - 270, row0, 110, 150}
+	// les quais juste après la dernière vitrine (le premier vers le supermarché)
 	dockX := func(i int) float64 { return W - 500 - float64(i)*350 }
-	if sp.id == "cremerie" {
-		last := 450 + float64(len(sp.recipes)-1)*190 + 150
-		trash.Body = Rect{last + 60, sy, 70, 70}
-		trash.Zone = Rect{last + 30, sy - 95, 130, 175}
-		dockX = func(i int) float64 { return last + 220 + float64(i)*350 }
-	}
 	if sp.dockNear {
-		// le quai juste après la dernière vitrine ; le compost dans le bâtiment, à droite de la 4e machine
 		last := 450 + float64(len(sp.recipes)-1)*190 + 150
 		dockX = func(i int) float64 { return last + 60 + float64(i)*350 }
-		if m := p.Station(sp.recipes[min(3, len(sp.recipes)-1)].id); m != nil {
-			trash.Body = Rect{m.Body.X + m.Body.W + 100, row0 + 30, 70, 70}
-			trash.Zone = Rect{m.Body.X + m.Body.W + 80, row0 - 10, 110, 150}
-		}
 	}
 	p.Stations = append(p.Stations, trash)
 	// quais : un par destination (le premier vers le supermarché)
@@ -273,7 +286,7 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 func placeName(id string) string {
 	return map[string]string{"ferme": "la ferme", "super": "le supermarché", "boulangerie": "la boulangerie",
 		"cremerie": "la crèmerie", "glacier": "le glacier", "ecole": "l'école",
-		"elevage": "la ferme d'élevage", "boucherie": "la boucherie-charcuterie", "exotique": "la ferme exotique"}[id]
+		"elevage": "la ferme d'élevage", "boucherie": "la boucherie-charcuterie", "exotique": "la ferme exotique", "domaine": "le domaine"}[id]
 }
 
 // needsMet : « lieu » (acheté) ou « lieu:station » (station construite), séparés par des virgules.
@@ -284,10 +297,8 @@ func (g *Game) needsMet(needs string) bool {
 		if q == nil || !q.Owned {
 			return false
 		}
-		if st != "" {
-			if s := q.Station(st); s == nil || !s.Built {
-				return false
-			}
+		if st != "" && !q.builtOrUnlocked(st) {
+			return false
 		}
 	}
 	return true
@@ -300,7 +311,9 @@ func needsText(needs string) string {
 		"exotique:moulin_sucre": "le sucre en poudre (ferme exotique)",
 		"exotique:manguier":     "les mangues (ferme exotique)", "exotique:ananas": "les ananas (ferme exotique)",
 		"exotique:cocotier": "les noix de coco (ferme exotique)",
-		"elevage:mare":      "les canards (ferme d'élevage)", "elevage:bovin": "les bovins (ferme d'élevage)",
+		"ferme:pommier":     "le pommier (ma ferme)", "ferme:poirier": "le poirier (ma ferme)", "ferme:pdt": "les pommes de terre (ma ferme)", "ferme:silo": "le silo à blé (ma ferme)",
+		"exotique:vanille": "la vanille (ferme exotique)", "exotique:moulin_cafe": "le café moulu (ferme exotique)",
+		"elevage:mare": "les canards (ferme d'élevage)", "elevage:bovin": "les bovins (ferme d'élevage)",
 		"elevage:ovin": "les ovins (ferme d'élevage)", "elevage:porc": "les porcs (ferme d'élevage)"}
 	var parts []string
 	for _, n := range strings.Split(needs, ",") {
@@ -312,4 +325,18 @@ func needsText(needs string) string {
 		parts = append(parts, t)
 	}
 	return "Il faut " + strings.Join(parts, " et ")
+}
+
+// builtOrUnlocked : la station « id » est construite, ou le déblocage « id » est
+// payé (« elevage:bovin » : le déblocage des bovins, dont le pré s'appelle pre_bovin).
+func (p *Place) builtOrUnlocked(id string) bool {
+	if s := p.Station(id); s != nil {
+		return s.Built
+	}
+	for _, u := range p.Unlocks {
+		if u.ID == id {
+			return u.Done
+		}
+	}
+	return false
 }

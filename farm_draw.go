@@ -12,7 +12,7 @@ import (
 // par arbre), les caisses de graines, les petits marchés et l'étang.
 
 var cropCol = map[sim.Item]uint32{
-	sim.Carotte: 0xf08a24, sim.Tomate: 0xe23b2e, sim.Courgette: 0x3f8f3a, sim.Poireau: 0xdfe8c8, sim.Chou: 0x8fcf6a, sim.PommeDeTerre: 0xc9a46a,
+	sim.Carotte: 0xf08a24, sim.Tomate: 0xe23b2e, sim.Courgette: 0x3f8f3a, sim.Poireau: 0xdfe8c8, sim.Chou: 0x9fe07a, sim.PommeDeTerre: 0xc9a46a,
 	sim.Fraise: 0xe8333f, sim.Pomme: 0xd9342b, sim.Poire: 0xc9d24a, sim.Cerise: 0x9e1530, sim.Abricot: 0xf5a03a, sim.Figue: 0x6b3a6e,
 }
 
@@ -327,11 +327,14 @@ func drawCrop(dst *ebiten.Image, it sim.Item, x, y, gr, t float64, i int) {
 		for k := -1; k <= 1; k++ {
 			line(dst, x, y-h*0.45, x+float64(k)*12+sway, y-h*1.1, 5, rgb(0x4a8f3a))
 		}
-	case sim.Chou:
+	case sim.Chou: // une salade : des feuilles frisées, ouvertes
 		r := 6 + 14*gr
-		circle(dst, x, y-r*0.7, r, rgb(0x6fb04a))
-		circle(dst, x, y-r*0.75, r*0.7, fc)
-		circle(dst, x+2, y-r*0.8, r*0.4, rgb(0xc4ec9a))
+		for k := 0; k < 7; k++ {
+			a := float64(k) * 0.9
+			ellipse(dst, x+math.Cos(a)*r*0.55, y-r*0.6+math.Sin(a)*r*0.3, r*0.5, r*0.35, rgb(0x5fae3a))
+		}
+		circle(dst, x, y-r*0.7, r*0.55, fc)
+		circle(dst, x+2, y-r*0.75, r*0.3, rgb(0xd8f5a8))
 	case sim.PommeDeTerre:
 		r := 6 + 12*gr
 		circle(dst, x-6, y-r*0.6, r*0.8, green)
@@ -514,10 +517,13 @@ func drawItemNew(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		for k := -1; k <= 1; k++ {
 			line(dst, x, y, x+float64(k)*r*0.45, y-r, r*0.2, rgb(0x4a8f3a))
 		}
-	case sim.Chou:
-		circle(dst, x, y, r*0.85, rgb(0x6fb04a))
-		circle(dst, x, y-r*0.05, r*0.6, fc)
-		circle(dst, x+r*0.1, y-r*0.15, r*0.3, rgb(0xc4ec9a))
+	case sim.Chou: // une salade
+		for k := 0; k < 7; k++ {
+			a := float64(k) * 0.9
+			ellipse(dst, x+math.Cos(a)*r*0.5, y+math.Sin(a)*r*0.3, r*0.45, r*0.32, rgb(0x5fae3a))
+		}
+		circle(dst, x, y-r*0.05, r*0.5, fc)
+		circle(dst, x+r*0.1, y-r*0.12, r*0.25, rgb(0xd8f5a8))
 	case sim.PommeDeTerre:
 		ellipse(dst, x-r*0.3, y+r*0.2, r*0.5, r*0.38, fc)
 		ellipse(dst, x+r*0.35, y-r*0.15, r*0.45, r*0.34, shade(cropCol[it], 1.08))
@@ -589,7 +595,7 @@ func drawItemNew(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		circle(dst, x-r*0.3, y-r*0.05, r*0.38, rgb(c))
 		circle(dst, x+r*0.3, y-r*0.05, r*0.38, shade(c, 1.15))
 		circle(dst, x, y-r*0.45, r*0.36, rgb(c))
-	case sim.GlaceFraise, sim.GlaceCerise, sim.GlacePoireChoco, sim.GlaceCoco:
+	case sim.GlaceFraise, sim.GlaceCerise, sim.GlacePoireChoco, sim.GlaceCoco, sim.GlaceCafe:
 		// cornet
 		polygon(dst, []V{{X: x - r*0.45, Y: y}, {X: x + r*0.45, Y: y}, {X: x, Y: y + r}}, rgb(0xd9a55a))
 		line(dst, x-r*0.25, y+r*0.1, x+r*0.15, y+r*0.6, r*0.05, rgb(0xb07d3a))
@@ -601,11 +607,16 @@ func drawItemNew(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 			top, bot = 0x6b3e26, 0xe8f0b0
 		case sim.GlaceCoco:
 			top, bot = 0xfbfaf4, 0xf0ebdc
+		case sim.GlaceCafe:
+			top, bot = 0xa8774f, 0x8a5c3a
 		}
 		circle(dst, x, y-r*0.15, r*0.48, rgb(bot))
 		circle(dst, x, y-r*0.6, r*0.4, rgb(top))
 		if it == sim.GlaceCerise {
 			circle(dst, x+r*0.1, y-r*1.0, r*0.15, rgb(0x9e1530))
+		}
+		if it == sim.GlaceCafe { // un grain de café
+			ellipse(dst, x+r*0.1, y-r*0.98, r*0.15, r*0.1, rgb(0x3a2418))
 		}
 	default:
 		return false

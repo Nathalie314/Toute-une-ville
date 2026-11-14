@@ -117,14 +117,15 @@ func newExotic(g *Game) *Place {
 	// --- la rizière
 	field("riz", "Rizière", "riz", Riz, 3560, 6, 10, "riz")
 	shelf("riz", Riz, 3800, 360, "riz", false)
-	// --- épices : vanille, thé (et son séchoir), cannelle
+	// --- épices : vanille, cannelle, thé (le thé en dernier : son séchoir dessous, à
+	// droite ; l'embauche des épices au milieu, sous les cannelliers)
 	field("vanille", "Vanille", "epices", Vanille, 4540, 12, 3, "vanille")
-	field("the", "Théiers", "epices", FeuillesThe, 4920, 7, 3, "the")
-	field("cannelle", "Cannelliers", "epices", Cannelle, 5300, 11, 3, "cannelle")
-	machine("sechoir", "Séchoir à thé", "epices", The, []Item{FeuillesThe}, 4930, 3.5, "sechoir")
+	field("cannelle", "Cannelliers", "epices", Cannelle, 4920, 11, 3, "cannelle")
+	field("the", "Théiers", "epices", FeuillesThe, 5300, 7, 3, "the")
+	machine("sechoir", "Séchoir à thé", "epices", The, []Item{FeuillesThe}, 5310, 3.5, "sechoir")
 	shelf("epices", Vanille, 4550, 220, "vanille", false)
-	shelf("epices", The, 4930, 220, "sechoir", false)
-	shelf("epices", Cannelle, 5310, 220, "cannelle", false)
+	shelf("epices", Cannelle, 4930, 220, "cannelle", false)
+	shelf("epices", The, 5310, 220, "sechoir", false)
 
 	reg := &Station{ID: "caisse", Name: "Caisse", Kind: Register, HireKey: "caissiere", QueueDown: 5}
 	reg.Body = Rect{180, shelfY, 210, shelfH}
@@ -170,10 +171,12 @@ func newExotic(g *Game) *Place {
 	unlock("torrefacteur", "Torréfacteur", 45000, "Le café vert devient du café en grains.")
 	unlock("moulin_cafe", "Moulin à café", 55000, "Le café en grains devient du café moulu.")
 	unlock("riz", "Rizière", 65000, "Une grande rizière : le riz se vend en sachets.")
+	// (épices dans l'ordre où elles sont plantées : vanille, cannelle, thé et son séchoir ;
+	// les anciens prix d'une sauvegarde sont convertis : migrateEpices)
 	unlock("vanille", "Vanille", 80000, "Des gousses de vanille, très chères.")
-	unlock("the", "Théiers", 95000, "Les feuilles de thé partent au séchoir.")
-	unlock("sechoir", "Séchoir à thé", 105000, "Les feuilles séchées deviennent des boîtes de thé.")
-	unlock("cannelle", "Cannelliers", 120000, "Des bâtons de cannelle (la future pâtisserie en voudra).")
+	unlock("cannelle", "Cannelliers", 95000, "Des bâtons de cannelle (la future pâtisserie en voudra).")
+	unlock("the", "Théiers", 105000, "Les feuilles de thé partent au séchoir.")
+	unlock("sechoir", "Séchoir à thé", 120000, "Les feuilles séchées deviennent des boîtes de thé.")
 	for _, s := range p.Stations {
 		if s.Unlock == "" {
 			s.Built = true
@@ -204,8 +207,18 @@ func newExotic(g *Game) *Place {
 		z := z
 		b := p.Station(first[z.ID]).Body
 		zr := Rect{b.X + b.W/2 - 56, b.Y + b.H + 14, 112, 92}
+		if z.ID == "epices" {
+			// une grande case au milieu de l'espace (sous les cannelliers), dans l'herbe : l'ouvrier
+			// est pour toutes les épices (vanille, cannelle, thé, séchoir), pas seulement la vanille
+			t := p.Station("cannelle").Body
+			zr = Rect{t.X + t.W/2 - 150, 684, 300, 92}
+		}
 		if z.ID == "fruits" {
-			zr = Rect{b.X + 9, b.Y + b.H + 14, 112, 92}
+			// une grande case au milieu, sous les quatre arbres, dans l'herbe entre les
+			// deux chemins (comme la serre et le verger) : l'ouvrier est pour tous les fruits
+			x0, x1 := p.Station(exoColumnIDs[0]).Body.X, p.Station(exoColumnIDs[len(exoColumnIDs)-1]).Body
+			cx := (x0 + x1.X + x1.W) / 2
+			zr = Rect{cx - 150, 684, 300, 92}
 		}
 		p.Spots = append(p.Spots, &Spot{ID: teamKey(z.ID), Label: "Ouvrier " + z.Name, Team: z.ID, Zone: zr,
 			Done: func(l int) string { return "Ouvrier (" + z.Name + ") +1 !" }})

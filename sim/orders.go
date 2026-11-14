@@ -113,6 +113,9 @@ func (g *Game) orderSources() []func() *Order {
 	if c := g.Place("port"); c != nil && c.Owned {
 		src = append(src, g.portOrder)
 	}
+	if c := g.Place("domaine"); c != nil && c.Owned {
+		src = append(src, g.domaineOrder)
+	}
 	return src
 }
 
@@ -210,6 +213,8 @@ func placeTo(id string) string {
 		return "l'école"
 	case "port":
 		return "au port"
+	case "domaine":
+		return "au domaine"
 	}
 	return "la ferme"
 }
