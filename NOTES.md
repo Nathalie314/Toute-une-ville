@@ -866,3 +866,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   pain blé-maïs (schoolOrder).
 - Ateliers : le nom du lieu (panneau du bas) descend sur le mur (les bases des drones sont juste au-dessus).
 - Drones : la description du premier drone ne dit plus « un drone de plus » (Desc reçoit le niveau à acheter).
+- Ateliers : les derniers carreaux du sol sont coupés au bord (ils débordaient sur l'herbe, à droite et en bas).
+  Pâtisserie : son quai « → supermarché » est juste à droite de la vitrine des fraisiers (x 1 610), sur la route.

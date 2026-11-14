@@ -1736,7 +1736,8 @@ func (g *game) workshopGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	for x := 36.0; x < p.W-96; x += 70 {
 		for y := 426.0; y < 1514; y += 70 {
 			if int(x/70+y/70)%2 == 0 {
-				rect(dst, x, y, 70, 70, rgb(tile))
+				// (les derniers carreaux sont coupés au bord du sol : rien ne déborde sur l'herbe)
+				rect(dst, x, y, math.Min(70, p.W-96-x), math.Min(70, 1514-y), rgb(tile))
 			}
 		}
 	}
