@@ -2,6 +2,7 @@ package main
 
 import (
 	"math"
+	"strconv"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -503,7 +504,11 @@ func (g *game) drawHUD(dst *ebiten.Image) {
 		if isWeb {
 			hint = "Se déplacer : doigt (ou clic) maintenu, flèches, ZQSD · Zoom : pincer, + et - (ou molette)"
 		}
-		say(dst, hint, scr.VW/2, scr.VH-24, 20, false, 0, rgba(0x1e2a12, 0.8))
+		hs := 20.0
+		if scr.Small {
+			hs = 30
+		}
+		say(dst, hint, scr.VW/2, scr.VH-24, hs, false, 0, rgba(0x1e2a12, 0.8))
 	}
 	_ = p
 }
@@ -783,7 +788,10 @@ func (g *game) drawHelp(dst *ebiten.Image) {
 		g.drawSchoolHelp(dst)
 		return
 	}
-	w, h := math.Min(1300, scr.VW-80), 920.0
+	w, h := math.Min(1500, scr.VW-80), 960.0
+	if scr.Small {
+		w = math.Min(2300, scr.VW-80)
+	}
 	x, y := g.panelFrame(dst, "Comment jouer", w, h)
 	lines := []string{
 		"• Déplace-toi avec les flèches (ou ZQSD, ou la souris). Carte et menus : une main suit les flèches ; reste sur un bouton (ou Entrée).",
@@ -802,8 +810,53 @@ func (g *game) drawHelp(dst *ebiten.Image) {
 		"• La réputation (étoiles) monte avec les clients contents et attire du monde. B : tes badges.",
 		"• Le jeu se sauvegarde tout seul. F11 : plein écran ou fenêtre. M : couper le son. « , ? » : cette aide.",
 	}
-	for i, l := range lines {
-		say(dst, l, x+50, y+34+float64(i)*45, 22, false, -1, rgb(0x3b2a10))
+	if isWeb {
+		lines[0] = "• Déplace-toi en gardant le doigt posé (ou la souris, les flèches, ZQSD). Pince à deux doigts pour zoomer. Menus : touche le bouton."
+	}
+	// Chaque point est coupé à la largeur de la fenêtre ; s'il n'y a pas la place, l'aide
+	// continue sur une autre page (petits écrans, où le texte est plus gros).
+	size, lh, gap := 22.0, 34.0, 11.0
+	if scr.Small {
+		size, lh, gap = 36, 50, 14
+	}
+	room := h - 190 - 34 - 10
+	var pages [][][]string
+	var page [][]string
+	used := 0.0
+	for _, l := range lines {
+		rows := wrap(l, size, w-100, false)
+		need := float64(len(rows))*lh + gap
+		if used+need > room && len(page) > 0 {
+			pages = append(pages, page)
+			page, used = nil, 0
+		}
+		page = append(page, rows)
+		used += need
+	}
+	pages = append(pages, page)
+	if g.helpPage >= len(pages) {
+		g.helpPage = len(pages) - 1
+	}
+	yy := y + 34
+	for _, rows := range pages[g.helpPage] {
+		for i, r := range rows {
+			if i > 0 {
+				r = "   " + r
+			}
+			say(dst, r, x+50, yy, size, false, -1, rgb(0x3b2a10))
+			yy += lh
+		}
+		yy += gap
+	}
+	if g.helpPage > 0 {
+		g.btn(dst, "← Retour", x+50, y+h-190, 260, 76, 0x8a7a6a, true, func() { g.helpPage-- })
+	}
+	if len(pages) > 1 {
+		say(dst, strconv.Itoa(g.helpPage+1)+" / "+strconv.Itoa(len(pages)), x+w-150, y+h-152, 30, true, 0, rgb(0x8a5a33))
+	}
+	if g.helpPage < len(pages)-1 {
+		g.btn(dst, "Suite →", x+w/2-150, y+h-190, 300, 76, 0x5b8bd9, true, func() { g.helpPage++ })
+		return
 	}
 	g.btn(dst, "C'est parti !", x+w/2-150, y+h-190, 300, 76, 0x2fa86b, true, func() { g.closePanel() })
 }

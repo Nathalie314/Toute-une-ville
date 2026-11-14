@@ -18,9 +18,22 @@
   #chargement p { opacity: 0.9; margin: 0.4em 0; }
   #barre { width: min(420px, 80vw); height: 14px; background: rgba(255,255,255,0.25); border-radius: 7px; overflow: hidden; margin-top: 12px; }
   #barre div { height: 100%; width: 0; background: #ffe066; transition: width 0.2s; }
+  /* Téléphone ou tablette tenus à la verticale : le jeu est fait pour un écran large. */
+  #tourne { display: none; position: fixed; inset: 0; z-index: 1000; background: #3b6a2a; color: #fff;
+    font-family: system-ui, sans-serif; text-align: center; flex-direction: column; align-items: center;
+    justify-content: center; padding: 24px; }
+  #tourne .icone { font-size: 4em; animation: tourne 2s ease-in-out infinite; }
+  #tourne h2 { color: #ffe066; margin: 0.4em 0; }
+  @keyframes tourne { 0%, 20% { transform: rotate(0deg); } 50%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0deg); } }
+  @media (orientation: portrait) and (pointer: coarse) { #tourne { display: flex; } }
 </style>
 </head>
 <body>
+<div id="tourne">
+  <div class="icone">📱</div>
+  <h2>Tourne ton téléphone</h2>
+  <p>Toute une Ville se joue à l'horizontale.</p>
+</div>
 <div id="chargement">
   <h1>Toute une Ville</h1>
   <p id="texte">Chargement du jeu…</p>
