@@ -839,3 +839,14 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   exotique (126, 220, 360 de large) avaient leur « H » décalé à gauche. Ferme comprise : son portail est déplacé
   entre la caisse et l'étal du maïs (FarmGateX 1 070 ; avant 1 250, où tombait la base du drone du maïs) ; le
   passage piéton et le parking le suivent (ParkX d'après Gate.X), clôture et panneau aussi.
+
+## Page publique (GitHub)
+- README.md bilingue (français puis anglais) : présentation, téléchargement, commandes, captures (docs/images),
+  avis (formulaires d'issues), Tipeee (https://fr.tipeee.com/nathalie314/), licence, notes pour développeurs.
+  Autrice affichée : Nathalie314.
+- Licence : CC BY-NC-SA 4.0 (son souhait : qu'on puisse modifier et utiliser le jeu, mais pas se faire de l'argent
+  dessus) ; les bibliothèques (Ebitengine, polices Go) gardent la leur. Fichier LICENSE.
+- .github/workflows/release.yml : à chaque push sur main (ou à la main, onglet Actions), tests de sim, compilation
+  Windows, ToutUneVille.zip publié dans une Release « version-N » marquée « latest ». Lien permanent :
+  https://github.com/Nathalie314/Toute-une-ville/releases/latest/download/ToutUneVille.zip
+- .github/ISSUE_TEMPLATE : « Signaler un bug » (bug.yml), « Proposer une idée » (idee.yml), lien Tipeee (config.yml).

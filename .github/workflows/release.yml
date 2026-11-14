@@ -1,0 +1,58 @@
+# Publie le jeu : à chaque nouvelle version sur la branche principale (main),
+# GitHub teste la simulation, fabrique ToutUneVille.exe pour Windows, le met dans
+# un .zip et le publie dans « Releases ». Le lien de téléchargement de la page
+# (…/releases/latest/download/ToutUneVille.zip) donne toujours la dernière version.
+# On peut aussi le lancer à la main : onglet « Actions », « Publier le jeu », « Run workflow ».
+name: Publier le jeu
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Tester la simulation
+        run: go test ./sim
+
+      - name: Fabriquer le jeu pour Windows
+        env:
+          GOOS: windows
+          GOARCH: amd64
+          CGO_ENABLED: "0"
+        run: |
+          mkdir -p dist
+          go build -trimpath -ldflags "-H windowsgui -s -w" -o dist/ToutUneVille.exe .
+          cd dist && zip ToutUneVille.zip ToutUneVille.exe
+
+      - name: Date de la version
+        id: date
+        run: echo "jour=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Publier
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: version-${{ github.run_number }}
+          name: Version du ${{ steps.date.outputs.jour }} (n° ${{ github.run_number }})
+          make_latest: "true"
+          files: dist/ToutUneVille.zip
+          body: |
+            **Télécharger / Download : ToutUneVille.zip** (ci-dessous / below)
+
+            1. Extraire le .zip (clic droit → « Extraire tout ») / Extract the .zip (right-click → "Extract All").
+            2. Lancer ToutUneVille.exe / Run ToutUneVille.exe.
+            3. Windows protège votre ordinateur ? « Informations complémentaires » → « Exécuter quand même ».
+               Windows protected your PC? "More info" → "Run anyway".
+
+            Soutenir le jeu / Support the game : https://fr.tipeee.com/nathalie314/

@@ -1,0 +1,31 @@
+name: "🐞 Signaler un bug / Report a bug"
+description: "Quelque chose ne marche pas comme prévu ? / Something doesn't work as expected?"
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de prendre le temps de signaler un problème ! Tu peux écrire en français ou en anglais.
+        Thank you for taking the time to report a problem! You can write in French or English.
+  - type: textarea
+    id: quoi
+    attributes:
+      label: "Que s'est-il passé ? / What happened?"
+      description: "Décris le problème. / Describe the problem."
+    validations:
+      required: true
+  - type: textarea
+    id: comment
+    attributes:
+      label: "Comment le reproduire ? / How to reproduce it?"
+      description: "Dans quel lieu, après quelle action… / In which place, after which action…"
+  - type: textarea
+    id: attendu
+    attributes:
+      label: "Qu'attendais-tu ? / What did you expect?"
+  - type: textarea
+    id: images
+    attributes:
+      label: "Captures d'écran / Screenshots"
+      description: "Tu peux glisser des images ici. Ta sauvegarde (ToutUneVille_sauvegarde.json, à côté du jeu) aide beaucoup aussi : renomme-la en .txt pour pouvoir la joindre. / You can drop images here. Your save file (ToutUneVille_sauvegarde.json, next to the game) helps a lot too: rename it to .txt to attach it."

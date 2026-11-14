@@ -26,6 +26,8 @@ NOTES.md raconte l'histoire du projet et chaque décision de conception : lis-le
 - Depuis Linux (cloud) : `GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-H windowsgui -s -w" -o dist/ToutUneVille.exe .`
   (les `replace` de go.mod passent par les miroirs GitHub de golang.org/x : nécessaires dans le cloud, sans effet gênant ailleurs).
 - Pour lui envoyer le jeu : toujours un **.zip** contenant l'exe (dist/ToutUneVille.zip) ; un .exe seul ne se télécharge pas dans son application.
+- Page publique : README.md bilingue (FR puis EN) à tenir à jour (nouveaux lieux, commandes) ; chaque push sur main
+  publie une Release (.github/workflows/release.yml).
 - Tests de la simulation : `go test ./sim`.
 - Équilibrage : `go run ./cmd/balance N` (bot rapide) ; `go run ./cmd/balance -humain [jours]` (bot qui joue comme
   elle : séances courtes, gros gains hors ligne) ; `BALANCE_SAVE=fichier.json` écrit la sauvegarde finale.
