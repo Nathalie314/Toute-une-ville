@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Toute une Ville">
+<title>Toute une Ville</title>
+<link rel="icon" href="icone.png">
+<link rel="apple-touch-icon" href="icone.png">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #3b6a2a; overflow: hidden;
+    touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  #chargement { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; color: #fff; font-family: system-ui, sans-serif; text-align: center; padding: 16px; }
+  #chargement h1 { color: #ffe066; font-size: 2.4em; margin: 0.2em 0; }
+  #chargement p { opacity: 0.9; margin: 0.4em 0; }
+  #barre { width: min(420px, 80vw); height: 14px; background: rgba(255,255,255,0.25); border-radius: 7px; overflow: hidden; margin-top: 12px; }
+  #barre div { height: 100%; width: 0; background: #ffe066; transition: width 0.2s; }
+</style>
+</head>
+<body>
+<div id="chargement">
+  <h1>Toute une Ville</h1>
+  <p id="texte">Chargement du jeu…</p>
+  <div id="barre"><div></div></div>
+  <p style="font-size:0.85em; margin-top:1.4em">Ta partie est enregistrée dans ce navigateur, sur cet appareil.</p>
+</div>
+<script src="wasm_exec.js"></script>
+<script>
+(async () => {
+  const texte = document.getElementById("texte");
+  const barre = document.querySelector("#barre div");
+  try {
+    // téléchargement avec une barre de progression (le jeu pèse une quinzaine de Mo)
+    const rep = await fetch("toutuneville.wasm");
+    const total = +rep.headers.get("Content-Length") || 0;
+    const lecteur = rep.body.getReader();
+    const morceaux = [];
+    let recu = 0;
+    for (;;) {
+      const { done, value } = await lecteur.read();
+      if (done) break;
+      morceaux.push(value);
+      recu += value.length;
+      if (total) barre.style.width = Math.min(100, 100 * recu / total) + "%";
+      texte.textContent = "Chargement du jeu… " + Math.round(recu / 1e6) + " Mo";
+    }
+    const octets = new Uint8Array(recu);
+    let p = 0;
+    for (const m of morceaux) { octets.set(m, p); p += m.length; }
+    const go = new Go();
+    const { instance } = await WebAssembly.instantiate(octets, go.importObject);
+    document.getElementById("chargement").remove();
+    go.run(instance);
+  } catch (e) {
+    texte.textContent = "Le jeu n'a pas pu se charger : " + e;
+  }
+})();
+</script>
+</body>
+</html>

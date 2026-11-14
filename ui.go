@@ -499,7 +499,11 @@ func (g *game) drawHUD(dst *ebiten.Image) {
 	}
 	// petit rappel des contrôles
 	if g.sim.Stats.Played < 240 {
-		say(dst, "Se déplacer : flèches, ZQSD ou clic maintenu · Zoom : + et - (ou molette) · F11 : plein écran", scr.VW/2, scr.VH-24, 20, false, 0, rgba(0x1e2a12, 0.8))
+		hint := "Se déplacer : flèches, ZQSD ou clic maintenu · Zoom : + et - (ou molette) · F11 : plein écran"
+		if isWeb {
+			hint = "Se déplacer : doigt (ou clic) maintenu, flèches, ZQSD · Zoom : pincer, + et - (ou molette)"
+		}
+		say(dst, hint, scr.VW/2, scr.VH-24, 20, false, 0, rgba(0x1e2a12, 0.8))
 	}
 	_ = p
 }
@@ -948,10 +952,12 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		r := i / cols
 		draw(tl, x0+tw+sep+float64(c)*(tw+gap), y0+float64(r)*(th+gap))
 	}
-	g.btn(dst, "Quitter", scr.VW-260, scr.VH-100, 210, 70, 0xd9534f, true, func() {
-		g.save()
-		g.quit = true
-	})
+	if !isWeb { // (dans un navigateur, on ferme simplement l'onglet)
+		g.btn(dst, "Quitter", scr.VW-260, scr.VH-100, 210, 70, 0xd9534f, true, func() {
+			g.save()
+			g.quit = true
+		})
+	}
 	g.soundButton(dst, scr.VW-360, scr.VH-100)
 	g.btn(dst, "Recommencer à zéro", 50, scr.VH-100, 330, 70, 0x8a7a6a, true, func() { g.openPanel(panelReset) })
 	g.btn(dst, "Badges", scr.VW-600, scr.VH-100, 220, 70, 0xd4a017, true, func() { g.openPanel(panelBadges) })

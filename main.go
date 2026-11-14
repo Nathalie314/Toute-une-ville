@@ -143,7 +143,8 @@ func (g *game) Update() error {
 }
 
 func (g *game) input(dt float64) {
-	mx, my := ebiten.CursorPosition()
+	pollPointer() // (souris ou doigt)
+	mx, my := pointerPos()
 	g.mouse = V{X: float64(mx) / scr.S, Y: float64(my) / scr.S}
 	g.updateHand(dt)
 	// plein écran
@@ -157,7 +158,7 @@ func (g *game) input(dt float64) {
 		g.toggleMute()
 	}
 	// clics sur les boutons (ceux dessinés à l'image précédente)
-	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+	if pointerJustPressed() {
 		g.pressUI = false
 		for i := len(g.btns) - 1; i >= 0; i-- {
 			b := g.btns[i]
@@ -175,6 +176,7 @@ func (g *game) input(dt float64) {
 		}
 	}
 	_, wy := ebiten.Wheel()
+	wy += pinchZoom() // (deux doigts : on zoome en pinçant)
 	// Tab : la carte de la ville (et retour au lieu) ; Échap : fermer une fenêtre
 	if inpututil.IsKeyJustPressed(ebiten.KeyTab) {
 		switch {
@@ -226,10 +228,10 @@ func (g *game) input(dt float64) {
 		if k(ebiten.KeyArrowRight) || k(ebiten.KeyD) {
 			dir.X++
 		}
-		if dir.Len() == 0 && ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) && !g.pressUI {
-			// on va vers la souris
+		if dir.Len() == 0 && pointerPressed() && !g.pressUI {
+			// on va vers la souris (ou vers le doigt)
 			v := g.worldView(1)
-			mx, my := ebiten.CursorPosition()
+			mx, my := pointerPos()
 			target := v.toLogical(float64(mx), float64(my))
 			d := target.Sub(g.sim.Player.Pos)
 			if d.Len() > 12 {
@@ -385,7 +387,9 @@ func main() {
 	ebiten.SetRunnableOnUnfocused(true)
 	ebiten.SetTPS(60)
 	ebiten.SetWindowSize(1280, 720)
-	if *capDir == "" && !*windowed {
+	if isWeb {
+		onPageHide(g.save) // (navigateur : on enregistre quand on quitte la page)
+	} else if *capDir == "" && !*windowed {
 		ebiten.SetFullscreen(true)
 	} else {
 		ebiten.SetWindowSize(1600, 900)
