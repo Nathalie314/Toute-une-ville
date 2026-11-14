@@ -16,13 +16,11 @@ permissions:
   contents: write
   pages: write
   id-token: write
+  actions: read
 
 jobs:
   publier:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: https://nathalie314.github.io/Toute-une-ville/
     steps:
       - uses: actions/checkout@v4
 
@@ -57,10 +55,6 @@ jobs:
         with:
           path: dist/web
 
-      - name: Mettre en ligne la version navigateur
-        uses: actions/deploy-pages@v4
-        continue-on-error: true
-
       - name: Date de la version
         id: date
         run: echo "jour=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
@@ -83,3 +77,14 @@ jobs:
             Jouer dans le navigateur (iPad, Mac…) / Play in the browser: https://nathalie314.github.io/Toute-une-ville/
 
             Soutenir le jeu / Support the game : https://fr.tipeee.com/nathalie314/
+
+  # La mise en ligne de la version navigateur, une fois le paquet web envoyé.
+  web:
+    needs: publier
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: https://nathalie314.github.io/Toute-une-ville/
+    steps:
+      - name: Mettre en ligne la version navigateur
+        uses: actions/deploy-pages@v4
