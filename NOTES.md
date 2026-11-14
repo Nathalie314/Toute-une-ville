@@ -868,3 +868,9 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Drones : la description du premier drone ne dit plus « un drone de plus » (Desc reçoit le niveau à acheter).
 - Ateliers : les derniers carreaux du sol sont coupés au bord (ils débordaient sur l'herbe, à droite et en bas).
   Pâtisserie : son quai « → supermarché » est juste à droite de la vitrine des fraisiers (x 1 610), sur la route.
+- Badges pour les lieux qui n'en avaient pas : ferme exotique (9), ferme d'élevage (5), boucherie (8), port (8),
+  domaine (8), pâtisserie (8), soit 126 badges. Base commune (placeBadges) : acheter le lieu, tout débloquer,
+  toute l'équipe, premier client, N clients servis, 5 étoiles ; plus 2 ou 3 badges de fabrication par lieu.
+  Sections Port, Domaine, Pâtisserie dans la page des badges. Glacier : « Cent boules » compte les glaces à la
+  vanille (la glace nature n'existe plus), « Tous les parfums » = toutes les fabriques (il y en a 8).
+  ⚠️ Règle (CLAUDE.md) : chaque nouveau lieu reçoit ses badges. Elle n'y tient pas, mais des joueurs adorent.

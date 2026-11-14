@@ -19,6 +19,8 @@ NOTES.md raconte l'histoire du projet et chaque décision de conception : lis-le
 - Tout futur lieu où des animaux mangent reçoit le point d'école « Sélection génétique » (pts_soin_rent).
 - Un lieu avec beaucoup de marchandises demande plus de points de mécaniciens (camions) : voulu.
 - Le jeu doit rester « aéré » : de la place entre les machines, les rayons, les zones.
+- Chaque nouveau lieu reçoit ses badges (sim/badges.go : placeBadges + 2 ou 3 badges propres à ce qu'il fabrique) et sa
+  section dans la page des badges (ui.go, sects). Elle n'y tient pas, mais des joueurs adorent.
 
 ## Compiler et tester
 
