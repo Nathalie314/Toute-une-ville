@@ -121,7 +121,7 @@ func newExotic(g *Game) *Place {
 	field("vanille", "Vanille", "epices", Vanille, 4540, 12, 3, "vanille")
 	field("the", "Théiers", "epices", FeuillesThe, 4920, 7, 3, "the")
 	field("cannelle", "Cannelliers", "epices", Cannelle, 5300, 11, 3, "cannelle")
-	machine("sechoir", "Séchoir à thé", "epices", The, []Item{FeuillesThe}, 4930, 3.5, "sechoir")
+	machine("sechoir", "Séchoir à thé", "epices", The, []Item{FeuillesThe}, 5310, 3.5, "sechoir") // (sous les cannelliers : l'embauche des épices est au milieu, sous les théiers)
 	shelf("epices", Vanille, 4550, 220, "vanille", false)
 	shelf("epices", The, 4930, 220, "sechoir", false)
 	shelf("epices", Cannelle, 5310, 220, "cannelle", false)
@@ -204,6 +204,12 @@ func newExotic(g *Game) *Place {
 		z := z
 		b := p.Station(first[z.ID]).Body
 		zr := Rect{b.X + b.W/2 - 56, b.Y + b.H + 14, 112, 92}
+		if z.ID == "epices" {
+			// une grande case au milieu de l'espace (sous les théiers), dans l'herbe : l'ouvrier
+			// est pour toutes les épices (vanille, thé, séchoir, cannelle), pas seulement la vanille
+			t := p.Station("the").Body
+			zr = Rect{t.X + t.W/2 - 150, 684, 300, 92}
+		}
 		if z.ID == "fruits" {
 			// une grande case au milieu, sous les quatre arbres, dans l'herbe entre les
 			// deux chemins (comme la serre et le verger) : l'ouvrier est pour tous les fruits

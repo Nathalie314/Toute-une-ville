@@ -826,3 +826,8 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Boulangerie : pain de mie (PainMie, ajouté en fin de liste des produits, 32 €), juste après la baguette : farine de
   blé, 3,5 s, 1 500 € de base. 7 machines → 7 boulangers (800 000 € de base en plus). Supermarché : rayon Pain de mie
   (espace Boulangerie). Le contenu de la boulangerie grandit : son coefficient de prix baisse un peu (×15 → ×12).
+- Ferme exotique : la case « Ouvrier Épices +1 » est une grande case dans l'herbe, au milieu de l'espace (sous les
+  théiers) : l'ouvrier est pour toutes les épices, pas seulement la vanille. Pour lui faire de la place, le séchoir
+  à thé passe sous les cannelliers (x 5 310).
+- Boulangerie : « Four à baguettes » s'appelle « Tradition », « Four à maïs » s'appelle « Baguette maïs »
+  (identifiants inchangés).
