@@ -1644,8 +1644,9 @@ func (g *game) farmGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	}
 	// --- route
 	road(dst, tl, br, 1640)
-	// allée du portail
-	rect(dst, 1180, 1500, 140, 140, rgb(0xcfb894))
+	// allée du portail (entre la caisse et l'étal du maïs)
+	gx := sim.FarmGateX
+	rect(dst, gx-70, 1500, 140, 140, rgb(0xcfb894))
 	// --- clôture de la boutique (avec le portail)
 	fence := func(x1, x2 float64) {
 		for x := x1; x <= x2; x += 40 {
@@ -1655,11 +1656,11 @@ func (g *game) farmGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		rect(dst, x1, 1542, x2-x1, 7, rgb(0xb07d4a))
 		rect(dst, x1, 1558, x2-x1, 7, rgb(0xb07d4a))
 	}
-	fence(60, 1170)
-	fence(1330, p.W-60)
+	fence(60, gx-80)
+	fence(gx+80, p.W-60)
 	// panneau d'entrée
-	roundRect(dst, 1150, 1475, 200, 46, 8, rgb(0x7a4a26))
-	say(dst, "MA FERME", 1250, 1498, 26, true, 0, rgb(0xffe7a8))
+	roundRect(dst, gx-100, 1475, 200, 46, 8, rgb(0x7a4a26))
+	say(dst, "MA FERME", gx, 1498, 26, true, 0, rgb(0xffe7a8))
 
 }
 

@@ -59,8 +59,8 @@ func newFarm(g *Game) *Place {
 	p := &Place{ID: "ferme", Name: "Ma ferme", Rep: 3, Owned: true, SellMult: 1, SpawnBase: 4.5, WantMax: 3, MaxCust: 16, LeaveOff: V{170, 60}, RepGain: 0.012, W: FarmW, H: 1800, Top: FarmTop, g: g, rng: rand.New(rand.NewSource(11))}
 	p.SpawnL = V{350, roadY + 40}
 	p.SpawnR = V{2150, roadY + 40}
-	p.Gate = V{1250, roadY + 40}
-	p.Inside = V{1250, 1390}
+	p.Gate = V{FarmGateX, roadY + 40}
+	p.Inside = V{FarmGateX, 1390}
 	p.Exit = V{FarmW - 120, roadY + 40}
 	p.RestSpot = V{3050, 1440}
 	p.Start = V{1250, 1440} // juste après le portail, comme dans les autres lieux
@@ -203,7 +203,7 @@ func newFarm(g *Game) *Place {
 	step := (SerreX - 70 - 450) / float64(len(big))
 	for i, it := range big {
 		x := 450 + float64(i)*step
-		s := &Station{ID: "etal_" + itoa(int(it)), Name: "Étal : " + Items[it].Name, Kind: Shelf, Item: it, StockMax: 12, Unlock: unl[it], PadLeft: true}
+		s := &Station{ID: "etal_" + itoa(int(it)), Name: "Étal : " + Items[it].Name, Kind: Shelf, Item: it, StockMax: 12, Unlock: unl[it]}
 		s.Body = Rect{x, shelfY, step - 50, shelfH}
 		s.Zone = Rect{x - 10, shelfY - 95, step - 30, 92}
 		s.Spot = V{x + (step-50)/2, shelfY + shelfH + 38}
@@ -339,6 +339,10 @@ func newFarm(g *Game) *Place {
 	p.spawnT = 0.5
 	return p
 }
+
+// FarmGateX : le portail de la ferme, entre la caisse et l'étal du maïs (le parking
+// et le passage piéton le suivent).
+const FarmGateX = 1070.0
 
 // FarmX0 : la ferme commence après la cour (hangar et commandes), tout à gauche.
 const FarmX0 = 650.0

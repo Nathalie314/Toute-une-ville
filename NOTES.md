@@ -836,5 +836,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   théiers 105 000 (avant 95 000), séchoir 120 000 (avant 105 000), prix de base. Sauvegarde : thé et séchoir
   payés en entier à l'ancien prix restent payés (migrateEpices).
 - Bases des drones centrées sous leur étal, quelle que soit sa largeur (DronePad) : les étals de la ferme
-  exotique (126, 220, 360 de large) avaient leur « H » décalé à gauche. Exception : les grands étals de la ferme
-  gardent leur base à gauche (Station.PadLeft) : centrée, celle du maïs tombait sur l'allée du portail.
+  exotique (126, 220, 360 de large) avaient leur « H » décalé à gauche. Ferme comprise : son portail est déplacé
+  entre la caisse et l'étal du maïs (FarmGateX 1 070 ; avant 1 250, où tombait la base du drone du maïs) ; le
+  passage piéton et le parking le suivent (ParkX d'après Gate.X), clôture et panneau aussi.
