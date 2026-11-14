@@ -933,3 +933,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   passent à l'anglaise : 1 000 → 1,000, 20 % → 20%). Ainsi les noms composés de la simulation (« Étal : … »,
   « Drone acheté pour l'étal « … » ! ») se traduisent sans changer le code ; les modèles les plus précis
   passent d'abord. Les produits gardent leur nom français dans la sauvegarde (statistiques) : seul l'affichage change.
+- Produits qui ne servent plus (pain d'épices, tarte et gâteau aux fruits, sorbet et glace aux fruits, glaces et
+  sorbets cerise et fraise, cuisses de canard, sucre roux, sachets de graines) : gardés dans la liste (numéros
+  dans les sauvegardes), mais retirés de en.txt (rien à traduire).
