@@ -39,7 +39,7 @@ func (s *Station) DronePad() Rect {
 
 // hasDrones : lieux où les vitrines ont des drones.
 func (p *Place) hasDrones() bool {
-	return p.ID == "ferme" || p.ID == "exotique" || p.ID == "boulangerie" || p.ID == "cremerie" || p.ID == "glacier" || p.ID == "elevage" || p.ID == "boucherie" || p.ID == "port" || p.ID == "domaine"
+	return p.ID == "ferme" || p.ID == "exotique" || p.ID == "boulangerie" || p.ID == "cremerie" || p.ID == "glacier" || p.ID == "elevage" || p.ID == "boucherie" || p.ID == "port" || p.ID == "domaine" || p.ID == "patisserie"
 }
 
 // droneDest : un camion part-il de ce lieu ? (ferme : vers un lieu acheté ;
@@ -112,7 +112,7 @@ func (p *Place) droneUpgrades(scale float64) []*Upgrade {
 		}
 		u := &Upgrade{Key: k(droneKey(it)), Name: "Drone : " + Items[it].Name, Max: len(costs), Costs: costs,
 			Desc: func(l int) string {
-				if l > 0 {
+				if l > 1 { // (Desc reçoit le niveau qu'on va acheter : 1 = le premier drone)
 					return "Un drone de plus pour cet étal : ils se partagent les quais (le produit part vers plusieurs lieux)."
 				}
 				return "Il prend les produits de cette vitrine et les porte au quai du camion."
@@ -300,7 +300,7 @@ func (p *Place) DroneLock(sp *Spot) string {
 }
 
 // dronePrice : prix d'un drone, le même pour tous les étals d'un lieu.
-var dronePrice = map[string]float64{"ferme": 800, "boulangerie": 2500, "cremerie": 3200, "glacier": 4000, "elevage": 5000, "boucherie": 6000, "exotique": 2500, "port": 5000, "domaine": 6000}
+var dronePrice = map[string]float64{"ferme": 800, "boulangerie": 2500, "cremerie": 3200, "glacier": 4000, "elevage": 5000, "boucherie": 6000, "exotique": 2500, "port": 5000, "domaine": 6000, "patisserie": 7000}
 
 // StorePad : base (prévue) du drone d'une réserve, sous sa zone de dépôt.
 func (s *Station) StorePad() Rect {

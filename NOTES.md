@@ -850,3 +850,19 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   Windows, ToutUneVille.zip publié dans une Release « version-N » marquée « latest ». Lien permanent :
   https://github.com/Nathalie314/Toute-une-ville/releases/latest/download/ToutUneVille.zip
 - .github/ISSUE_TEMPLATE : « Signaler un bug » (bug.yml), « Proposer une idée » (idee.yml), lien Tipeee (config.yml).
+
+## La pâtisserie (12e lieu)
+- Atelier (patisserieSpec, newWorkshop), après le domaine sur la carte : 64 M à l'achat, contenu ≈ 4 milliards (×2).
+  Particularité : chaque recette demande au moins 3 ingrédients. Rien n'est offert (même la 1re machine s'achète).
+  Tartes aux pommes (pommes, beurre, farine ; 5 000 de base), riz au lait (riz, lait, vanille ; 9 000), clafoutis
+  aux cerises (cerises, farine, œufs, lait ; 15 000), gâteaux au chocolat (chocolat, beurre, farine, œufs ; 25 000 ;
+  produit Gateau qui existait sans être fabriqué), éclairs au café (farine, œufs, lait, beurre, café moulu ; 40 000),
+  fraisiers (farine, œufs, lait, beurre, fraises ; 60 000). Prix de vente : 1 100, 1 250, 1 400, 1 600, 1 800, 2 000 €.
+  Réserve de 11 palettes ; quais « → pâtisserie » à ma ferme (x 4 750, sous les fruits), à la crèmerie (beurre) et à la
+  ferme exotique (riz, vanille, chocolat, café moulu). 6 pâtissiers, points de chefs, commandes de particuliers.
+  Supermarché : l'espace « Pâtisserie » s'ouvre. Décor rose, tenues blanches à tablier rose et toque.
+- Correction de NOTES : la cantine de l'école ne demande PLUS de pain d'épices ni de gâteau aux fruits (ces produits
+  ont disparu du jeu) : primaire baguette, collège brioche, lycée croissant, université pain au chocolat, adultes
+  pain blé-maïs (schoolOrder).
+- Ateliers : le nom du lieu (panneau du bas) descend sur le mur (les bases des drones sont juste au-dessus).
+- Drones : la description du premier drone ne dit plus « un drone de plus » (Desc reçoit le niveau à acheter).

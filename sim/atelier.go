@@ -75,7 +75,26 @@ var cremerieSpec = workshopSpec{
 	},
 	staff: "Crémiers", cashCost: 4500, staffCosts: []float64{6000, 15000, 38000, 90000, 220000, 500000, 1100000, 2400000, 5000000}, upBase: 7000,
 	sign: "Vitrine", bio: "Fermier",
-	w: 3400, perRow: 5, docks: []string{"super", "boulangerie", "glacier"}, shift2: true, tall: true, dockNear: true,
+	w: 3400, perRow: 5, docks: []string{"super", "boulangerie", "glacier", "patisserie"}, shift2: true, tall: true, dockNear: true,
+}
+
+// patisserieSpec : la pâtisserie (12e lieu). Sa particularité : chaque recette
+// demande au moins 3 ingrédients, venus de ma ferme (pommes, farine, cerises,
+// œufs, lait, fraises), de la crèmerie (beurre) et de la ferme exotique (riz,
+// vanille, chocolat, café moulu). Rien n'est offert : même la tarte s'achète.
+var patisserieSpec = workshopSpec{
+	id: "patisserie", name: "La pâtisserie", price: 64000000, seed: 83,
+	inputs: []Item{Pomme, Beurre, Farine, Riz, Lait, Vanille, Cerise, Oeuf, Chocolat, CafeMoulu, Fraise},
+	recipes: []recipe{
+		{"tarte_pommes", "Tartes aux pommes", TartePommes, []Item{Pomme, Beurre, Farine}, 5, 5000, "Pommes, beurre et farine.", "cremerie:beurre,ferme:pommier"},
+		{"riz_lait", "Riz au lait", RizLait, []Item{Riz, Lait, Vanille}, 5, 9000, "Riz, lait et vanille.", "exotique:riz,exotique:vanille"},
+		{"clafoutis", "Clafoutis aux cerises", Clafoutis, []Item{Cerise, Farine, Oeuf, Lait}, 6, 15000, "Cerises, farine, œufs et lait.", "ferme:cerisier"},
+		{"gateau", "Gâteaux au chocolat", Gateau, []Item{Chocolat, Beurre, Farine, Oeuf}, 6, 25000, "Chocolat, beurre, farine et œufs.", "exotique:chocolaterie,cremerie:beurre"},
+		{"eclair", "Éclairs au café", Eclair, []Item{Farine, Oeuf, Lait, Beurre, CafeMoulu}, 7, 40000, "Farine, œufs, lait, beurre et café moulu.", "exotique:moulin_cafe,cremerie:beurre"},
+		{"fraisier", "Fraisiers", Fraisier, []Item{Farine, Oeuf, Lait, Beurre, Fraise}, 7, 60000, "Farine, œufs, lait, beurre et fraises.", "ferme:fraisier,cremerie:beurre"},
+	},
+	staff: "Pâtissiers", cashCost: 9000, staffCosts: []float64{10000, 25000, 60000, 150000, 350000, 800000}, upBase: 12000, // (un par machine)
+	sign: "Vitrine", bio: "Fait maison", shift2: true, tall: true, dockNear: true, gap: 260,
 }
 
 // iceSpec : le glacier. Les sorbets : seulement le fruit (et de l'eau) ; les
@@ -217,8 +236,8 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 		}
 		p.dock(id, to, dockX(i))
 	}
-	if sp.id == "boulangerie" || sp.id == "cremerie" {
-		// caisse des commandes (boulangerie : la cantine de l'école ; crèmerie : des particuliers)
+	if sp.id == "boulangerie" || sp.id == "cremerie" || sp.id == "patisserie" {
+		// caisse des commandes (boulangerie : la cantine de l'école ; crèmerie, pâtisserie : des particuliers)
 		cmd := &Station{ID: "commande", Name: "Commandes", Kind: OrderBox, Built: true}
 		cmd.Body = Rect{W - 280, 1300, 180, 60}
 		cmd.Zone = Rect{W - 290, 1372, 200, 96}
@@ -259,7 +278,7 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 			return "Chaque palette de la réserve contient " + itoa(PalletMax(p.ID, l)) + " produits."
 		}},
 	}
-	scale := map[string]float64{"boulangerie": 2, "cremerie": 2.5, "glacier": 3, "boucherie": 4}[sp.id]
+	scale := map[string]float64{"boulangerie": 2, "cremerie": 2.5, "glacier": 3, "boucherie": 4, "patisserie": 4}[sp.id]
 	p.ups = append(p.ups, p.droneUpgrades(scale)...)
 	spot := func(id, label string, z Rect, needs string, done func(int) string) {
 		p.Spots = append(p.Spots, &Spot{ID: id, Label: label, Zone: z, Needs: needs, Done: done})
@@ -286,7 +305,7 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 func placeName(id string) string {
 	return map[string]string{"ferme": "la ferme", "super": "le supermarché", "boulangerie": "la boulangerie",
 		"cremerie": "la crèmerie", "glacier": "le glacier", "ecole": "l'école",
-		"elevage": "la ferme d'élevage", "boucherie": "la boucherie-charcuterie", "exotique": "la ferme exotique", "domaine": "le domaine"}[id]
+		"elevage": "la ferme d'élevage", "boucherie": "la boucherie-charcuterie", "exotique": "la ferme exotique", "domaine": "le domaine", "patisserie": "la pâtisserie"}[id]
 }
 
 // needsMet : « lieu » (acheté) ou « lieu:station » (station construite), séparés par des virgules.
@@ -311,7 +330,8 @@ func needsText(needs string) string {
 		"exotique:moulin_sucre": "le sucre en poudre (ferme exotique)",
 		"exotique:manguier":     "les mangues (ferme exotique)", "exotique:ananas": "les ananas (ferme exotique)",
 		"exotique:cocotier": "les noix de coco (ferme exotique)",
-		"ferme:pommier":     "le pommier (ma ferme)", "ferme:poirier": "le poirier (ma ferme)", "ferme:pdt": "les pommes de terre (ma ferme)", "ferme:silo": "le silo à blé (ma ferme)",
+		"ferme:cerisier":    "le cerisier (ma ferme)", "ferme:fraisier": "les fraisiers (ma ferme)", "exotique:riz": "le riz (ferme exotique)",
+		"ferme:pommier": "le pommier (ma ferme)", "ferme:poirier": "le poirier (ma ferme)", "ferme:pdt": "les pommes de terre (ma ferme)", "ferme:silo": "le silo à blé (ma ferme)",
 		"exotique:vanille": "la vanille (ferme exotique)", "exotique:moulin_cafe": "le café moulu (ferme exotique)",
 		"elevage:mare": "les canards (ferme d'élevage)", "elevage:bovin": "les bovins (ferme d'élevage)",
 		"elevage:ovin": "les ovins (ferme d'élevage)", "elevage:porc": "les porcs (ferme d'élevage)"}

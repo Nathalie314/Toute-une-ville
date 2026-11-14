@@ -140,6 +140,7 @@ func newExotic(g *Game) *Place {
 	p.dock("quai", "super", 1500)
 	p.dock("quai_boul", "boulangerie", 1850)
 	p.dock("quai_glace", "glacier", 2200)
+	p.dock("quai_patisserie", "patisserie", 2550)
 	cmd := &Station{ID: "commande", Name: "Commandes", Kind: OrderBox, Built: true}
 	p.Stations = append(p.Stations, cmd)
 

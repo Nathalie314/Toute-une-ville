@@ -35,7 +35,7 @@ var SuperZones = []*SuperZone{
 	{ID: "glace", Name: "Glaces", Items: IceSold, Cols: 2, open: ownedFn("glacier")},
 	{ID: "poisson", Name: "Poissonnerie", Items: PortSold, Cols: 3, open: ownedFn("port")}, // (le port s'ouvre avant la boucherie)
 	{ID: "boucherie", Name: "Boucherie-charcuterie", Items: BoucherieSold, Cols: 6, open: ownedFn("boucherie")},
-	{ID: "patisserie", Name: "Pâtisserie", Cols: 3, Soon: true},
+	{ID: "patisserie", Name: "Pâtisserie", Items: PatisserieSold, Cols: 2, open: ownedFn("patisserie")},
 	{ID: "alcool", Name: "Boissons", Items: DrinksSold, Cols: 3, open: ownedFn("domaine")}, // (vins, bière, cidre, alcools et jus du domaine)
 }
 
@@ -353,7 +353,7 @@ func (g *Game) produced(it Item) bool {
 			return true
 		}
 	}
-	for _, id := range []string{"boulangerie", "cremerie", "glacier", "boucherie", "domaine"} {
+	for _, id := range []string{"boulangerie", "cremerie", "glacier", "boucherie", "domaine", "patisserie"} {
 		p := g.Place(id)
 		if p == nil || !p.Owned {
 			continue
@@ -400,6 +400,11 @@ func whereLocked(it Item) string {
 	}
 	if it == Raisin {
 		return "Depuis le domaine"
+	}
+	for _, b := range PatisserieSold {
+		if b == it {
+			return "Depuis la pâtisserie"
+		}
 	}
 	for _, b := range DrinksSold {
 		if b == it {
@@ -456,6 +461,8 @@ func (g *Game) fixRayonCosts() {
 				u.Cost = 2500 + 0.5*c
 			case "domaine":
 				u.Cost = 9000 + 0.5*c
+			case "patisserie":
+				u.Cost = 10000 + 0.5*c
 			}
 			u.Cost = math.Round(u.Cost/50) * 50
 		}

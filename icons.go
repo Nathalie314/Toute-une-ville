@@ -10,7 +10,7 @@ import (
 
 // drawItem dessine une marchandise centrée en (x, y), de « rayon » r.
 func drawItem(dst *ebiten.Image, it sim.Item, x, y, r float64) {
-	if drawItemNew(dst, it, x, y, r) || drawItemMeat(dst, it, x, y, r) || drawItemExotic(dst, it, x, y, r) || drawItemPort(dst, it, x, y, r) || drawItemDomaine(dst, it, x, y, r) {
+	if drawItemNew(dst, it, x, y, r) || drawItemMeat(dst, it, x, y, r) || drawItemExotic(dst, it, x, y, r) || drawItemPort(dst, it, x, y, r) || drawItemDomaine(dst, it, x, y, r) || drawItemPatisserie(dst, it, x, y, r) {
 		return
 	}
 	dark := rgba(0x000000, 0.25)
@@ -284,8 +284,8 @@ func drawItem(dst *ebiten.Image, it sim.Item, x, y, r float64) {
 		ellipse(dst, x, y+r*0.55, r*0.95, r*0.3, rgb(0xdddddd))
 		rect(dst, x-r*0.75, y-r*0.15, r*1.5, r*0.7, rgb(0x7b4a2d))
 		ellipse(dst, x, y+r*0.55, r*0.75, r*0.18, rgb(0x6a3d24))
-		ellipse(dst, x, y-r*0.15, r*0.75, r*0.22, rgb(0xff9ec4))
-		rect(dst, x-r*0.75, y-r*0.15, r*1.5, r*0.18, rgb(0xff9ec4))
+		ellipse(dst, x, y-r*0.15, r*0.75, r*0.22, rgb(0x4a2a1a)) // glaçage au chocolat
+		rect(dst, x-r*0.75, y-r*0.15, r*1.5, r*0.18, rgb(0x4a2a1a))
 		circle(dst, x, y-r*0.5, r*0.17, rgb(0xd62839))
 		line(dst, x, y-r*0.62, x+r*0.12, y-r*0.85, r*0.06, rgb(0x3f9b35))
 	case sim.FarineMais:
