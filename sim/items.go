@@ -153,6 +153,12 @@ const (
 	Vodka
 	Whisky
 	PainMie // (boulangerie, ajouté à la fin : les sauvegardes rangent les produits par numéro)
+	// la pâtisserie (le gâteau au chocolat existait déjà : Gateau)
+	TartePommes
+	RizLait
+	Clafoutis
+	Eclair
+	Fraisier
 	NItems
 )
 
@@ -171,7 +177,7 @@ var Items = [NItems]ItemInfo{
 	Lait:             {"Lait", 30},
 	Fleur:            {"Fleurs", 24},
 	Miel:             {"Miel", 40},
-	Gateau:           {"Gâteau au chocolat", 160},
+	Gateau:           {"Gâteau au chocolat", 1600}, // (pâtisserie)
 	Canne:            {"Canne à sucre", 20},
 	Fromage:          {"Fromage de vache", 55},
 	Saucisse:         {"Saucisses", 90},
@@ -304,6 +310,12 @@ var Items = [NItems]ItemInfo{
 	Vodka:       {"Vodka", 750},
 	Whisky:      {"Whisky", 1000},
 	PainMie:     {"Pain de mie", 32},
+	// (la pâtisserie, 12e lieu : plus cher que le domaine, pour que la courbe des prix tienne)
+	TartePommes: {"Tarte aux pommes", 1100},
+	RizLait:     {"Riz au lait", 1250},
+	Clafoutis:   {"Clafoutis aux cerises", 1400},
+	Eclair:      {"Éclair au café", 1800},
+	Fraisier:    {"Fraisier", 2000},
 }
 
 // DomaineSold : ce que vend le domaine sur place (le raisin et les jus ne partent
@@ -327,6 +339,9 @@ var FarmSold = append(append(append([]Item{Mais, FarineMais, Oeuf, Farine, Lait,
 // BakerySold, CremerieSold et IceSold : ce que fabriquent la boulangerie
 // (pains et viennoiseries), la crèmerie et le glacier. Les gâteaux, tartes et
 // pains d'épices iront à la future pâtisserie.
+// PatisserieSold : ce que fabrique la pâtisserie (chaque recette : au moins 3 ingrédients).
+var PatisserieSold = []Item{TartePommes, RizLait, Clafoutis, Gateau, Eclair, Fraisier}
+
 var BakerySold = []Item{Pain, PainMie, BaguetteMais, PainMele, Brioche, Croissant, PainChoco}
 var CremerieSold = []Item{Creme, Beurre, FromageBlanc, Yaourt, Fromage, YaourtChevre, FromageChevre, YaourtBrebis, FromageBrebis}
 var IceSold = []Item{SorbetFraise, SorbetMangue, SorbetAnanas, GlaceVanille, GlaceCafe, GlaceCoco, GlaceChoco, GlacePoireChoco}

@@ -1000,6 +1000,9 @@ func staffLook(place string, kind sim.AgentKind, n int) look {
 			lk.shirt, lk.mariniere, lk.apron = 0xffffff, true, 0x1f5fa8
 		case "domaine":
 			lk.shirt, lk.apron = 0x7a2a4a, 0x8a5a33
+		case "patisserie":
+			lk.shirt, lk.apron = 0xe0567f, 0xffffff
+			lk.hat = 6
 		}
 		return lk
 	}
@@ -1024,6 +1027,10 @@ func staffLook(place string, kind sim.AgentKind, n int) look {
 	case "exotique": // chemise à fleurs, chapeau de paille
 		lk.shirt, lk.pants = 0x1fa37a, 0xe9d7a8
 		lk.hat, lk.hatC = 2, 0xe8c86a
+	case "patisserie": // veste blanche, tablier rose, toque
+		lk.shirt, lk.pants = 0xffffff, 0x4a4a4a
+		lk.apron, lk.stripe = 0xffc2d4, 0xffffff
+		lk.hat = 6
 	case "domaine": // vigneron : chemise bordeaux, tablier de cuir, chapeau
 		lk.shirt, lk.pants = 0x7a2a4a, 0x3b3b4a
 		lk.apron = 0x8a5a33
@@ -1717,6 +1724,8 @@ func (g *game) workshopGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		floor, tile, title, sc = 0xf6fbff, 0xdbe9f4, "CRÈMERIE", 0x5b8fb9
 	case "boucherie":
 		floor, tile, title, sc = 0xfdfbf8, 0xf2d6d6, "BOUCHERIE-CHARCUTERIE", 0xb03a3a
+	case "patisserie":
+		floor, tile, title, sc = 0xfff5f8, 0xf9dbe6, "PÂTISSERIE", 0xe0567f
 	}
 	rect(dst, tl.X-10, 10, br.X-tl.X+20, 100, rgb(0x6b6f74))
 	road(dst, tl, br, 1640)
@@ -1727,7 +1736,8 @@ func (g *game) workshopGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	for x := 36.0; x < p.W-96; x += 70 {
 		for y := 426.0; y < 1514; y += 70 {
 			if int(x/70+y/70)%2 == 0 {
-				rect(dst, x, y, 70, 70, rgb(tile))
+				// (les derniers carreaux sont coupés au bord du sol : rien ne déborde sur l'herbe)
+				rect(dst, x, y, math.Min(70, p.W-96-x), math.Min(70, 1514-y), rgb(tile))
 			}
 		}
 	}
@@ -1741,8 +1751,8 @@ func (g *game) workshopGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	rect(dst, 20, 1514, 1160, 16, rgb(0x6f6a62))
 	rect(dst, 1320, 1514, p.W-1400, 16, rgb(0x6f6a62))
 	tw := math.Max(280, textWidth(title, 24, true)+40)
-	roundRect(dst, 1250-tw/2, 1470, tw, 40, 8, rgb(sc))
-	say(dst, title, 1250, 1490, 24, true, 0, rgb(0xffffff))
+	roundRect(dst, 1250-tw/2, 1518, tw, 34, 8, rgb(sc)) // (sur le mur du bas : les bases des drones sont juste au-dessus)
+	say(dst, title, 1250, 1535, 22, true, 0, rgb(0xffffff))
 	g.backTruck(dst, p)
 }
 
@@ -1757,7 +1767,7 @@ func drawTruck(dst *ebiten.Image, cx, cy float64, busy bool) {
 	}
 	ellipse(dst, cx, cy+38, 120, 10, rgba(0x000000, 0.25))
 	roundRect(dst, cx-120, cy-42, 160, 74, 8, rgb(0xf3ead8))
-	label := map[string]string{"ferme": "MA FERME", "boulangerie": "BOULANGERIE", "cremerie": "CRÈMERIE", "glacier": "GLACIER", "boucherie": "BOUCHERIE", "exotique": "EXOTIQUE", "port": "LE PORT", "elevage": "ÉLEVAGE", "domaine": "LE DOMAINE"}[truckFrom]
+	label := map[string]string{"ferme": "MA FERME", "boulangerie": "BOULANGERIE", "cremerie": "CRÈMERIE", "glacier": "GLACIER", "boucherie": "BOUCHERIE", "exotique": "EXOTIQUE", "port": "LE PORT", "elevage": "ÉLEVAGE", "domaine": "LE DOMAINE", "patisserie": "PÂTISSERIE"}[truckFrom]
 	if label == "" {
 		label = "MA FERME"
 	}
@@ -1928,6 +1938,8 @@ func placeShort(id string) string {
 		return "port"
 	case "domaine":
 		return "domaine"
+	case "patisserie":
+		return "pâtisserie"
 	}
 	return id
 }
@@ -1997,6 +2009,9 @@ func drawWorkshopMachine(dst *ebiten.Image, s *sim.Station, t float64) {
 	}
 	if s.PlaceID() == "boucherie" {
 		wall, roof = 0xfdf4f2, 0xb03a3a // carrelage blanc, auvent rouge
+	}
+	if s.PlaceID() == "patisserie" {
+		wall, roof = 0xfff0f5, 0xe0567f // rose bonbon
 	}
 	if s.PlaceID() == "glacier" {
 		wall, roof = 0xf0d6a8, 0x9a5a3a // (toutes les fabriques de glace pareilles)

@@ -738,7 +738,7 @@ var animalIDs = map[string]bool{"poulailler": true, "mare": true, "etable": true
 
 // cooks : lieux dont les machines cuisinent (Chefs).
 func (p *Place) cooks() bool {
-	return p.ID == "boulangerie" || p.ID == "cremerie" || p.ID == "glacier" || p.ID == "boucherie"
+	return p.ID == "boulangerie" || p.ID == "cremerie" || p.ID == "glacier" || p.ID == "boucherie" || p.ID == "patisserie"
 }
 
 // sells : lieux qui reçoivent des clients.

@@ -887,7 +887,7 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		g.placeTile("elevage", "Ferme d'élevage", 0x8a5a2b),
 		g.placeTile("boucherie", "Boucherie", 0xb03a3a),
 		g.placeTile("domaine", "Le domaine", 0x7a2a4a),
-		{id: "patisserie", name: "Pâtisserie", status: "Bientôt", col: 0xe0567f},
+		g.placeTile("patisserie", "Pâtisserie", 0xe0567f),
 		{id: "creperie", name: "Crêperie", status: "Bientôt", col: 0xd9a55a},
 		{id: "fleuriste", name: "Fleuriste", status: "Bientôt", col: 0xff6fa8},
 		{id: "restaurant", name: "Restaurant", status: "Bientôt", col: 0xe67e22},
@@ -1457,6 +1457,8 @@ func (g *game) drawBuyPlace(dst *ebiten.Image) {
 		txt = "La ferme d'élevage ne reçoit pas de clients : elle élève volailles, bovins, ovins et porcs avec le maïs, le foin (grenier à foin de ta ferme) et les pommes de terre de ta ferme, puis les abat. Ses frigos partent en camion frigorifique à la boucherie. Chaque espace a ses éleveurs."
 	case "boucherie":
 		txt = "La boucherie-charcuterie découpe la viande de la ferme d'élevage : poulets, canards, bœuf, veau, mouton, agneau, porc. Ses clients sont rares mais achètent cher, et elle remplit l'espace boucherie du supermarché. Chaque espace a ses bouchers."
+	case "patisserie":
+		txt = "La pâtisserie : tartes aux pommes, riz au lait, clafoutis, gâteaux au chocolat, éclairs au café et fraisiers. Chaque recette demande au moins 3 ingrédients, qui viennent de ta ferme, de la crèmerie et de la ferme exotique. Rien n'est offert : même la première machine s'achète."
 	case "domaine":
 		txt = "Le domaine : la vigne, le houblon et une distillerie. Le raisin et les jus partent en camion au supermarché ; on vend sur place les vins, la bière, le cidre et les alcools (avec les pommes, poires, pommes de terre et le blé de ta ferme). Chaque espace a ses ouvriers. L'alcool est dangereux pour la santé : à consommer avec modération."
 	case "glacier":

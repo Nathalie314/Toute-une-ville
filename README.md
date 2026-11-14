@@ -8,7 +8,7 @@
 
 ## Français
 
-**Toute une Ville** est un jeu de gestion « idle » pour Windows. Tu construis la ville de **Clairbourg**, lieu après lieu : une ferme, un supermarché, une école, une crèmerie, une ferme exotique, une boulangerie, un glacier, un port, une ferme d'élevage, une boucherie, un domaine viticole… Tu récoltes, tu fabriques, tu vends, tu embauches. Puis tes employés, tes drones et tes camions travaillent pour toi, même quand le jeu est fermé.
+**Toute une Ville** est un jeu de gestion « idle » pour Windows. Tu construis la ville de **Clairbourg**, lieu après lieu : une ferme, un supermarché, une école, une crèmerie, une ferme exotique, une boulangerie, un glacier, un port, une ferme d'élevage, une boucherie, un domaine viticole, une pâtisserie… Tu récoltes, tu fabriques, tu vends, tu embauches. Puis tes employés, tes drones et tes camions travaillent pour toi, même quand le jeu est fermé.
 
 ### ⬇️ Télécharger
 
@@ -86,7 +86,7 @@ go test ./sim
 
 ## English
 
-**Toute une Ville** ("A Whole Town") is an idle management game for Windows. You build the town of **Clairbourg**, one place at a time: a farm, a supermarket, a school, a dairy, an exotic farm, a bakery, an ice-cream parlour, a harbour, a livestock farm, a butcher's shop, a wine estate… You harvest, craft, sell and hire. Then your workers, drones and trucks keep working for you, even while the game is closed.
+**Toute une Ville** ("A Whole Town") is an idle management game for Windows. You build the town of **Clairbourg**, one place at a time: a farm, a supermarket, a school, a dairy, an exotic farm, a bakery, an ice-cream parlour, a harbour, a livestock farm, a butcher's shop, a wine estate, a pastry shop… You harvest, craft, sell and hire. Then your workers, drones and trucks keep working for you, even while the game is closed.
 
 *The game is in French.*
 

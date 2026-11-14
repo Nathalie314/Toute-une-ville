@@ -231,10 +231,11 @@ func newFarm(g *Game) *Place {
 	// (les quais ne sont pas décalés avec la ferme : x définitifs ; chacun près de ce qu'il emporte)
 	p.dock("quai", "super", 1700)
 	p.dock("quai_boul", "boulangerie", 2050)
-	p.dock("quai_creme", "cremerie", 2892)  // sous l'étal du lait de chèvre (au milieu des laits)
-	p.dock("quai_elevage", "elevage", 3250) // sous le lait de brebis, près du maïs et de la serre
-	p.dock("quai_domaine", "domaine", 3600) // au début de la serre (pommes de terre, pommes, poires)
-	p.dock("quai_glace", "glacier", 4380)   // juste à gauche des fruits du verger
+	p.dock("quai_creme", "cremerie", 2892)        // sous l'étal du lait de chèvre (au milieu des laits)
+	p.dock("quai_elevage", "elevage", 3250)       // sous le lait de brebis, près du maïs et de la serre
+	p.dock("quai_domaine", "domaine", 3600)       // au début de la serre (pommes de terre, pommes, poires)
+	p.dock("quai_glace", "glacier", 4380)         // juste à gauche des fruits du verger
+	p.dock("quai_patisserie", "patisserie", 4750) // sous les fruits du verger (pommes, cerises, fraises)
 	// la cour, à gauche de la boutique (près du portail) : caisse des commandes et hangar
 	cmd := &Station{ID: "commande", Name: "Commandes", Kind: OrderBox, Built: true}
 	cmd.Body = Rect{230, 1110, 180, 70}

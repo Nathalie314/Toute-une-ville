@@ -182,7 +182,7 @@ func NewGame() *Game {
 	for k, v := range DefaultFav {
 		g.Fav[k] = v
 	}
-	g.Places = []*Place{newFarm(g), newSuper(g), newWorkshop(g, bakerySpec), newWorkshop(g, cremerieSpec), newWorkshop(g, iceSpec), newSchool(g), newElevage(g), newBoucherie(g), newExotic(g), newPort(g), newDomaine(g)}
+	g.Places = []*Place{newFarm(g), newSuper(g), newWorkshop(g, bakerySpec), newWorkshop(g, cremerieSpec), newWorkshop(g, iceSpec), newSchool(g), newElevage(g), newBoucherie(g), newExotic(g), newPort(g), newDomaine(g), newWorkshop(g, patisserieSpec)}
 	g.sortPlaces()
 	for _, p := range g.Places {
 		p.applyCaps()
@@ -217,7 +217,7 @@ func NewGame() *Game {
 // MapOrder : les lieux dans l'ordre de la carte de la ville (ui.go, drawMap). Il
 // fixe l'ordre des listes (points d'école…) et le rang de chaque lieu, qui fixe
 // ses prix (PlaceScale). Un nouveau lieu se met ici, à sa place sur la carte.
-var MapOrder = []string{"ferme", "ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "port", "elevage", "boucherie", "domaine"}
+var MapOrder = []string{"ferme", "ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "port", "elevage", "boucherie", "domaine", "patisserie"}
 
 // MapRank : position du lieu sur la carte (1 : ma ferme) ; 0 si inconnu.
 func MapRank(id string) int {
