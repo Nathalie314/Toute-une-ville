@@ -152,6 +152,7 @@ const (
 	AlcoolPoire
 	Vodka
 	Whisky
+	PainMie // (boulangerie, ajouté à la fin : les sauvegardes rangent les produits par numéro)
 	NItems
 )
 
@@ -302,6 +303,7 @@ var Items = [NItems]ItemInfo{
 	AlcoolPoire: {"Alcool de poire", 650},
 	Vodka:       {"Vodka", 750},
 	Whisky:      {"Whisky", 1000},
+	PainMie:     {"Pain de mie", 32},
 }
 
 // DomaineSold : ce que vend le domaine sur place (le raisin et les jus ne partent
@@ -325,7 +327,7 @@ var FarmSold = append(append(append([]Item{Mais, FarineMais, Oeuf, Farine, Lait,
 // BakerySold, CremerieSold et IceSold : ce que fabriquent la boulangerie
 // (pains et viennoiseries), la crèmerie et le glacier. Les gâteaux, tartes et
 // pains d'épices iront à la future pâtisserie.
-var BakerySold = []Item{Pain, BaguetteMais, PainMele, Brioche, Croissant, PainChoco}
+var BakerySold = []Item{Pain, PainMie, BaguetteMais, PainMele, Brioche, Croissant, PainChoco}
 var CremerieSold = []Item{Creme, Beurre, FromageBlanc, Yaourt, Fromage, YaourtChevre, FromageChevre, YaourtBrebis, FromageBrebis}
 var IceSold = []Item{SorbetFraise, SorbetMangue, SorbetAnanas, GlaceVanille, GlaceCafe, GlaceCoco, GlaceChoco, GlacePoireChoco}
 

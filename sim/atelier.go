@@ -46,13 +46,14 @@ var bakerySpec = workshopSpec{
 	inputs: []Item{Farine, FarineMais, Oeuf, Lait, Beurre, SucrePoudre, Chocolat},
 	recipes: []recipe{
 		{"four_baguette", "Four à baguettes", Pain, []Item{Farine}, 3, 0, "", ""},
+		{"pain_mie", "Pain de mie", PainMie, []Item{Farine}, 3.5, 1500, "Farine de blé → pain de mie.", ""},
 		{"four_mais", "Four à maïs", BaguetteMais, []Item{FarineMais}, 3, 2500, "Farine de maïs → baguette de maïs.", ""},
 		{"four_mele", "Pain blé-maïs", PainMele, []Item{Farine, FarineMais}, 4, 5000, "Les deux farines ensemble.", ""},
 		{"brioches", "Brioches", Brioche, []Item{Farine, Oeuf, Beurre, SucrePoudre}, 5, 9000, "Farine, œufs, beurre et sucre.", "cremerie:beurre,exotique:moulin_sucre"},
 		{"croissants", "Croissants", Croissant, []Item{Farine, Oeuf, Lait, Beurre, SucrePoudre}, 5, 30000, "Farine, œufs, lait, beurre et sucre.", "cremerie:beurre,exotique:moulin_sucre"},
 		{"pains_choco", "Pains au chocolat / chocolatines", PainChoco, []Item{Farine, Oeuf, Beurre, Chocolat}, 6, 60000, "Farine, œufs, beurre et chocolat.", "cremerie:beurre,exotique:chocolaterie"},
 	},
-	staff: "Boulangers", cashCost: 3000, staffCosts: []float64{4000, 10000, 25000, 60000, 150000, 350000}, upBase: 5000,
+	staff: "Boulangers", cashCost: 3000, staffCosts: []float64{4000, 10000, 25000, 60000, 150000, 350000, 800000}, upBase: 5000, // (un boulanger par machine)
 	sign: "Vitrine", bio: "Fait maison", shift2: true, tall: true, dockNear: true, // (quai juste à droite des pains au chocolat)
 }
 

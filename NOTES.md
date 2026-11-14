@@ -823,3 +823,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   caddies devant lui × vitesse de la caisse) + un quart du temps de marche ; caisse sans caissière : +60 s (évitée,
   mais celui qui y va y reste : voulu). Avant : nombre de personnes + distance/700, d'où des files de 5 au milieu et
   de 1 aux bouts. Mesure (sa partie, 9 caisses, 10 min) : files moyennes 0,6 à 5,4 → 1,7 à 2,9.
+- Boulangerie : pain de mie (PainMie, ajouté en fin de liste des produits, 32 €), juste après la baguette : farine de
+  blé, 3,5 s, 1 500 € de base. 7 machines → 7 boulangers (800 000 € de base en plus). Supermarché : rayon Pain de mie
+  (espace Boulangerie). Le contenu de la boulangerie grandit : son coefficient de prix baisse un peu (×15 → ×12).
