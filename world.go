@@ -845,9 +845,7 @@ func (g *game) drawStation(dst *ebiten.Image, p *sim.Place, s *sim.Station) {
 				g.drawShelf(dst, s)
 			}
 		case sim.Pallet:
-			if sim.IsSeed(s.Item) {
-				drawSeedCrate(dst, s)
-			} else if p.ID == "port" {
+			if p.ID == "port" {
 				drawBasket(dst, s)
 			} else {
 				drawPallet(dst, s)

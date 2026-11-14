@@ -942,3 +942,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   retirées. Une ligne complète reste prioritaire (utile pour les langues où l'article dépend du mot).
   Outil : TR_SIMPLIFIER=chemin/en.txt go test ./tr -run Simplifier liste les lignes déductibles (.inutiles).
   Conséquence acceptée : les noms de lieux en anglais passent en minuscules après le 1er mot (« Exotic farm »).
+- Retiré : le dessin des caisses de sachets de graines (étiquette « GRATUIT »), qui ne s'affichait plus depuis la
+  suppression des graines. « CIEL » est en haut de la marelle de la cour de l'école (« SKY » en anglais).
