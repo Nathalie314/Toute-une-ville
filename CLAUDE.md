@@ -28,6 +28,11 @@ NOTES.md raconte l'histoire du projet et chaque décision de conception : lis-le
 - Depuis Linux (cloud) : `GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-H windowsgui -s -w" -o dist/ToutUneVille.exe .`
   (les `replace` de go.mod passent par les miroirs GitHub de golang.org/x : nécessaires dans le cloud, sans effet gênant ailleurs).
 - Pour lui envoyer le jeu : toujours un **.zip** contenant l'exe (dist/ToutUneVille.zip) ; un .exe seul ne se télécharge pas dans son application.
+- Deux versions à tenir à jour ensemble : l'exe Windows ET la version navigateur (WebAssembly, pour son iPad).
+  Le workflow de release fabrique les deux à chaque push sur main (Pages : https://nathalie314.github.io/Toute-une-ville/).
+  Tester la version web en local : `GOOS=js GOARCH=wasm go build -trimpath -ldflags "-s -w" -o dist/web/toutuneville.wasm .`,
+  copier `$(go env GOROOT)/lib/wasm/wasm_exec.js` et `web/*` dans dist/web, puis `python3 -m http.server` dans dist/web.
+  Code propre au web : save_web.go (localStorage), pointer.go (tactile, pincement) ; `isWeb` pour les différences.
 - Page publique : README.md bilingue (FR puis EN) à tenir à jour (nouveaux lieux, commandes) ; chaque push sur main
   publie une Release (.github/workflows/release.yml).
 - Tests de la simulation : `go test ./sim`.

@@ -2,17 +2,14 @@ package main
 
 import (
 	"encoding/json"
-	"os"
-	"path/filepath"
 	"time"
 
 	"ville/sim"
 )
 
-// La partie est enregistrée à côté du jeu (ToutUneVille_sauvegarde.json, dans
-// le même dossier que l'exe) : on peut emporter le jeu sur une clé USB avec sa
-// partie. Si ce dossier n'est pas modifiable, on se rabat sur
-// %AppData%\ToutUneVille\sauvegarde.json.
+// La partie est enregistrée par writeSaveData / lue par readSaveData :
+// version Windows (save_file.go) : un fichier à côté de l'exe ;
+// version navigateur (save_web.go) : la mémoire du navigateur (localStorage).
 
 type saveFile struct {
 	Jeu  *sim.Save `json:"jeu"`
@@ -21,47 +18,9 @@ type saveFile struct {
 	Aide bool      `json:"aide_vue"`
 }
 
-// appDataPath : l'ancien emplacement (et le secours).
-func appDataPath() string {
-	dir, err := os.UserConfigDir()
-	if err != nil {
-		return ""
-	}
-	return filepath.Join(dir, "ToutUneVille", "sauvegarde.json")
-}
-
-// localPath : la sauvegarde à côté de l'exe ("" si ce dossier n'est pas modifiable).
-var localPath = func() string {
-	exe, err := os.Executable()
-	if err != nil {
-		return ""
-	}
-	if r, err := filepath.EvalSymlinks(exe); err == nil {
-		exe = r
-	}
-	dir := filepath.Dir(exe)
-	test := filepath.Join(dir, ".ecriture_test")
-	if os.WriteFile(test, []byte("ok"), 0o644) != nil {
-		return ""
-	}
-	_ = os.Remove(test)
-	return filepath.Join(dir, "ToutUneVille_sauvegarde.json")
-}()
-
-func savePath() string {
-	if localPath != "" {
-		return localPath
-	}
-	return appDataPath()
-}
-
 func (g *game) save() {
 	g.saveT = 0
 	if g.shots != nil {
-		return
-	}
-	path := savePath()
-	if path == "" {
 		return
 	}
 	f := saveFile{Jeu: g.sim.Snapshot(time.Now().Unix()), Muet: g.snd != nil && g.snd.muted, Zoom: g.zoom, Aide: g.helpSeen}
@@ -69,19 +28,11 @@ func (g *game) save() {
 	if err != nil {
 		return
 	}
-	_ = os.MkdirAll(filepath.Dir(path), 0o755)
-	tmp := path + ".tmp"
-	if os.WriteFile(tmp, b, 0o644) == nil {
-		_ = os.Rename(tmp, path)
-	}
+	writeSaveData(b)
 }
 
 func (g *game) load() {
-	b, err := os.ReadFile(savePath())
-	if err != nil && localPath != "" {
-		// pas encore de sauvegarde à côté du jeu : on reprend l'ancienne (AppData)
-		b, err = os.ReadFile(appDataPath())
-	}
+	b, err := readSaveData()
 	if err != nil {
 		// première partie : on explique les commandes
 		g.openPanel(panelHelp)

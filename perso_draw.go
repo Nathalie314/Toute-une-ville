@@ -237,7 +237,7 @@ func (g *game) drawPersoPanel(dst *ebiten.Image) {
 		say(dst, "Ambidextre", mx+bw/2, my+22, 19, true, 0, rgb(slotInk["main"]))
 		say(dst, "2e main", mx+bw/2, my+46, 15, false, 0, rgb(0x5a4a3a))
 		pricePill(dst, money(cost), mx+bw/2, my+74, bw-30)
-		pressed := g.hover(mx, my, bw, bh) && (ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) || g.hand.on)
+		pressed := g.hover(mx, my, bw, bh) && (pointerPressed() || g.hand.on)
 		if ok && pressed {
 			g.ambiT += 1.0 / 60
 		} else {

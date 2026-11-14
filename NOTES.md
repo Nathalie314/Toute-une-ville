@@ -874,3 +874,15 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   Sections Port, Domaine, Pâtisserie dans la page des badges. Glacier : « Cent boules » compte les glaces à la
   vanille (la glace nature n'existe plus), « Tous les parfums » = toutes les fabriques (il y en a 8).
   ⚠️ Règle (CLAUDE.md) : chaque nouveau lieu reçoit ses badges. Elle n'y tient pas, mais des joueurs adorent.
+
+## Version navigateur (pour son iPad)
+- Même code, compilé en WebAssembly (GOOS=js GOARCH=wasm) ; l'exe Windows reste identique. Les deux sont fabriqués
+  à chaque push sur main (release.yml) : le .zip dans la Release, la version web sur GitHub Pages
+  (https://nathalie314.github.io/Toute-une-ville/ ; réglage à faire une fois : Settings → Pages → Source « GitHub Actions »).
+- Sauvegarde : fichier JSON sous Windows (save_file.go), localStorage du navigateur sur le web (save_web.go,
+  clé « ToutUneVille_sauvegarde »), avec une sauvegarde de plus quand on quitte ou cache la page (pagehide).
+  Les deux parties sont séparées.
+- Tactile (pointer.go) : un doigt posé = clic maintenu (on avance vers lui, on appuie sur les boutons) ; deux
+  doigts = pincer pour zoomer. Pas de bouton « Quitter » sur le web ; la ligne d'aide du bas parle du doigt.
+- web/index.html : écran de chargement vert avec barre de progression (≈ 19 Mo), plein écran sur iPad avec
+  « Sur l'écran d'accueil » (icône web/icone.png).

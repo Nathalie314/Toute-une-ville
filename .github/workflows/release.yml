@@ -2,6 +2,8 @@
 # GitHub teste la simulation, fabrique ToutUneVille.exe pour Windows, le met dans
 # un .zip et le publie dans « Releases ». Le lien de téléchargement de la page
 # (…/releases/latest/download/ToutUneVille.zip) donne toujours la dernière version.
+# Il fabrique aussi la version navigateur (WebAssembly) et la met en ligne sur GitHub Pages :
+# https://nathalie314.github.io/Toute-une-ville/ (réglage : Settings → Pages → Source : « GitHub Actions »).
 # On peut aussi le lancer à la main : onglet « Actions », « Publier le jeu », « Run workflow ».
 name: Publier le jeu
 
@@ -12,10 +14,15 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   publier:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: https://nathalie314.github.io/Toute-une-ville/
     steps:
       - uses: actions/checkout@v4
 
@@ -36,6 +43,24 @@ jobs:
           go build -trimpath -ldflags "-H windowsgui -s -w" -o dist/ToutUneVille.exe .
           cd dist && zip ToutUneVille.zip ToutUneVille.exe
 
+      - name: Fabriquer la version navigateur
+        env:
+          GOOS: js
+          GOARCH: wasm
+        run: |
+          mkdir -p dist/web
+          go build -trimpath -ldflags "-s -w" -o dist/web/toutuneville.wasm .
+          cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" dist/web/
+          cp web/* dist/web/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/web
+
+      - name: Mettre en ligne la version navigateur
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
       - name: Date de la version
         id: date
         run: echo "jour=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
@@ -54,5 +79,7 @@ jobs:
             2. Lancer ToutUneVille.exe / Run ToutUneVille.exe.
             3. Windows protège votre ordinateur ? « Informations complémentaires » → « Exécuter quand même ».
                Windows protected your PC? "More info" → "Run anyway".
+
+            Jouer dans le navigateur (iPad, Mac…) / Play in the browser: https://nathalie314.github.io/Toute-une-ville/
 
             Soutenir le jeu / Support the game : https://fr.tipeee.com/nathalie314/
