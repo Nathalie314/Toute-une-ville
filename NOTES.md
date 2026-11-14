@@ -904,7 +904,7 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 ## Langues (français / anglais)
 - Demande : choisir la langue à l'ouverture (français par défaut), textes faciles à modifier par des humains pour
   que la communauté ajoute des langues. Elle relit l'anglais. Choix : anglais américain, $ au lieu de €, nombres à
-  l'anglaise ($1,234.5), Clairbourg → « Clearbrook City », pain au chocolat → « chocolate croissant ».
+  l'anglaise ($1,234.5), Clairbourg → « ClearTown » (son choix), pain au chocolat → « chocolate croissant ».
 - Système (package tr) : le français est la clé. langues/en.txt : « texte français = traduction », {trous}
   remplis par le jeu (tr.F), « \= » pour un = dans un texte, # commentaire, ligne absente → français.
   langues/LISEZMOI.txt explique comment ajouter une langue (copier en.txt). Les fichiers sont intégrés au jeu ;
@@ -922,3 +922,8 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Retiré : les conseils sur les graines (« Les graines se plantent toutes seules… », « Prends les sachets… »,
   « La colonne … est vide ») ne pouvaient plus s'afficher depuis la suppression des graines ; supprimés du code
   et de en.txt.
+- Ménage du label bio (supprimé en v5, converti en points de comptable) : l'ancienne fenêtre « Améliorations de la
+  ferme » (BIO, MA FERME), qui ne s'ouvrait plus, est retirée. Badges devenus impossibles, remplacés (son accord) :
+  ferme « 100 % bio » → « Bons comptes » (70 points de comptable à la ferme) ; supermarché « Clients fidèles » →
+  100 points « Clients fidèles » au supermarché (mêmes identifiants : rien ne change dans la sauvegarde).
+- En anglais, Clairbourg s'appelle « ClearTown » (son choix).

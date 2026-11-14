@@ -42,7 +42,6 @@ type panel int
 
 const (
 	panelNone panel = iota
-	panelUpgrades
 	panelMairie
 	panelWardrobe
 	panelWelcome
@@ -323,8 +322,6 @@ func (g *game) Draw(screen *ebiten.Image) {
 	cam = ui
 	g.drawToasts(dst)
 	switch g.panel {
-	case panelUpgrades:
-		g.drawUpgradePanel(dst)
 	case panelMairie:
 		g.drawMairiePanel(dst)
 	case panelWardrobe:
