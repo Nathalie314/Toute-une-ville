@@ -3,6 +3,7 @@ package sim
 import (
 	"math"
 	"strings"
+	"ville/tr"
 )
 
 // Les cadeaux des commandes : chaque commande livrée offre un cadeau qui
@@ -140,25 +141,25 @@ func (b *Boost) Text() string {
 	m := b.Mul()
 	switch b.Kind {
 	case "ventes":
-		return "Ventes ×" + itoa(m) + " " + placeAt(b.Place)
+		return tr.F("Ventes ×{n} {lieu}", "n", itoa(m), "lieu", tr.T(placeAt(b.Place)))
 	case "ecole":
-		return "École ×" + itoa(m)
+		return tr.F("École ×{n}", "n", itoa(m))
 	case "maire":
 		if m == 2 {
-			return "Lieux à moitié prix"
+			return tr.T("Lieux à moitié prix")
 		}
-		return "Lieux au quart du prix"
+		return tr.T("Lieux au quart du prix")
 	case "garage":
-		return "Camions et drones ×" + itoa(m)
+		return tr.F("Camions et drones ×{n}", "n", itoa(m))
 	case "fleurs":
 		if m > 2 {
-			return "Grand embellissement " + placeOf(b.Place)
+			return tr.F("Grand embellissement {lieu}", "lieu", tr.T(placeOf(b.Place)))
 		}
-		return "Embellissement " + placeOf(b.Place)
+		return tr.F("Embellissement {lieu}", "lieu", tr.T(placeOf(b.Place)))
 	case "veto":
-		return "Animaux ×" + itoa(m)
+		return tr.F("Animaux ×{n}", "n", itoa(m))
 	case "marin":
-		return "Bateaux ×" + itoa(m)
+		return tr.F("Bateaux ×{n}", "n", itoa(m))
 	}
 	return ""
 }

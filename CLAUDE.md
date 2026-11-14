@@ -22,6 +22,12 @@ NOTES.md raconte l'histoire du projet et chaque décision de conception : lis-le
 - Chaque nouveau lieu reçoit ses badges (sim/badges.go : placeBadges + 2 ou 3 badges propres à ce qu'il fabrique) et sa
   section dans la page des badges (ui.go, sects). Elle n'y tient pas, mais des joueurs adorent.
 
+- **Deux langues (et plus)** : le français est la langue du code ; chaque texte affiché passe par `say()`/`tr.T()`
+  et se traduit grâce à `langues/en.txt` (« texte français = traduction »). Tout nouveau texte doit être ajouté à
+  en.txt (en anglais américain, monnaie $). Une phrase avec des nombres ou des noms : `tr.F("Il te faut {prix}.",
+  "prix", money(x))`, jamais des morceaux collés (« Il te faut " + … + " »). Clairbourg = Clearbrook City.
+  Outil : `TR_LANGUE=en TR_MANQUANTS=manque.txt` (avec `-captures`) note les textes affichés sans traduction.
+
 ## Compiler et tester
 
 - Sous Windows (chez elle) : `go build -ldflags "-H windowsgui" -o ToutUneVille.exe .` puis lancer l'exe.

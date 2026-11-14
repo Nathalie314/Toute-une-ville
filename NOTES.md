@@ -900,3 +900,22 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - 6 lieux (jusqu'à la boulangerie), 70 M gagnés, ≈ 3 000 €/s (4 800 €/s après 10 min de plus). Elle trouve le
   rythme bon jusque-là. Le bot « -humain » est bien plus lent qu'elle (36 €/s à 5 h) : pour l'équilibrage, se fier
   à ses sauvegardes plutôt qu'au bot. À surveiller : la série élevage → boucherie → domaine → pâtisserie (8 à 64 M).
+
+## Langues (français / anglais)
+- Demande : choisir la langue à l'ouverture (français par défaut), textes faciles à modifier par des humains pour
+  que la communauté ajoute des langues. Elle relit l'anglais. Choix : anglais américain, $ au lieu de €, nombres à
+  l'anglaise ($1,234.5), Clairbourg → « Clearbrook City », pain au chocolat → « chocolate croissant ».
+- Système (package tr) : le français est la clé. langues/en.txt : « texte français = traduction », {trous}
+  remplis par le jeu (tr.F), « \= » pour un = dans un texte, # commentaire, ligne absente → français.
+  langues/LISEZMOI.txt explique comment ajouter une langue (copier en.txt). Les fichiers sont intégrés au jeu ;
+  sous Windows, un dossier « langues » à côté de l'exe est lu en plus (essayer sans compiler).
+- say(), textWidth() et wrap() traduisent tout seuls : un texte écrit d'un bloc se traduit sans toucher au code.
+  Les phrases faites de morceaux sont réécrites avec tr.F (« {n} client(s) attendent ! »).
+- La sauvegarde ne change pas (seul l'affichage est traduit) ; la langue est notée à côté (« langue »).
+- Premier lancement : fenêtre « Langue / Language », puis l'aide. Les parties existantes restent en français.
+  Bouton « Langue / Language » dans l'aide et sur la carte (écrit dans les deux langues pour qu'on le trouve).
+- Page web : textes de chargement en anglais si la partie (ou le navigateur) est en anglais.
+- Outil pour traduire : TR_LANGUE=en TR_MANQUANTS=fichier avec -captures (et CAPSAVE) : liste des textes affichés
+  sans traduction.
+- Étape 1 (menus, aide, carte, boutons, panneaux) faite ; étapes 2 (lieux, produits, machines, badges) et 3
+  (messages, commandes, école, mairie, reste) à suivre.

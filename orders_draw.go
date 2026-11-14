@@ -6,6 +6,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 
 	"ville/sim"
+	"ville/tr"
 )
 
 // Commandes spéciales et objectif affiché en haut de l'écran.
@@ -164,7 +165,7 @@ func (g *game) drawGoal(dst *ebiten.Image, x, y float64) {
 	}
 	h := 92.0
 	roundRect(dst, x, y, w, h, 22, rgba(0x2b2140, 0.82))
-	sayFit(dst, "Objectif : "+p.Name, x+w/2, y+26, 20, true, 0, w-24, rgb(0xd8d0f0))
+	sayFit(dst, tr.F("Objectif : {lieu}", "lieu", tr.T(p.Name)), x+w/2, y+26, 20, true, 0, w-24, rgb(0xd8d0f0))
 	price := g.sim.PriceOf(p)
 	f := math.Min(1, g.sim.Money/price)
 	roundRect(dst, x+16, y+48, w-32, 26, 13, rgba(0x000000, 0.4))

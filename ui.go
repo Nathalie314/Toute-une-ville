@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 
 	"ville/sim"
+	"ville/tr"
 )
 
 // ---------------------------------------------------------------- particules
@@ -50,9 +51,9 @@ func (g *game) handleEvents() {
 			case sim.EvLevel:
 				g.toastSplit(e.Text)
 			case sim.EvUnlock:
-				g.toast("Nouveau : "+e.Text+" !", "")
+				g.toast(tr.F("Nouveau : {nom} !", "nom", tr.T(e.Text)), "")
 			case sim.EvBadge:
-				g.toast("Badge : "+e.Text+" !", "")
+				g.toast(tr.F("Badge : {nom} !", "nom", tr.T(e.Text)), "")
 			}
 			continue
 		}
@@ -83,14 +84,14 @@ func (g *game) handleEvents() {
 			}
 		case sim.EvTruck:
 			if cur != nil && cur.ID == "super" {
-				g.parts = append(g.parts, particle{pos: V{X: 560, Y: 100}, vel: V{Y: -40}, life: 2, max: 2, text: "+" + itoa(int(e.Amount)) + " produits livrés", col: 0x9fd3ff, size: 26})
+				g.parts = append(g.parts, particle{pos: V{X: 560, Y: 100}, vel: V{Y: -40}, life: 2, max: 2, text: tr.F("+{n} produits livrés", "n", itoa(int(e.Amount))), col: 0x9fd3ff, size: 26})
 			}
 		case sim.EvOrder:
 			g.snd.play(sPhone) // « drriing » : on la reconnaît partout
 			g.toastSplit(e.Text)
 		case sim.EvBadge:
 			g.snd.play(sBadge)
-			g.toast("Badge : "+e.Text+" !", "")
+			g.toast(tr.F("Badge : {nom} !", "nom", tr.T(e.Text)), "")
 		case sim.EvPlant:
 			switch e.Text {
 			case "achat": // une nouvelle case achetée
@@ -113,7 +114,7 @@ func (g *game) handleEvents() {
 			}
 		case sim.EvUnlock:
 			g.snd.play(sUnlock)
-			g.toast("Nouveau : "+e.Text+" !", "")
+			g.toast(tr.F("Nouveau : {nom} !", "nom", tr.T(e.Text)), "")
 			for k := 0; k < 60; k++ {
 				a := float64(k) * 2.4
 				sp := 180 + 260*math.Mod(float64(k)*0.37, 1)
@@ -134,7 +135,7 @@ func (g *game) handleEvents() {
 		case sim.EvPoint:
 			if cur != nil && cur.ID == "ecole" && g.scene == scenePlace {
 				g.snd.play(sUnlock)
-				g.parts = append(g.parts, particle{pos: e.Pos.Add(V{Y: -60}), vel: V{Y: -60}, life: 2, max: 2, text: "+1 point " + e.Text, col: 0xffd23f, size: 26})
+				g.parts = append(g.parts, particle{pos: e.Pos.Add(V{Y: -60}), vel: V{Y: -60}, life: 2, max: 2, text: tr.F("+1 point {type}", "type", tr.T(e.Text)), col: 0xffd23f, size: 26})
 			}
 		}
 	}
@@ -222,8 +223,10 @@ func (g *game) hint() (string, V, bool) {
 	if gs.Boosted("maire", "") { // le cadeau du maire : on le rappelle tant qu'il dure
 		for _, q := range gs.Places {
 			if !q.Owned && q.Price > 0 && gs.Money >= gs.PriceOf(q) {
-				r := []rune(q.Name)
-				return "Cadeau du maire : " + strings.ToLower(string(r[:1])) + string(r[1:]) + " à " + map[bool]string{true: "moitié prix", false: "un quart du prix"}[gs.Boost.Mul() == 2] + " ! Va sur la carte (Tab).", V{}, false
+				if gs.Boost.Mul() == 2 {
+					return tr.F("Cadeau du maire : {lieu} à moitié prix ! Va sur la carte (Tab).", "lieu", tr.T(q.Name)), V{}, false
+				}
+				return tr.F("Cadeau du maire : {lieu} à un quart du prix ! Va sur la carte (Tab).", "lieu", tr.T(q.Name)), V{}, false
 			}
 		}
 	}
@@ -253,15 +256,15 @@ func (g *game) hint() (string, V, bool) {
 		l := gs.Levels[u.Key]
 		switch {
 		case l >= u.Max && u.Max == 1:
-			return u.Name + " : " + u.Desc(l), V{}, false
+			return tr.F("{nom} : {desc}", "nom", tr.T(u.Name), "desc", tr.T(u.Desc(l))), V{}, false
 		case l >= u.Max:
-			return u.Name + " (maximum) : " + u.Desc(l), V{}, false
+			return tr.F("{nom} (maximum) : {desc}", "nom", tr.T(u.Name), "desc", tr.T(u.Desc(l))), V{}, false
 		case u.Now:
-			return u.Name + " : " + u.Desc(l), V{}, false
+			return tr.F("{nom} : {desc}", "nom", tr.T(u.Name), "desc", tr.T(u.Desc(l))), V{}, false
 		case u.Max == 1:
-			return u.Name + " : " + u.Desc(1), V{}, false
+			return tr.F("{nom} : {desc}", "nom", tr.T(u.Name), "desc", tr.T(u.Desc(1))), V{}, false
 		default:
-			return u.Name + ", niveau " + itoa(l+1) + " : " + u.Desc(l+1), V{}, false
+			return tr.F("{nom}, niveau {n} : {desc}", "nom", tr.T(u.Name), "n", itoa(l+1), "desc", tr.T(u.Desc(l+1))), V{}, false
 		}
 	}
 	if p.ID == "ecole" {
@@ -275,9 +278,9 @@ func (g *game) hint() (string, V, bool) {
 		for _, it := range pl.Carry {
 			if o.Need(it) > 0 {
 				if box.Zone.Has(pl.Pos) {
-					return "Reste là : tu remplis la commande (" + o.Who + ").", V{}, false
+					return tr.F("Reste là : tu remplis la commande ({qui}).", "qui", tr.T(o.Who)), V{}, false
 				}
-				return "Tu as de quoi remplir la commande (" + o.Who + ") : va à la caisse des commandes.", box.Zone.C(), true
+				return tr.F("Tu as de quoi remplir la commande ({qui}) : va à la caisse des commandes.", "qui", tr.T(o.Who)), box.Zone.C(), true
 			}
 		}
 	}
@@ -306,7 +309,7 @@ func (g *game) hint() (string, V, bool) {
 		}
 		z := u.Zone
 		if (sim.Rect{X: z.X - 60, Y: z.Y - 60, W: z.W + 120, H: z.H + 120}).Has(pl.Pos) {
-			return u.Name + " : " + u.Hint, V{}, false
+			return tr.F("{nom} : {desc}", "nom", tr.T(u.Name), "desc", tr.T(u.Hint)), V{}, false
 		}
 	}
 	if p.ID == "super" { // les rayons presque vides passent avant les achats possibles
@@ -323,7 +326,7 @@ func (g *game) hint() (string, V, bool) {
 	for _, u := range p.Unlocks {
 		if !u.Done && p.Visible(u) && gs.Money >= u.Cost-u.Paid && u.Cost < 1e6 && u.Cost < best {
 			best, bestZone = u.Cost, u.Zone
-			bestTxt = "Tu peux acheter « " + u.Name + " » : arrête-toi sur sa zone."
+			bestTxt = tr.F("Tu peux acheter « {nom} » : arrête-toi sur sa zone.", "nom", tr.T(u.Name))
 		}
 	}
 	for _, s := range p.Stations {
@@ -368,7 +371,7 @@ func (g *game) hint() (string, V, bool) {
 		if c.Zone.Has(pl.Pos) {
 			return "Prends les sachets, puis marche sur les cases vides.", V{}, false
 		}
-		return "La colonne « " + f.Name + " » est vide : prends des sachets de graines à son pied.", c.Zone.C(), true
+		return tr.F("La colonne « {nom} » est vide : prends des sachets de graines à son pied.", "nom", tr.T(f.Name)), c.Zone.C(), true
 	}
 	bleShelf := p.Station("etal_1") // l'étal du maïs
 	if gs.Levels["ferme.caissiere"] == 0 && gs.Money >= 150 {
@@ -434,7 +437,7 @@ func (g *game) moneyBox(dst *ebiten.Image, showRate bool) {
 	coin(dst, 66, 56, 24)
 	sayFit(dst, money(g.sim.Money), 104, 52, 42, true, -1, 280, rgb(0xffe066))
 	if showRate {
-		say(dst, "+"+ftoa(g.sim.Rate(), 1)+" € / s", 106, 90, 20, false, -1, rgb(0xd8d0f0))
+		say(dst, rateText(g.sim.Rate()), 106, 90, 20, false, -1, rgb(0xd8d0f0))
 	}
 }
 
@@ -731,9 +734,9 @@ func (g *game) veilleurBand(dst *ebiten.Image, x, y, w float64) {
 	circle(dst, cx+9, cy-7, 19, rgb(0xe8eef8))
 	star(dst, cx-12, cy+10, 6, rgb(0xffe066))
 	say(dst, "Veilleur de nuit", x+95, y+26, 24, true, -1, rgb(0x2b3a5a))
-	cur := "Tes employés travaillent pendant ton absence : " + itoa(int(sim.NightHours[min(l, len(sim.NightHours)-1)])) + " h maximum (il faut une caissière)."
+	cur := tr.F("Tes employés travaillent pendant ton absence : {n} h maximum (il faut une caissière).", "n", itoa(int(sim.NightHours[min(l, len(sim.NightHours)-1)])))
 	if l < u.Max {
-		cur += "  Niveau suivant : " + itoa(int(sim.NightHours[l+1])) + " h."
+		cur += "  " + tr.F("Niveau suivant : {n} h.", "n", itoa(int(sim.NightHours[l+1])))
 	}
 	sayFit(dst, cur, x+95, y+58, 17, false, -1, w-400, rgb(0x4a5a7a))
 	for k := 0; k < u.Max; k++ {
@@ -763,11 +766,11 @@ func (g *game) drawWelcome(dst *ebiten.Image) {
 	secs := g.welcome.secs
 	hh := int(secs) / 3600
 	mm := int(secs) / 60 % 60
-	dur := itoa(mm) + " min"
+	dur := tr.F("{m} min", "m", itoa(mm))
 	if hh > 0 {
-		dur = itoa(hh) + " h " + itoa(mm)
+		dur = tr.F("{h} h {m}", "h", itoa(hh), "m", itoa(mm))
 	}
-	say(dst, "Pendant ton absence ("+dur+") :", x+w/2, y+60, 30, false, 0, rgb(0x5a4a3a))
+	say(dst, tr.F("Pendant ton absence ({duree}) :", "duree", dur), x+w/2, y+60, 30, false, 0, rgb(0x5a4a3a))
 	if g.welcome.amount > 0 {
 		coin(dst, x+w/2-textWidth("+"+money(g.welcome.amount), 56, true)/2-36, y+140, 26)
 		say(dst, "+"+money(g.welcome.amount), x+w/2+14, y+140, 56, true, 0, rgb(0x2fa86b))
@@ -778,7 +781,7 @@ func (g *game) drawWelcome(dst *ebiten.Image) {
 		}
 	}
 	if g.welcome.points > 0 {
-		say(dst, "L'école a formé "+itoa(g.welcome.points)+" élève(s) : des points à répartir à la mairie.", x+w/2, y+262, 22, true, 0, rgb(0x8a6a10))
+		say(dst, tr.F("L'école a formé {n} élève(s) : des points à répartir à la mairie.", "n", itoa(g.welcome.points)), x+w/2, y+262, 22, true, 0, rgb(0x8a6a10))
 	}
 	g.btn(dst, "Super !", x+w/2-130, y+h-180, 260, 76, 0x2fa86b, true, func() { g.closePanel() })
 }
@@ -793,6 +796,7 @@ func (g *game) drawHelp(dst *ebiten.Image) {
 		w = math.Min(2300, scr.VW-80)
 	}
 	x, y := g.panelFrame(dst, "Comment jouer", w, h)
+	g.langButton(dst, x+20, y-75)
 	lines := []string{
 		"• Déplace-toi avec les flèches (ou ZQSD, ou la souris). Carte et menus : une main suit les flèches ; reste sur un bouton (ou Entrée).",
 		"• Marche dans un champ mûr pour récolter. Ce que tu portes s'empile dans tes bras.",
@@ -861,6 +865,43 @@ func (g *game) drawHelp(dst *ebiten.Image) {
 	g.btn(dst, "C'est parti !", x+w/2-150, y+h-190, 300, 76, 0x2fa86b, true, func() { g.closePanel() })
 }
 
+// lowerTr : « Lieux à moitié prix » → « lieux à moitié prix » (après traduction).
+func lowerTr(s string) string {
+	s = tr.T(s)
+	r := []rune(s)
+	if strings.HasPrefix(s, "The ") {
+		return "the " + s[4:]
+	}
+	if len(r) == 0 || tr.English() {
+		return s
+	}
+	return strings.ToLower(string(r[:1])) + string(r[1:])
+}
+
+// langButton : le bouton du choix de la langue (écrit dans les deux langues,
+// pour qu'on le trouve même dans une langue qu'on ne lit pas).
+func (g *game) langButton(dst *ebiten.Image, x, y float64) {
+	g.btn(dst, "Langue / Language", x, y, 300, 60, 0x5b8bd9, true, func() { g.openPanel(panelLang) })
+}
+
+// drawLangPanel : choisir la langue du jeu (une ligne par fichier de langues/).
+func (g *game) drawLangPanel(dst *ebiten.Image) {
+	ls := tr.Languages()
+	w, h := math.Min(900, scr.VW-80), 140+float64(len(ls))*100
+	x, y := g.panelFrame(dst, "Langue / Language", w, h)
+	for i, l := range ls {
+		code := l.Code
+		col := uint32(0x2fa86b)
+		if code != tr.Lang() {
+			col = 0x5b8bd9
+		}
+		g.btn(dst, l.Name, x+w/2-250, y+50+float64(i)*100, 500, 80, col, true, func() {
+			tr.Set(code)
+			g.closePanel()
+		})
+	}
+}
+
 // drawSchoolHelp : l'aide de l'école (temps de formation, échecs).
 func (g *game) drawSchoolHelp(dst *ebiten.Image) {
 	w, h := math.Min(1300, scr.VW-80), 920.0
@@ -888,7 +929,7 @@ func (g *game) drawSchoolHelp(dst *ebiten.Image) {
 		say(dst, clock(g.sim.FormationTime(i)), cx+cw/2, ty+88, 26, true, 0, rgb(0x3b2a10))
 	}
 	f := g.sim.FailChance()
-	say(dst, "Échec : 1 élève sur "+itoa(int(math.Round(1/f)))+" rate sa formation (il repart avec un point du niveau d'en dessous, rien au primaire).", x+w/2, ty+160, 21, false, 0, rgb(0x7a3a2a))
+	say(dst, tr.F("Échec : 1 élève sur {n} rate sa formation (il repart avec un point du niveau d'en dessous, rien au primaire).", "n", itoa(int(math.Round(1/f)))), x+w/2, ty+160, 21, false, 0, rgb(0x7a3a2a))
 	say(dst, "La Pédagogie (points Université) réduit les échecs ; la Formation accélère toutes les classes.", x+w/2, ty+200, 21, false, 0, rgb(0x5a4a3a))
 	g.btn(dst, "Compris !", x+w/2-150, y+h-190, 300, 76, 0x2fa86b, true, func() { g.closePanel() })
 }
@@ -1014,9 +1055,10 @@ func (g *game) drawMap(dst *ebiten.Image) {
 	g.soundButton(dst, scr.VW-360, scr.VH-100)
 	g.btn(dst, "Recommencer à zéro", 50, scr.VH-100, 330, 70, 0x8a7a6a, true, func() { g.openPanel(panelReset) })
 	g.btn(dst, "Badges", scr.VW-600, scr.VH-100, 220, 70, 0xd4a017, true, func() { g.openPanel(panelBadges) })
+	g.langButton(dst, scr.VW-480, 30)
 	say(dst, "Clique sur un lieu, ou vas-y avec les flèches et reste dessus.", 420, scr.VH-62, 24, true, -1, rgba(0x1e3a12, 0.85))
 	if b := g.sim.Boost; b != nil && b.Kind == "maire" { // le cadeau du maire : bien visible
-		txt := "Cadeau du maire : " + strings.ToLower(b.Text()[:1]) + b.Text()[1:] + " ! Encore " + clock(b.Left)
+		txt := tr.F("Cadeau du maire : {quoi} ! Encore {temps}", "quoi", lowerTr(b.Text()), "temps", clock(b.Left))
 		w := textWidth(txt, 22, true) + 70
 		k := 0.5 + 0.5*math.Sin(g.t*4)
 		roundRect(dst, scr.VW/2-w/2, 108-2*k, w, 38, 19, rgb(0xd9534f))
@@ -1081,15 +1123,15 @@ func (g *game) drawTileBody(dst *ebiten.Image, tl tile, x, y, w, h float64, farm
 	sayFit(dst, tl.name, x+w/2, yy+h-48, 32, true, 0, w-30, rgb(0xffffff))
 	sub := tl.status
 	if tl.id == "ferme" {
-		sub = "+" + ftoa(g.sim.Rate(), 1) + " € / s"
+		sub = rateText(g.sim.Rate())
 		if !farm.HasCashier() && farm.QueueLen() > 0 {
-			sub = itoa(farm.QueueLen()) + " client(s) attendent !"
+			sub = tr.F("{n} client(s) attendent !", "n", itoa(farm.QueueLen()))
 		}
 	}
 	if tl.id == "mairie" {
 		sub = "Points de l'école, veilleur"
 		if n := g.totalPoints(); n > 0 {
-			sub = itoa(n) + " point(s) à répartir !"
+			sub = tr.F("{n} point(s) à répartir !", "n", itoa(n))
 		}
 	}
 	if tl.id == "vetements" {
@@ -1279,7 +1321,7 @@ func (g *game) drawBadges(dst *ebiten.Image) {
 				}
 			}
 		}
-		say(sub, sc.title+"  ("+itoa(got)+"/"+itoa(len(list))+")", x+44, yy+36, 30, true, -1, rgb(0x8a5a33))
+		say(sub, tr.T(sc.title)+"  ("+itoa(got)+"/"+itoa(len(list))+")", x+44, yy+36, 30, true, -1, rgb(0x8a5a33))
 		yy += 70
 		for i, b := range list {
 			cx := x + 40 + float64(i%cols)*cw
@@ -1501,7 +1543,7 @@ func (g *game) drawBuyPlace(dst *ebiten.Image) {
 		return
 	}
 	w, h := 940.0, 520.0
-	x, y := g.panelFrame(dst, "Acheter "+strings.ToLower(p.Name[:1])+p.Name[1:]+" ?", w, h)
+	x, y := g.panelFrame(dst, tr.F("Acheter {lieu} ?", "lieu", lowerTr(p.Name)), w, h)
 	txt := "L'immense supermarché vend les produits de tes lieux, espace par espace (ferme, légumes, fruits, puis crèmerie, boulangerie, glaces…). Ce qui part en camion arrive dans son entrepôt (1 objet livré = 3 en réserve). Les clients viennent en voiture et prennent un caddie : achète des places et des caddies !"
 	switch p.ID {
 	case "boulangerie":
@@ -1534,7 +1576,7 @@ func (g *game) drawBuyPlace(dst *ebiten.Image) {
 		ox := x + w/2 + 10 + nw/2 + 30 + ow/2
 		say(dst, money(p.Price), ox, y+272, 28, true, 0, rgb(0x9a8a7a))
 		line(dst, ox-ow/2-6, y+272, ox+ow/2+6, y+272, 3, rgb(0xd9534f))
-		say(dst, map[bool]string{true: "Moitié prix", false: "Quart du prix"}[g.sim.Boost.Mul() == 2]+" : cadeau du maire !", x+w/2, y+320, 24, true, 0, rgb(0xd9534f))
+		say(dst, map[bool]string{true: "Moitié prix : cadeau du maire !", false: "Quart du prix : cadeau du maire !"}[g.sim.Boost.Mul() == 2], x+w/2, y+320, 24, true, 0, rgb(0xd9534f))
 	}
 	ok := g.sim.Money >= price
 	label := "Acheter"
@@ -1563,7 +1605,7 @@ func (g *game) placeTile(id, name string, col uint32) tile {
 	if sup.Owned && id == "ecole" {
 		t.status = "Ouvert"
 		if n := g.totalPoints(); n > 0 {
-			t.status = itoa(n) + " point(s) à répartir (mairie)"
+			t.status = tr.F("{n} point(s) à répartir (mairie)", "n", itoa(n))
 		}
 		t.fn = func() { g.goPlace(sup) }
 		return t
@@ -1571,13 +1613,13 @@ func (g *game) placeTile(id, name string, col uint32) tile {
 	if sup.Owned {
 		t.status = "Ouvert"
 		if !sup.HasCashier() && sup.QueueLen() > 0 {
-			t.status = itoa(sup.QueueLen()) + " client(s) attendent !"
+			t.status = tr.F("{n} client(s) attendent !", "n", itoa(sup.QueueLen()))
 		}
 		t.fn = func() { g.goPlace(sup) }
 	} else {
-		t.status = "À vendre : " + money(g.sim.PriceOf(sup))
+		t.status = tr.F("À vendre : {prix}", "prix", money(g.sim.PriceOf(sup)))
 		if g.sim.PriceOf(sup) < sup.Price {
-			t.status += " (−" + itoa(int(math.Round(100-100*g.sim.PriceOf(sup)/sup.Price))) + " %)"
+			t.status += tr.F(" (−{n} %)", "n", itoa(int(math.Round(100-100*g.sim.PriceOf(sup)/sup.Price))))
 		}
 		t.fn = func() { g.buying = sup; g.openPanel(panelBuy) }
 	}
@@ -1623,7 +1665,7 @@ func (g *game) workshopHint(p *sim.Place) (string, V, bool) {
 			}
 		}
 	}
-	return "Les ingrédients arrivent de la ferme : remplis son quai « → " + strings.ToLower(p.Name[3:]) + " ».", V{}, false
+	return tr.F("Les ingrédients arrivent de la ferme : remplis son quai « → {lieu} ».", "lieu", tr.T(strings.ToLower(p.Name[3:]))), V{}, false
 }
 
 // ---------------------------------------------------------------- points de l'école
@@ -1685,7 +1727,7 @@ func (g *game) drawPointsPanel(dst *ebiten.Image) {
 			c = rgb(0xffffff)
 		}
 		say(dst, pointTabs[i].name, tx+tw/2, y+32, 24, true, 0, c)
-		say(dst, pointNames[t]+" : "+itoa(left[t])+" point(s)", tx+tw/2, y+62, 19, false, 0, c)
+		say(dst, tr.F("{type} : {n} point(s)", "type", tr.T(pointNames[t]), "n", itoa(left[t])), tx+tw/2, y+62, 19, false, 0, c)
 		if left[t] > 0 && !sel {
 			circle(dst, tx+tw-22, y+18, 11, rgb(0xd9534f))
 		}
@@ -1694,7 +1736,7 @@ func (g *game) drawPointsPanel(dst *ebiten.Image) {
 	tab := g.ptsTab
 	t := sim.PointTypes[tab]
 	y += 92
-	say(dst, pointTabs[tab].sub+". Une fois validés, les points ne peuvent plus être déplacés.", x+w/2, y+16, 19, false, 0, rgb(0x5a4a3a))
+	say(dst, tr.T(pointTabs[tab].sub)+tr.T(". Une fois validés, les points ne peuvent plus être déplacés."), x+w/2, y+16, 19, false, 0, rgb(0x5a4a3a))
 	y += 40
 	// lieux qui acceptent ce type de point
 	var places []*sim.Place
@@ -1795,8 +1837,8 @@ func (g *game) drawPointsPanel(dst *ebiten.Image) {
 			have := g.sim.Levels[key]
 			pend := g.pending[key]
 			roundRect(dst, kx+5, ky, cw-10, ch, 14, rgba(levelColUI(tab), 0.22))
-			say(dst, strings.ToUpper(k.Group), kx+20, ky+20*sc, 15*fs, true, -1, rgb(0x8a6a3a))
-			say(dst, itoa(have)+" pt", kx+cw-22, ky+20*sc, 15*fs, true, 1, rgb(0x8a6a3a))
+			say(dst, strings.ToUpper(tr.T(k.Group)), kx+20, ky+20*sc, 15*fs, true, -1, rgb(0x8a6a3a))
+			say(dst, tr.F("{n} pt", "n", itoa(have)), kx+cw-22, ky+20*sc, 15*fs, true, 1, rgb(0x8a6a3a))
 			sayFit(dst, k.Name, kx+20, ky+46*sc, 22*fs, true, -1, cw-50, rgb(0x3b2a10))
 			if pend > 0 {
 				sayFit(dst, k.Val(have)+"  →  "+k.Val(have+pend), kx+20, ky+76*sc, 19*fs, true, -1, cw-200, rgb(0x2fa86b))
@@ -1867,10 +1909,10 @@ func (g *game) schoolHint(p *sim.Place) (string, V, bool) {
 			continue
 		}
 		if pl.Count(r.Want) > 0 {
-			return "« " + r.Name + " » attend ce matériel : apporte-le dans la classe.", r.Body.C(), true
+			return tr.F("« {classe} » attend ce matériel : apporte-le dans la classe.", "classe", tr.T(r.Name)), r.Body.C(), true
 		}
 		if sh := p.Station("fourn_" + itoa(int(r.Want))); sh != nil && sh.Pile > 0 && len(p.Workers) == 0 {
-			return "« " + r.Name + " » demande : " + sim.Items[r.Want].Name + ". Va le chercher au local des fournitures.", sh.Zone.C(), true
+			return tr.F("« {classe} » demande : {objet}. Va le chercher au local des fournitures.", "classe", tr.T(r.Name), "objet", tr.T(sim.Items[r.Want].Name)), sh.Zone.C(), true
 		}
 	}
 	// une salle avec des élèves mais sans prof ni toi
@@ -1885,7 +1927,7 @@ func (g *game) schoolHint(p *sim.Place) (string, V, bool) {
 			}
 		}
 		if busy && !p.Teaching(r) && (waiting == 0 || reg.Cashier != nil || seated >= 1) {
-			return "Des élèves t'attendent en « " + r.Name + " » : reste dans la classe pour faire cours.", r.Body.C(), true
+			return tr.F("Des élèves t'attendent en « {classe} » : reste dans la classe pour faire cours.", "classe", tr.T(r.Name)), r.Body.C(), true
 		}
 		if busy && p.Teaching(r) {
 			return "Tu fais cours ! Reste dans la classe jusqu'à la fin de la formation (ou embauche un prof).", V{}, false
