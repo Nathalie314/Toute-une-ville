@@ -919,3 +919,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   sans traduction.
 - Étape 1 (menus, aide, carte, boutons, panneaux) faite ; étapes 2 (lieux, produits, machines, badges) et 3
   (messages, commandes, école, mairie, reste) à suivre.
+- Retiré : les conseils sur les graines (« Les graines se plantent toutes seules… », « Prends les sachets… »,
+  « La colonne … est vide ») ne pouvaient plus s'afficher depuis la suppression des graines ; supprimés du code
+  et de en.txt.

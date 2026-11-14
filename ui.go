@@ -284,24 +284,6 @@ func (g *game) hint() (string, V, bool) {
 			}
 		}
 	}
-	// des sachets de graines dans les bras : vers la case vide la plus proche
-	for _, f := range p.Stations {
-		if !f.Built || !f.Replant || pl.Count(f.Seed) == 0 {
-			continue
-		}
-		bd, at := 1e18, V{}
-		for _, q := range f.Plants {
-			if q.Empty() && q.P.Dist(pl.Pos) < bd {
-				bd, at = q.P.Dist(pl.Pos), q.P
-			}
-		}
-		if bd < 1e17 {
-			if bd < 90 {
-				return "Les graines se plantent toutes seules sur les cases vides.", V{}, false
-			}
-			return "Marche sur les cases vides de la colonne pour planter tes graines.", at, true
-		}
-	}
 	// près d'un achat (bâtiment, champ, salle…) : à quoi il sert
 	for _, u := range p.Unlocks {
 		if u.Done || u.Hint == "" || !p.Visible(u) {
@@ -361,17 +343,6 @@ func (g *game) hint() (string, V, bool) {
 	}
 	if p.ID != "ferme" {
 		return g.superHint(p)
-	}
-	// une colonne de la serre vide, sans ouvrier pour la replanter
-	for _, f := range p.Stations {
-		if !f.Built || !f.Replant || gs.Levels["ferme.ouvriers_"+f.ID] > 0 || p.Empties(f.Seed) < len(f.Plants) {
-			continue
-		}
-		c := p.Station("graines_" + f.ID)
-		if c.Zone.Has(pl.Pos) {
-			return "Prends les sachets, puis marche sur les cases vides.", V{}, false
-		}
-		return tr.F("La colonne « {nom} » est vide : prends des sachets de graines à son pied.", "nom", tr.T(f.Name)), c.Zone.C(), true
 	}
 	bleShelf := p.Station("etal_1") // l'étal du maïs
 	if gs.Levels["ferme.caissiere"] == 0 && gs.Money >= 150 {
