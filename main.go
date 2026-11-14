@@ -26,6 +26,7 @@ var scr struct {
 	S      float64 // pixels par unité
 	K      float64 // sur-échantillonnage du dessin (anticrénelage)
 	VW, VH float64 // taille en unités
+	Small  bool    // petit écran (téléphone dans le navigateur) : textes d'aide plus gros
 }
 
 type scene int
@@ -62,6 +63,7 @@ type game struct {
 	sim       *sim.Game
 	scene     scene
 	panel     panel
+	helpPage  int // page de l'aide (petits écrans : l'aide tient sur plusieurs pages)
 	zoom      float64
 	camPos    V
 	t         float64
@@ -248,6 +250,7 @@ func (g *game) input(dt float64) {
 func (g *game) openPanel(p panel) {
 	g.panel = p
 	g.scroll = 0
+	g.helpPage = 0
 }
 
 func (g *game) closePanel() {
@@ -351,6 +354,7 @@ func (g *game) LayoutF(ow, oh float64) (float64, float64) {
 	scr.W, scr.H = w, h
 	scr.S = h / 1080
 	scr.VW, scr.VH = w/scr.S, 1080
+	scr.Small = isWeb && oh < 600
 	return w, h
 }
 

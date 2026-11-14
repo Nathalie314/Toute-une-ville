@@ -886,3 +886,9 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   doigts = pincer pour zoomer. Pas de bouton « Quitter » sur le web ; la ligne d'aide du bas parle du doigt.
 - web/index.html : écran de chargement vert avec barre de progression (≈ 19 Mo), plein écran sur iPad avec
   « Sur l'écran d'accueil » (icône web/icone.png).
+- Téléphones (Android, iPhone) : le jeu se joue à l'horizontale. Tenu à la verticale (écran tactile), la page
+  affiche « Tourne ton téléphone » (web/index.html) ; pas de mode vertical (décision : les gens tournent leur téléphone).
+  Petit écran (navigateur, moins de 600 px de haut : scr.Small) : l'aide « Comment jouer » s'écrit en gros (36 au
+  lieu de 22) et continue sur plusieurs pages (« Suite → », « ← Retour », 1 / 2) ; la ligne d'aide du bas grossit.
+  Partout : les points de l'aide trop longs passent à la ligne (ils débordaient de la fenêtre) ; fenêtre un peu plus
+  large (1 500) ; dans le navigateur, le 1er point parle du doigt et du pincement.
