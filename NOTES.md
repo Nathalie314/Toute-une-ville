@@ -936,3 +936,9 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Produits qui ne servent plus (pain d'épices, tarte et gâteau aux fruits, sorbet et glace aux fruits, glaces et
   sorbets cerise et fraise, cuisses de canard, sucre roux, sachets de graines) : gardés dans la liste (numéros
   dans les sauvegardes), mais retirés de en.txt (rien à traduire).
+- Simplification de en.txt (sa demande : « la ferme », « La ferme », « Ferme » faisaient doublon). Le jeu déduit
+  maintenant la majuscule (« Crèmerie » ← « crèmerie = dairy ») et les articles grâce aux lignes « @début la = the »
+  (le, la, l', les) en tête de fichier ; une phrase traduite par modèle garde la majuscule de départ. 46 lignes
+  retirées. Une ligne complète reste prioritaire (utile pour les langues où l'article dépend du mot).
+  Outil : TR_SIMPLIFIER=chemin/en.txt go test ./tr -run Simplifier liste les lignes déductibles (.inutiles).
+  Conséquence acceptée : les noms de lieux en anglais passent en minuscules après le 1er mot (« Exotic farm »).

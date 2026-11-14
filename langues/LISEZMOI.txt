@@ -16,6 +16,10 @@ Pour ajouter une langue :
    nombre…) : recopie-les tels quels dans ta traduction, à la bonne place.
 5. Un signe « = » à l'intérieur d'un texte s'écrit \=  ;  « \n » passe à la ligne.
 6. Une ligne commençant par # est un commentaire. Une ligne oubliée reste en français.
+7. Pas besoin d'écrire les variantes : « Crèmerie » (majuscule) se déduit de « crèmerie = … ».
+   Les lignes « @début la = the » en tête du fichier disent comment traduire un article :
+   « la crèmerie » devient alors « the » + la traduction de « crèmerie ». Pour une langue où
+   l'article dépend du mot, écris simplement les lignes complètes (« la crèmerie = la lechería »).
 
 Pour essayer sans rien compiler (Windows) : crée un dossier « langues » à côté
 de ToutUneVille.exe et mets-y ton fichier. Le jeu le propose dans « Langue / Language ».
@@ -36,6 +40,10 @@ To add a language:
    number…): copy them unchanged into your translation, in the right place.
 5. An "=" sign inside a text is written \=  ;  "\n" starts a new line.
 6. A line starting with # is a comment. A missing line stays in French.
+7. No need to write every variant: "Crèmerie" (capitalized) comes from "crèmerie = …".
+   The "@début la = the" lines at the top say how to translate an article: "la crèmerie"
+   then becomes "the" + the translation of "crèmerie". For a language where the article
+   depends on the word, just write the full lines ("la crèmerie = la lechería").
 
 To try it without compiling anything (Windows): create a "langues" folder next
 to ToutUneVille.exe and put your file in it. The game offers it under "Langue / Language".

@@ -47,3 +47,14 @@ func TestNombres(t *testing.T) {
 		t.Fatal(v)
 	}
 }
+
+func TestDeductions(t *testing.T) {
+	Register("ww", "@début la = the\n@début l' = the\nferme exotique = exotic farm\nécole = school\nMa ferme = My Farm\n")
+	Set("ww")
+	defer Set("fr")
+	for in, want := range map[string]string{"Ferme exotique": "Exotic farm", "la ferme exotique": "the exotic farm", "La ferme exotique": "The exotic farm", "l'école": "the school", "L'école": "The school", "Ma ferme": "My Farm"} {
+		if v := T(in); v != want {
+			t.Fatal(in, v)
+		}
+	}
+}

@@ -27,6 +27,7 @@ NOTES.md raconte l'histoire du projet et chaque décision de conception : lis-le
   en.txt (en anglais américain, monnaie $). Une phrase avec des nombres ou des noms : `tr.F("Il te faut {prix}.",
   "prix", money(x))`, jamais des morceaux collés (« Il te faut " + … + " »). Clairbourg = ClearTown.
   Outil : `TR_LANGUE=en TR_MANQUANTS=manque.txt` (avec `-captures`) note les textes affichés sans traduction.
+  Une ligne à trous sert aussi de modèle ; majuscules et articles (« @début la = the ») se déduisent : pas de doublons.
 
 ## Compiler et tester
 

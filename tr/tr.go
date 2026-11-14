@@ -29,7 +29,12 @@ type Language struct {
 	dict map[string]string
 	pats []pattern         // les textes à trous, essayés comme modèles
 	memo map[string]string // textes déjà traduits par un modèle
+	// débuts : « @début la = the » : un texte qui commence par « la » se traduit
+	// par « the » suivi de la traduction du reste (les plus longs d'abord)
+	starts []start
 }
+
+type start struct{ fr, out string }
 
 // pattern : un texte à trous (« Étal : {produit} ») vu comme un modèle : il
 // traduit aussi « Étal : Maïs » (le morceau « Maïs » est traduit à son tour).
@@ -70,6 +75,11 @@ func Register(code, content string) {
 		k, v = unescape(strings.TrimSpace(k)), unescape(strings.TrimSpace(v))
 		if k == "@nom" {
 			l.Name = v
+			continue
+		}
+		if fr, ok := strings.CutPrefix(k, "@début "); ok {
+			l.starts = append(l.starts, start{fr: fr, out: v})
+			sort.SliceStable(l.starts, func(i, j int) bool { return len(l.starts[i].fr) > len(l.starts[j].fr) })
 			continue
 		}
 		if v != "" {
@@ -147,6 +157,9 @@ func (l *Language) tr(s string, depth int) string {
 	if v, ok := l.dict[s]; ok {
 		return v
 	}
+	if v, ok := l.derive(s); ok {
+		return v
+	}
 	if numRe.MatchString(s) { // un nombre à la française (1 000 ; 2,5 ; 20 %) : à l'anglaise
 		return englishNumber(s)
 	}
@@ -157,6 +170,77 @@ func (l *Language) tr(s string, depth int) string {
 		missing[strings.TrimSpace(s)] = true // (un morceau sans traduction)
 	}
 	return s
+}
+
+// derive : un texte absent du fichier, mais déduit d'une ligne voisine :
+// la même avec une majuscule (ou sans), ou précédée d'un article (« @début »).
+func (l *Language) derive(s string) (string, bool) {
+	if v, ok := l.withStart(s); ok {
+		return v, true
+	}
+	r := []rune(s)
+	if len(r) < 2 {
+		return "", false
+	}
+	first := string(r[0])
+	other := strings.ToLower(first)
+	if other == first {
+		other = strings.ToUpper(first)
+	}
+	if other == first {
+		return "", false
+	}
+	alt := other + string(r[1:])
+	v, ok := l.dict[alt]
+	if !ok {
+		v, ok = l.withStart(alt)
+	}
+	if !ok || v == "" {
+		return "", false
+	}
+	vr := []rune(v)
+	if strings.ToUpper(first) == first {
+		return strings.ToUpper(string(vr[0])) + string(vr[1:]), true
+	}
+	return strings.ToLower(string(vr[0])) + string(vr[1:]), true
+}
+
+// sameCapital : une phrase qui commence par une majuscule garde sa majuscule
+// (« Ouvrier du maïs » → « {zone} worker » → « Corn worker »).
+func sameCapital(src, v string) string {
+	sr, vr := []rune(src), []rune(v)
+	if len(sr) == 0 || len(vr) == 0 || strings.ToUpper(string(sr[0])) != string(sr[0]) || strings.ToLower(string(sr[0])) == string(sr[0]) {
+		return v
+	}
+	return strings.ToUpper(string(vr[0])) + string(vr[1:])
+}
+
+// withStart : « la crèmerie » → « the » + « crèmerie » traduit.
+func (l *Language) withStart(s string) (string, bool) {
+	for _, st := range l.starts {
+		rest, ok := strings.CutPrefix(s, st.fr)
+		if !ok || rest == "" {
+			continue
+		}
+		if !strings.HasSuffix(st.fr, "'") {
+			if rest[0] != ' ' {
+				continue
+			}
+			rest = rest[1:]
+		}
+		v, ok := l.dict[rest]
+		if !ok {
+			v, ok = l.derive(rest)
+		}
+		if !ok {
+			continue
+		}
+		if st.out == "" {
+			return v, true
+		}
+		return st.out + " " + v, true
+	}
+	return "", false
 }
 
 func unescape(s string) string { return strings.ReplaceAll(s, `\n`, "\n") }
@@ -216,7 +300,12 @@ func T(s string) string {
 	if v, ok := cur.memo[s]; ok {
 		return v
 	}
+	if v, ok := cur.derive(s); ok {
+		cur.memo[s] = v
+		return v
+	}
 	if v, ok := cur.byPattern(s, 0); ok {
+		v = sameCapital(s, v)
 		if len(cur.memo) > 20000 { // (les textes avec des nombres changent sans cesse)
 			cur.memo = map[string]string{}
 		}
