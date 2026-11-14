@@ -138,8 +138,12 @@ func (l *Language) byPattern(s string, depth int) (string, bool) {
 	if depth > 6 {
 		return "", false
 	}
+	alt := flipFirst(s) // (« en main : … » se traduit aussi avec « En main : … »)
 	for _, p := range l.pats {
 		m := p.re.FindStringSubmatch(s)
+		if m == nil && alt != "" {
+			m = p.re.FindStringSubmatch(alt)
+		}
 		if m == nil {
 			continue
 		}
@@ -147,9 +151,42 @@ func (l *Language) byPattern(s string, depth int) (string, bool) {
 		for i, name := range p.names {
 			out = strings.ReplaceAll(out, name, l.tr(m[i+1], depth+1))
 		}
-		return out, true
+		return sameCase(s, out), true
 	}
 	return "", false
+}
+
+// flipFirst : le texte avec sa première lettre dans l'autre casse ("" si ce n'est pas une lettre).
+func flipFirst(s string) string {
+	r := []rune(s)
+	if len(r) == 0 {
+		return ""
+	}
+	f := string(r[0])
+	o := strings.ToLower(f)
+	if o == f {
+		o = strings.ToUpper(f)
+	}
+	if o == f {
+		return ""
+	}
+	return o + string(r[1:])
+}
+
+// sameCase : la traduction commence par une majuscule si le texte d'origine aussi (et inversement).
+func sameCase(src, v string) string {
+	sr, vr := []rune(src), []rune(v)
+	if len(sr) == 0 || len(vr) == 0 {
+		return v
+	}
+	f := string(sr[0])
+	switch {
+	case strings.ToUpper(f) == f && strings.ToLower(f) != f:
+		return strings.ToUpper(string(vr[0])) + string(vr[1:])
+	case strings.ToLower(f) == f && strings.ToUpper(f) != f:
+		return strings.ToLower(string(vr[0])) + string(vr[1:])
+	}
+	return v
 }
 
 // tr : traduction exacte, sinon par modèle, sinon le texte tel quel.
@@ -157,7 +194,10 @@ func (l *Language) tr(s string, depth int) string {
 	if v, ok := l.dict[s]; ok {
 		return v
 	}
-	if v, ok := l.derive(s); ok {
+	if outs[s] {
+		return s
+	}
+	if v, ok := l.derive(s, false); ok {
 		return v
 	}
 	if numRe.MatchString(s) { // un nombre à la française (1 000 ; 2,5 ; 20 %) : à l'anglaise
@@ -174,7 +214,7 @@ func (l *Language) tr(s string, depth int) string {
 
 // derive : un texte absent du fichier, mais déduit d'une ligne voisine :
 // la même avec une majuscule (ou sans), ou précédée d'un article (« @début »).
-func (l *Language) derive(s string) (string, bool) {
+func (l *Language) derive(s string, _ bool) (string, bool) {
 	if v, ok := l.withStart(s); ok {
 		return v, true
 	}
@@ -195,6 +235,7 @@ func (l *Language) derive(s string) (string, bool) {
 	if !ok {
 		v, ok = l.withStart(alt)
 	}
+
 	if !ok || v == "" {
 		return "", false
 	}
@@ -230,7 +271,7 @@ func (l *Language) withStart(s string) (string, bool) {
 		}
 		v, ok := l.dict[rest]
 		if !ok {
-			v, ok = l.derive(rest)
+			v, ok = l.derive(rest, false)
 		}
 		if !ok {
 			continue
@@ -262,6 +303,7 @@ func Languages() []*Language {
 
 // Set choisit la langue (code inconnu : français).
 func Set(code string) {
+	outs = map[string]bool{}
 	if l := langs[code]; l != nil {
 		cur = l
 	} else {
@@ -282,10 +324,14 @@ func T(s string) string {
 		return s
 	}
 	if v, ok := cur.dict[s]; ok {
+		markOut(v)
 		if missing != nil {
 			translated[v] = true
 		}
 		return v
+	}
+	if outs[s] {
+		return s
 	}
 	core := strings.TrimSpace(s)
 	if core != s && core != "" {
@@ -300,11 +346,18 @@ func T(s string) string {
 	if v, ok := cur.memo[s]; ok {
 		return v
 	}
-	if v, ok := cur.derive(s); ok {
+	if numRe.MatchString(core) { // un nombre seul (« +20 % ») : à l'anglaise
+		v := strings.Replace(s, core, englishNumber(core), 1)
+		markOut(v)
+		return v
+	}
+	if v, ok := cur.derive(s, false); ok {
 		cur.memo[s] = v
+		markOut(v)
 		return v
 	}
 	if v, ok := cur.byPattern(s, 0); ok {
+		markOut(v)
 		v = sameCapital(s, v)
 		if len(cur.memo) > 20000 { // (les textes avec des nombres changent sans cesse)
 			cur.memo = map[string]string{}
@@ -324,9 +377,24 @@ func T(s string) string {
 // Seen : ce texte est déjà passé par T (ligne coupée par le jeu, traduction) :
 // l'outil ne le note pas comme manquant.
 func Seen(s string) {
+	if cur.dict == nil {
+		return
+	}
+	markOut(s)
 	if missing != nil {
 		translated[strings.TrimSpace(s)] = true
 	}
+}
+
+// outs : les textes déjà traduits (ou déjà dans la bonne langue) : on ne les
+// retraduit pas (un modèle court comme « {h} h {m} » abîmerait une phrase anglaise).
+var outs = map[string]bool{}
+
+func markOut(v string) {
+	if len(outs) > 20000 {
+		outs = map[string]bool{}
+	}
+	outs[v] = true
 }
 
 // translated : les traductions déjà produites (pour ne pas les noter comme manquantes).

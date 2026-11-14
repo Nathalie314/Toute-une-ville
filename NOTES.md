@@ -948,3 +948,11 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   pour le français, drapeau américain pour l'anglais ; la langue choisie est entourée de jaune ; un clic suffit.
   Une langue ajoutée par la communauté a un rond bleu avec son code (ES, DE…). Les drapeaux sont aussi dans la
   fenêtre de choix. L'aide garde son bouton « Langue / Language ».
+- Étape 3 (commandes et cadeaux, messages des rayons vides, école, points de la mairie, vestiaire, panneaux
+  restants) : ≈ 370 lignes. Les phrases à préposition (« à la crèmerie », « de la crèmerie ») passent par tr.F
+  avec deux trous : {alieu}/{delieu} (français, bonne préposition) et {lieu} (« the dairy », sim.theName) que la
+  traduction utilise. Le cadeau d'une commande est séparé du message par sim.GiftSep (seconde ligne du toast).
+  Les montants des messages de la simulation : sim.moneyText ($ en anglais).
+- Garde-fou : un texte déjà traduit n'est jamais retraduit (sinon un modèle court comme « {h} h {m} » abîmait des
+  phrases anglaises) ; un modèle marche aussi avec une minuscule au début (« en main : … »).
+- README : le jeu existe en français et en anglais ; lien vers langues/LISEZMOI.txt pour traduire.

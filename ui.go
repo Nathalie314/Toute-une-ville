@@ -35,8 +35,8 @@ func (g *game) toast(text, sub string) {
 
 // toastSplit : un message, le cadeau d'une commande sur une seconde ligne.
 func (g *game) toastSplit(text string) {
-	if i := strings.Index(text, " Cadeau"); i >= 0 {
-		g.toast(text[:i], text[i+1:])
+	if a, b, ok := strings.Cut(text, sim.GiftSep); ok {
+		g.toast(a, b)
 		return
 	}
 	g.toast(text, "")
@@ -644,6 +644,7 @@ func (g *game) veilleurBand(dst *ebiten.Image, x, y, w float64) {
 	if l < u.Max {
 		cur += "  " + tr.F("Niveau suivant : {n} h.", "n", itoa(int(sim.NightHours[l+1])))
 	}
+	tr.Seen(cur)
 	sayFit(dst, cur, x+95, y+58, 17, false, -1, w-400, rgb(0x4a5a7a))
 	for k := 0; k < u.Max; k++ {
 		c := rgba(0x2b3a5a, 0.2)
@@ -1297,7 +1298,7 @@ func (g *game) drawBadges(dst *ebiten.Image) {
 				}
 			}
 		}
-		say(sub, tr.T(sc.title)+"  ("+itoa(got)+"/"+itoa(len(list))+")", x+44, yy+36, 30, true, -1, rgb(0x8a5a33))
+		say(sub, tr.F("{titre}  ({a}/{b})", "titre", tr.T(sc.title), "a", itoa(got), "b", itoa(len(list))), x+44, yy+36, 30, true, -1, rgb(0x8a5a33))
 		yy += 70
 		for i, b := range list {
 			cx := x + 40 + float64(i%cols)*cw
@@ -1712,7 +1713,7 @@ func (g *game) drawPointsPanel(dst *ebiten.Image) {
 	tab := g.ptsTab
 	t := sim.PointTypes[tab]
 	y += 92
-	say(dst, tr.T(pointTabs[tab].sub)+tr.T(". Une fois validés, les points ne peuvent plus être déplacés."), x+w/2, y+16, 19, false, 0, rgb(0x5a4a3a))
+	say(dst, tr.F("{a}{b}", "a", tr.T(pointTabs[tab].sub), "b", tr.T(". Une fois validés, les points ne peuvent plus être déplacés.")), x+w/2, y+16, 19, false, 0, rgb(0x5a4a3a))
 	y += 40
 	// lieux qui acceptent ce type de point
 	var places []*sim.Place
@@ -1813,11 +1814,11 @@ func (g *game) drawPointsPanel(dst *ebiten.Image) {
 			have := g.sim.Levels[key]
 			pend := g.pending[key]
 			roundRect(dst, kx+5, ky, cw-10, ch, 14, rgba(levelColUI(tab), 0.22))
-			say(dst, strings.ToUpper(tr.T(k.Group)), kx+20, ky+20*sc, 15*fs, true, -1, rgb(0x8a6a3a))
+			say(dst, tr.F("{a}", "a", strings.ToUpper(tr.T(k.Group))), kx+20, ky+20*sc, 15*fs, true, -1, rgb(0x8a6a3a))
 			say(dst, tr.F("{n} pt", "n", itoa(have)), kx+cw-22, ky+20*sc, 15*fs, true, 1, rgb(0x8a6a3a))
 			sayFit(dst, k.Name, kx+20, ky+46*sc, 22*fs, true, -1, cw-50, rgb(0x3b2a10))
 			if pend > 0 {
-				sayFit(dst, k.Val(have)+"  →  "+k.Val(have+pend), kx+20, ky+76*sc, 19*fs, true, -1, cw-200, rgb(0x2fa86b))
+				sayFit(dst, tr.T(k.Val(have))+"  →  "+tr.T(k.Val(have+pend)), kx+20, ky+76*sc, 19*fs, true, -1, cw-200, rgb(0x2fa86b))
 			} else {
 				sayFit(dst, k.Val(have), kx+20, ky+76*sc, 19*fs, true, -1, cw-200, rgb(0x5a3a1a))
 			}

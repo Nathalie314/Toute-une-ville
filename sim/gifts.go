@@ -86,25 +86,25 @@ func (g *Game) orderPerson0() string {
 func giftDesc(kind, place string, m int) string {
 	switch kind {
 	case "ventes":
-		return "ventes ×" + itoa(m) + " " + placeAt(place)
+		return tr.F("ventes ×{n} {alieu}", "n", itoa(m), "alieu", placeAt(place), "lieu", theName(place))
 	case "ecole":
-		return "l'école forme " + itoa(m) + " fois plus vite"
+		return tr.F("l'école forme {n} fois plus vite", "n", itoa(m))
 	case "maire":
 		if m == 2 {
-			return "tous les lieux à moitié prix"
+			return tr.T("tous les lieux à moitié prix")
 		}
-		return "tous les lieux au quart du prix"
+		return tr.T("tous les lieux au quart du prix")
 	case "garage":
-		return "camions et drones " + itoa(m) + " fois plus rapides"
+		return tr.F("camions et drones {n} fois plus rapides", "n", itoa(m))
 	case "fleurs":
 		if m > 2 {
-			return "grand embellissement " + placeOf(place)
+			return tr.F("grand embellissement {delieu}", "delieu", placeOf(place), "lieu", theName(place))
 		}
-		return "embellissement " + placeOf(place)
+		return tr.F("embellissement {delieu}", "delieu", placeOf(place), "lieu", theName(place))
 	case "veto":
-		return "animaux " + itoa(m) + " fois plus productifs dans toute la ville"
+		return tr.F("animaux {n} fois plus productifs dans toute la ville", "n", itoa(m))
 	case "marin":
-		return "bateaux " + itoa(m) + " fois plus rapides"
+		return tr.F("bateaux {n} fois plus rapides", "n", itoa(m))
 	}
 	return ""
 }
@@ -113,17 +113,17 @@ func giftDesc(kind, place string, m int) string {
 func (o *Order) GiftText() string {
 	switch o.Gift {
 	case "universite":
-		return "1 point université"
+		return tr.T("1 point université")
 	case "fleurs":
 		return giftDesc(o.Gift, o.Place(), 2) + "…"
 	}
-	return giftDesc(o.Gift, o.Place(), 2) + " pendant " + durText(o.dur())
+	return tr.F("{cadeau} pendant {duree}", "cadeau", giftDesc(o.Gift, o.Place(), 2), "duree", durText(o.dur()))
 }
 
 // GiftExpress : le cadeau doublé d'une livraison express (« ventes ×4 »).
 func (o *Order) GiftExpress() string {
 	if o.Gift == "universite" {
-		return "2 points université"
+		return tr.T("2 points université")
 	}
 	return giftDesc(o.Gift, o.Place(), 4)
 }
@@ -141,7 +141,7 @@ func (b *Boost) Text() string {
 	m := b.Mul()
 	switch b.Kind {
 	case "ventes":
-		return tr.F("Ventes ×{n} {lieu}", "n", itoa(m), "lieu", tr.T(placeAt(b.Place)))
+		return tr.F("Ventes ×{n} {alieu}", "n", itoa(m), "alieu", placeAt(b.Place), "lieu", theName(b.Place))
 	case "ecole":
 		return tr.F("École ×{n}", "n", itoa(m))
 	case "maire":
@@ -153,15 +153,43 @@ func (b *Boost) Text() string {
 		return tr.F("Camions et drones ×{n}", "n", itoa(m))
 	case "fleurs":
 		if m > 2 {
-			return tr.F("Grand embellissement {lieu}", "lieu", tr.T(placeOf(b.Place)))
+			return tr.F("Grand embellissement {delieu}", "delieu", placeOf(b.Place), "lieu", theName(b.Place))
 		}
-		return tr.F("Embellissement {lieu}", "lieu", tr.T(placeOf(b.Place)))
+		return tr.F("Embellissement {delieu}", "delieu", placeOf(b.Place), "lieu", theName(b.Place))
 	case "veto":
 		return tr.F("Animaux ×{n}", "n", itoa(m))
 	case "marin":
 		return tr.F("Bateaux ×{n}", "n", itoa(m))
 	}
 	return ""
+}
+
+// GiftSep sépare un message de son cadeau (affiché sur une seconde ligne).
+const GiftSep = "\x1f"
+
+// theName : le nom d'un lieu avec son article, traduit (« la crèmerie » → « the dairy »).
+// Les phrases à trous l'utilisent sous le nom {lieu} ; le français garde « {alieu} »
+// (« à la crèmerie ») ou « {delieu} » (« de la crèmerie »), avec la bonne préposition.
+func theName(id string) string { return tr.T(placeThe(id)) }
+
+// moneyText : une somme dans la langue choisie (1 234 € ; $1,234).
+func moneyText(v float64) string {
+	n := itoa(int(math.Round(v)))
+	if tr.English() {
+		return "$" + englishGroups(n)
+	}
+	return n + " €"
+}
+
+func englishGroups(n string) string {
+	out := ""
+	for i, r := range n {
+		if i > 0 && (len(n)-i)%3 == 0 {
+			out += ","
+		}
+		out += string(r)
+	}
+	return out
 }
 
 // placeAt : « à la crèmerie », « au supermarché »…
@@ -192,17 +220,17 @@ func (g *Game) giveGift(o *Order, express bool) string {
 	if o.Gift == "universite" {
 		if express {
 			g.Levels["pts.formation"] += 2
-			return "2 points université !"
+			return tr.T("2 points université !")
 		}
 		g.Levels["pts.formation"]++
-		return "1 point université !"
+		return tr.T("1 point université !")
 	}
 	m := 2
 	if express {
 		m = 4
 	}
 	g.Boost = &Boost{Kind: o.Gift, Place: o.Place(), Left: o.dur(), Total: o.dur(), Mult: m}
-	return giftDesc(o.Gift, o.Place(), m) + " pendant " + durText(o.dur()) + " !"
+	return tr.F("{cadeau} pendant {duree} !", "cadeau", giftDesc(o.Gift, o.Place(), m), "duree", durText(o.dur()))
 }
 
 func (g *Game) stepBoost(dt float64) {
@@ -213,7 +241,7 @@ func (g *Game) stepBoost(dt float64) {
 	b.Left -= dt
 	if b.Left <= 0 {
 		g.Boost = nil
-		g.emit(Event{Kind: EvLevel, Pos: g.Player.Pos, Text: "Fin du cadeau : " + lowerFirst(b.Text()) + "."})
+		g.emit(Event{Kind: EvLevel, Pos: g.Player.Pos, Text: tr.F("Fin du cadeau : {quoi}.", "quoi", lowerFirst(b.Text()))})
 	}
 }
 
@@ -251,12 +279,12 @@ func (g *Game) boostF(kind, place string) float64 {
 func durText(secs float64) string {
 	m, sec := int(secs)/60, int(secs)%60
 	if sec == 0 {
-		return itoa(m) + " min"
+		return tr.F("{m} min", "m", itoa(m))
 	}
 	if sec < 10 {
-		return itoa(m) + " min 0" + itoa(sec)
+		return tr.F("{m} min {s}", "m", itoa(m), "s", "0"+itoa(sec))
 	}
-	return itoa(m) + " min " + itoa(sec)
+	return tr.F("{m} min {s}", "m", itoa(m), "s", itoa(sec))
 }
 
 // dur : durée du cadeau (fixée à l'annonce : la réclame du lieu l'allonge).

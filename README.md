@@ -10,6 +10,8 @@
 
 **Toute une Ville** est un jeu de gestion « idle » pour Windows et le navigateur. Tu construis la ville de **Clairbourg**, lieu après lieu : une ferme, un supermarché, une école, une crèmerie, une ferme exotique, une boulangerie, un glacier, un port, une ferme d'élevage, une boucherie, un domaine viticole, une pâtisserie… Tu récoltes, tu fabriques, tu vends, tu embauches. Puis tes employés, tes drones et tes camions travaillent pour toi, même quand le jeu est fermé.
 
+*Le jeu existe en français et en anglais : la langue se choisit au premier lancement, ou avec les drapeaux de la carte de la ville. Envie de le traduire dans ta langue ? Tout est expliqué dans [langues/LISEZMOI.txt](langues/LISEZMOI.txt).*
+
 ### ⬇️ Télécharger pour Windows
 
 **[Télécharger la dernière version (ToutUneVille.zip)](https://github.com/Nathalie314/Toute-une-ville/releases/latest/download/ToutUneVille.zip)**
@@ -95,9 +97,9 @@ go test ./sim
 
 ## English
 
-**Toute une Ville** ("A Whole Town") is an idle management game for Windows and the browser. You build the town of **Clairbourg**, one place at a time: a farm, a supermarket, a school, a dairy, an exotic farm, a bakery, an ice-cream parlour, a harbour, a livestock farm, a butcher's shop, a wine estate, a pastry shop… You harvest, craft, sell and hire. Then your workers, drones and trucks keep working for you, even while the game is closed.
+**Toute une Ville** ("A Whole Town") is an idle management game for Windows and the browser. You build the town of **ClearTown** (*Clairbourg* in French), one place at a time: a farm, a supermarket, a school, a dairy, an exotic farm, a bakery, an ice-cream parlour, a harbour, a livestock farm, a butcher's shop, a wine estate, a pastry shop… You harvest, craft, sell and hire. Then your workers, drones and trucks keep working for you, even while the game is closed.
 
-*The game is in French.*
+*The game is available in English and in French: choose your language at first launch, or with the flags on the town map.*
 
 ### ⬇️ Download for Windows
 
@@ -148,6 +150,8 @@ The game is a work in progress and your feedback helps a lot!
 - **[Suggest an idea](https://github.com/Nathalie314/Toute-une-ville/issues/new?template=idee.yml)**
 
 (You need a free GitHub account.) English is welcome.
+
+Want to translate the game into your language? See [langues/LISEZMOI.txt](langues/LISEZMOI.txt) (in French and English).
 
 ### ❤️ Support the game
 

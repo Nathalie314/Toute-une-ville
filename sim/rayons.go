@@ -4,6 +4,7 @@ import (
 	"math"
 	"sort"
 	"strings"
+	"ville/tr"
 )
 
 // Rayons vides du supermarché : on cherche quel maillon de la chaîne bloque
@@ -166,46 +167,50 @@ func (g *Game) missingInput(from *Place, it Item) (Item, *Place) {
 // RayonWhy : la bulle d'un rayon presque vide (deux lignes : le constat, puis le remède).
 func (g *Game) RayonWhy(s *Station) (string, string) {
 	b := g.RayonBlock(s)
-	name := Items[s.Item].Name
+	name := tr.T(Items[s.Item].Name)
 	from, _, _ := g.rayonSource(s.Item)
 	id := ""
 	if from != nil {
 		id = from.ID
 	}
+	// {alieu} / {delieu} : « à la crèmerie » / « de la crèmerie » (français) ; {lieu} : « the dairy »
+	at := func(k string, kv ...string) string {
+		return tr.F(k, append([]string{"produit", name, "alieu", placeAt(id), "delieu", placeOf(id), "lelieu", placeThe(id), "lieu", theName(id)}, kv...)...)
+	}
 	switch b {
 	case BlockStaff:
 		z := superZone(SuperZoneOf(s.Item))
 		if z != nil && g.Levels["super."+teamKey(z.ID)] < len(z.Items) {
-			return name + " : la palette est pleine, mais personne ne remplit le rayon.",
-				"→ Embauche un magasinier de plus (" + z.Name + ")."
+			return at("{produit} : la palette est pleine, mais personne ne remplit le rayon."),
+				at("→ Embauche un magasinier de plus ({zone}).", "zone", tr.T(z.Name))
 		}
-		return name + " : la palette est pleine, mais les magasiniers ne suivent pas.",
-			"→ Points d'école « Entraînement » au supermarché (marche, mains expertes, charge)."
+		return at("{produit} : la palette est pleine, mais les magasiniers ne suivent pas."),
+			tr.T("→ Points d'école « Entraînement » au supermarché (marche, mains expertes, charge).")
 	case BlockTruck:
-		return name + " : le quai " + placeOf(id) + " déborde, le camion n'emporte pas tout.",
-			"→ Points de mécaniciens « Camions : charge » ou « Camions : départs » " + placeAt(id) + "."
+		return at("{produit} : le quai {delieu} déborde, le camion n'emporte pas tout."),
+			at("→ Points de mécaniciens « Camions : charge » ou « Camions : départs » {alieu}.")
 	case BlockDrone:
 		if from != nil && g.Levels[from.key(droneKey(s.Item))] == 0 {
-			return name + " : l'étal " + placeOf(id) + " en a, mais il n'a pas de drone.",
-				"→ Achète le drone de cet étal " + placeAt(id) + "."
+			return at("{produit} : l'étal {delieu} en a, mais il n'a pas de drone."),
+				at("→ Achète le drone de cet étal {alieu}.")
 		}
-		return name + " : l'étal " + placeOf(id) + " en a, mais le drone ne suit pas.",
-			"→ Points de mécaniciens « Drones : charge » ou « Drones : vitesse » " + placeAt(id) + "."
+		return at("{produit} : l'étal {delieu} en a, mais le drone ne suit pas."),
+			at("→ Points de mécaniciens « Drones : charge » ou « Drones : vitesse » {alieu}.")
 	case BlockProd:
 		if in, src := g.missingInput(from, s.Item); in >= 0 {
-			what := name + " : " + placeThe(id) + " attend son ingrédient « " + Items[in].Name + " »."
+			what := at("{produit} : {lelieu} attend son ingrédient « {ingredient} ».", "ingredient", tr.T(Items[in].Name))
 			switch {
 			case src == from:
-				return what, "→ Il se fabrique sur place : développe sa machine " + placeAt(id) + "."
+				return what, at("→ Il se fabrique sur place : développe sa machine {alieu}.")
 			case src != nil:
-				return what, "→ Il vient " + placeOf(src.ID) + " : sa production, son drone, son camion vers " + placeThe(id) + "."
+				return what, at("→ Il vient {desource} : sa production, son drone, son camion vers {lelieu}.", "desource", placeOf(src.ID), "source", theName(src.ID))
 			}
-			return what, "→ " + whereLocked(in) + "."
+			return what, "→ " + tr.T(whereLocked(in)) + "."
 		}
-		return name + " : " + placeThe(id) + " n'en produit pas assez.",
-			"→ Développe sa production " + placeAt(id) + " (niveaux, ouvriers, points d'école)."
+		return at("{produit} : {lelieu} n'en produit pas assez."),
+			at("→ Développe sa production {alieu} (niveaux, ouvriers, points d'école).")
 	case BlockLock:
-		return name + " : plus personne n'en fabrique.", "→ " + whereLocked(s.Item) + "."
+		return at("{produit} : plus personne n'en fabrique."), "→ " + tr.T(whereLocked(s.Item)) + "."
 	}
 	return "", ""
 }
@@ -254,37 +259,23 @@ func (g *Game) RayonSummary() string {
 		return ""
 	}
 	sort.SliceStable(gs, func(i, j int) bool { return gs[i].n > gs[j].n })
-	txt := "Rayons vides : "
+	var parts []string
 	for i, x := range gs {
 		if i == 2 {
 			break
 		}
-		if i > 0 {
-			txt += " ; "
+		// (« attend » au singulier, « attendent » au pluriel : deux phrases à traduire)
+		k := map[Block]string{BlockStaff: "{n} faute de magasiniers", BlockTruck: "{n} attendent le camion {delieu}",
+			BlockDrone: "{n} attendent les drones {delieu}", BlockProd: "{n} attendent la production {delieu}"}[x.b]
+		if x.b == BlockProd && x.in {
+			k = "{n} attendent des ingrédients {alieu}"
 		}
-		n, v := itoa(x.n), " attendent "
 		if x.n == 1 {
-			v = " attend "
+			k = strings.Replace(k, "attendent", "attend", 1)
 		}
-		if i > 0 && gs[0].b != BlockStaff {
-			v = " " // (« 3 attendent les drones de… ; 2 le camion de… »)
-		}
-		switch x.b {
-		case BlockStaff:
-			txt += n + " faute de magasiniers"
-		case BlockTruck:
-			txt += n + v + "le camion " + placeOf(x.from)
-		case BlockDrone:
-			txt += n + v + "les drones " + placeOf(x.from)
-		case BlockProd:
-			if x.in {
-				txt += n + v + "des ingrédients " + placeAt(x.from)
-			} else {
-				txt += n + v + "la production " + placeOf(x.from)
-			}
-		}
+		parts = append(parts, tr.F(k, "n", itoa(x.n), "alieu", placeAt(x.from), "delieu", placeOf(x.from), "lieu", theName(x.from)))
 	}
-	return txt + "."
+	return tr.F("Rayons vides : {liste}.", "liste", strings.Join(parts, " ; "))
 }
 
 // RayonMissing : pour l'icône, l'ingrédient qui manque en amont (-1 : aucun).
