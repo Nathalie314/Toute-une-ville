@@ -956,3 +956,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Garde-fou : un texte déjà traduit n'est jamais retraduit (sinon un modèle court comme « {h} h {m} » abîmait des
   phrases anglaises) ; un modèle marche aussi avec une minuscule au début (« en main : … »).
 - README : le jeu existe en français et en anglais ; lien vers langues/LISEZMOI.txt pour traduire.
+- Anglais : les clients des commandes ont des noms américains (son idée : « Mr. Smith » plutôt que « Mr. Dupont ») :
+  Mrs. Miller, the Johnson family, Grandma Jean, Mr. White…
