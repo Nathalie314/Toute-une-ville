@@ -895,3 +895,8 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Correction : le badge « Brigade complète » (boulangerie) se donnait au 6e boulanger, alors qu'il y en a 7 depuis
   le pain de mie. Il demande maintenant toute l'équipe (staffFull, comme les badges des autres lieux) ; « Toutes les
   recettes » dit « tous les fours ». Les badges déjà gagnés restent gagnés. Vérifié : la ferme (24 ouvriers) est juste.
+
+## Point d'étape (sa partie, 8 h 20 de jeu)
+- 6 lieux (jusqu'à la boulangerie), 70 M gagnés, ≈ 3 000 €/s (4 800 €/s après 10 min de plus). Elle trouve le
+  rythme bon jusque-là. Le bot « -humain » est bien plus lent qu'elle (36 €/s à 5 h) : pour l'équilibrage, se fier
+  à ses sauvegardes plutôt qu'au bot. À surveiller : la série élevage → boucherie → domaine → pâtisserie (8 à 64 M).
