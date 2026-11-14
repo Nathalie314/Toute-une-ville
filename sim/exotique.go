@@ -117,14 +117,15 @@ func newExotic(g *Game) *Place {
 	// --- la rizière
 	field("riz", "Rizière", "riz", Riz, 3560, 6, 10, "riz")
 	shelf("riz", Riz, 3800, 360, "riz", false)
-	// --- épices : vanille, thé (et son séchoir), cannelle
+	// --- épices : vanille, cannelle, thé (le thé en dernier : son séchoir dessous, à
+	// droite ; l'embauche des épices au milieu, sous les cannelliers)
 	field("vanille", "Vanille", "epices", Vanille, 4540, 12, 3, "vanille")
-	field("the", "Théiers", "epices", FeuillesThe, 4920, 7, 3, "the")
-	field("cannelle", "Cannelliers", "epices", Cannelle, 5300, 11, 3, "cannelle")
-	machine("sechoir", "Séchoir à thé", "epices", The, []Item{FeuillesThe}, 5310, 3.5, "sechoir") // (sous les cannelliers : l'embauche des épices est au milieu, sous les théiers)
+	field("cannelle", "Cannelliers", "epices", Cannelle, 4920, 11, 3, "cannelle")
+	field("the", "Théiers", "epices", FeuillesThe, 5300, 7, 3, "the")
+	machine("sechoir", "Séchoir à thé", "epices", The, []Item{FeuillesThe}, 5310, 3.5, "sechoir")
 	shelf("epices", Vanille, 4550, 220, "vanille", false)
-	shelf("epices", The, 4930, 220, "sechoir", false)
-	shelf("epices", Cannelle, 5310, 220, "cannelle", false)
+	shelf("epices", Cannelle, 4930, 220, "cannelle", false)
+	shelf("epices", The, 5310, 220, "sechoir", false)
 
 	reg := &Station{ID: "caisse", Name: "Caisse", Kind: Register, HireKey: "caissiere", QueueDown: 5}
 	reg.Body = Rect{180, shelfY, 210, shelfH}
@@ -205,9 +206,9 @@ func newExotic(g *Game) *Place {
 		b := p.Station(first[z.ID]).Body
 		zr := Rect{b.X + b.W/2 - 56, b.Y + b.H + 14, 112, 92}
 		if z.ID == "epices" {
-			// une grande case au milieu de l'espace (sous les théiers), dans l'herbe : l'ouvrier
-			// est pour toutes les épices (vanille, thé, séchoir, cannelle), pas seulement la vanille
-			t := p.Station("the").Body
+			// une grande case au milieu de l'espace (sous les cannelliers), dans l'herbe : l'ouvrier
+			// est pour toutes les épices (vanille, cannelle, thé, séchoir), pas seulement la vanille
+			t := p.Station("cannelle").Body
 			zr = Rect{t.X + t.W/2 - 150, 684, 300, 92}
 		}
 		if z.ID == "fruits" {
