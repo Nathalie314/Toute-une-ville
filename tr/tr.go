@@ -17,6 +17,7 @@
 package tr
 
 import (
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -26,6 +27,17 @@ type Language struct {
 	Code string // « en » (nom du fichier sans .txt)
 	Name string // « English » (ligne @nom)
 	dict map[string]string
+	pats []pattern         // les textes à trous, essayés comme modèles
+	memo map[string]string // textes déjà traduits par un modèle
+}
+
+// pattern : un texte à trous (« Étal : {produit} ») vu comme un modèle : il
+// traduit aussi « Étal : Maïs » (le morceau « Maïs » est traduit à son tour).
+type pattern struct {
+	re    *regexp.Regexp
+	names []string
+	out   string
+	lit   int // nombre de lettres fixes (les modèles les plus précis d'abord)
 }
 
 var (
@@ -64,6 +76,87 @@ func Register(code, content string) {
 			l.dict[k] = v
 		}
 	}
+	l.compile()
+}
+
+var numRe = regexp.MustCompile(`^[+−-]?[0-9][0-9 \x{202F}\x{00A0}]*(,[0-9]+)?( ?%)?$`)
+
+// englishNumber : « 1 000 » → « 1,000 », « 2,5 » → « 2.5 », « 20 % » → « 20% ».
+func englishNumber(s string) string {
+	s = strings.NewReplacer(",", ".", " %", "%", "\u202f%", "%", "\u00a0%", "%").Replace(s)
+	return strings.NewReplacer(" ", ",", "\u202f", ",", "\u00a0", ",").Replace(s)
+}
+
+var holeRe = regexp.MustCompile(`\{[^{}]+\}`)
+
+// compile prépare les modèles (les textes qui contiennent des {trous}).
+func (l *Language) compile() {
+	l.pats, l.memo = nil, map[string]string{}
+	for k, v := range l.dict {
+		if !strings.Contains(k, "{") {
+			continue
+		}
+		var names []string
+		expr := "^"
+		last := 0
+		for _, m := range holeRe.FindAllStringIndex(k, -1) {
+			expr += regexp.QuoteMeta(k[last:m[0]]) + "(.+?)"
+			names = append(names, k[m[0]:m[1]])
+			last = m[1]
+		}
+		expr += regexp.QuoteMeta(k[last:]) + "$"
+		lit := len([]rune(holeRe.ReplaceAllString(k, "")))
+		if len(names) == 0 || lit < 2 {
+			continue
+		}
+		re, err := regexp.Compile(expr)
+		if err != nil {
+			continue
+		}
+		l.pats = append(l.pats, pattern{re: re, names: names, out: v, lit: lit})
+	}
+	sort.Slice(l.pats, func(i, j int) bool {
+		if l.pats[i].lit != l.pats[j].lit {
+			return l.pats[i].lit > l.pats[j].lit
+		}
+		return l.pats[i].re.String() < l.pats[j].re.String()
+	})
+}
+
+// byPattern traduit s avec le premier modèle qui lui correspond.
+func (l *Language) byPattern(s string, depth int) (string, bool) {
+	if depth > 6 {
+		return "", false
+	}
+	for _, p := range l.pats {
+		m := p.re.FindStringSubmatch(s)
+		if m == nil {
+			continue
+		}
+		out := p.out
+		for i, name := range p.names {
+			out = strings.ReplaceAll(out, name, l.tr(m[i+1], depth+1))
+		}
+		return out, true
+	}
+	return "", false
+}
+
+// tr : traduction exacte, sinon par modèle, sinon le texte tel quel.
+func (l *Language) tr(s string, depth int) string {
+	if v, ok := l.dict[s]; ok {
+		return v
+	}
+	if numRe.MatchString(s) { // un nombre à la française (1 000 ; 2,5 ; 20 %) : à l'anglaise
+		return englishNumber(s)
+	}
+	if v, ok := l.byPattern(s, depth); ok {
+		return v
+	}
+	if missing != nil && hasLetters(s) && !translated[strings.TrimSpace(s)] {
+		missing[strings.TrimSpace(s)] = true // (un morceau sans traduction)
+	}
+	return s
 }
 
 func unescape(s string) string { return strings.ReplaceAll(s, `\n`, "\n") }
@@ -117,6 +210,22 @@ func T(s string) string {
 			return s[:i] + v + s[i+len(core):]
 		}
 	}
+	if missing != nil && translated[core] { // (outil : un texte déjà traduit)
+		return s
+	}
+	if v, ok := cur.memo[s]; ok {
+		return v
+	}
+	if v, ok := cur.byPattern(s, 0); ok {
+		if len(cur.memo) > 20000 { // (les textes avec des nombres changent sans cesse)
+			cur.memo = map[string]string{}
+		}
+		cur.memo[s] = v
+		if missing != nil {
+			translated[v] = true
+		}
+		return v
+	}
 	if missing != nil && hasLetters(core) && !translated[core] {
 		missing[core] = true
 	}
@@ -150,6 +259,7 @@ func F(s string, kv ...string) string {
 	for i := 0; i+1 < len(kv); i += 2 {
 		s = strings.ReplaceAll(s, "{"+kv[i]+"}", kv[i+1])
 	}
+	Seen(s)
 	return s
 }
 

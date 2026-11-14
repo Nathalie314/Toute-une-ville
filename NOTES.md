@@ -927,3 +927,9 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   ferme « 100 % bio » → « Bons comptes » (70 points de comptable à la ferme) ; supermarché « Clients fidèles » →
   100 points « Clients fidèles » au supermarché (mêmes identifiants : rien ne change dans la sauvegarde).
 - En anglais, Clairbourg s'appelle « ClearTown » (son choix).
+- Étape 2 (lieux, produits, machines, améliorations, badges, panneaux) : ≈ 800 lignes de plus dans en.txt.
+  Nouveauté du système : une ligne à trous sert aussi de **modèle** (« Étal : {p} = Stand: {p} » traduit
+  « Étal : Maïs » en « Stand: Corn », le morceau étant traduit à son tour ; les nombres à la française d'un morceau
+  passent à l'anglaise : 1 000 → 1,000, 20 % → 20%). Ainsi les noms composés de la simulation (« Étal : … »,
+  « Drone acheté pour l'étal « … » ! ») se traduisent sans changer le code ; les modèles les plus précis
+  passent d'abord. Les produits gardent leur nom français dans la sauvegarde (statistiques) : seul l'affichage change.
