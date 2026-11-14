@@ -832,3 +832,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   case est sous les cannelliers, au milieu. Étals dans le même ordre. L'ordre d'achat ne change pas.
 - Boulangerie : « Four à baguettes » s'appelle « Tradition », « Four à maïs » s'appelle « Baguette maïs »
   (identifiants inchangés).
+- Ferme exotique, ordre d'achat des épices = ordre des champs : vanille 80 000, cannelliers 95 000 (avant 120 000),
+  théiers 105 000 (avant 95 000), séchoir 120 000 (avant 105 000), prix de base. Sauvegarde : thé et séchoir
+  payés en entier à l'ancien prix restent payés (migrateEpices).

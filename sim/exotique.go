@@ -171,10 +171,12 @@ func newExotic(g *Game) *Place {
 	unlock("torrefacteur", "Torréfacteur", 45000, "Le café vert devient du café en grains.")
 	unlock("moulin_cafe", "Moulin à café", 55000, "Le café en grains devient du café moulu.")
 	unlock("riz", "Rizière", 65000, "Une grande rizière : le riz se vend en sachets.")
+	// (épices dans l'ordre où elles sont plantées : vanille, cannelle, thé et son séchoir ;
+	// les anciens prix d'une sauvegarde sont convertis : migrateEpices)
 	unlock("vanille", "Vanille", 80000, "Des gousses de vanille, très chères.")
-	unlock("the", "Théiers", 95000, "Les feuilles de thé partent au séchoir.")
-	unlock("sechoir", "Séchoir à thé", 105000, "Les feuilles séchées deviennent des boîtes de thé.")
-	unlock("cannelle", "Cannelliers", 120000, "Des bâtons de cannelle (la future pâtisserie en voudra).")
+	unlock("cannelle", "Cannelliers", 95000, "Des bâtons de cannelle (la future pâtisserie en voudra).")
+	unlock("the", "Théiers", 105000, "Les feuilles de thé partent au séchoir.")
+	unlock("sechoir", "Séchoir à thé", 120000, "Les feuilles séchées deviennent des boîtes de thé.")
 	for _, s := range p.Stations {
 		if s.Unlock == "" {
 			s.Built = true

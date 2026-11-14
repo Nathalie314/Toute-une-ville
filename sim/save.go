@@ -107,6 +107,7 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 		p.rng = rand.New(rand.NewSource(nowUnix + int64(i)*7919 + time.Now().UnixNano()))
 	}
 	migrateGlaces(s)
+	migrateEpices(s)
 	g.Money = s.Money
 	if s.Levels != nil {
 		g.Levels = s.Levels
@@ -356,5 +357,21 @@ func migrateGlaces(s *Save) {
 	}
 	if ps := s.Places["super"]; ps != nil {
 		move(ps.Paid, "r_"+itoa(int(GlaceCerise)), "r_"+itoa(int(GlaceVanille)))
+	}
+}
+
+// migrateEpices : les épices de la ferme exotique s'achètent maintenant dans l'ordre
+// de leurs champs (vanille, cannelle, thé, séchoir) ; le thé (95 000 → 105 000 de
+// base) et le séchoir (105 000 → 120 000) coûtent plus : ce qui était entièrement
+// payé à l'ancien prix reste payé (les montants partiels restent tels quels).
+func migrateEpices(s *Save) {
+	ps := s.Places["exotique"]
+	if ps == nil || ps.Paid == nil {
+		return
+	}
+	for id, c := range map[string][2]float64{"the": {95000, 105000}, "sechoir": {105000, 120000}} {
+		if v := ps.Paid[id]; v >= c[0]*0.99 && v < c[1] {
+			ps.Paid[id] = c[1]
+		}
 	}
 }
