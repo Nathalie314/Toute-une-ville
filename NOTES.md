@@ -944,3 +944,7 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   Conséquence acceptée : les noms de lieux en anglais passent en minuscules après le 1er mot (« Exotic farm »).
 - Retiré : le dessin des caisses de sachets de graines (étiquette « GRATUIT »), qui ne s'affichait plus depuis la
   suppression des graines. « CIEL » est en haut de la marelle de la cour de l'école (« SKY » en anglais).
+- Carte : le bouton « Langue / Language » devient de petits boutons ronds à drapeaux (son choix) : bleu-blanc-rouge
+  pour le français, drapeau américain pour l'anglais ; la langue choisie est entourée de jaune ; un clic suffit.
+  Une langue ajoutée par la communauté a un rond bleu avec son code (ES, DE…). Les drapeaux sont aussi dans la
+  fenêtre de choix. L'aide garde son bouton « Langue / Language ».

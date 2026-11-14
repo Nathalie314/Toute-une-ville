@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image/color"
 	"math"
 	"strconv"
 	"strings"
@@ -789,6 +790,73 @@ func (g *game) langButton(dst *ebiten.Image, x, y float64) {
 	g.btn(dst, "Langue / Language", x, y, 300, 60, 0x5b8bd9, true, func() { g.openPanel(panelLang) })
 }
 
+// flagButtons : un petit bouton rond par langue (son drapeau), de droite à
+// gauche à partir de (x, cy) ; la langue choisie est entourée de jaune.
+func (g *game) flagButtons(dst *ebiten.Image, x, cy float64) {
+	const r = 30.0
+	ls := tr.Languages()
+	for i := len(ls) - 1; i >= 0; i-- {
+		l := ls[i]
+		cx := x - float64(len(ls)-1-i)*(2*r+20)
+		hv := g.hover(cx-r, cy-r, 2*r, 2*r)
+		circle(dst, cx, cy+4, r+3, rgba(0x000000, 0.25))
+		if l.Code == tr.Lang() {
+			circle(dst, cx, cy, r+6, rgb(0xffd23f))
+		} else if hv {
+			circle(dst, cx, cy, r+4, rgba(0xffffff, 0.8))
+		}
+		circle(dst, cx, cy, r+2, rgb(0xffffff))
+		drawFlag(dst, l.Code, cx, cy, r)
+		code := l.Code
+		g.addButton(cx-r, cy-r, 2*r, 2*r, func() {
+			tr.Set(code)
+			g.save()
+		})
+	}
+}
+
+// drawFlag : le drapeau d'une langue dans un rond (une langue sans drapeau : son code).
+func drawFlag(dst *ebiten.Image, code string, cx, cy, r float64) {
+	band := func(x0, y0, x1, y1 float64, c uint32) { circleRect(dst, cx, cy, r, x0, y0, x1, y1, rgb(c)) }
+	switch code {
+	case "fr": // bleu, blanc, rouge
+		band(cx-r, cy-r, cx-r/3, cy+r, 0x0055a4)
+		band(cx-r/3, cy-r, cx+r/3, cy+r, 0xffffff)
+		band(cx+r/3, cy-r, cx+r, cy+r, 0xef4135)
+	case "en": // les États-Unis : 13 bandes, le coin bleu et ses étoiles
+		h := 2 * r / 13
+		for k := 0; k < 13; k++ {
+			c := uint32(0xb22234)
+			if k%2 == 1 {
+				c = 0xffffff
+			}
+			band(cx-r, cy-r+float64(k)*h, cx+r, cy-r+float64(k+1)*h, c)
+		}
+		band(cx-r, cy-r, cx, cy-r+7*h, 0x3c3b6e)
+		for j := 0; j < 3; j++ {
+			for i := 0; i < 3; i++ {
+				circle(dst, cx-r*0.78+float64(i)*r*0.27+float64(j%2)*r*0.13, cy-r*0.62+float64(j)*r*0.25, r*0.045+0.6, rgb(0xffffff))
+			}
+		}
+	default:
+		circle(dst, cx, cy, r, rgb(0x5b8bd9))
+		say(dst, strings.ToUpper(code), cx, cy, r*0.8, true, 0, rgb(0xffffff))
+	}
+}
+
+// circleRect : la partie d'un rectangle qui est dans un cercle (tranches fines).
+func circleRect(dst *ebiten.Image, cx, cy, r, x0, y0, x1, y1 float64, c color.Color) {
+	const step = 1.0
+	for x := math.Max(x0, cx-r); x < math.Min(x1, cx+r); x += step {
+		mid := x + step/2 - cx
+		hh := math.Sqrt(math.Max(0, r*r-mid*mid))
+		ya, yb := math.Max(y0, cy-hh), math.Min(y1, cy+hh)
+		if yb > ya {
+			rect(dst, x, ya, math.Min(step, x1-x)+0.3, yb-ya, c)
+		}
+	}
+}
+
 // drawLangPanel : choisir la langue du jeu (une ligne par fichier de langues/).
 func (g *game) drawLangPanel(dst *ebiten.Image) {
 	ls := tr.Languages()
@@ -800,10 +868,13 @@ func (g *game) drawLangPanel(dst *ebiten.Image) {
 		if code != tr.Lang() {
 			col = 0x5b8bd9
 		}
-		g.btn(dst, l.Name, x+w/2-250, y+50+float64(i)*100, 500, 80, col, true, func() {
+		by := y + 50 + float64(i)*100
+		g.btn(dst, l.Name, x+w/2-250, by, 500, 80, col, true, func() {
 			tr.Set(code)
 			g.closePanel()
 		})
+		circle(dst, x+w/2-200, by+40, 27, rgb(0xffffff))
+		drawFlag(dst, code, x+w/2-200, by+40, 25)
 	}
 }
 
@@ -960,7 +1031,7 @@ func (g *game) drawMap(dst *ebiten.Image) {
 	g.soundButton(dst, scr.VW-360, scr.VH-100)
 	g.btn(dst, "Recommencer à zéro", 50, scr.VH-100, 330, 70, 0x8a7a6a, true, func() { g.openPanel(panelReset) })
 	g.btn(dst, "Badges", scr.VW-600, scr.VH-100, 220, 70, 0xd4a017, true, func() { g.openPanel(panelBadges) })
-	g.langButton(dst, scr.VW-480, 30)
+	g.flagButtons(dst, scr.VW-200, 70)
 	say(dst, "Clique sur un lieu, ou vas-y avec les flèches et reste dessus.", 420, scr.VH-62, 24, true, -1, rgba(0x1e3a12, 0.85))
 	if b := g.sim.Boost; b != nil && b.Kind == "maire" { // le cadeau du maire : bien visible
 		txt := tr.F("Cadeau du maire : {quoi} ! Encore {temps}", "quoi", lowerTr(b.Text()), "temps", clock(b.Left))
