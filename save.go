@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"ville/sim"
+	"ville/tr"
 )
 
 // La partie est enregistrée par writeSaveData / lue par readSaveData :
@@ -16,6 +17,8 @@ type saveFile struct {
 	Muet bool      `json:"muet"`
 	Zoom float64   `json:"zoom"`
 	Aide bool      `json:"aide_vue"`
+	// Langue : « fr », « en »… (vide : français, pour les parties d'avant le choix de la langue)
+	Langue string `json:"langue,omitempty"`
 }
 
 func (g *game) save() {
@@ -23,7 +26,7 @@ func (g *game) save() {
 	if g.shots != nil {
 		return
 	}
-	f := saveFile{Jeu: g.sim.Snapshot(time.Now().Unix()), Muet: g.snd != nil && g.snd.muted, Zoom: g.zoom, Aide: g.helpSeen}
+	f := saveFile{Jeu: g.sim.Snapshot(time.Now().Unix()), Muet: g.snd != nil && g.snd.muted, Zoom: g.zoom, Aide: g.helpSeen, Langue: tr.Lang()}
 	b, err := json.MarshalIndent(f, "", " ")
 	if err != nil {
 		return
@@ -34,16 +37,20 @@ func (g *game) save() {
 func (g *game) load() {
 	b, err := readSaveData()
 	if err != nil {
-		// première partie : on explique les commandes
-		g.openPanel(panelHelp)
+		// première partie : on choisit la langue, puis on explique les commandes
+		g.openPanel(panelLang)
+		g.langThenHelp = true
 		g.helpSeen = true
 		return
 	}
 	var f saveFile
 	if json.Unmarshal(b, &f) != nil || f.Jeu == nil {
+		g.openPanel(panelLang)
+		g.langThenHelp = true
 		g.openPanel(panelHelp)
 		return
 	}
+	tr.Set(f.Langue)
 	if f.Jeu.Version < sim.SaveVersion {
 		// partie d'avant la version 4.0 : on repart de zéro
 		g.openPanel(panelHelp)

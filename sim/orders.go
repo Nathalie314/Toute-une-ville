@@ -2,6 +2,7 @@ package sim
 
 import (
 	"math"
+	"ville/tr"
 )
 
 // Les commandes spéciales : de temps en temps, un habitant commande plusieurs
@@ -134,15 +135,15 @@ func (g *Game) stepOrders(dt float64) {
 				paid += Items[l.It].Price * float64(l.Got)
 			}
 			at := box.Body.C()
-			txt := "Commande : " + o.Who + " — temps écoulé…"
+			txt := tr.F("Commande : {qui} — temps écoulé…", "qui", tr.T(o.Who))
 			if paid > 0 {
 				g.earnBonus(paid, at, o.Place())
-				txt += " Ce qui a été livré est payé : +" + itoa(int(math.Round(paid))) + " €"
+				txt += " " + tr.F("Ce qui a été livré est payé : +{prix}", "prix", moneyText(paid))
 			}
 			// commande ratée : le lieu perd une étoile de réputation
 			if p := g.Place(o.Place()); p != nil {
 				p.reputation(-1)
-				txt += " (−1 étoile de réputation)"
+				txt += " " + tr.T("(−1 étoile de réputation)")
 			}
 			g.emit(Event{Kind: EvLevel, Pos: at, Text: txt})
 			g.emit(Event{Kind: EvAngry, Pos: at})
@@ -187,11 +188,11 @@ func (g *Game) stepOrders(dt float64) {
 	}
 	g.Order = o
 	p, box := g.orderBox(o)
-	txt := "Nouvelle commande : " + o.Who + " !"
+	txt := tr.F("Nouvelle commande : {qui} !", "qui", tr.T(o.Who))
 	if p.ID != "ferme" {
-		txt += " À livrer " + placeAt(p.ID) + "."
+		txt += " " + tr.F("À livrer {alieu}.", "alieu", placeAt(p.ID), "lieu", theName(p.ID))
 	}
-	txt += " Cadeau : " + o.GiftText() + " !"
+	txt += GiftSep + tr.F("Cadeau : {cadeau} !", "cadeau", o.GiftText())
 	g.emit(Event{Kind: EvOrder, Pos: box.Body.C(), Text: txt}) // (sonnerie de téléphone)
 }
 
@@ -353,9 +354,9 @@ func (g *Game) finishOrder(at V) {
 	if o.Gift != "" {
 		express := o.FastLeft() > 0
 		gift := g.giveGift(o, express)
-		txt := "Commande livrée : " + o.Who + " ! Cadeau : " + gift
+		txt := tr.F("Commande livrée : {qui} !", "qui", tr.T(o.Who)) + GiftSep + tr.F("Cadeau : {cadeau}", "cadeau", gift)
 		if express {
-			txt = "Livraison express : " + o.Who + " ! Cadeau doublé : " + gift
+			txt = tr.F("Livraison express : {qui} !", "qui", tr.T(o.Who)) + GiftSep + tr.F("Cadeau doublé : {cadeau}", "cadeau", gift)
 		}
 		g.emit(Event{Kind: EvLevel, Pos: at, Text: txt})
 		return
@@ -363,8 +364,8 @@ func (g *Game) finishOrder(at V) {
 	gain, txt := o.Reward, "" // (ancienne commande d'une sauvegarde : payée en argent)
 	if o.FastLeft() > 0 {
 		gain *= 2
-		txt = " Livraison express : gain doublé !"
+		txt = " " + tr.T("Livraison express : gain doublé !")
 	}
 	g.earnBonus(gain, at, o.Place())
-	g.emit(Event{Kind: EvLevel, Pos: at, Text: "Commande livrée (" + o.Who + ") : +" + itoa(int(gain)) + " € !" + txt})
+	g.emit(Event{Kind: EvLevel, Pos: at, Text: tr.F("Commande livrée ({qui}) : +{prix} !", "qui", tr.T(o.Who), "prix", moneyText(gain)) + txt})
 }

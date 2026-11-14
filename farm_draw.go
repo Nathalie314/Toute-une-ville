@@ -145,28 +145,6 @@ func drawSeedPacket(dst *ebiten.Image, veg sim.Item, x, y, r, a float64) {
 	}
 }
 
-// drawSeedCrate : la caisse de sachets, au pied d'une colonne de la serre.
-func drawSeedCrate(dst *ebiten.Image, s *sim.Station) {
-	b := s.Body
-	veg := sim.Carotte
-	for v, sd := range sim.SeedOf {
-		if sd == s.Item {
-			veg = v
-		}
-	}
-	// une caisse haute et étroite, à gauche de sa zone
-	ellipse(dst, b.C().X, b.Y+b.H, b.W*0.7, 8, rgba(0x000000, 0.2))
-	roundRect(dst, b.X, b.Y+24, b.W, b.H-24, 6, rgb(0xb98550))
-	for k := 0; k < 4; k++ {
-		line(dst, b.X+3, b.Y+36+float64(k)*16, b.X+b.W-3, b.Y+36+float64(k)*16, 2, rgb(0x9a6b3e))
-	}
-	for k := 0; k < 2; k++ {
-		drawSeedPacket(dst, veg, b.X+13+float64(k)*18, b.Y+20-float64(k%2)*5, 10, 1)
-	}
-	roundRect(dst, b.X-2, b.Y+b.H-22, b.W+4, 20, 5, rgb(0x2f6a3a))
-	sayFit(dst, "GRATUIT", b.C().X, b.Y+b.H-12, 12, true, 0, b.W, rgb(0xe8f5e0))
-}
-
 // drawMarketStall : un étal du petit marché, avec son auvent rayé.
 func (g *game) drawMarketStall(dst *ebiten.Image, s *sim.Station) {
 	b := s.Body

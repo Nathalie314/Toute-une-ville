@@ -45,3 +45,6 @@ func writeSaveData(b []byte) {
 	}
 	ls.Call("setItem", webSaveKey, string(b))
 }
+
+// extraLanguageFiles : rien dans le navigateur (les langues sont intégrées au jeu).
+func extraLanguageFiles() map[string][]byte { return nil }

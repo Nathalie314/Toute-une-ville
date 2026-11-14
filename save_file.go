@@ -72,3 +72,19 @@ func writeSaveData(b []byte) {
 		_ = os.Rename(tmp, path)
 	}
 }
+
+// extraLanguageFiles : les fichiers de langue d'un dossier « langues » posé à côté de l'exe.
+func extraLanguageFiles() map[string][]byte {
+	out := map[string][]byte{}
+	exe, err := os.Executable()
+	if err != nil {
+		return out
+	}
+	files, _ := filepath.Glob(filepath.Join(filepath.Dir(exe), "langues", "*.txt"))
+	for _, f := range files {
+		if b, err := os.ReadFile(f); err == nil {
+			out[filepath.Base(f)] = b
+		}
+	}
+	return out
+}

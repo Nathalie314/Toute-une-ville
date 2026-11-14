@@ -90,8 +90,7 @@ func (s *shotScript) update(g *game) error {
 		cap("04_ferme_large")
 	case 4:
 		g.zoom = 1.15
-		g.openPanel(panelUpgrades)
-		cap("05_ameliorations")
+		cap("05_ferme_zoom")
 	case 5:
 		g.closePanel()
 		g.goMap()

@@ -167,6 +167,9 @@ type ItemInfo struct {
 	Price float64
 }
 
+// (Des produits ne servent plus — pain d'épices, tarte et gâteau aux fruits, sorbet et glace aux fruits,
+// glaces et sorbets cerise et fraise, cuisses de canard, sucre roux, sachets de graines — mais restent dans
+// la liste : leur numéro est dans les sauvegardes. Ils ne sont pas traduits dans langues/en.txt.)
 var Items = [NItems]ItemInfo{
 	Ble:              {"Blé", 3},
 	Mais:             {"Maïs", 5},

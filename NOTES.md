@@ -895,3 +895,66 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Correction : le badge « Brigade complète » (boulangerie) se donnait au 6e boulanger, alors qu'il y en a 7 depuis
   le pain de mie. Il demande maintenant toute l'équipe (staffFull, comme les badges des autres lieux) ; « Toutes les
   recettes » dit « tous les fours ». Les badges déjà gagnés restent gagnés. Vérifié : la ferme (24 ouvriers) est juste.
+
+## Point d'étape (sa partie, 8 h 20 de jeu)
+- 6 lieux (jusqu'à la boulangerie), 70 M gagnés, ≈ 3 000 €/s (4 800 €/s après 10 min de plus). Elle trouve le
+  rythme bon jusque-là. Le bot « -humain » est bien plus lent qu'elle (36 €/s à 5 h) : pour l'équilibrage, se fier
+  à ses sauvegardes plutôt qu'au bot. À surveiller : la série élevage → boucherie → domaine → pâtisserie (8 à 64 M).
+
+## Langues (français / anglais)
+- Demande : choisir la langue à l'ouverture (français par défaut), textes faciles à modifier par des humains pour
+  que la communauté ajoute des langues. Elle relit l'anglais. Choix : anglais américain, $ au lieu de €, nombres à
+  l'anglaise ($1,234.5), Clairbourg → « ClearTown » (son choix), pain au chocolat → « chocolate croissant ».
+- Système (package tr) : le français est la clé. langues/en.txt : « texte français = traduction », {trous}
+  remplis par le jeu (tr.F), « \= » pour un = dans un texte, # commentaire, ligne absente → français.
+  langues/LISEZMOI.txt explique comment ajouter une langue (copier en.txt). Les fichiers sont intégrés au jeu ;
+  sous Windows, un dossier « langues » à côté de l'exe est lu en plus (essayer sans compiler).
+- say(), textWidth() et wrap() traduisent tout seuls : un texte écrit d'un bloc se traduit sans toucher au code.
+  Les phrases faites de morceaux sont réécrites avec tr.F (« {n} client(s) attendent ! »).
+- La sauvegarde ne change pas (seul l'affichage est traduit) ; la langue est notée à côté (« langue »).
+- Premier lancement : fenêtre « Langue / Language », puis l'aide. Les parties existantes restent en français.
+  Bouton « Langue / Language » dans l'aide et sur la carte (écrit dans les deux langues pour qu'on le trouve).
+- Page web : textes de chargement en anglais si la partie (ou le navigateur) est en anglais.
+- Outil pour traduire : TR_LANGUE=en TR_MANQUANTS=fichier avec -captures (et CAPSAVE) : liste des textes affichés
+  sans traduction.
+- Étape 1 (menus, aide, carte, boutons, panneaux) faite ; étapes 2 (lieux, produits, machines, badges) et 3
+  (messages, commandes, école, mairie, reste) à suivre.
+- Retiré : les conseils sur les graines (« Les graines se plantent toutes seules… », « Prends les sachets… »,
+  « La colonne … est vide ») ne pouvaient plus s'afficher depuis la suppression des graines ; supprimés du code
+  et de en.txt.
+- Ménage du label bio (supprimé en v5, converti en points de comptable) : l'ancienne fenêtre « Améliorations de la
+  ferme » (BIO, MA FERME), qui ne s'ouvrait plus, est retirée. Badges devenus impossibles, remplacés (son accord) :
+  ferme « 100 % bio » → « Bons comptes » (70 points de comptable à la ferme) ; supermarché « Clients fidèles » →
+  100 points « Clients fidèles » au supermarché (mêmes identifiants : rien ne change dans la sauvegarde).
+- En anglais, Clairbourg s'appelle « ClearTown » (son choix).
+- Étape 2 (lieux, produits, machines, améliorations, badges, panneaux) : ≈ 800 lignes de plus dans en.txt.
+  Nouveauté du système : une ligne à trous sert aussi de **modèle** (« Étal : {p} = Stand: {p} » traduit
+  « Étal : Maïs » en « Stand: Corn », le morceau étant traduit à son tour ; les nombres à la française d'un morceau
+  passent à l'anglaise : 1 000 → 1,000, 20 % → 20%). Ainsi les noms composés de la simulation (« Étal : … »,
+  « Drone acheté pour l'étal « … » ! ») se traduisent sans changer le code ; les modèles les plus précis
+  passent d'abord. Les produits gardent leur nom français dans la sauvegarde (statistiques) : seul l'affichage change.
+- Produits qui ne servent plus (pain d'épices, tarte et gâteau aux fruits, sorbet et glace aux fruits, glaces et
+  sorbets cerise et fraise, cuisses de canard, sucre roux, sachets de graines) : gardés dans la liste (numéros
+  dans les sauvegardes), mais retirés de en.txt (rien à traduire).
+- Simplification de en.txt (sa demande : « la ferme », « La ferme », « Ferme » faisaient doublon). Le jeu déduit
+  maintenant la majuscule (« Crèmerie » ← « crèmerie = dairy ») et les articles grâce aux lignes « @début la = the »
+  (le, la, l', les) en tête de fichier ; une phrase traduite par modèle garde la majuscule de départ. 46 lignes
+  retirées. Une ligne complète reste prioritaire (utile pour les langues où l'article dépend du mot).
+  Outil : TR_SIMPLIFIER=chemin/en.txt go test ./tr -run Simplifier liste les lignes déductibles (.inutiles).
+  Conséquence acceptée : les noms de lieux en anglais passent en minuscules après le 1er mot (« Exotic farm »).
+- Retiré : le dessin des caisses de sachets de graines (étiquette « GRATUIT »), qui ne s'affichait plus depuis la
+  suppression des graines. « CIEL » est en haut de la marelle de la cour de l'école (« SKY » en anglais).
+- Carte : le bouton « Langue / Language » devient de petits boutons ronds à drapeaux (son choix) : bleu-blanc-rouge
+  pour le français, drapeau américain pour l'anglais ; la langue choisie est entourée de jaune ; un clic suffit.
+  Une langue ajoutée par la communauté a un rond bleu avec son code (ES, DE…). Les drapeaux sont aussi dans la
+  fenêtre de choix. L'aide garde son bouton « Langue / Language ».
+- Étape 3 (commandes et cadeaux, messages des rayons vides, école, points de la mairie, vestiaire, panneaux
+  restants) : ≈ 370 lignes. Les phrases à préposition (« à la crèmerie », « de la crèmerie ») passent par tr.F
+  avec deux trous : {alieu}/{delieu} (français, bonne préposition) et {lieu} (« the dairy », sim.theName) que la
+  traduction utilise. Le cadeau d'une commande est séparé du message par sim.GiftSep (seconde ligne du toast).
+  Les montants des messages de la simulation : sim.moneyText ($ en anglais).
+- Garde-fou : un texte déjà traduit n'est jamais retraduit (sinon un modèle court comme « {h} h {m} » abîmait des
+  phrases anglaises) ; un modèle marche aussi avec une minuscule au début (« en main : … »).
+- README : le jeu existe en français et en anglais ; lien vers langues/LISEZMOI.txt pour traduire.
+- Anglais : les clients des commandes ont des noms américains (son idée : « Mr. Smith » plutôt que « Mr. Dupont ») :
+  Mrs. Miller, the Johnson family, Grandma Jean, Mr. White…

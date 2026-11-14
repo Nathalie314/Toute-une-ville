@@ -12,6 +12,7 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 
 	"ville/sim"
+	"ville/tr"
 )
 
 // Tout est dessiné en coordonnées « virtuelles » puis converti en pixels :
@@ -331,7 +332,10 @@ func init() {
 }
 
 // say écrit un texte centré (align 0), aligné à gauche (-1) ou à droite (1).
+// Le texte est traduit dans la langue choisie (tr.T) : un texte écrit en
+// français dans le code s'affiche en anglais s'il est dans langues/en.txt.
 func say(dst *ebiten.Image, s string, x, y, size float64, bold bool, align int, c color.Color) {
+	s = tr.T(s)
 	flush()
 	src := fontReg
 	if bold {
@@ -352,6 +356,11 @@ func say(dst *ebiten.Image, s string, x, y, size float64, bold bool, align int, 
 }
 
 func textWidth(s string, size float64, bold bool) float64 {
+	return textWidthRaw(tr.T(s), size, bold)
+}
+
+// textWidthRaw : la largeur d'un texte déjà traduit.
+func textWidthRaw(s string, size float64, bold bool) float64 {
 	src := fontReg
 	if bold {
 		src = fontBold
@@ -380,6 +389,7 @@ func sayOutlined(dst *ebiten.Image, s string, x, y, size float64, align int, c, 
 
 // wrap coupe un texte en lignes de largeur maxW.
 func wrap(s string, size, maxW float64, bold bool) []string {
+	s = tr.T(s)
 	var lines []string
 	cur := ""
 	word := ""
@@ -391,7 +401,7 @@ func wrap(s string, size, maxW float64, bold bool) []string {
 		if cur != "" {
 			try = cur + " " + word
 		}
-		if textWidth(try, size, bold) > maxW && cur != "" {
+		if textWidthRaw(try, size, bold) > maxW && cur != "" {
 			lines = append(lines, cur)
 			cur = word
 		} else {
@@ -414,6 +424,9 @@ func wrap(s string, size, maxW float64, bold bool) []string {
 	if cur != "" {
 		lines = append(lines, cur)
 	}
+	for _, l := range lines {
+		tr.Seen(l) // (une ligne coupée n'est pas un texte à traduire)
+	}
 	return lines
 }
 
@@ -433,9 +446,23 @@ func money(v float64) string {
 			e++
 		}
 		t := int(math.Round(m * 10)) // toujours un chiffre après la virgule, même 0
+		if tr.English() {
+			return "$" + string(rune('0'+t/10)) + "." + string(rune('0'+t%10)) + " × 10" + sup(e)
+		}
 		return string(rune('0'+t/10)) + "," + string(rune('0'+t%10)) + " × 10" + sup(e) + " €"
 	}
+	if tr.English() {
+		return "$" + group(int64(v))
+	}
 	return group(int64(v)) + " €"
+}
+
+// rateText : un gain par seconde (+1,5 € / s ; en anglais +$1.5/s).
+func rateText(v float64) string {
+	if tr.English() {
+		return "+$" + ftoa(v, 1) + "/s"
+	}
+	return "+" + ftoa(v, 1) + " € / s"
 }
 
 // sup écrit un entier positif en exposant (⁶, ¹²…).
@@ -463,7 +490,11 @@ func group(n int64) string {
 	k := 0
 	for n > 0 {
 		if k > 0 && k%3 == 0 {
-			s = " " + s
+			if tr.English() {
+				s = "," + s
+			} else {
+				s = " " + s
+			}
 		}
 		s = string(rune('0'+n%10)) + s
 		n /= 10
@@ -492,7 +523,11 @@ func ftoa(v float64, dec int) string {
 			f = f[:len(f)-1]
 		}
 		if f != "" {
-			s += "," + f
+			if tr.English() {
+				s += "." + f
+			} else {
+				s += "," + f
+			}
 		}
 	}
 	return s

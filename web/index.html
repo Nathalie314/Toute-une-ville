@@ -31,17 +31,28 @@
 <body>
 <div id="tourne">
   <div class="icone">📱</div>
-  <h2>Tourne ton téléphone</h2>
-  <p>Toute une Ville se joue à l'horizontale.</p>
+  <h2 data-en="Turn your phone">Tourne ton téléphone</h2>
+  <p data-en="Toute une Ville is played in landscape mode.">Toute une Ville se joue à l'horizontale.</p>
 </div>
 <div id="chargement">
   <h1>Toute une Ville</h1>
   <p id="texte">Chargement du jeu…</p>
   <div id="barre"><div></div></div>
-  <p style="font-size:0.85em; margin-top:1.4em">Ta partie est enregistrée dans ce navigateur, sur cet appareil.</p>
+  <p style="font-size:0.85em; margin-top:1.4em" data-en="Your game is saved in this browser, on this device.">Ta partie est enregistrée dans ce navigateur, sur cet appareil.</p>
 </div>
 <script src="wasm_exec.js"></script>
 <script>
+// la langue : celle de la partie enregistrée, sinon celle du navigateur
+let anglais = !(navigator.language || "fr").toLowerCase().startsWith("fr");
+try {
+  const s = localStorage.getItem("ToutUneVille_sauvegarde");
+  if (s) anglais = /"langue":\s*"(?!fr")[a-z]/.test(s);
+} catch (e) {}
+if (anglais) {
+  document.documentElement.lang = "en";
+  for (const el of document.querySelectorAll("[data-en]")) el.textContent = el.dataset.en;
+}
+const chargement = anglais ? "Loading the game… " : "Chargement du jeu… ";
 (async () => {
   const texte = document.getElementById("texte");
   const barre = document.querySelector("#barre div");
@@ -58,7 +69,7 @@
       morceaux.push(value);
       recu += value.length;
       if (total) barre.style.width = Math.min(100, 100 * recu / total) + "%";
-      texte.textContent = "Chargement du jeu… " + Math.round(recu / 1e6) + " Mo";
+      texte.textContent = chargement + Math.round(recu / 1e6) + (anglais ? " MB" : " Mo");
     }
     const octets = new Uint8Array(recu);
     let p = 0;
@@ -68,7 +79,7 @@
     document.getElementById("chargement").remove();
     go.run(instance);
   } catch (e) {
-    texte.textContent = "Le jeu n'a pas pu se charger : " + e;
+    texte.textContent = (anglais ? "The game could not load: " : "Le jeu n'a pas pu se charger : ") + e;
   }
 })();
 </script>

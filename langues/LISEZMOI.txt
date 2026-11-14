@@ -1,0 +1,50 @@
+LANGUES DE TOUTE UNE VILLE / LANGUAGES OF TOUTE UNE VILLE
+=========================================================
+
+FRANÇAIS
+
+Le jeu est écrit en français. Chaque autre langue est un fichier texte de ce
+dossier : en.txt pour l'anglais, et ainsi de suite (le nom du fichier est le
+code de la langue : es.txt, de.txt, it.txt…).
+
+Pour ajouter une langue :
+1. Copie en.txt et renomme la copie (par exemple es.txt).
+2. Change la première ligne : @nom = Español (le nom affiché dans le jeu).
+3. Sur chaque ligne, remplace le texte à DROITE du « = » par ta traduction.
+   Ne touche pas au texte de gauche (le français) : c'est lui que le jeu cherche.
+4. Les {mots} entre accolades sont remplis par le jeu (un prix, un nom, un
+   nombre…) : recopie-les tels quels dans ta traduction, à la bonne place.
+5. Un signe « = » à l'intérieur d'un texte s'écrit \=  ;  « \n » passe à la ligne.
+6. Une ligne commençant par # est un commentaire. Une ligne oubliée reste en français.
+7. Pas besoin d'écrire les variantes : « Crèmerie » (majuscule) se déduit de « crèmerie = … ».
+   Les lignes « @début la = the » en tête du fichier disent comment traduire un article :
+   « la crèmerie » devient alors « the » + la traduction de « crèmerie ». Pour une langue où
+   l'article dépend du mot, écris simplement les lignes complètes (« la crèmerie = la lechería »).
+
+Pour essayer sans rien compiler (Windows) : crée un dossier « langues » à côté
+de ToutUneVille.exe et mets-y ton fichier. Le jeu le propose dans « Langue / Language ».
+Pour qu'il soit intégré au jeu, propose-le sur GitHub (une « issue » ou une « pull request »).
+
+ENGLISH
+
+The game is written in French. Every other language is a text file in this
+folder: en.txt for English, and so on (the file name is the language code:
+es.txt, de.txt, it.txt…).
+
+To add a language:
+1. Copy en.txt and rename the copy (for example es.txt).
+2. Change the first line: @nom = Español (the name shown in the game).
+3. On each line, replace the text on the RIGHT of the "=" with your translation.
+   Don't change the text on the left (the French): that's what the game looks for.
+4. The {words} in braces are filled in by the game (a price, a name, a
+   number…): copy them unchanged into your translation, in the right place.
+5. An "=" sign inside a text is written \=  ;  "\n" starts a new line.
+6. A line starting with # is a comment. A missing line stays in French.
+7. No need to write every variant: "Crèmerie" (capitalized) comes from "crèmerie = …".
+   The "@début la = the" lines at the top say how to translate an article: "la crèmerie"
+   then becomes "the" + the translation of "crèmerie". For a language where the article
+   depends on the word, just write the full lines ("la crèmerie = la lechería").
+
+To try it without compiling anything (Windows): create a "langues" folder next
+to ToutUneVille.exe and put your file in it. The game offers it under "Langue / Language".
+To have it included in the game, share it on GitHub (an "issue" or a "pull request").

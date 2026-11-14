@@ -138,7 +138,7 @@ var Badges = []Badge{
 	{ID: "f_pancarte", Place: "ferme", Name: "Bien en vue", Desc: "50 points de collégiens placés à la ferme.", Icon: IconSign, Check: func(g *Game) bool {
 		return g.Levels["ferme.pts_marketing"]+g.Levels["ferme.pts_panier"]+g.Levels["ferme.pts_fidele"]+g.Levels["ferme.pts_reclame"] >= 50
 	}},
-	{ID: "f_bio", Place: "ferme", Name: "100 % bio", Desc: "Label bio au niveau maximum.", Icon: IconBio, Check: lvl("ferme.bio", 6)},
+	{ID: "f_bio", Place: "ferme", Name: "Bons comptes", Desc: "Placer 70 points de comptable à la ferme.", Icon: IconBio, Check: lvl("ferme.pts_comptable", 70)},
 	{ID: "f_tout", Place: "ferme", Name: "La ferme idéale", Desc: "Construire tous les bâtiments et champs de la ferme.", Icon: IconFarm,
 		Check: func(g *Game) bool {
 			for _, u := range g.farm().Unlocks {
@@ -250,7 +250,7 @@ var Badges = []Badge{
 		Check: func(g *Game) bool { return g.sup().Served >= 10000 }},
 	{ID: "s_rep", Place: "super", Name: "Cinq étoiles en rayon", Desc: "Atteindre 5 étoiles au supermarché.", Icon: IconStar,
 		Check: func(g *Game) bool { return g.sup().Owned && g.sup().Rep >= 4.95 }},
-	{ID: "s_fidelite", Place: "super", Name: "Clients fidèles", Desc: "Carte de fidélité au niveau maximum.", Icon: IconBio, Check: lvl("super.bio", 6)},
+	{ID: "s_fidelite", Place: "super", Name: "Clients fidèles", Desc: "Placer 100 points « Clients fidèles » au supermarché.", Icon: IconBio, Check: lvl("super.pts_fidele", 100)},
 
 	// --- Clairbourg (général)
 	{ID: "g_camion", Place: "ville", Name: "Poids lourd", Desc: "100 points de mécaniciens dans un même lieu.", Icon: IconTruck, Check: func(g *Game) bool {

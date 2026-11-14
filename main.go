@@ -7,12 +7,14 @@ import (
 	"image/color"
 	"math"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"ville/sim"
+	"ville/tr"
 )
 
 // Toute une Ville — un jeu de gestion où l'on construit Clairbourg,
@@ -40,7 +42,6 @@ type panel int
 
 const (
 	panelNone panel = iota
-	panelUpgrades
 	panelMairie
 	panelWardrobe
 	panelWelcome
@@ -49,6 +50,7 @@ const (
 	panelBadges
 	panelBuy
 	panelPoints
+	panelLang
 )
 
 type button struct {
@@ -100,6 +102,7 @@ type game struct {
 	saveShots          *saveShots
 	capName            string
 	helpSeen           bool
+	langThenHelp       bool // premier lancement : après le choix de la langue, l'aide
 	quit               bool
 	off                *ebiten.Image
 	buying             *sim.Place
@@ -254,6 +257,11 @@ func (g *game) openPanel(p panel) {
 }
 
 func (g *game) closePanel() {
+	if g.panel == panelLang && g.langThenHelp {
+		g.langThenHelp = false
+		g.openPanel(panelHelp)
+		return
+	}
 	g.panel = panelNone
 	g.pending = nil
 	g.save()
@@ -314,8 +322,6 @@ func (g *game) Draw(screen *ebiten.Image) {
 	cam = ui
 	g.drawToasts(dst)
 	switch g.panel {
-	case panelUpgrades:
-		g.drawUpgradePanel(dst)
 	case panelMairie:
 		g.drawMairiePanel(dst)
 	case panelWardrobe:
@@ -332,6 +338,8 @@ func (g *game) Draw(screen *ebiten.Image) {
 		g.drawBuyPlace(dst)
 	case panelPoints:
 		g.drawPointsPanel(dst)
+	case panelLang:
+		g.drawLangPanel(dst)
 	}
 	g.drawHand(dst)
 	flush()
@@ -398,7 +406,17 @@ func main() {
 	} else {
 		ebiten.SetWindowSize(1600, 900)
 	}
-	if err := ebiten.RunGame(g); err != nil && err != errQuit && err != errDone {
+	if os.Getenv("TR_LANGUE") != "" { // outil de traduction : jouer dans une langue et noter ce qui manque
+		tr.Set(os.Getenv("TR_LANGUE"))
+		tr.Track()
+	}
+	err := ebiten.RunGame(g)
+	if os.Getenv("TR_LANGUE") != "" {
+		if f := os.Getenv("TR_MANQUANTS"); f != "" {
+			_ = os.WriteFile(f, []byte(strings.Join(tr.Missing(), "\n")+"\n"), 0o644)
+		}
+	}
+	if err != nil && err != errQuit && err != errDone {
 		os.Exit(1)
 	}
 }
