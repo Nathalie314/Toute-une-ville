@@ -981,3 +981,30 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   tirage, moitié particuliers, moitié cantine (si l'école est ouverte) — la boulangerie et le glacier reçoivent
   donc aussi des commandes de particuliers. Le glacier a maintenant sa caisse « Commandes » (zone du joueur), et
   donc les points Logistique et Réclame.
+
+## Le parc d'attractions (13e lieu) — étape 1
+- Sa demande (discutée avant de coder) : immense et aéré ; ne consomme rien, ne livre rien, autonome, rapporte de
+  l'argent. Parking au sud (10 → 300 places, 1 à 4 visiteurs par voiture) ; caisses : une ouverte au départ (sans
+  caissière), 10 au final ; entrée payante, son prix monte avec le nombre d'attractions ouvertes (pas leur taille).
+  Attractions : aucune offerte ; chacune a son employé (ou le joueur dans sa cabine) qui fait monter et descendre ;
+  une « taille » 1 à 10 (tour plus long, bonheur plus grand, dessin qui grandit) ; wagons ≤ taille (un tous les deux
+  niveaux pour les attractions à 4 places ; tour volante : nacelles par deux, 10 paires). Le parc attire 1 à 2
+  visiteurs par place à bord selon les étoiles (+ réclame). Jauge de bonheur : baisse en file (6 par minute),
+  monte à chaque tour (6 + 3,5 × taille) ; à la sortie de CHAQUE attraction : jauge au plus bas → −réputation,
+  jauge haute → +réputation ; un visiteur ne quitte jamais une file, sauf dans une attraction SANS employé
+  embauché, à 0 de bonheur (−réputation). Autre attraction seulement si jauge ≥ 75 % (la 1re est obligatoire) ;
+  il peut donc toutes les faire. Trottinettes (600 max, par 10) : prises à l'entrée, posées à l'entrée de chaque
+  attraction, rendues en sortant ; le joueur, lui, roule toujours en trottinette au parc (2 fois plus vite).
+- Attractions : petit train (2 par wagon, 10), train fantôme (2, 10), tour volante (chaises volantes géantes : 1
+  par nacelle, par paires, 20), petits bateaux (4, 5), grand huit (4, 5), grand splash (rondins, 4, 5), les pieds
+  dans le vide (2 par rangée, 10). Pas de commandes au parc. Points d'école : caisses, « Opérateurs :
+  embarquement » (pts_embarq), « Mécaniciens : trottinettes » (pts_trott), panier, clients fidèles, réclame
+  (= plus de visiteurs), comptables ; pas d'entraînement (personne ne marche).
+- Plan : 9000 de large ; deux rangées de quatre terrains (7 attractions, un terrain libre) de part et d'autre d'un
+  grand boulevard ; avenue jusqu'à la place de l'entrée et ses 10 caisses ; route ; parking (3 allées × 2 rangées
+  × 50). Code : sim/parc.go (Place.Parc : attractions, caisses, visiteurs ; stepParc), parc_draw.go.
+- Étape 1 : tout fonctionne ; le petit train a son vrai dessin (circuit qui s'allonge, étang et pont, colline et
+  tunnel, village, montagne et cascade) ; les autres attractions ont un dessin provisoire (étape 2). Étape 3 :
+  stands, badges, réglage du prix d'entrée (parcFeeBase, provisoire) pour rapporter ~2 fois la pâtisserie.
+- Pour qu'elle essaie : une partie d'essai (sa sauvegarde, tous les lieux jusqu'à la pâtisserie achetés, 2 × 10⁹ €)
+  dans un dossier à part avec l'exe (la sauvegarde est rangée à côté de l'exe : sa vraie partie n'est pas touchée).

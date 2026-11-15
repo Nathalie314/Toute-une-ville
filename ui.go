@@ -432,7 +432,7 @@ type gainsView struct {
 // gainNames : le nom d'un lieu dans le tableau des gains.
 var gainNames = map[string]string{"ferme": "Ma ferme", "super": "Supermarché", "cremerie": "Crèmerie", "exotique": "Ferme exotique",
 	"boulangerie": "Boulangerie", "glacier": "Glacier", "port": "Port", "elevage": "Ferme d'élevage", "boucherie": "Boucherie",
-	"domaine": "Le domaine", "patisserie": "Pâtisserie"}
+	"domaine": "Le domaine", "patisserie": "Pâtisserie", "parc": "Parc d'attractions"}
 
 // openGains : la photo des gains des 10 dernières minutes, prise à l'ouverture
 // (elle ne bouge plus tant que la page reste ouverte).
@@ -1148,7 +1148,7 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		{id: "zoo", name: "Zoo", status: "Bientôt", col: 0x7a9a2a},
 		{id: "hopital", name: "Hôpital", status: "Bientôt", col: 0xe74c3c},
 		{id: "prison", name: "Prison", status: "Bientôt", col: 0x5d6d7e},
-		{id: "parc", name: "Parc d'attractions", status: "Bientôt", col: 0xff8a3d},
+		g.placeTile("parc", "Parc d'attractions", 0xff8a3d),
 	}
 	cols := (len(tiles) + 2) / 3 // trois rangées
 	gap := 26.0
@@ -1717,6 +1717,8 @@ func (g *game) drawBuyPlace(dst *ebiten.Image) {
 		txt = "La pâtisserie : tartes aux pommes, riz au lait, clafoutis, gâteaux au chocolat, éclairs au café et fraisiers. Chaque recette demande au moins 3 ingrédients, qui viennent de ta ferme, de la crèmerie et de la ferme exotique. Rien n'est offert : même la première machine s'achète."
 	case "domaine":
 		txt = "Le domaine : la vigne, le houblon et une distillerie. Le raisin et les jus partent en camion au supermarché ; on vend sur place les vins, la bière, le cidre et les alcools (avec les pommes, poires, pommes de terre et le blé de ta ferme). Chaque espace a ses ouvriers. L'alcool est dangereux pour la santé : à consommer avec modération."
+	case "parc":
+		txt = "Le parc d'attractions ne consomme rien et ne livre rien : les visiteurs paient l'entrée (plus chère à chaque nouvelle attraction) et viennent pour les attractions, qui grandissent avec leur taille. Un employé (ou toi) fait monter et descendre les visiteurs ; l'attente fait baisser leur bonheur. Au parc, tu roules en trottinette."
 	case "glacier":
 		txt = "Le glacier fait des sorbets (fraise, mangue, ananas) avec les fruits, puis des glaces : crème et œufs avec de la vanille, du café, de la noix de coco, du chocolat ou des poires. Les ingrédients arrivent en camion (ferme, crèmerie, ferme exotique)."
 	}

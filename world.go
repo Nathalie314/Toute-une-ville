@@ -84,6 +84,8 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 		g.portGround(dst, p, tl, br)
 	case "domaine":
 		g.domaineGround(dst, p, tl, br)
+	case "parc":
+		g.parcGround(dst, p, tl, br)
 	default:
 		g.workshopGround(dst, p, tl, br)
 	}
@@ -193,6 +195,9 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	}
 	if p.ID == "ecole" {
 		ds = g.schoolDrawables(dst, p, ds)
+	}
+	if p.ID == "parc" {
+		ds = g.parcDrawables(dst, p, ds, tl, br)
 	}
 	// arbres décoratifs autour (à la ferme)
 	for _, tr := range trees {
