@@ -79,86 +79,231 @@ func scatter(r *sim.Ride, pts []V, n, seed int, keep float64) []V {
 
 // ---------------------------------------------------------------- train fantôme
 
-// drawGhostRide : une maison hantée qui grandit (des tours aux tailles 3, 6 et 9),
-// un cimetière, des citrouilles, des arbres morts, des fantômes et des chauves-souris.
-// Les wagons disparaissent dans la maison.
+// ghostTrack : le circuit du train fantôme, différent du petit train : des allers
+// et retours serrés (plus nombreux avec la taille), qui reviennent au départ.
+func ghostTrack(r *sim.Ride, level int) []V {
+	tr := r.Track()
+	f := float64(level) / 10
+	w := tr.W * (0.32 + 0.64*f)
+	h := tr.H * math.Min(0.9, 0.5+0.45*f)
+	x0 := tr.X + 30
+	y0, y1 := tr.Y+tr.H-30-h, tr.Y+tr.H-30
+	if !r.Top {
+		y0, y1 = tr.Y+30, tr.Y+30+h
+	}
+	n := 1 + level/3 // nombre d'allers et retours (4 au plus)
+	var raw []V
+	step := w / float64(2*n+1)
+	for i := 0; i < n; i++ {
+		x := x0 + float64(2*i)*step
+		raw = append(raw, V{X: x, Y: y1}, V{X: x, Y: y0 + 90}, V{X: x + step, Y: y0 + 90}, V{X: x + step, Y: y1 - 90})
+	}
+	raw = append(raw, V{X: x0 + float64(2*n)*step, Y: y1 - 90}, V{X: x0 + w, Y: y1 - 90}, V{X: x0 + w, Y: y0}, V{X: x0 - 20, Y: y0}, V{X: x0 - 20, Y: y1})
+	return resample(smoothClosed(raw, 3), 180)
+}
+
+// smoothClosed : arrondit les coins d'un circuit fermé (Chaikin).
+func smoothClosed(pts []V, iters int) []V {
+	for k := 0; k < iters; k++ {
+		var out []V
+		for i := range pts {
+			a, b := pts[i], pts[(i+1)%len(pts)]
+			out = append(out, a.Mul(0.75).Add(b.Mul(0.25)), a.Mul(0.25).Add(b.Mul(0.75)))
+		}
+		pts = out
+	}
+	return pts
+}
+
+// resample : n points régulièrement espacés le long d'un circuit fermé.
+func resample(pts []V, n int) []V {
+	out := make([]V, 0, n)
+	for i := 0; i < n; i++ {
+		q, _ := along(pts, float64(i)/float64(n))
+		out = append(out, q)
+	}
+	return out
+}
+
+// inTunnel : la fraction s du circuit est-elle sous un tunnel ?
+func inTunnel(s float64, tunnels [][2]float64) bool {
+	s = math.Mod(s+10, 1)
+	for _, tn := range tunnels {
+		if s >= tn[0] && s <= tn[1] {
+			return true
+		}
+	}
+	return false
+}
+
+// drawMonster : un monstre (0 squelette, 1 momie, 2 vampire, 3 zombie) ; up : 0 caché, 1 surgi.
+func drawMonster(dst *ebiten.Image, kind int, at V, up, t float64) {
+	// sa cachette : une tombe, un sarcophage, un cercueil, un tas de terre
+	switch kind {
+	case 0:
+		roundRect(dst, at.X-16, at.Y-26, 32, 30, 10, rgb(0x8a8a8a))
+	case 1:
+		roundRect(dst, at.X-14, at.Y-34, 28, 38, 6, rgb(0xc8a050))
+	case 2:
+		polygon(dst, []V{{X: at.X - 12, Y: at.Y - 36}, {X: at.X + 12, Y: at.Y - 36}, {X: at.X + 16, Y: at.Y + 4}, {X: at.X - 16, Y: at.Y + 4}}, rgb(0x4a2a1a))
+	default:
+		ellipse(dst, at.X, at.Y, 22, 10, rgb(0x6a4a2a))
+	}
+	if up < 0.05 {
+		return
+	}
+	h := 70 * up // il se dresse
+	y := at.Y - 10 - h
+	body := map[int]uint32{0: 0xf2f2e6, 1: 0xe8e0c8, 2: 0x2b2b3a, 3: 0x5a7a4a}[kind]
+	face := map[int]uint32{0: 0xf2f2e6, 1: 0xe8e0c8, 2: 0xf0e8f0, 3: 0x8ab06a}[kind]
+	rect(dst, at.X-10, y+14, 20, h*0.8, rgb(body))
+	if kind == 2 { // la cape du vampire, doublée de rouge
+		polygon(dst, []V{{X: at.X - 10, Y: y + 16}, {X: at.X - 26, Y: y + 16 + h*0.75}, {X: at.X - 8, Y: y + 16 + h*0.7}}, rgb(0xc0392b))
+		polygon(dst, []V{{X: at.X + 10, Y: y + 16}, {X: at.X + 26, Y: y + 16 + h*0.75}, {X: at.X + 8, Y: y + 16 + h*0.7}}, rgb(0xc0392b))
+	}
+	if kind == 1 { // les bandelettes de la momie
+		for k := 0.0; k < h*0.8; k += 8 {
+			line(dst, at.X-10, y+16+k, at.X+10, y+20+k, 2, rgb(0xb8a888))
+		}
+	}
+	if kind == 0 { // les côtes du squelette
+		for k := 0.0; k < h*0.5; k += 9 {
+			line(dst, at.X-8, y+20+k, at.X+8, y+20+k, 3, rgb(0x5a5a5a))
+		}
+	}
+	// les bras levés (ils s'agitent)
+	wave := 6 * math.Sin(t*10+at.X)
+	line(dst, at.X-10, y+20, at.X-24, y+2+wave, 5, rgb(face))
+	line(dst, at.X+10, y+20, at.X+24, y+2-wave, 5, rgb(face))
+	circle(dst, at.X, y+6, 12, rgb(face))
+	circle(dst, at.X-4, y+4, 3, rgb(map[int]uint32{0: 0x1b1b1b, 1: 0x1b1b1b, 2: 0xd9534f, 3: 0xd9534f}[kind]))
+	circle(dst, at.X+4, y+4, 3, rgb(map[int]uint32{0: 0x1b1b1b, 1: 0x1b1b1b, 2: 0xd9534f, 3: 0xd9534f}[kind]))
+	if kind == 2 {
+		polygon(dst, []V{{X: at.X - 12, Y: y - 4}, {X: at.X, Y: y + 2}, {X: at.X + 12, Y: y - 4}, {X: at.X, Y: y - 10}}, rgb(0x1b1b1b))
+	}
+}
+
+// drawWitch : une sorcière qui touille son chaudron.
+func drawWitch(dst *ebiten.Image, at V, t float64) {
+	ellipse(dst, at.X+40, at.Y+22, 44, 12, rgba(0x000000, 0.25))
+	// le feu sous le chaudron
+	for k := 0; k < 3; k++ {
+		fl := 10 + 6*math.Sin(t*9+float64(k))
+		polygon(dst, []V{{X: at.X + 28 + float64(k)*12, Y: at.Y + 20}, {X: at.X + 34 + float64(k)*12, Y: at.Y + 20 - fl}, {X: at.X + 40 + float64(k)*12, Y: at.Y + 20}}, rgb(0xff8a3d))
+	}
+	ellipse(dst, at.X+40, at.Y, 38, 26, rgb(0x2b2b2b))
+	ellipse(dst, at.X+40, at.Y-12, 32, 10, rgb(0x6ad04a))
+	for k := 0; k < 4; k++ { // les bulles
+		b := math.Mod(t*1.5+float64(k)*0.25, 1)
+		circle(dst, at.X+28+float64(k)*8, at.Y-14-b*40, 4+2*b, rgba(0x8af06a, 1-b))
+	}
+	// la sorcière : robe noire, visage vert, chapeau pointu ; la louche tourne
+	a := t * 3
+	sx, sy := at.X+40+math.Cos(a)*16, at.Y-12+math.Sin(a)*5
+	polygon(dst, []V{{X: at.X - 26, Y: at.Y + 20}, {X: at.X - 10, Y: at.Y - 50}, {X: at.X + 6, Y: at.Y + 20}}, rgb(0x2b1b3b))
+	line(dst, at.X-4, at.Y-30, sx, sy-30, 4, rgb(0x6aa04a))
+	line(dst, sx, sy-36, sx, sy, 4, rgb(0x6e4322))
+	circle(dst, at.X-10, at.Y-58, 12, rgb(0x6aa04a))
+	circle(dst, at.X-4, at.Y-58, 3, rgb(0x1b1b1b))
+	polygon(dst, []V{{X: at.X - 30, Y: at.Y - 66}, {X: at.X - 10, Y: at.Y - 110}, {X: at.X + 10, Y: at.Y - 66}}, rgb(0x1b1b1b))
+	rect(dst, at.X-34, at.Y-68, 48, 6, rgb(0x1b1b1b))
+}
+
+// drawGhostRide : le train fantôme. Son circuit zigzague (de plus en plus avec la
+// taille) ; il disparaît sous des tunnels sombres ; des squelettes, des momies,
+// des vampires et des zombies surgissent à son passage ; une sorcière touille son
+// chaudron près des rails. Tombes, citrouilles, arbres morts, fantômes, chauves-souris.
 func drawGhostRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float64) {
-	pts := trackLoop(r, level, 0.15)
-	f := float64(level)
-	// le sol devient sombre
+	pts := ghostTrack(r, level)
 	c := centroid(pts)
 	tr := r.Track()
-	ellipse(dst, c.X, c.Y, math.Min(tr.W/2, 260+60*f), math.Min(tr.H/2, 170+30*f), rgba(0x3b3b2b, 0.25))
-	for i, q := range scatter(r, pts, 3+3*level, 11, 70) {
+	f := float64(level)
+	ellipse(dst, c.X, c.Y, math.Min(tr.W/2, 260+60*f), math.Min(tr.H/2, 180+30*f), rgba(0x3b3b2b, 0.25))
+	for i, q := range scatter(r, pts, 2+2*level, 11, 60) {
 		switch i % 3 {
-		case 0: // une tombe
-			roundRect(dst, q.X-14, q.Y-30, 28, 34, 10, rgb(0x8a8a8a))
-			line(dst, q.X, q.Y-24, q.X, q.Y-8, 3, rgb(0x5a5a5a))
-			line(dst, q.X-6, q.Y-19, q.X+6, q.Y-19, 3, rgb(0x5a5a5a))
-		case 1: // une citrouille
+		case 0:
 			circle(dst, q.X, q.Y, 14, rgb(0xff8a3d))
 			rect(dst, q.X-2, q.Y-18, 4, 6, rgb(0x2f6a3a))
 			circle(dst, q.X-5, q.Y-2, 2.5, rgb(0x3b2a10))
 			circle(dst, q.X+5, q.Y-2, 2.5, rgb(0x3b2a10))
-		default: // un arbre mort
+		default:
 			line(dst, q.X, q.Y, q.X, q.Y-60, 6, rgb(0x4a3a2a))
 			line(dst, q.X, q.Y-40, q.X-20, q.Y-62, 4, rgb(0x4a3a2a))
 			line(dst, q.X, q.Y-48, q.X+18, q.Y-70, 4, rgb(0x4a3a2a))
 		}
 	}
-	drawLoop(dst, pts, 24, 0x2b2b2b)
+	drawLoop(dst, pts, 26, 0x2b2b2b)
 	drawLoop(dst, pts, 6, 0x7a5a9a)
-	// la maison, au centre du circuit
-	bw := math.Min(160+55*f, (pts[0].X-c.X)*1.5)
-	bh := 110 + 26*f
-	h := sim.Rect{X: c.X - bw/2, Y: c.Y - bh/2, W: bw, H: bh}
 	s0 := rideStart(r, pts)
+	// les tunnels : un, puis un de plus tous les 3 niveaux (jamais à la gare)
+	var tunnels [][2]float64
+	nt := 1 + level/3
+	for i := 0; i < nt; i++ {
+		a := math.Mod(s0+0.12+float64(i)*0.8/float64(nt), 1)
+		tunnels = append(tunnels, [2]float64{a, math.Min(0.999, a+0.045+0.004*f)})
+	}
 	pos := ridePos(r, s0)
 	units := p.RideUnits(r)
 	gap := 48.0 / pathLen(pts)
-	for k := 0; k < units; k++ { // les wagons dehors (dans la maison, on ne les voit pas)
-		at, dir := along(pts, pos-float64(k)*gap)
-		if h.Grow(10).Has(at) {
-			continue
+	var cars []V
+	for k := 0; k < units; k++ {
+		s := pos - float64(k)*gap
+		at, dir := along(pts, s)
+		cars = append(cars, at)
+		if inTunnel(s, tunnels) {
+			continue // sous le tunnel
 		}
 		polygon(dst, box(at, dir, 20, 15), rgb(0x2b2b3a))
 		circle(dst, at.X+dir.X*14, at.Y+dir.Y*14-6, 7, rgb(0xd9d9d9)) // la tête de mort à l'avant
 		heads(dst, at, dir, ridersIn(r, k, 2), 14)
 	}
-	ellipse(dst, h.C().X, h.Y+h.H, bw*0.55, 22, rgba(0x000000, 0.25))
-	rect(dst, h.X, h.Y-30, h.W, h.H+30, rgb(0x4a3a5a))
-	polygon(dst, []V{{X: h.X - 20, Y: h.Y - 30}, {X: h.C().X, Y: h.Y - 30 - 60 - 6*f}, {X: h.X + h.W + 20, Y: h.Y - 30}}, rgb(0x2b1b3b))
-	for i := 0; i < int(2+f/2); i++ { // fenêtres qui luisent
-		x := h.X + 30 + float64(i)*(h.W-60)/math.Max(1, 1+f/2)
-		glowc := rgba(0xffd23f, 0.55+0.45*math.Sin(t*3+float64(i)))
-		roundRect(dst, x, h.Y+10, 24, 30, 6, glowc)
+	// les tunnels par-dessus les rails : une voûte sombre et ses deux bouches
+	for _, tn := range tunnels {
+		var seg []V
+		for s := tn[0]; s <= tn[1]; s += 0.004 {
+			q, _ := along(pts, s)
+			seg = append(seg, q)
+		}
+		for i := 0; i+1 < len(seg); i++ {
+			line(dst, seg[i].X, seg[i].Y, seg[i+1].X, seg[i+1].Y, 48, rgb(0x3b2b4b))
+			line(dst, seg[i].X, seg[i].Y-5, seg[i+1].X, seg[i+1].Y-5, 32, rgb(0x4a3a5a))
+		}
+		for _, e := range []V{seg[0], seg[len(seg)-1]} {
+			circle(dst, e.X, e.Y, 26, rgb(0x2b1b3b))
+			circle(dst, e.X, e.Y+4, 17, rgb(0x0b0b10))
+		}
 	}
-	roundRect(dst, h.C().X-30, h.Y+h.H-60, 60, 60, 20, rgb(0x1b1b1b)) // la porte
-	tower := func(x float64, k float64) {
-		rect(dst, x-26*k, h.Y-60*k, 52*k, h.H+60*k, rgb(0x3b2b4b))
-		polygon(dst, []V{{X: x - 36*k, Y: h.Y - 60*k}, {X: x, Y: h.Y - 150*k}, {X: x + 36*k, Y: h.Y - 60*k}}, rgb(0x2b1b3b))
-		roundRect(dst, x-8*k, h.Y-40*k, 16*k, 22*k, 5, rgba(0xffd23f, 0.8))
+	// les monstres, au bord des rails : ils surgissent quand un wagon arrive
+	nm := min(14, 2+level)
+	for i := 0; i < nm; i++ {
+		s := math.Mod(s0+0.06+float64(i)*0.9/float64(nm), 1)
+		if inTunnel(s, tunnels) {
+			s = math.Mod(s+0.1, 1)
+		}
+		q, dir := along(pts, s)
+		side := V{X: -dir.Y, Y: dir.X}.Mul(float64(1 - 2*(i%2)))
+		at := q.Add(side.Mul(48))
+		near := 1e9
+		for _, cq := range cars {
+			near = math.Min(near, cq.Dist(at))
+		}
+		up := math.Max(0, math.Min(1, (170-near)/80))
+		drawMonster(dst, i%4, at, up, t)
 	}
-	if level >= 3 {
-		tower(h.X+20, 1)
-	}
-	if level >= 6 {
-		tower(h.X+h.W-20, 1.15)
-	}
-	if level >= 9 {
-		tower(h.C().X, 1.5)
-	}
-	// les fantômes et les chauves-souris
+	// la sorcière et son chaudron, près des rails
+	wq, wd := along(pts, s0+0.5)
+	drawWitch(dst, wq.Add(V{X: -wd.Y, Y: wd.X}.Mul(80)).Add(V{X: -20}), t)
+	// fantômes et chauves-souris
 	for i := 0; i < level/2; i++ {
 		a := t*0.8 + float64(i)*1.7
-		x, y := c.X+math.Cos(a)*(bw*0.7), c.Y-bh-40+math.Sin(a*1.3)*30
+		x, y := c.X+math.Cos(a)*tr.W*0.25, c.Y-60+math.Sin(a*1.3)*tr.H*0.2
 		ellipse(dst, x, y, 18, 24, rgba(0xffffff, 0.75))
 		circle(dst, x-6, y-6, 3, rgb(0x2b2b2b))
 		circle(dst, x+6, y-6, 3, rgb(0x2b2b2b))
 	}
 	for i := 0; i < (level+1)/2; i++ {
 		a := t*1.6 + float64(i)*2.3
-		x, y := c.X+math.Cos(a)*(bw*0.5+40), h.Y-120-30*math.Sin(a*2)
+		x, y := c.X+math.Cos(a)*tr.W*0.3, c.Y-tr.H*0.25-30*math.Sin(a*2)
 		wing := 12 * math.Abs(math.Sin(t*12+float64(i)))
 		polygon(dst, []V{{X: x, Y: y}, {X: x - 22, Y: y - wing}, {X: x - 10, Y: y + 4}}, rgb(0x2b2b2b))
 		polygon(dst, []V{{X: x, Y: y}, {X: x + 22, Y: y - wing}, {X: x + 10, Y: y + 4}}, rgb(0x2b2b2b))

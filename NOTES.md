@@ -1037,3 +1037,8 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Bandeau d'aide du parc : après les premières étapes, il propose l'achat le moins cher à portée (attraction,
   caisse) ; plus jamais de conseils d'un autre lieu (« remplis son quai… »).
 - Outil de capture : CAPAT=x,y (photo centrée sur ce point), CAPN (nombre de photos), CAPDT (secondes entre deux).
+- Train fantôme redessiné (sa demande) : circuit à lui, en allers-retours (1 + taille/3, arrondis) très différent
+  de la boucle du petit train ; il disparaît sous des tunnels sombres (1 + taille/3, courts) ; des squelettes,
+  momies, vampires et zombies (2 + taille, 14 au plus) surgissent de leur tombe, sarcophage, cercueil ou tas de terre
+  quand un wagon passe près d'eux ; une sorcière touille son chaudron (feu, bulles vertes) près des rails ; plus de
+  maison hantée. La partie d'essai a maintenant 10¹³ € pour tout débloquer.
