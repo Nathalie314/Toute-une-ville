@@ -1141,6 +1141,7 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		g.placeTile("boucherie", "Boucherie", 0xb03a3a),
 		g.placeTile("domaine", "Le domaine", 0x7a2a4a),
 		g.placeTile("patisserie", "Pâtisserie", 0xe0567f),
+		g.placeTile("parc", "Parc d'attractions", 0xff8a3d),
 		{id: "creperie", name: "Crêperie", status: "Bientôt", col: 0xd9a55a},
 		{id: "fleuriste", name: "Fleuriste", status: "Bientôt", col: 0xff6fa8},
 		{id: "restaurant", name: "Restaurant", status: "Bientôt", col: 0xe67e22},
@@ -1148,7 +1149,6 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		{id: "zoo", name: "Zoo", status: "Bientôt", col: 0x7a9a2a},
 		{id: "hopital", name: "Hôpital", status: "Bientôt", col: 0xe74c3c},
 		{id: "prison", name: "Prison", status: "Bientôt", col: 0x5d6d7e},
-		g.placeTile("parc", "Parc d'attractions", 0xff8a3d),
 	}
 	cols := (len(tiles) + 2) / 3 // trois rangées
 	gap := 26.0

@@ -1008,3 +1008,8 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   stands, badges, réglage du prix d'entrée (parcFeeBase, provisoire) pour rapporter ~2 fois la pâtisserie.
 - Pour qu'elle essaie : une partie d'essai (sa sauvegarde, tous les lieux jusqu'à la pâtisserie achetés, 2 × 10⁹ €)
   dans un dossier à part avec l'exe (la sauvegarde est rangée à côté de l'exe : sa vraie partie n'est pas touchée).
+- Retours d'essai : le parc est sur la carte juste après la pâtisserie (avant les « Bientôt ») ; l'agrandissement du
+  parking est dans la zone du joueur (rangée des améliorations) ; les trottinettes se voient mieux : un râtelier
+  avec son toit et son panneau « TROTTINETTES » sur la place, à droite des caisses (30 places dessinées, compteur
+  libres / total, visible même vide), sa case d'achat juste à côté, des trottinettes plus grandes et colorées
+  sous les visiteurs et sous le joueur.

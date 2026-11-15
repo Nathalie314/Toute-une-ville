@@ -101,7 +101,7 @@ func (g *game) parcDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable, tl,
 		}
 	}
 	// le râtelier des trottinettes
-	ds = append(ds, drawable{sim.ParcRackY, func() { drawTrottRack(dst, p) }})
+	ds = append(ds, drawable{sim.ParcRackTop + 40, func() { drawTrottRack(dst, p) }})
 	for _, r := range pc.Rides {
 		if o := r.Operator; o != nil && p.RideBuilt(r) {
 			ds = append(ds, drawable{o.Pos.Y, func() { drawAgent(dst, p.ID, o, t) }})
@@ -133,45 +133,51 @@ func drawParcBooth(dst *ebiten.Image, p *sim.Place, r *sim.ParcReg) {
 	}
 }
 
-// drawTrottRack : les trottinettes libres, à l'entrée de l'avenue.
+// drawTrottRack : le râtelier des trottinettes, sur la place de l'entrée (visible
+// même vide : on sait où elles iront).
 func drawTrottRack(dst *ebiten.Image, p *sim.Place) {
-	n := p.ParcTrottFree()
-	if p.ParcTrottTotal() == 0 {
-		return
+	x, y, w := sim.ParcRackX, sim.ParcRackTop, sim.ParcRackW
+	total, free := p.ParcTrottTotal(), p.ParcTrottFree()
+	// l'abri : un toit et son panneau
+	roundRect(dst, x, y+40, w, 300, 18, rgba(0x000000, 0.08))
+	rect(dst, x+10, y, 10, 70, rgb(0x5a6a7a))
+	rect(dst, x+w-20, y, 10, 70, rgb(0x5a6a7a))
+	roundRect(dst, x-10, y-30, w+20, 44, 12, rgb(0x2fa86b))
+	say(dst, "TROTTINETTES", x+w/2, y-8, 22, true, 0, rgb(0xffffff))
+	// les places (30 visibles) : une trottinette, ou une place vide
+	for i := 0; i < 30; i++ {
+		cx := x + 30 + float64(i%10)*38
+		cy := y + 100 + float64(i/10)*80
+		if i < min(free, 30) {
+			drawScooter(dst, V{X: cx, Y: cy}, V{X: 0, Y: 1}, 0.9, i)
+		} else {
+			roundRect(dst, cx-14, cy-4, 28, 8, 4, rgba(0x000000, 0.15))
+		}
 	}
-	x0 := sim.ParcAvX + sim.ParcAvW/2 + 40
-	y := sim.ParcRackY
-	shown := min(n, 40)
-	for i := 0; i < shown; i++ {
-		drawScooter(dst, V{X: x0 + float64(i%10)*26, Y: y + float64(i/10)*34}, V{X: 0, Y: 1}, 0.8)
-	}
-	say(dst, itoa(n)+" / "+itoa(p.ParcTrottTotal()), x0+120, y-40, 16, true, 0, rgb(0x4a4a4a))
+	say(dst, itoa(free)+" / "+itoa(total), x+w/2, y+340, 22, true, 0, rgb(0x3b2a10))
 }
 
-// drawScooter : une trottinette électrique (vue de dessus, un peu de côté).
-func drawScooter(dst *ebiten.Image, at, face V, k float64) {
-	dir := face
-	if math.Abs(dir.X) < 0.3 {
-		dir = V{X: 1, Y: 0}
-	}
+// drawScooter : une trottinette électrique (vue de côté), couleur selon n.
+func drawScooter(dst *ebiten.Image, at, face V, k float64, n int) {
 	sx := 1.0
-	if dir.X < 0 {
+	if face.X < -0.2 {
 		sx = -1
 	}
+	col := []uint32{0x4fc3ff, 0xff6fa8, 0x7ed957, 0xffd23f, 0xff8a3d}[(n%5+5)%5]
 	x, y := at.X, at.Y
-	roundRect(dst, x-22*k, y-4*k, 44*k, 8*k, 4*k, rgb(0x2b2b3a))
-	circle(dst, x-20*k, y+4*k, 6*k, rgb(0x222222))
-	circle(dst, x+20*k, y+4*k, 6*k, rgb(0x222222))
-	line(dst, x+18*k*sx, y, x+16*k*sx, y-34*k, 4*k, rgb(0x4fc3ff))
-	line(dst, x+8*k*sx, y-34*k, x+24*k*sx, y-34*k, 4*k, rgb(0x2b2b3a))
+	circle(dst, x-24*k, y+6*k, 8*k, rgb(0x222222))
+	circle(dst, x+24*k, y+6*k, 8*k, rgb(0x222222))
+	roundRect(dst, x-28*k, y-6*k, 56*k, 10*k, 5*k, rgb(col))
+	line(dst, x+22*k*sx, y-2*k, x+18*k*sx, y-46*k, 5*k, rgb(0x3a3a4a))
+	line(dst, x+8*k*sx, y-46*k, x+28*k*sx, y-46*k, 5*k, rgb(0x2b2b3a))
 }
 
 // drawVisitor : un visiteur (sur sa trottinette s'il en a une et qu'il roule).
 func drawVisitor(dst *ebiten.Image, v *sim.Visitor) {
 	lk := lookFrom(v.Look)
 	if v.OnTrott() {
-		drawScooter(dst, v.Pos, v.Face, 1)
-		drawPerson(dst, v.Pos.Add(V{X: 0, Y: -8}), v.Face, 0, false, lk, nil)
+		drawPerson(dst, v.Pos.Add(V{X: 0, Y: -12}), v.Face, 0, false, lk, nil)
+		drawScooter(dst, v.Pos, v.Face, 1, v.Look)
 	} else {
 		drawPerson(dst, v.Pos, v.Face, v.WalkT, v.Moving, lk, nil)
 	}

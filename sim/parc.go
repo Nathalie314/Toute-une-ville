@@ -37,7 +37,10 @@ const (
 	ParcPlazaY    = 1080.0 // haut de la place de l'entrée
 	ParcRegY      = 1200.0 // les cabines des caisses
 	ParcRegGap    = 190.0
-	ParcRackY     = 1000.0 // les trottinettes, sur l'avenue, juste après les caisses
+	ParcRackY     = 1000.0 // en montant l'avenue après les caisses (on rend sa trottinette en repassant ici)
+	ParcRackX     = 5560.0 // le râtelier des trottinettes, sur la place, à droite des caisses
+	ParcRackW     = 400.0
+	ParcRackTop   = 1130.0
 	parcAccessX   = 2250.0 // route d'accès au parking (à gauche des places)
 	parcExitX     = 6950.0 // route de sortie (à droite)
 	parcSpotW     = 85.0
@@ -342,7 +345,7 @@ func newParc(g *Game) *Place {
 	spot("parking", "Parking +10", Rect{ParcAvX - 1150, ParcPlazaY + 150, 130, 124}, "", func(l int) string {
 		return itoa(p.ParcParkTotalAt(l)) + " places de parking !"
 	})
-	spot("trott", "Trottinettes +10", Rect{ParcAvX + 1020, ParcPlazaY + 150, 130, 124}, "", func(l int) string {
+	spot("trott", "Trottinettes +10", Rect{ParcRackX + ParcRackW + 20, ParcRackTop + 60, 130, 124}, "", func(l int) string {
 		return itoa(10*l) + " trottinettes !"
 	})
 	for _, r := range pc.Rides {
@@ -385,6 +388,10 @@ func newParc(g *Game) *Place {
 		return di < dj
 	})
 	p.setupYard(-620)
+	// l'agrandissement du parking : dans la zone du joueur
+	if sp := p.spot("parking"); sp != nil {
+		sp.Zone = Rect{p.Yard.X + 10, yardRow1, 130, 124}
+	}
 	return p
 }
 
