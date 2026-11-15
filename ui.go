@@ -2072,12 +2072,13 @@ func (g *game) drawPointsPanel(dst *ebiten.Image) {
 	if len(places) > vis {
 		vis = max(1, int((listH-70)/70)) // (la place des flèches en bas)
 		maxS := len(places) - vis
-		if g.hover(x+30, y, lw, listH) {
-			if _, wy := ebiten.Wheel(); wy > 0 {
+		if g.hover(x, y-10, lw+60, listH+20) { // (toute la colonne des lieux)
+			if wy := g.wheelAcc; wy > 0 {
 				g.ptsScroll--
 			} else if wy < 0 {
 				g.ptsScroll++
 			}
+			g.wheelAcc = 0
 		}
 		g.ptsScroll = max(0, min(maxS, g.ptsScroll))
 		ay := y + listH - 56

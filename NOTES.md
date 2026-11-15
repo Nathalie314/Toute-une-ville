@@ -1187,3 +1187,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   (target = rang + max(0, 1 − gapT/2,5)) : ils ne se rentrent plus dedans.
 - Bateaux et rondins : ceux qui attendent ne reculent plus jamais (la limite « à mesure que le bateau parti
   s'éloigne » ne fait que retenir ; avant, elle les renvoyait d'une place en arrière à chaque départ).
+- Points de l'école : la molette fait de nouveau défiler la liste des lieux. Les crans de molette sont lus dans
+  Update (g.wheelAcc) et utilisés une seule fois au dessin ; toute la colonne des lieux réagit ; tourner la
+  molette rend la main à la souris (la « main » du clavier gardait sa position et le survol ratait la liste).

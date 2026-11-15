@@ -62,6 +62,7 @@ type button struct {
 }
 
 type game struct {
+	wheelAcc  float64    // crans de molette pas encore utilisés par une liste
 	lastPlace *sim.Place // le dernier lieu visité (Tab sur la carte y ramène)
 	mapHover  string     // carte : le lieu sous la main ou la souris (un chiffre en fait un favori)
 	sim       *sim.Game
@@ -185,6 +186,7 @@ func (g *game) input(dt float64) {
 	}
 	_, wy := ebiten.Wheel()
 	wy += pinchZoom() // (deux doigts : on zoome en pinçant)
+	g.wheelAcc += wy  // (pour les listes des fenêtres, lues au dessin)
 	// Tab : la carte de la ville (et retour au lieu) ; Échap : fermer une fenêtre
 	if inpututil.IsKeyJustPressed(ebiten.KeyTab) {
 		switch {
@@ -367,6 +369,7 @@ func (g *game) Draw(screen *ebiten.Image) {
 		g.drawGains(dst)
 	}
 	g.drawHand(dst)
+	g.wheelAcc = 0 // (un cran de molette ne sert qu'une fois)
 	flush()
 	op := &ebiten.DrawImageOptions{Filter: ebiten.FilterLinear}
 	op.GeoM.Scale(1/k, 1/k)

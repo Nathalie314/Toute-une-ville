@@ -36,8 +36,8 @@ func (g *game) handButtons() []button {
 func (g *game) updateHand(dt float64) {
 	h := &g.hand
 	// g.mouse est ici la vraie position du curseur (calculée juste avant)
-	if g.mouse.Sub(h.lastMouse).Len() > 2 {
-		h.on = false // la souris a bougé : elle reprend la main
+	if _, wy := ebiten.Wheel(); g.mouse.Sub(h.lastMouse).Len() > 2 || wy != 0 {
+		h.on = false // la souris a bougé (ou sa molette a tourné) : elle reprend la main
 	}
 	h.lastMouse = g.mouse
 	if !g.handContext() {
