@@ -818,6 +818,12 @@ func (g *game) drawHelp(dst *ebiten.Image) {
 	}
 	x, y := g.panelFrame(dst, "Comment jouer", w, h)
 	g.langButton(dst, x+20, y-75)
+	if screenTipUseful() { // téléphone ou tablette, dans le navigateur : jouer en plein écran
+		g.btn(dst, "Plein écran", x+w-330, y-75, 230, 56, 0x2fa86b, true, func() {
+			g.closePanel()
+			showScreenTip()
+		})
+	}
 	lines := []string{
 		"• Déplace-toi avec les flèches (ou ZQSD, ou la souris). Carte et menus : une main suit les flèches ; reste sur un bouton (ou Entrée).",
 		"• Marche dans un champ mûr pour récolter. Ce que tu portes s'empile dans tes bras.",
