@@ -996,6 +996,10 @@ func cScreen(q cPt) V { return lift(q.g, q.h) }
 // des loopings (le train passe dedans). Pendant le tour, le train fait deux fois
 // le circuit ; les passagers lèvent les bras.
 func drawCoaster(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float64) {
+	if !cam.iso { // (une maquette vue de biais : on voit les hauteurs, les piliers, les loopings)
+		isoLocal(r.Track().C(), func() { drawCoaster(dst, p, r, level, t) })
+		return
+	}
 	c := coasterPath(r, level)
 	ground := make([]V, len(c))
 	for i, q := range c {
@@ -1092,12 +1096,18 @@ func drawCoaster(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t floa
 	units := p.RideUnits(r)
 	for k := units - 1; k >= 0; k-- {
 		q, dir, h := at(head - float64(k)*112)
-		vehicle(dst, q, dir, 50+math.Min(10, h/40), 34+math.Min(8, h/50), []uint32{0xff5d8f, 0xffd23f, 0x4fc3ff, 0x7ed957, 0xff8a3d}[k%5])
+		_ = h
+		col := []uint32{0xff5d8f, 0xffd23f, 0x4fc3ff, 0x7ed957, 0xff8a3d}[k%5]
+		vehicle3D(dst, q, dir, 50, 32, 22, col)
 		arms := 0
 		if r.State == 1 {
 			arms = 1
 		}
-		ridersIn(dst, q, dir, riderLooks(r.Riders, k, 4), 2, 2, 44, arms, t)
+		ridersIn(dst, lift(q, 14), dir, riderLooks(r.Riders, k, 4), 2, 2, 44, arms, t)
+		front := lift(q.Add(dir.Mul(50)), 6) // le nez arrondi du wagon de tête
+		if k == 0 {
+			circle(dst, front.X, front.Y, 18, shade(col, 0.85))
+		}
 	}
 }
 
@@ -1432,4 +1442,42 @@ func drawSplashSpray(dst *ebiten.Image, at, dir V, f, t float64) {
 		e := at.Add(n.Mul(side * 70))
 		ellipse(dst, e.X, e.Y+6, 60*amp, 18*amp, rgba(0xffffff, 0.6))
 	}
+}
+
+// vehicle3D : un wagon en volume (une boîte : quatre côtés et le dessus), posé sur le
+// point at (au sol, ou sur des rails en hauteur), de longueur l, largeur w, hauteur h.
+func vehicle3D(dst *ebiten.Image, at, dir V, l, w, h float64, col uint32) {
+	base := box(at, dir, l, w)
+	top := make([]V, 4)
+	for i, b := range base {
+		top[i] = lift(b, h)
+	}
+	// les côtés, du plus loin au plus proche (le plus proche est dessiné en dernier)
+	type face struct {
+		pts   []V
+		depth float64
+		k     float64
+	}
+	var fs []face
+	for i := 0; i < 4; i++ {
+		j := (i + 1) % 4
+		mid := base[i].Add(base[j]).Mul(0.5)
+		k := 0.62 + 0.18*float64(i%2) // (deux teintes : on voit l'arête)
+		fs = append(fs, face{[]V{base[i], base[j], top[j], top[i]}, mid.X + mid.Y, k})
+	}
+	for a := 1; a < len(fs); a++ {
+		for b := a; b > 0 && fs[b].depth < fs[b-1].depth; b-- {
+			fs[b], fs[b-1] = fs[b-1], fs[b]
+		}
+	}
+	for _, f := range fs {
+		polygon(dst, f.pts, shade(col, f.k))
+	}
+	polygon(dst, top, rgb(col))
+	// le bord clair du dessus et l'intérieur (où l'on s'assoit)
+	in := box(at, dir, l-8, w-8)
+	for i := range in {
+		in[i] = lift(in[i], h)
+	}
+	polygon(dst, in, shade(col, 0.5))
 }

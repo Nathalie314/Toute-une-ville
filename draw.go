@@ -56,6 +56,21 @@ func upright(x, y float64, fn func()) {
 	cam = saved
 }
 
+// isoLocal : une petite maquette vue de biais (isométrique) au milieu de la vue de
+// dessus : le point c reste à sa place à l'écran, tout le reste est projeté autour.
+func isoLocal(c V, fn func()) {
+	if cam.iso {
+		fn()
+		return
+	}
+	saved := cam
+	nx, ny := cam.P(c.X, c.Y)
+	ix, iy := isoProj(c.X, c.Y)
+	cam = view{s: saved.s, ox: float64(nx) - ix*saved.s, oy: float64(ny) - iy*saved.s, iso: true}
+	fn()
+	cam = saved
+}
+
 // lift : le point du monde qui s'affiche h unités au-dessus du point au sol g
 // (rails en hauteur, gerbes d'eau…).
 func lift(g V, h float64) V {

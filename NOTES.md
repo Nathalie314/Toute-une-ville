@@ -1166,3 +1166,8 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   doux et s'atténuent encore quand ils s'enchaînent (jusqu'à 4 fois). Le téléphone (commande) reste au maximum,
   et un peu plus fort qu'avant.
 - À faire plus tard (sa demande) : réfléchir à une musique.
+- Verdict : elle n'aime pas le parc entier en isométrique (l'essai reste dans le code, inactif). En revanche, un
+  mélange : la vue reste de dessus, et certaines attractions deviennent une petite maquette vue de biais
+  (isoLocal : la projection isométrique autour du centre de l'attraction). Le grand huit d'abord : hauteurs,
+  piliers et loopings bien visibles ; ses wagons sont en volume (vehicle3D : une boîte, côtés ombrés, dessus,
+  intérieur), les passagers assis dedans.
