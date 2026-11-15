@@ -413,6 +413,9 @@ func staffFull(p *Place) bool {
 	}
 	g := p.g
 	for _, u := range p.PlaceUpgrades() {
+		if p.Parc != nil && (strings.HasPrefix(u.Key, p.key("caissiere")) || strings.HasPrefix(u.Key, p.key("operateur_"))) && g.Levels[u.Key] < u.Max {
+			return false // (au parc : toutes les caissières et tous les employés des attractions)
+		}
 		if u.Key == p.key("ouvriers") || (teamZonesOf(p.ID) != nil && strings.HasPrefix(u.Key, p.key("ouvriers_"))) {
 			if g.Levels[u.Key] < u.Max {
 				return false
@@ -457,4 +460,21 @@ func init() {
 	B(placeBadges("patisserie", "pâtisserie", "Bec sucré", "Toute la vitrine", "Pâtissiers au complet", "Pâtisserie étoilée", 1000, IconCake)...)
 	B(madeBadge("patisserie_tartes", "patisserie", "Tarte aux pommes", "Faire 100 tartes aux pommes.", TartePommes, 100, IconCake),
 		madeBadge("patisserie_fraisier", "patisserie", "Cerise sur le gâteau", "Faire un fraisier.", Fraisier, 1, IconCake))
+	// le parc d'attractions
+	parc := func(g *Game) *Place { return g.Place("parc") }
+	B(placeBadges("parc", "parc d'attractions", "Ticket d'entrée", "Tout le parc", "Équipe au complet", "Parc étoilé", 1000, IconHeart)...)
+	B(Badge{ID: "parc_frisson", Place: "parc", Name: "Grand frisson", Desc: "Ouvrir le grand huit.", Icon: IconStar,
+		Check: func(g *Game) bool { st := parc(g).Station("attr_grandhuit"); return st != nil && st.Built }},
+		Badge{ID: "parc_stands", Place: "parc", Name: "Barbe à papa et pop-corn", Desc: "Vendre 1 000 fois aux stands du parc.", Icon: IconCoin,
+			Check: func(g *Game) bool { return parc(g).Parc.StandSales >= 1000 }},
+		Badge{ID: "parc_geant", Place: "parc", Name: "Toujours plus grand", Desc: "Mettre une attraction à la taille 10.", Icon: IconStar,
+			Check: func(g *Game) bool {
+				q := parc(g)
+				for _, r := range q.Parc.Rides {
+					if q.RideBuilt(r) && q.RideLevel(r) >= 10 {
+						return true
+					}
+				}
+				return false
+			}})
 }

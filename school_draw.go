@@ -17,7 +17,7 @@ func (g *game) schoolGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	road(dst, tl, br, 1640)
 	W := sim.SchoolW
 	// l'enceinte de l'école
-	rect(dst, 80, 110, W-120, 1430, rgb(0x9c9488))
+	slab(dst, 80, 110, W-120, 1430, 6, 16, 0x9c9488)
 	rect(dst, 96, 126, W-152, 1398, rgb(0xd9d2c4))
 	drawKidsYard(dst, g.t)
 	drawRecreation(dst, g.t)

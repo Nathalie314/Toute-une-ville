@@ -265,6 +265,9 @@ type Visitor struct {
 	done      uint32 // attractions déjà faites
 	veh       *Vehicle
 	exitT     float64
+	shopped   uint32  // stands déjà passés
+	Holding   int     // ce qu'il a acheté (1 + rang du stand ; 0 : rien)
+	HoldT     float64 // combien de temps il le garde encore
 }
 
 // OnTrott : il roule en trottinette en ce moment (pas dans une file).
@@ -279,7 +282,10 @@ type Parc struct {
 	Visitors []*Visitor
 	trottOut int
 	Refused  int
-	cars     map[*Vehicle]int // visiteurs pas encore revenus à chaque voiture
+	Stands   []*Stand
+	// StandSales : ventes des stands (badges)
+	StandSales int
+	cars       map[*Vehicle]int // visiteurs pas encore revenus à chaque voiture
 }
 
 func newParc(g *Game) *Place {
@@ -395,6 +401,7 @@ func newParc(g *Game) *Place {
 		}
 		return a.Pos.Y < b.Pos.Y
 	})
+	p.addStands()
 	p.setupYard(-620)
 	// l'agrandissement du parking : dans la zone du joueur
 	if sp := p.spot("parking"); sp != nil {
@@ -502,7 +509,7 @@ func (p *Place) ParcFee() float64 {
 // parcFeeBase : le prix d'entrée avec une seule attraction (réglé pour que le
 // parc rapporte, comme le veut sa place sur la carte, environ deux fois plus
 // que la pâtisserie).
-var parcFeeBase = 2000.0
+var parcFeeBase = 3000.0
 
 // ParcSeats : places à bord de toutes les attractions ouvertes.
 func (p *Place) ParcSeats() int {
@@ -551,6 +558,9 @@ func (p *Place) stepParc(dt float64, active bool) {
 	}
 	for _, r := range pc.Regs {
 		p.stepParcReg(r, dt)
+	}
+	for _, s := range pc.Stands {
+		s.Sold += dt
 	}
 	for _, r := range pc.Rides {
 		if p.RideBuilt(r) {
@@ -665,6 +675,14 @@ func toBoulevard(from, to V) []V {
 
 func (p *Place) stepVisitor(v *Visitor, dt float64) {
 	pc := p.Parc
+	if v.Holding > 0 {
+		if v.HoldT -= dt; v.HoldT <= 0 {
+			v.Holding = 0
+		}
+	}
+	if v.State == vToRide || v.State == vLeave {
+		p.parcShop(v)
+	}
 	switch v.State {
 	case vCar:
 		if v.veh == nil || v.veh.State != 1 {

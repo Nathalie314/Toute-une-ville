@@ -1111,6 +1111,17 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		y := math.Mod(float64(i)*211.7, scr.VH)
 		circle(dst, x, y, 30+math.Mod(float64(i)*13.1, 40), rgba(0x8cc56a, 0.6))
 	}
+	// berges de sable de la rivière
+	var bank []V
+	for k := 0; k <= 40; k++ {
+		y := float64(k) / 40 * scr.VH
+		bank = append(bank, V{X: scr.VW - 156 + math.Sin(y/120+t*0.2)*30, Y: y})
+	}
+	for k := 40; k >= 0; k-- {
+		y := float64(k) / 40 * scr.VH
+		bank = append(bank, V{X: scr.VW - 24 + math.Sin(y/120+t*0.2)*30, Y: y})
+	}
+	polygon(dst, bank, rgb(0xe6d39c))
 	var pts []V
 	for k := 0; k <= 40; k++ {
 		y := float64(k) / 40 * scr.VH
@@ -1177,6 +1188,7 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		if hot {
 			glow(dst, x, y, tw, th, g.t)
 		}
+		roundRect(dst, x+8, y+10, tw, th, 18, rgba(0x1d3a12, 0.22)) // (ombre portée)
 		g.drawTile(dst, tl, x, y, tw, th, farm)
 		if hot {
 			badge(dst, x+tw-8, y+8, g.t)
@@ -1193,6 +1205,7 @@ func (g *game) drawMap(dst *ebiten.Image) {
 			sayFit(dst, "Commande à livrer !", x+tw/2, y+th-12-3*k, 16, true, 0, tw*0.58, rgb(0x5a3d00))
 		}
 	}
+	mapTrees(dst, x0-30, y0-30, gw+60, 3*th+2*gap+60)
 	for i, tl := range side {
 		draw(tl, x0, y0+float64(i)*(th+gap))
 	}
@@ -1455,7 +1468,7 @@ func (g *game) drawBadges(dst *ebiten.Image) {
 	ch := 150.0
 	total := 0.0
 	type sect struct{ id, title string }
-	sects := []sect{{"ferme", "Ma ferme"}, {"super", "Le supermarché"}, {"boulangerie", "La boulangerie"}, {"cremerie", "La crèmerie"}, {"glacier", "Le glacier"}, {"exotique", "La ferme exotique"}, {"elevage", "La ferme d'élevage"}, {"boucherie", "La boucherie"}, {"port", "Le port"}, {"domaine", "Le domaine"}, {"patisserie", "La pâtisserie"}, {"ecole", "L'école"}, {"ville", "Clairbourg"}}
+	sects := []sect{{"ferme", "Ma ferme"}, {"super", "Le supermarché"}, {"boulangerie", "La boulangerie"}, {"cremerie", "La crèmerie"}, {"glacier", "Le glacier"}, {"exotique", "La ferme exotique"}, {"elevage", "La ferme d'élevage"}, {"boucherie", "La boucherie"}, {"port", "Le port"}, {"domaine", "Le domaine"}, {"patisserie", "La pâtisserie"}, {"parc", "Le parc d'attractions"}, {"ecole", "L'école"}, {"ville", "Clairbourg"}}
 	for _, sc := range sects {
 		n := 0
 		for _, b := range sim.Badges {
@@ -1721,7 +1734,7 @@ func (g *game) drawBuyPlace(dst *ebiten.Image) {
 	case "domaine":
 		txt = "Le domaine : la vigne, le houblon et une distillerie. Le raisin et les jus partent en camion au supermarché ; on vend sur place les vins, la bière, le cidre et les alcools (avec les pommes, poires, pommes de terre et le blé de ta ferme). Chaque espace a ses ouvriers. L'alcool est dangereux pour la santé : à consommer avec modération."
 	case "parc":
-		txt = "Le parc d'attractions ne consomme rien et ne livre rien : les visiteurs paient l'entrée (plus chère à chaque nouvelle attraction) et viennent pour les attractions, qui grandissent avec leur taille. Un employé (ou toi) fait monter et descendre les visiteurs ; l'attente fait baisser leur bonheur. Au parc, tu roules en trottinette."
+		txt = "Le parc d'attractions ne consomme rien et ne livre rien : les visiteurs paient l'entrée (plus chère à chaque nouvelle attraction) et viennent pour les attractions, qui grandissent avec leur taille. Un employé (ou toi) fait monter et descendre les visiteurs ; l'attente fait baisser leur bonheur. Les stands (ballons, glaces, pop-corn…) n'ont besoin de personne : les visiteurs heureux qui passent devant y dépensent un peu. Au parc, tu roules en trottinette."
 	case "glacier":
 		txt = "Le glacier fait des sorbets (fraise, mangue, ananas) avec les fruits, puis des glaces : crème et œufs avec de la vanille, du café, de la noix de coco, du chocolat ou des poires. Les ingrédients arrivent en camion (ferme, crèmerie, ferme exotique)."
 	}

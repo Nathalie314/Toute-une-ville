@@ -1438,7 +1438,29 @@ Wagon +1 = Car +1
 CAISSE {n} = REGISTER {n}
 Taille = Size
 Taille {n} = Size {n}
-Le parc d'attractions ne consomme rien et ne livre rien : les visiteurs paient l'entrée (plus chère à chaque nouvelle attraction) et viennent pour les attractions, qui grandissent avec leur taille. Un employé (ou toi) fait monter et descendre les visiteurs ; l'attente fait baisser leur bonheur. Au parc, tu roules en trottinette. = The amusement park uses nothing and delivers nothing: visitors pay to get in (the ticket costs more with each new ride) and come for the rides, which grow with their size. An operator (or you) loads and unloads the visitors; waiting lowers their happiness. In the park, you ride a scooter.
+Le parc d'attractions ne consomme rien et ne livre rien : les visiteurs paient l'entrée (plus chère à chaque nouvelle attraction) et viennent pour les attractions, qui grandissent avec leur taille. Un employé (ou toi) fait monter et descendre les visiteurs ; l'attente fait baisser leur bonheur. Les stands (ballons, glaces, pop-corn…) n'ont besoin de personne : les visiteurs heureux qui passent devant y dépensent un peu. Au parc, tu roules en trottinette. = The amusement park uses nothing and delivers nothing: visitors pay to get in (the ticket costs more with each new ride) and come for the rides, which grow with their size. An operator (or you) loads and unloads the visitors; waiting lowers their happiness. The stands (balloons, ice cream, popcorn…) need no one: happy visitors walking by spend a little there. In the park, you ride a scooter.
+
+# ---- Parc : stands et badges / Park: stands and badges
+Ballons = Balloons
+Marchand de glaces = Ice cream cart
+Pop-corn = Popcorn
+Barbe à papa = Cotton candy
+Photo souvenir = Souvenir photo
+Food truck = Food truck
+Pêche aux canards = Duck pond game
+Boutique de souvenirs = Souvenir shop
+Un stand : les visiteurs heureux qui passent devant y dépensent un peu d'argent. = A stand: happy visitors walking by spend a little money there.
+Stands = Stands
+Les visiteurs dépensent plus aux stands (+1 % par point). = Visitors spend more at the stands (+1% per point).
+Ticket d'entrée = Admission ticket
+Tout le parc = The whole park
+Parc étoilé = Star park
+Grand frisson = Big thrill
+Ouvrir le grand huit. = Open the roller coaster.
+Barbe à papa et pop-corn = Cotton candy and popcorn
+Vendre 1 000 fois aux stands du parc. = Make 1,000 sales at the park stands.
+Toujours plus grand = Ever bigger
+Mettre une attraction à la taille 10. = Bring a ride to size 10.
 
 # ---- Parc : aide / Park: tips
 Embauche une caissière : sa case est derrière la caisse 1, sur la place de l'entrée. = Hire a cashier: her spot is behind register 1, on the entrance square.

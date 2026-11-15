@@ -305,7 +305,7 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 func placeName(id string) string {
 	return map[string]string{"ferme": "la ferme", "super": "le supermarché", "boulangerie": "la boulangerie",
 		"cremerie": "la crèmerie", "glacier": "le glacier", "ecole": "l'école",
-		"elevage": "la ferme d'élevage", "boucherie": "la boucherie-charcuterie", "exotique": "la ferme exotique", "domaine": "le domaine", "patisserie": "la pâtisserie"}[id]
+		"elevage": "la ferme d'élevage", "boucherie": "la boucherie-charcuterie", "exotique": "la ferme exotique", "domaine": "le domaine", "patisserie": "la pâtisserie", "parc": "le parc d'attractions"}[id]
 }
 
 // needsMet : « lieu » (acheté) ou « lieu:station » (station construite), séparés par des virgules.

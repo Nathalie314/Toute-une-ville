@@ -1042,3 +1042,40 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   momies, vampires et zombies (2 + taille, 14 au plus) surgissent de leur tombe, sarcophage, cercueil ou tas de terre
   quand un wagon passe près d'eux ; une sorcière touille son chaudron (feu, bulles vertes) près des rails ; plus de
   maison hantée. La partie d'essai a maintenant 10¹³ € pour tout débloquer.
+
+## Nouveau style « nature » pour toute la ville (sa demande, sans copier aucun jeu)
+- Elle a montré des images d'un jeu de parc pour l'ambiance (vue de biais, nature, relief), en précisant bien
+  qu'elle ne veut rien copier. On reste vu du dessus, en formes tracées par le code, avec une fausse profondeur :
+  lumière en haut à gauche, ombres portées vers le bas à droite, côté gauche des formes plus clair.
+- decor_draw.go : décor automatique de tous les lieux. Le sol du lieu est dessiné une fois en tout petit
+  (une case = 20 unités) ; les cases restées « herbe » (loin des machines, zones, cases d'achat, cour, parking
+  du parc…) reçoivent arbres ronds, sapins, buissons (parfois fleuris), rochers, fleurs et touffes, groupés en
+  bosquets par un bruit doux. Recalculé quand le lieu change (decorKey : stations construites). Dans le lieu
+  lui-même, pas de forêt (il doit rester aéré) : seulement quelques arbres isolés, buissons et fleurs ; les
+  bosquets sont autour. Au parc, les bosquets vont aussi entre les attractions.
+- L'herbe a de grandes taches plus claires ou plus foncées ; dalles en relief (slab : cour du joueur, bâtiments des
+  ateliers, du supermarché, de l'école) ; ombre sous chaque machine ou bâtiment (stationShadow) ; building() a un
+  toit à deux pans (clair / ombre) et une ombre portée ; route avec bordures et joints de trottoir.
+- Carte de la ville : arbres et sapins autour des tuiles (mapTrees), ombre sous les tuiles, berges de sable.
+- Le parc (parc_style.go) : boulevard et avenue en sable aux bords bosselés, bouts d'allée devant les entrées et
+  sorties, haies autour des attractions (ouvertes côté file et sortie), lampadaires, bancs, poubelles et massifs de
+  fleurs le long des allées, grande porte d'entrée (deux tours, toits pointus, drapeaux qui flottent, arche et
+  guirlande qui clignote). Grand huit en hauteur : ombre au sol, gros piliers orange, rails bleus, loopings sur
+  pieds ; « pieds dans le vide » : ombre au sol, colonnes violettes.
+- Outil de capture : CAPMAP=1 photographie aussi la carte de la ville.
+
+## Le parc d'attractions — étape 3 : stands, badges, prix d'entrée
+- sim/parc_stands.go : 8 stands au bord du boulevard, chacun devant une attraction (il apparaît quand elle est
+  ouverte) : ballons (petit train), marchand de glaces (train fantôme), pop-corn (tour volante), barbe à papa
+  (petits bateaux), photo souvenir (sortie du grand huit), food truck (grand splash), pêche aux canards et
+  boutique de souvenirs (pieds dans le vide). 40 k€ à 12 M€. Personne ne les tient, rien n'est livré (« c'est
+  magique ») : un visiteur qui passe devant (une fois par stand), de bonne humeur (55 % ou plus), achète une fois
+  sur deux (part du prix d'entrée de base : 6 à 20 %), gagne un peu de bonheur et garde son achat à la main
+  25 s (ballon au-dessus de la tête, glace, pop-corn…). Chaque stand est surmonté en géant de ce qu'il vend.
+- Points d'école « Panier moyen » au parc : « Stands », les visiteurs y dépensent plus (+1 % par point).
+- Badges : placeBadges (Ticket d'entrée, Tout le parc, Équipe au complet — toutes les caissières et tous les
+  employés —, Premier client, Bonne adresse, Parc étoilé) + Grand frisson (ouvrir le grand huit), Barbe à papa
+  et pop-corn (1 000 ventes aux stands, sauvegardées dans PlaceSave.Stands), Toujours plus grand (une attraction
+  à la taille 10). Section « Le parc d'attractions » dans la page des badges.
+- Prix d'entrée : parcFeeBase = 3 000 (au lieu de 2 000 provisoire). Mesure : pâtisserie tout acheté, ingrédients
+  illimités ≈ 72 k€/min ; parc tout acheté, ≈ 95 k€/min à 2 000 → ≈ 140 k€/min à 3 000 (deux fois la pâtisserie).

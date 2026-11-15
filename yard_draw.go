@@ -15,7 +15,7 @@ func (g *game) drawYard(dst *ebiten.Image, p *sim.Place) {
 		return
 	}
 	x0, x1, y0, y1 := y.X, y.X+y.W, y.Y, y.Y+y.H
-	roundRect(dst, x0-6, y0-6, x1-x0+12, y1-y0+12, 22, rgb(0x9a9c97))
+	slab(dst, x0-6, y0-6, x1-x0+12, y1-y0+12, 22, 12, 0x9a9c97)
 	roundRect(dst, x0, y0, x1-x0, y1-y0, 18, rgb(0xbfc1bc))
 	for x := x0 + 140; x < x1-20; x += 140 {
 		line(dst, x, y0+6, x, y1-6, 2, rgba(0x8f918c, 0.6))

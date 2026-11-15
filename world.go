@@ -52,45 +52,13 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	staffPlace = p.ID
 	cam = g.worldView(scr.K)
 	t := g.t
-	// --- herbe
+	// --- herbe et décor au sol
 	tl := cam.toLogical(0, 0)
 	br := cam.toLogical(scr.W*scr.K, scr.H*scr.K)
-	rect(dst, tl.X-10, tl.Y-10, br.X-tl.X+20, br.Y-tl.Y+20, rgb(0x86c25e))
-	for i := 0; i < 900; i++ {
-		x := math.Mod(float64(i)*733.13, p.W+600) - 300
-		y := math.Mod(float64(i)*397.71+float64(i*i)*0.37, p.H+600) - 300
-		if x < tl.X-20 || x > br.X+20 || y < tl.Y-20 || y > br.Y+20 {
-			continue
-		}
-		c := rgb(0x77b552)
-		if i%3 == 0 {
-			c = rgb(0x93cc6b)
-		}
-		line(dst, x, y, x-4, y-10, 3, c)
-		line(dst, x+4, y, x+6, y-9, 3, c)
-	}
-	switch p.ID {
-	case "ferme":
-		g.farmGround(dst, p, tl, br)
-	case "super":
-		g.superGround(dst, p, tl, br)
-	case "ecole":
-		g.schoolGround(dst, p, tl, br)
-	case "elevage":
-		g.elevageGround(dst, p, tl, br)
-	case "exotique":
-		g.exoticGround(dst, p, tl, br)
-	case "port":
-		g.portGround(dst, p, tl, br)
-	case "domaine":
-		g.domaineGround(dst, p, tl, br)
-	case "parc":
-		g.parcGround(dst, p, tl, br)
-	default:
-		g.workshopGround(dst, p, tl, br)
-	}
-	drawParking(dst, p, tl, br)
-	g.drawYard(dst, p)
+	dec := g.placeDecor(p)
+	drawGrass(dst, p, tl, br)
+	drawFlatDecor(dst, dec, tl, br)
+	g.drawGround(dst, p, tl, br)
 	if p.ID == "domaine" {
 		drawAlcoholNotice(dst, p)
 	}
@@ -103,6 +71,12 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	}
 	if p.ID == "port" {
 		g.drawPortSea(dst, p) // les bateaux et les dragues
+	}
+	// --- ombres des machines et des bâtiments
+	for _, s := range p.Stations {
+		if s.Built && s.Kind != sim.Field {
+			stationShadow(dst, s)
+		}
 	}
 	// --- zones au sol
 	for _, s := range p.Stations {
@@ -199,6 +173,7 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	if p.ID == "parc" {
 		ds = g.parcDrawables(dst, p, ds, tl, br)
 	}
+	ds = decorDrawables(dst, dec, ds, tl, br)
 	// arbres décoratifs autour (à la ferme)
 	for _, tr := range trees {
 		if p.ID != "ferme" {
@@ -260,14 +235,6 @@ var trees = func() []tree {
 	}
 	return ts
 }()
-
-func drawTree(dst *ebiten.Image, x, y, z float64) {
-	ellipse(dst, x, y, 44*z, 16*z, rgba(0x000000, 0.18))
-	rect(dst, x-9*z, y-50*z, 18*z, 52*z, rgb(0x8a5a33))
-	circle(dst, x, y-80*z, 50*z, rgb(0x3f8f3a))
-	circle(dst, x-26*z, y-62*z, 34*z, rgb(0x4aa043))
-	circle(dst, x+24*z, y-96*z, 32*z, rgb(0x5bb54f))
-}
 
 // ---------------------------------------------------------------- champs
 
@@ -586,11 +553,16 @@ func (g *game) drawUnlock(dst *ebiten.Image, u *sim.Unlock) {
 // ---------------------------------------------------------------- bâtiments
 
 func building(dst *ebiten.Image, b sim.Rect, wall, roof uint32) {
-	ellipse(dst, b.C().X, b.Y+b.H, b.W*0.55, 18, rgba(0x000000, 0.2))
+	// ombre portée vers le bas à droite
+	roundRect(dst, b.X+16, b.Y+40, b.W+6, b.H-14, 10, rgba(0x1d3a12, 0.18))
 	roundRect(dst, b.X, b.Y+30, b.W, b.H-30, 8, rgb(wall))
+	rect(dst, b.X, b.Y+30, 10, b.H-44, shade(wall, 1.12)) // (le coin éclairé)
 	rect(dst, b.X, b.Y+b.H-14, b.W, 14, shade(wall, 0.8))
-	// toit
-	polygon(dst, []V{{X: b.X - 16, Y: b.Y + 50}, {X: b.X + 30, Y: b.Y - 30}, {X: b.X + b.W - 30, Y: b.Y - 30}, {X: b.X + b.W + 16, Y: b.Y + 50}}, rgb(roof))
+	// toit : versant éclairé à gauche, versant à l'ombre à droite
+	m := b.X + b.W/2
+	polygon(dst, []V{{X: b.X - 16, Y: b.Y + 50}, {X: b.X + 30, Y: b.Y - 30}, {X: m, Y: b.Y - 30}, {X: m, Y: b.Y + 50}}, shade(roof, 1.1))
+	polygon(dst, []V{{X: m, Y: b.Y - 30}, {X: b.X + b.W - 30, Y: b.Y - 30}, {X: b.X + b.W + 16, Y: b.Y + 50}, {X: m, Y: b.Y + 50}}, rgb(roof))
+	rect(dst, b.X+30, b.Y-34, b.W-60, 8, shade(roof, 1.25)) // (le faîtage)
 	polygon(dst, []V{{X: b.X - 16, Y: b.Y + 50}, {X: b.X + b.W + 16, Y: b.Y + 50}, {X: b.X + b.W + 10, Y: b.Y + 60}, {X: b.X - 10, Y: b.Y + 60}}, shade(roof, 0.75))
 }
 
@@ -1631,11 +1603,20 @@ func spotIcon(dst *ebiten.Image, id string, x, y float64) {
 }
 
 func road(dst *ebiten.Image, tl, br V, ry float64) {
-	rect(dst, tl.X-10, ry-12, br.X-tl.X+20, 12, rgb(0xb0b0a8))
-	rect(dst, tl.X-10, ry, br.X-tl.X+20, 150, rgb(0x6b6f74))
-	rect(dst, tl.X-10, ry+150, br.X-tl.X+20, 12, rgb(0xb0b0a8))
+	x0, w := tl.X-10, br.X-tl.X+20
+	// trottoirs avec leur bordure (le trottoir du haut a une petite tranche)
+	rect(dst, x0, ry-16, w, 16, rgb(0xc4c3bb))
+	rect(dst, x0, ry-4, w, 4, rgb(0x93928a))
+	rect(dst, x0, ry, w, 150, rgb(0x62666b))
+	rect(dst, x0, ry, w, 10, rgba(0x000000, 0.10)) // (l'ombre de la bordure)
+	rect(dst, x0, ry+150, w, 12, rgb(0xc4c3bb))
+	rect(dst, x0, ry+150, w, 3, rgb(0xe0dfd8))
 	for x := math.Floor((tl.X-100)/160) * 160; x < br.X+100; x += 160 {
 		rect(dst, x, ry+71, 80, 8, rgb(0xf2f2e6))
+	}
+	// joints du trottoir
+	for x := math.Floor((tl.X-100)/80) * 80; x < br.X+100; x += 80 {
+		line(dst, x, ry-16, x, ry-4, 1.5, rgba(0x9c9b93, 0.6))
 	}
 }
 
@@ -1733,7 +1714,7 @@ func (g *game) workshopGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	rect(dst, tl.X-10, 10, br.X-tl.X+20, 100, rgb(0x6b6f74))
 	road(dst, tl, br, 1640)
 	// (le bâtiment commence à x = 20 : les cases de la caissière, des vitrines et de la caisse sont dedans)
-	rect(dst, 20, 130, p.W-100, 1400, rgb(0x8a8478))
+	slab(dst, 20, 130, p.W-100, 1400, 6, 16, 0x8a8478)
 	rect(dst, 36, 146, p.W-132, 270, rgb(0xb9b3a8)) // réserve
 	rect(dst, 36, 426, p.W-132, 1088, rgb(floor))
 	for x := 36.0; x < p.W-96; x += 70 {

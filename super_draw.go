@@ -43,7 +43,7 @@ func drawSuperGround(dst *ebiten.Image, g *game, p *sim.Place, tl, br V) {
 	rect(dst, cxp-90, 1800, 180, sim.SuperYardY-1800, rgb(0xb0b0a8))
 	x0, x1 := sim.SuperBX0, sim.SuperBX1
 	// --- le bâtiment
-	rect(dst, x0, 140, x1-x0, sim.SuperFloorY1+16-140, rgb(0x8a8478))
+	slab(dst, x0, 140, x1-x0, sim.SuperFloorY1+16-140, 6, 16, 0x8a8478)
 	rect(dst, x0+16, 156, x1-x0-32, 284, rgb(0xb9b3a8))                  // entrepôt
 	rect(dst, x0+16, 456, x1-x0-32, sim.SuperFloorY1-456, rgb(0xeef0f2)) // magasin
 	for y := 456.0; y < sim.SuperFloorY1; y += 80 {

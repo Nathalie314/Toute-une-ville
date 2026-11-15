@@ -457,18 +457,28 @@ func drawSwingTower(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t f
 func drawCoaster(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float64) {
 	pts := trackLoop(r, level, 0.38)
 	decorTrees(dst, r, level/2, pts)
-	for i := 0; i < len(pts); i += 5 { // pylônes
-		q := pts[i]
-		line(dst, q.X, q.Y, q.X, q.Y+46, 5, rgb(0xe8e8e8))
-		rect(dst, q.X-8, q.Y+44, 16, 6, rgb(0xb0b0a8))
+	// le circuit est en hauteur : son ombre au sol, puis de gros piliers colorés
+	const lift = 56.0
+	sh := V{X: 26, Y: lift}
+	for i := range pts {
+		a, b := pts[i].Add(sh), pts[(i+1)%len(pts)].Add(sh)
+		line(dst, a.X, a.Y, b.X, b.Y, 16, rgba(0x1d3a12, 0.22))
 	}
-	drawLoop(dst, pts, 16, 0x7a1f1f)
-	drawLoop(dst, pts, 8, 0xd9534f)
+	for i := 0; i < len(pts); i += 4 {
+		q := pts[i]
+		g := q.Add(V{Y: lift})
+		ellipse(dst, g.X+10, g.Y+4, 16, 6, rgba(0x1d3a12, 0.25))
+		rect(dst, q.X-7, q.Y, 14, lift, rgb(0xf5a623))
+		rect(dst, q.X-7, q.Y, 5, lift, rgb(0xffc65c))
+		rect(dst, q.X-10, g.Y-6, 20, 8, rgb(0xc77d12))
+	}
+	drawLoop(dst, pts, 18, 0x23408f)
+	drawLoop(dst, pts, 10, 0x3b6fe0)
 	for i := 0; i < len(pts); i += 2 {
 		a, b := pts[i], pts[(i+1)%len(pts)]
 		d := b.Sub(a).Norm()
 		n := V{X: -d.Y, Y: d.X}
-		line(dst, a.X-n.X*9, a.Y-n.Y*9, a.X+n.X*9, a.Y+n.Y*9, 2, rgb(0x5a1a1a))
+		line(dst, a.X-n.X*10, a.Y-n.Y*10, a.X+n.X*10, a.Y+n.Y*10, 2.5, rgb(0xeaf2ff))
 	}
 	s0 := rideStart(r, pts)
 	// la montée à chaîne, juste après le départ
@@ -482,10 +492,12 @@ func drawCoaster(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t floa
 		rad := 50 + 4*float64(level)
 		cc := q.Add(V{Y: -rad})
 		_ = dir
-		ring(dst, cc.X, cc.Y, rad, 12, rgb(0x7a1f1f))
-		ring(dst, cc.X, cc.Y, rad, 6, rgb(0xd9534f))
-		line(dst, cc.X-rad*0.7, cc.Y+rad*0.7, cc.X-rad*0.7, q.Y+40, 5, rgb(0xe8e8e8))
-		line(dst, cc.X+rad*0.7, cc.Y+rad*0.7, cc.X+rad*0.7, q.Y+40, 5, rgb(0xe8e8e8))
+		ellipse(dst, cc.X+30, q.Y+lift+6, rad*0.9, 14, rgba(0x1d3a12, 0.2))
+		line(dst, cc.X-rad*0.7, cc.Y+rad*0.7, cc.X-rad*0.7, q.Y+lift, 10, rgb(0xf5a623))
+		line(dst, cc.X+rad*0.7, cc.Y+rad*0.7, cc.X+rad*0.7, q.Y+lift, 10, rgb(0xc77d12))
+		ring(dst, cc.X, cc.Y, rad, 18, rgb(0x23408f))
+		ring(dst, cc.X, cc.Y, rad, 10, rgb(0x3b6fe0))
+		ring(dst, cc.X-2, cc.Y-2, rad, 2, rgba(0xeaf2ff, 0.7))
 	}
 	pos := ridePos(r, s0)
 	units := p.RideUnits(r)
@@ -555,10 +567,16 @@ func drawSplash(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float
 func drawInverted(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float64) {
 	pts := trackLoop(r, level, 0.32)
 	decorTrees(dst, r, level/2, pts)
+	for i := range pts { // l'ombre du circuit au sol
+		a, b := pts[i].Add(V{X: 26, Y: 70}), pts[(i+1)%len(pts)].Add(V{X: 26, Y: 70})
+		line(dst, a.X, a.Y, b.X, b.Y, 18, rgba(0x1d3a12, 0.2))
+	}
 	for i := 0; i < len(pts); i += 6 { // les colonnes et leur bras
 		q := pts[i]
-		rect(dst, q.X-9, q.Y-20, 18, 80, rgb(0x5a6a7a))
-		rect(dst, q.X-26, q.Y+58, 52, 10, rgb(0x8a9aaa))
+		ellipse(dst, q.X+12, q.Y+68, 22, 7, rgba(0x1d3a12, 0.25))
+		rect(dst, q.X-9, q.Y-20, 18, 86, rgb(0x6c4bb8))
+		rect(dst, q.X-9, q.Y-20, 6, 86, rgb(0x8f72d8))
+		rect(dst, q.X-14, q.Y+60, 28, 8, rgb(0x4a3290))
 	}
 	drawLoop(dst, pts, 18, 0x1f3a7a)
 	drawLoop(dst, pts, 8, 0xffd23f)

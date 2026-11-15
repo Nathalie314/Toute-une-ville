@@ -847,7 +847,11 @@ func (p *Place) PointKinds() []PointKind {
 	// collège
 	// (« Clients » et « Patience » ne s'achètent plus : les points déjà placés comptent toujours)
 	if p.sells() {
-		add("pts_panier", "marketing", "Panier moyen", "Panier", "Chaque client achète plus de produits (+1 % par point : à 100, un produit de plus par article).", pctVal)
+		if p.ID == "parc" {
+			add("pts_panier", "marketing", "Panier moyen", "Stands", "Les visiteurs dépensent plus aux stands (+1 % par point).", pctVal)
+		} else {
+			add("pts_panier", "marketing", "Panier moyen", "Panier", "Chaque client achète plus de produits (+1 % par point : à 100, un produit de plus par article).", pctVal)
+		}
 		add("pts_fidele", "marketing", "Clients fidèles", "Absences", "Tes gains pendant ton absence augmentent (+1 % par point, moyenne de tes lieux).", pctVal)
 	}
 	if p.ID == "parc" {

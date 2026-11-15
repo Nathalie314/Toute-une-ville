@@ -17,15 +17,14 @@ const parcRoadY = 1640.0
 // l'entrée, route, parking.
 func (g *game) parcGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	pave, paveD := rgb(0xe8dcc0), rgb(0xcfbf9c)
-	// le grand boulevard et l'avenue
+	// le grand boulevard et l'avenue : des allées de sable
 	bt := sim.ParcBoulY - sim.ParcBoulH/2
-	roundRect(dst, 80, bt-10, sim.ParcW-160, sim.ParcBoulH+20, 60, paveD)
-	roundRect(dst, 90, bt, sim.ParcW-180, sim.ParcBoulH, 56, pave)
-	rect(dst, sim.ParcAvX-sim.ParcAvW/2-10, bt+40, sim.ParcAvW+20, sim.ParcPlazaY-bt, paveD)
-	rect(dst, sim.ParcAvX-sim.ParcAvW/2, bt+40, sim.ParcAvW, sim.ParcPlazaY-bt, pave)
-	// motif de dalles
-	for x := math.Floor(math.Max(100, tl.X)/120) * 120; x < math.Min(sim.ParcW-100, br.X); x += 120 {
-		line(dst, x, bt+20, x, bt+sim.ParcBoulH-20, 1.5, rgba(0xb59f78, 0.3))
+	sandBand(dst, sim.ParcAvX-sim.ParcAvW/2, bt+40, sim.ParcAvW, sim.ParcPlazaY-bt, 2)
+	sandBand(dst, 90, bt, sim.ParcW-180, sim.ParcBoulH, 1)
+	for _, r := range p.Parc.Rides {
+		if p.RideBuilt(r) {
+			parcLanding(dst, r)
+		}
 	}
 	// place de l'entrée
 	roundRect(dst, sim.ParcAvX-1500, sim.ParcPlazaY, 3000, parcRoadY-14-sim.ParcPlazaY, 40, paveD)
@@ -80,17 +79,6 @@ func (g *game) parcGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		line(dst, s.Pos.X-42, t+4, s.Pos.X-42, t+112, 3, rgba(0xffffff, 0.85))
 		line(dst, s.Pos.X+42, t+4, s.Pos.X+42, t+112, 3, rgba(0xffffff, 0.85))
 	}
-	// le panneau d'entrée, au-dessus de l'avenue
-	ax := sim.ParcAvX
-	ay := sim.ParcPlazaY - 220 // (au-dessus des cases des caissières)
-	rect(dst, ax-330, ay-130, 26, 150, rgb(0xd9534f))
-	rect(dst, ax+304, ay-130, 26, 150, rgb(0xd9534f))
-	roundRect(dst, ax-360, ay-190, 720, 90, 30, rgb(0xffd23f))
-	roundRect(dst, ax-350, ay-182, 700, 74, 26, rgb(0xd9534f))
-	sayFit(dst, "PARC D'ATTRACTIONS", ax, ay-145, 40, true, 0, 660, rgb(0xffffff))
-	for i := 0; i < 9; i++ {
-		circle(dst, ax-320+float64(i)*80, ay-190, 8, rgb([]uint32{0xff6fa8, 0x4fc3ff, 0x7ed957, 0xffd23f}[i%4]))
-	}
 	// les terrains des attractions
 	for _, r := range p.Parc.Rides {
 		g.drawRidePlot(dst, p, r)
@@ -111,6 +99,8 @@ func (g *game) parcDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable, tl,
 			ds = append(ds, drawable{c.Pos.Y, func() { drawAgent(dst, p.ID, c, t) }})
 		}
 	}
+	ds = parcStyleDrawables(dst, ds, tl, br, t)
+	ds = standDrawables(dst, p, ds, tl, br, t)
 	// le râtelier des trottinettes
 	ds = append(ds, drawable{sim.ParcRackTop + 40, func() { drawTrottRack(dst, p) }})
 	for _, r := range pc.Rides {
@@ -126,7 +116,7 @@ func (g *game) parcDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable, tl,
 		if v.Pos.X < tl.X-150 || v.Pos.X > br.X+150 || v.Pos.Y < tl.Y-150 || v.Pos.Y > br.Y+200 {
 			continue
 		}
-		ds = append(ds, drawable{v.Pos.Y, func() { drawVisitor(dst, v) }})
+		ds = append(ds, drawable{v.Pos.Y, func() { drawVisitor(dst, v); drawHeld(dst, v, t) }})
 	}
 	return ds
 }
@@ -219,8 +209,11 @@ func (g *game) drawRidePlot(dst *ebiten.Image, p *sim.Place, r *sim.Ride) {
 	}
 	level := p.RideLevel(r)
 	// le sol de l'attraction : une grande pelouse bordée d'une haie
-	roundRect(dst, pl.X, pl.Y, pl.W, pl.H, 40, rgb(0x5f9e45))
-	roundRect(dst, pl.X+14, pl.Y+14, pl.W-28, pl.H-28, 32, rgb(0x8cc56a))
+	roundRect(dst, pl.X, pl.Y, pl.W, pl.H, 40, rgb(0x8cc56a))
+	for i := 0; i < 7; i++ {
+		ellipse(dst, pl.X+240+(pl.W-480)*hash2(i, r.Kind.Slot, 1), pl.Y+160+(pl.H-320)*hash2(i, r.Kind.Slot, 2), 220, 140, rgba(0x9fd47a, 0.5))
+	}
+	parcHedge(dst, r)
 	// la file d'attente : des barrières en serpentin
 	qb := r.QueueBox()
 	roundRect(dst, qb.X, qb.Y, qb.W, qb.H, 16, rgb(0xe8dcc0))

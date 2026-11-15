@@ -39,6 +39,12 @@ func newSaveShots(dir, file string) *saveShots {
 			}
 			g.sim.Events = g.sim.Events[:0]
 		}
+		if os.Getenv("CAPMAP") != "" { // CAPMAP=1 : la carte de la ville d'abord
+			s.queue = append(s.queue, func(g *game) string {
+				g.goMap()
+				return "carte"
+			})
+		}
 		for _, p := range g.sim.Places {
 			p := p
 			if !p.Owned || (os.Getenv("CAPPLACES") != "" && !strings.Contains(","+os.Getenv("CAPPLACES")+",", ","+p.ID+",")) {
