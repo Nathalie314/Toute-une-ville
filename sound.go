@@ -3,6 +3,7 @@ package main
 import (
 	"math"
 	"math/rand"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
 )
@@ -33,9 +34,20 @@ type soundBank struct {
 	ctx   *audio.Context
 	data  [sCount][]byte
 	muted bool
-	last  [sCount]int64
-	frame int64
+	last  [sCount]time.Time
+	busy  float64   // les petits sons joués récemment (ils s'atténuent quand ils s'enchaînent)
+	busyT time.Time // (mis à jour à chaque son)
 }
+
+// Volume de chaque son (de 0 à 1) et écart minimal entre deux fois le même son.
+// Les petits sons courts (récolte, dépôt, pièces, caisse…) sont discrets : avec
+// beaucoup d'ouvriers rapides, ils se répètent sans arrêt. Le téléphone (une
+// commande) reste fort : on doit l'entendre.
+var sfxVol = [sCount]float64{sPop: 0.12, sDrop: 0.1, sCoin: 0.16, sTick: 0.1, sUnlock: 0.45, sClick: 0.35, sAngry: 0.18, sHire: 0.3, sBuy: 0.45, sBadge: 0.55, sPhone: 1, sSeed: 0.25}
+var sfxGap = [sCount]float64{sPop: 0.18, sDrop: 0.18, sCoin: 0.3, sTick: 0.2, sAngry: 0.6, sHire: 0.25}
+
+// petit : un son court et fréquent (il s'atténue encore quand il y en a beaucoup).
+func petit(s sfx) bool { return s == sPop || s == sDrop || s == sCoin || s == sTick || s == sAngry }
 
 func encode(samples []float64) []byte {
 	out := make([]byte, len(samples)*4)
@@ -160,7 +172,7 @@ func newSoundBank() *soundBank {
 		bell := tone(f, t) + 0.5*tone(f*2.76, t) + 0.25*tone(f*5.4, t)
 		env := math.Exp(-strike*55) * math.Min(1, lt/0.01) * math.Min(1, (0.7-lt)/0.05)
 		hum := 0.25 * (tone(1180, t) + tone(1420, t)) // les cloches qui vibrent encore
-		return 0.11 * (env*bell + hum*math.Min(1, (0.7-lt)/0.05))
+		return 0.16 * (env*bell + hum*math.Min(1, (0.7-lt)/0.05))
 	})
 	// le joueur plante une graine : un tout petit « pof » de terre, très doux
 	sb.data[sSeed] = synth(0.06, func(t float64) float64 {
@@ -173,10 +185,20 @@ func (sb *soundBank) play(s sfx) {
 	if sb == nil || sb.muted {
 		return
 	}
-	p := sb.ctx.NewPlayerFromBytes(sb.data[s])
-	switch s {
-	case sPop, sDrop:
-		p.SetVolume(0.5)
+	now := time.Now()
+	if now.Sub(sb.last[s]).Seconds() < sfxGap[s] {
+		return // (trop tôt après le même son)
 	}
+	sb.last[s] = now
+	vol := sfxVol[s]
+	if petit(s) {
+		// plus il y en a eu ces dernières secondes, plus ils sont doux (jusqu'à 4 fois moins)
+		sb.busy *= math.Exp(-now.Sub(sb.busyT).Seconds() / 1.5)
+		sb.busyT = now
+		sb.busy++
+		vol /= math.Min(4, 1+sb.busy/4)
+	}
+	p := sb.ctx.NewPlayerFromBytes(sb.data[s])
+	p.SetVolume(vol)
 	p.Play()
 }

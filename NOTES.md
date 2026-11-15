@@ -1157,3 +1157,12 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   volante, cabine de la loco…) est dessiné droit, posé sur son pied projeté (upright) ; ce qui est en hauteur
   (rails du grand huit et des pieds dans le vide, piliers, gerbes d'eau) passe par lift(sol, hauteur). Les
   objets sont triés par x + y (drawable.x). Flèches et souris tournées pour suivre le losange ; caméra non bornée.
+
+## Hélicoptère et sons
+- Téléporteurs de la zone du joueur : le parc manquait (busOrder) ; le lieu où l'on est garde sa case, grisée,
+  « Tu es ici » (avant, elle disparaissait : on croyait qu'il manquait la pâtisserie quand on y était).
+- Sons (« insupportable » avec beaucoup d'ouvriers rapides) : chaque son a son volume (sfxVol) et un écart minimal
+  entre deux fois le même (sfxGap). Les petits sons courts (récolte, dépôt, pièces, caisse, client fâché) sont très
+  doux et s'atténuent encore quand ils s'enchaînent (jusqu'à 4 fois). Le téléphone (commande) reste au maximum,
+  et un peu plus fort qu'avant.
+- À faire plus tard (sa demande) : réfléchir à une musique.
