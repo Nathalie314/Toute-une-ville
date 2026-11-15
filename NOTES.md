@@ -1105,3 +1105,16 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   - Pieds dans le vide : rails plus hauts, sièges suspendus et jambes dans le vide à taille réelle, un tour et demi.
 - Mesure (tout au max, avec les stands) : environ 120 000 €/min en moyenne (par vagues) : parcFeeBase reste 3 000.
 - Partie d'essai : parking, trottinettes, caisses et attractions au max ; 10¹³ € pour acheter les stands.
+
+## Retours sur les autres lieux (domaine, ferme, aide)
+- Domaine : les camions de la route verticale sont dessinés vus du dessus (drawTruckTop), cabine vers le nord
+  (ils montent, voie de droite), et d'où ils viennent est écrit sur le toit ; les camions garés aux quais aussi.
+- Les foudres (presses à vin blanc et rouge) sont debout : grand tonneau, douelles, cercles de fer, étiquette.
+- Le jus de pomme est une bouteille en verre jaune orangé (le jus de raisin reste une brique).
+- Palette de blé du domaine : rien d'écrit tant qu'on ne peut pas l'acheter (Secret).
+- Drone d'un étal qui n'a encore nulle part où livrer (DroneLock) : il dit où ouvrir la suite : la palette d'un lieu
+  (« Achète sa palette | au domaine » pour le silo à blé), sinon le rayon du supermarché, et rien s'il n'y a ni l'un
+  ni l'autre (avant : toujours « Ouvre son rayon au supermarché », faux pour le blé du silo).
+- Le « ? » d'un lieu (bouton, touches « , ? », H, F1) explique ce lieu (placeDesc, les mêmes textes qu'à l'achat ;
+  un texte pour la ferme ; l'école garde son aide). « Comment jouer » est le « ? » de la carte de la ville (nouveau
+  bouton « ? » à côté des drapeaux). Capture : CAPHELP=1.

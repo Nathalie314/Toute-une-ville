@@ -566,7 +566,7 @@ func (g *game) drawHUD(dst *ebiten.Image) {
 	x -= 230
 	g.btn(dst, "Badges  [B]", x, 24, 216, 70, 0xd4a017, true, func() { g.openPanel(panelBadges) })
 	x -= 90
-	g.btn(dst, "?", x, 24, 76, 70, 0x9b6bd6, true, func() { g.openPanel(panelHelp) })
+	g.btn(dst, "?", x, 24, 76, 70, 0x9b6bd6, true, func() { g.openPanel(panelPlaceHelp) })
 	// raccourci : la mairie (il s'illumine quand on peut acheter)
 	x -= 90
 	g.roundShortcut(dst, x, 24, g.canBuyMairie() || g.hasPoints(), func(cx, cy float64) {
@@ -812,10 +812,6 @@ func (g *game) drawWelcome(dst *ebiten.Image) {
 }
 
 func (g *game) drawHelp(dst *ebiten.Image) {
-	if g.sim.Cur != nil && g.sim.Cur.ID == "ecole" && g.scene == scenePlace {
-		g.drawSchoolHelp(dst)
-		return
-	}
 	w, h := math.Min(1500, scr.VW-80), 960.0
 	if scr.Small {
 		w = math.Min(2300, scr.VW-80)
@@ -1227,6 +1223,7 @@ func (g *game) drawMap(dst *ebiten.Image) {
 	g.btn(dst, "Recommencer à zéro", 50, scr.VH-100, 330, 70, 0x8a7a6a, true, func() { g.openPanel(panelReset) })
 	g.btn(dst, "Badges", scr.VW-600, scr.VH-100, 220, 70, 0xd4a017, true, func() { g.openPanel(panelBadges) })
 	g.flagButtons(dst, scr.VW-200, 70)
+	g.btn(dst, "?", scr.VW-400, 34, 76, 70, 0x9b6bd6, true, func() { g.openPanel(panelHelp) })
 	say(dst, "Clique sur un lieu, ou vas-y avec les flèches et reste dessus.", 420, scr.VH-62, 24, true, -1, rgba(0x1e3a12, 0.85))
 	if b := g.sim.Boost; b != nil && b.Kind == "maire" { // le cadeau du maire : bien visible
 		txt := tr.F("Cadeau du maire : {quoi} ! Encore {temps}", "quoi", lowerTr(b.Text()), "temps", clock(b.Left))
@@ -1707,16 +1704,39 @@ func (g *game) superHint(p *sim.Place) (string, V, bool) {
 
 // ---------------------------------------------------------------- achat d'un lieu
 
-func (g *game) drawBuyPlace(dst *ebiten.Image) {
-	p := g.buying
+// drawPlaceHelp : le « ? » d'un lieu : comment il fonctionne (l'aide générale est
+// sur la carte de la ville).
+func (g *game) drawPlaceHelp(dst *ebiten.Image) {
+	p := g.sim.Cur
 	if p == nil {
 		g.panel = panelNone
 		return
 	}
-	w, h := 940.0, 520.0
-	x, y := g.panelFrame(dst, tr.F("Acheter {lieu} ?", "lieu", lowerTr(p.Name)), w, h)
+	if p.ID == "ecole" {
+		g.drawSchoolHelp(dst)
+		return
+	}
+	w := math.Min(1300, scr.VW-80)
+	size, lh := 28.0, 42.0
+	if scr.Small {
+		size, lh = 36, 50
+	}
+	lines := wrap(placeDesc(p.ID), size, w-140, false)
+	h := math.Min(scr.VH-60, 90+60+float64(len(lines))*lh+110)
+	x, y := g.panelFrame(dst, p.Name, w, h)
+	for i, l := range lines {
+		say(dst, l, x+w/2, y+60+float64(i)*lh, size, false, 0, rgb(0x5a4a3a))
+	}
+	sayFit(dst, "Comment jouer : le « ? » de la carte de la ville.", x+w/2, y+h-140, 22, true, 0, w-80, rgb(0x8a7a6a))
+}
+
+// placeDesc : comment fonctionne un lieu (à l'achat, et dans le « ? » du lieu).
+func placeDesc(id string) string {
+	if id == "ferme" {
+		return "Ta ferme fait pousser blé, maïs, légumes, fruits et fleurs, et élève poules, vaches, chèvres, brebis et abeilles. Marche dans un champ mûr pour récolter, dépose les produits sur les étals : les clients se servent et paient à la caisse. Les bâtiments (moulin, poulailler, étable…) transforment ce que tu y déposes. Le long de la route, les quais envoient les produits en camion vers tes autres lieux. Chaque zone a ses ouvriers, et un drone peut porter les produits d'un étal jusqu'à son quai."
+	}
 	txt := "L'immense supermarché vend les produits de tes lieux, espace par espace (ferme, légumes, fruits, puis crèmerie, boulangerie, glaces…). Ce qui part en camion arrive dans son entrepôt (1 objet livré = 3 en réserve). Les clients viennent en voiture et prennent un caddie : achète des places et des caddies !"
-	switch p.ID {
+	switch id {
 	case "boulangerie":
 		txt = "La boulangerie fait du pain et des viennoiseries : baguettes, pain blé-maïs, brioches, puis croissants et pains au chocolat (avec le beurre de la crèmerie). Les ingrédients arrivent en camion depuis le quai « → boulangerie » de la ferme."
 	case "cremerie":
@@ -1738,6 +1758,19 @@ func (g *game) drawBuyPlace(dst *ebiten.Image) {
 	case "glacier":
 		txt = "Le glacier fait des sorbets (fraise, mangue, ananas) avec les fruits, puis des glaces : crème et œufs avec de la vanille, du café, de la noix de coco, du chocolat ou des poires. Les ingrédients arrivent en camion (ferme, crèmerie, ferme exotique)."
 	}
+	return txt
+}
+
+
+func (g *game) drawBuyPlace(dst *ebiten.Image) {
+	p := g.buying
+	if p == nil {
+		g.panel = panelNone
+		return
+	}
+	w, h := 940.0, 520.0
+	x, y := g.panelFrame(dst, tr.F("Acheter {lieu} ?", "lieu", lowerTr(p.Name)), w, h)
+	txt := placeDesc(p.ID)
 	for i, l := range wrap(txt, 26, w-120, false) {
 		say(dst, l, x+w/2, y+56+float64(i)*36, 26, false, 0, rgb(0x5a4a3a))
 	}

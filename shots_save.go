@@ -50,6 +50,13 @@ func newSaveShots(dir, file string) *saveShots {
 			if !p.Owned || (os.Getenv("CAPPLACES") != "" && !strings.Contains(","+os.Getenv("CAPPLACES")+",", ","+p.ID+",")) {
 				continue
 			}
+			if os.Getenv("CAPHELP") != "" { // CAPHELP=1 : le « ? » de chaque lieu
+				s.queue = append(s.queue, func(g *game) string {
+					g.goPlace(p)
+					g.openPanel(panelPlaceHelp)
+					return p.ID + "_aide"
+				}, func(g *game) string { g.closePanel(); return "" })
+			}
 			if at := os.Getenv("CAPAT"); at != "" { // CAPAT=x,y : une seule photo, centrée sur ce point
 				var x, y float64
 				fmt.Sscanf(at, "%f,%f", &x, &y)

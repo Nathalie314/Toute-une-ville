@@ -52,6 +52,7 @@ const (
 	panelPoints
 	panelLang
 	panelGains
+	panelPlaceHelp // le « ? » d'un lieu : comment fonctionne ce lieu
 )
 
 type button struct {
@@ -199,7 +200,7 @@ func (g *game) input(dt float64) {
 	}
 	// l'aide : la touche « , ? » (avec ou sans majuscule), aussi sur la carte
 	if g.panel == panelNone && g.typedAny(',', '?') {
-		g.openPanel(panelHelp)
+		g.openHelp()
 	}
 	if g.panel != panelNone {
 		g.scroll -= wy * 60
@@ -211,7 +212,7 @@ func (g *game) input(dt float64) {
 			g.openPanel(panelBadges)
 		}
 		if inpututil.IsKeyJustPressed(ebiten.KeyH) || inpututil.IsKeyJustPressed(ebiten.KeyF1) {
-			g.openPanel(panelHelp)
+			g.openHelp()
 		}
 		// zoom : molette, ou + et - au clavier
 		if inpututil.IsKeyJustPressed(ebiten.KeyEqual) || inpututil.IsKeyJustPressed(ebiten.KeyNumpadAdd) {
@@ -250,6 +251,15 @@ func (g *game) input(dt float64) {
 		}
 		g.sim.MovePlayer(dir, dt)
 	}
+}
+
+// openHelp : dans un lieu, le « ? » explique ce lieu ; sur la carte de la ville, comment jouer.
+func (g *game) openHelp() {
+	if g.scene == scenePlace && g.sim.Cur != nil {
+		g.openPanel(panelPlaceHelp)
+		return
+	}
+	g.openPanel(panelHelp)
 }
 
 func (g *game) openPanel(p panel) {
@@ -332,6 +342,8 @@ func (g *game) Draw(screen *ebiten.Image) {
 		g.drawWelcome(dst)
 	case panelHelp:
 		g.drawHelp(dst)
+	case panelPlaceHelp:
+		g.drawPlaceHelp(dst)
 	case panelReset:
 		g.drawReset(dst)
 	case panelBadges:

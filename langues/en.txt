@@ -1463,6 +1463,18 @@ Vendre 1 000 fois aux stands du parc. = Make 1,000 sales at the park stands.
 Toujours plus grand = Ever bigger
 Mettre une attraction à la taille 10. = Bring a ride to size 10.
 
+# ---- Aide de chaque lieu, drones / Place help, drones
+Ta ferme fait pousser blé, maïs, légumes, fruits et fleurs, et élève poules, vaches, chèvres, brebis et abeilles. Marche dans un champ mûr pour récolter, dépose les produits sur les étals : les clients se servent et paient à la caisse. Les bâtiments (moulin, poulailler, étable…) transforment ce que tu y déposes. Le long de la route, les quais envoient les produits en camion vers tes autres lieux. Chaque zone a ses ouvriers, et un drone peut porter les produits d'un étal jusqu'à son quai. = Your farm grows wheat, corn, vegetables, fruit and flowers, and raises hens, cows, goats, sheep and bees. Walk into a ripe field to harvest, then drop the products on the stands: customers help themselves and pay at the register. The buildings (mill, henhouse, barn…) turn what you drop off into something new. Along the road, the docks send products by truck to your other places. Each area has its own workers, and a drone can carry a stand's products to its dock.
+Comment jouer : le « ? » de la carte de la ville. = How to play: the “?” on the town map.
+Achète sa palette = Buy its pallet
+au domaine = at the estate
+à la boulangerie = at the bakery
+au glacier = at the ice cream parlor
+à la crèmerie = at the dairy
+à la pâtisserie = at the pastry shop
+à la boucherie-charcuterie = at the butcher shop
+à la ferme d'élevage = at the livestock farm
+
 # ---- Parc : aide / Park: tips
 Embauche une caissière : sa case est derrière la caisse 1, sur la place de l'entrée. = Hire a cashier: her spot is behind register 1, on the entrance square.
 Achète le petit train : arrête-toi sur sa zone, à gauche de l'avenue. = Buy the little train: stand on its area, left of the avenue.

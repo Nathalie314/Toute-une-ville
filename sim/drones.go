@@ -293,10 +293,33 @@ func (p *Place) DroneLock(sp *Spot) string {
 	if s == nil || !s.Built || p.g.Levels[p.key(sp.ID)] > 0 || p.droneUseful(s) || !p.droneDest() {
 		return ""
 	}
-	if sup := p.g.Place("super"); sup == nil || !sup.Owned {
-		return "Il faut le|supermarché"
+	// où ce produit pourrait-il aller ? (le rayon du supermarché, ou la palette d'un lieu :
+	// le blé du silo va sur sa palette au domaine, pas au supermarché)
+	for _, q := range p.Stations {
+		if q.Kind != Dock {
+			continue
+		}
+		to := p.g.Place(q.To)
+		if to == nil || !to.Owned {
+			continue
+		}
+		for _, st := range to.Stations {
+			if st.Kind == Pallet && st.Item == s.Item && !st.Built {
+				return "Achète sa palette|" + placeAt(to.ID)
+			}
+		}
 	}
-	return "Ouvre son rayon|au supermarché"
+	if sup := p.g.Place("super"); sup != nil {
+		for _, u := range sup.Unlocks {
+			if u.ID == "r_"+itoa(int(s.Item)) {
+				if !sup.Owned {
+					return "Il faut le|supermarché"
+				}
+				return "Ouvre son rayon|au supermarché"
+			}
+		}
+	}
+	return ""
 }
 
 // dronePrice : prix d'un drone, le même pour tous les étals d'un lieu.
