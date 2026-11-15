@@ -1144,11 +1144,68 @@ func drawSplash(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float
 			polygon(dst, []V{{X: top.X - 60, Y: top.Y - hh}, {X: top.X - 30, Y: top.Y - hh*0.75}, {X: top.X + 10, Y: top.Y - hh*0.6}}, rgb(0xc8bcae))
 		})
 	}
-	drawLoop(dst, pts, 120, 0x6e4322)
-	drawLoop(dst, pts, 100, 0x8a5a2b)
-	drawLoop(dst, pts, 80, 0x4fa3e6)
-	for i := 0; i < len(pts); i += 5 {
-		q := pts[(i+int(t*8))%len(pts)]
+	// le relief du canal : avant chaque chute, il monte lentement sur des tréteaux,
+	// puis plonge d'un coup jusqu'au bassin
+	H := 150 + 14*float64(level)
+	spacing := 1 / float64(drops+1)
+	climb := math.Min(0.16, spacing-0.07)
+	hAt := func(s float64) float64 { // s : fraction du tour (absolue)
+		u := math.Mod(s-s0+10, 1)
+		h := 0.0
+		for i := 1; i <= drops; i++ {
+			d := float64(i) * spacing
+			switch {
+			case u > d-0.035-climb && u <= d-0.035:
+				h = math.Max(h, H*(u-(d-0.035-climb))/climb)
+			case u > d-0.035 && u <= d: // la chute : de plus en plus raide
+				f := (u - (d - 0.035)) / 0.035
+				h = math.Max(h, H*(1-f*f))
+			}
+		}
+		return h
+	}
+	n := len(pts)
+	hs := make([]float64, n)
+	up := make([]V, n)
+	for i := range pts {
+		hs[i] = hAt(float64(i) / float64(n))
+		up[i] = lift(pts[i], hs[i])
+	}
+	for i := range pts { // l'ombre au sol, sous les parties en hauteur
+		if hs[i] > 5 {
+			a, b := pts[i].Add(V{X: hs[i] * 0.25, Y: 10}), pts[(i+1)%n].Add(V{X: hs[(i+1)%n] * 0.25, Y: 10})
+			line(dst, a.X, a.Y, b.X, b.Y, 100, rgba(0x1d3a12, 0.16))
+		}
+	}
+	for i := 0; i < n; i += 3 { // les tréteaux de bois
+		if hs[i] < 25 {
+			continue
+		}
+		for _, sg := range []float64{-1, 1} {
+			_, dir := along(pts, float64(i)/float64(n))
+			g := pts[i].Add(V{X: -dir.Y, Y: dir.X}.Mul(sg * 46))
+			tp := lift(g, hs[i])
+			line(dst, g.X, g.Y, tp.X, tp.Y, 10, rgb(0x6e4322))
+		}
+		mid := lift(pts[i], hs[i]*0.5)
+		_, dir := along(pts, float64(i)/float64(n))
+		nn := V{X: -dir.Y, Y: dir.X}
+		a, b := mid.Add(nn.Mul(46)), mid.Sub(nn.Mul(46))
+		line(dst, a.X, a.Y, b.X, b.Y, 6, rgb(0x5a3a22))
+	}
+	for _, layer := range []struct {
+		w float64
+		c uint32
+	}{{120, 0x6e4322}, {100, 0x8a5a2b}, {80, 0x4fa3e6}} {
+		for i := range up {
+			a, b := up[i], up[(i+1)%n]
+			line(dst, a.X, a.Y, b.X, b.Y, layer.w, rgb(layer.c))
+			circle(dst, a.X, a.Y, layer.w/2, rgb(layer.c))
+		}
+	}
+	for i := 0; i < n; i += 5 {
+		k := (i + int(t*8)) % n
+		q := up[k]
 		line(dst, q.X-10, q.Y, q.X+10, q.Y, 3, rgba(0xffffff, 0.6))
 	}
 	gapL := 210.0 / pathLen(pts)
@@ -1160,6 +1217,9 @@ func drawSplash(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float
 	speed := func(u float64) float64 {
 		v := 1.0
 		for _, d := range rels {
+			if u > d-0.035-climb && u <= d-0.035 {
+				v = math.Min(v, 0.45) // la montée, lente
+			}
 			switch {
 			case u > d-0.035 && u <= d: // la descente
 				v = math.Max(v, 2+5*(u-(d-0.035))/0.035)
@@ -1190,6 +1250,7 @@ func drawSplash(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float
 			s = boatAt(b, s0, gapL)
 		}
 		at, dir := along(pts, s)
+		at = lift(at, hAt(s)) // (sur le canal, en hauteur s'il le faut)
 		// au pied d'une chute : des gerbes d'eau jaillissent des deux côtés du canal (sous les passagers)
 		if b.State == 2 {
 			for i := 1; i <= drops; i++ {

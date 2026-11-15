@@ -1177,3 +1177,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   aux chutes, rondins en volume) ; arbres et sapins autour restent vus de dessus.
 - En volume (vehicle3D) : wagons et locomotive du petit train, wagons du train fantôme, bateaux des petits bateaux
   (coque, proue, auvent) ; les fontaines ont une margelle épaisse.
+- Grand splash (ses retours) : le canal a un relief : avant chaque chute, il monte lentement sur des tréteaux
+  de bois (ombre au sol), puis plonge de plus en plus raide jusqu'au bassin ; les rondins suivent cette hauteur,
+  lents dans la montée (×0,45), très rapides dans la chute, puis les gerbes d'eau au pied.
