@@ -32,6 +32,15 @@ func kiosk(dst *ebiten.Image, x, y float64, body, stripe uint32, name string) {
 }
 
 func drawStand(dst *ebiten.Image, s *sim.Stand, t float64) {
+	// le food truck et la boutique de souvenirs : à la taille du parc (agrandi)
+	if k := map[string]float64{"foodtruck": 1.7, "souvenirs": 1.8}[s.Kind.ID]; k > 0 {
+		scaled(s.Pos.X, s.Pos.Y, k, func() { drawStandBody(dst, s, t) })
+		return
+	}
+	drawStandBody(dst, s, t)
+}
+
+func drawStandBody(dst *ebiten.Image, s *sim.Stand, t float64) {
 	x, y := s.Pos.X, s.Pos.Y
 	pop := 0.0
 	if s.Sold < 0.4 { // il vient de vendre : le stand saute un peu

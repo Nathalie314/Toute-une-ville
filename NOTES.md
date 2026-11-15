@@ -1118,3 +1118,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Le « ? » d'un lieu (bouton, touches « , ? », H, F1) explique ce lieu (placeDesc, les mêmes textes qu'à l'achat ;
   un texte pour la ferme ; l'école garde son aide). « Comment jouer » est le « ? » de la carte de la ville (nouveau
   bouton « ? » à côté des drapeaux). Capture : CAPHELP=1.
+- Parc : le food truck (×1,7) et la boutique de souvenirs (×1,8) sont agrandis, à l'échelle du parc agrandi (un peu
+  plus bas sur le boulevard) ; au parc, on peut reculer le zoom jusqu'à 0,2 (0,6 ailleurs, ramené à 0,6 en sortant).

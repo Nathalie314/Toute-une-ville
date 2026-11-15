@@ -43,7 +43,11 @@ func standPos(k *StandKind) (V, bool) {
 	pl := ParcSlot(k.Slot)
 	top := k.Slot < 4
 	if top {
-		return V{pl.X + k.DX, ParcBoulY - ParcBoulH/2 + 85}, true
+		y := ParcBoulY - ParcBoulH/2 + 85
+		if k.ID == "foodtruck" || k.ID == "souvenirs" {
+			y += 50 // (plus grands : un peu plus bas sur le boulevard)
+		}
+		return V{pl.X + k.DX, y}, true
 	}
 	return V{pl.X + k.DX, ParcBoulY + ParcBoulH/2 - 45}, false
 }

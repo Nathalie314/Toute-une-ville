@@ -221,7 +221,11 @@ func (g *game) input(dt float64) {
 		if inpututil.IsKeyJustPressed(ebiten.KeyMinus) || inpututil.IsKeyJustPressed(ebiten.KeyNumpadSubtract) || inpututil.IsKeyJustPressed(ebiten.Key6) {
 			wy--
 		}
-		g.zoom = math.Max(0.6, math.Min(1.9, g.zoom*math.Pow(1.1, wy)))
+		minZ := 0.6
+		if g.sim.Cur != nil && g.sim.Cur.ID == "parc" {
+			minZ = 0.2 // (le parc est immense : on peut reculer bien plus)
+		}
+		g.zoom = math.Max(minZ, math.Min(1.9, g.zoom*math.Pow(1.1, wy)))
 		dir := V{}
 		k := ebiten.IsKeyPressed
 		if k(ebiten.KeyArrowUp) || k(ebiten.KeyW) || k(ebiten.KeyZ) {
