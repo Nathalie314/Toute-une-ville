@@ -1013,3 +1013,9 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   avec son toit et son panneau « TROTTINETTES » sur la place, à droite des caisses (30 places dessinées, compteur
   libres / total, visible même vide), sa case d'achat juste à côté, des trottinettes plus grandes et colorées
   sous les visiteurs et sous le joueur.
+- Retours d'essai (2) : bandeau d'aide du parc pas à pas (parcHint) : caissière de la caisse 1 → petit train → son
+  employé → trottinettes → petit train plus grand ; puis : attraction sans employé avec une file, caisse sans
+  personne avec une file, parking plein. Case de la caissière remontée (on voit son prix), panneau d'entrée
+  remonté au-dessus. Le parking sort de l'herbe : seules les places achetées sont goudronnées ; il grandit allée par
+  allée (la plus proche de la route d'abord), du centre vers les côtés, et ses routes d'accès et de sortie
+  s'écartent avec lui (ParcAccessX/ParcExitX). Les caisses pas encore achetables ne s'affichent plus.

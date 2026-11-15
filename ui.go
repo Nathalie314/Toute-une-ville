@@ -232,6 +232,11 @@ func (g *game) hint() (string, V, bool) {
 			}
 		}
 	}
+	if p.ID == "parc" {
+		if txt, at, arrow := g.parcHint(p); txt != "" {
+			return txt, at, arrow
+		}
+	}
 	if p.ID == "super" {
 		if txt, at, arrow := g.superRefused(p); txt != "" {
 			return txt, at, arrow
@@ -1781,6 +1786,89 @@ func (g *game) placeTile(id, name string, col uint32) tile {
 		t.fn = func() { g.buying = sup; g.openPanel(panelBuy) }
 	}
 	return t
+}
+
+// parcHint : au parc, les premières étapes dans l'ordre (caissière, petit train,
+// son employé, des trottinettes, un petit train plus grand), puis ce qui manque.
+func (g *game) parcHint(p *sim.Place) (string, V, bool) {
+	gs := g.sim
+	pl := gs.Player
+	lv := func(k string) int { return gs.Levels["parc."+k] }
+	spotAt := func(id string) (sim.Rect, bool) {
+		for _, sp := range p.Spots {
+			if sp.ID == id && p.SpotVisible(sp) {
+				return sp.Zone, true
+			}
+		}
+		return sim.Rect{}, false
+	}
+	// une case ou une zone : « reste dessus » quand on y est, sinon on y mène
+	goTo := func(txt string, z sim.Rect) (string, V, bool) {
+		if z.Has(pl.Pos) {
+			return "Reste immobile sur la case : l'argent s'y verse…", V{}, false
+		}
+		return txt, z.C(), true
+	}
+	var train *sim.Ride
+	for _, r := range p.Parc.Rides {
+		if r.Kind.ID == "train" {
+			train = r
+		}
+	}
+	// 1. une caissière à la caisse 1
+	if lv("caissiere1") == 0 {
+		if z, ok := spotAt("caissiere1"); ok {
+			return goTo("Embauche une caissière : sa case est derrière la caisse 1, sur la place de l'entrée.", z)
+		}
+	}
+	// 2. le petit train
+	if train != nil && !p.RideBuilt(train) {
+		for _, u := range p.Unlocks {
+			if u.ID == "attr_train" {
+				return goTo("Achète le petit train : arrête-toi sur sa zone, à gauche de l'avenue.", u.Zone)
+			}
+		}
+	}
+	// 3. son employé
+	if train != nil && lv("operateur_train") == 0 {
+		if z, ok := spotAt("operateur_train"); ok {
+			if p.RideManned(train) {
+				return "Tu fais monter et descendre les visiteurs du petit train. Embauche un employé pour être libre !", V{}, false
+			}
+			return goTo("Embauche un employé pour le petit train : sa case est à côté de sa cabine rouge.", z)
+		}
+	}
+	// 4. des trottinettes
+	if lv("trott") == 0 {
+		if z, ok := spotAt("trott"); ok {
+			return goTo("Achète des trottinettes : leur case est à côté du râtelier, sur la place de l'entrée.", z)
+		}
+	}
+	// 5. un petit train plus grand
+	if train != nil && lv("taille_train") == 0 {
+		if z, ok := spotAt("taille_train"); ok {
+			return goTo("Agrandis le petit train (Taille +1) : un tour plus long rend les visiteurs plus heureux.", z)
+		}
+	}
+	// ensuite : une attraction qui ne tourne pas, une caisse sans personne, le parking plein
+	for _, r := range p.Parc.Rides {
+		if p.RideBuilt(r) && !p.RideManned(r) && len(r.Queue) > 0 {
+			if z, ok := spotAt("operateur_" + r.Kind.ID); ok {
+				return goTo(tr.F("« {nom} » n'a pas d'employé : des visiteurs attendent ! Embauche-le, ou entre dans sa cabine rouge.", "nom", tr.T(r.Kind.Name)), z)
+			}
+		}
+	}
+	for _, r := range p.Parc.Regs {
+		if p.ParcRegOpen(r) && !p.ParcRegManned(r) && len(r.Queue) > 0 {
+			return tr.F("Des visiteurs attendent à la caisse {n} : embauche une caissière, ou mets-toi derrière la cabine.", "n", itoa(r.N)), r.Pos, true
+		}
+	}
+	if p.Parc.Refused > 0 && p.ParcParkTotal() < sim.ParcParkMax && p.ParcParkTotal()-p.ParkUsedParc() <= 2 {
+		if z, ok := spotAt("parking"); ok {
+			return goTo("Le parking est plein : des visiteurs repartent ! Agrandis-le (case dans ta zone, à gauche).", z)
+		}
+	}
+	return "", V{}, false
 }
 
 // workshopHint : boulangerie et glacier, tant qu'il n'y a pas d'employé.

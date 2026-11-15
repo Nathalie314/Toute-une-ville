@@ -41,8 +41,6 @@ const (
 	ParcRackX     = 5560.0 // le râtelier des trottinettes, sur la place, à droite des caisses
 	ParcRackW     = 400.0
 	ParcRackTop   = 1130.0
-	parcAccessX   = 2250.0 // route d'accès au parking (à gauche des places)
-	parcExitX     = 6950.0 // route de sortie (à droite)
 	parcSpotW     = 85.0
 	ParcRegMax    = 10
 	ParcParkMax   = 300
@@ -315,7 +313,7 @@ func newParc(g *Game) *Place {
 			prev := p.Station("caisse" + itoa(n-1))
 			p.Unlocks = append(p.Unlocks, &Unlock{ID: st.Unlock, Name: st.Name, Cost: math.Round(40000 * math.Pow(1.45, float64(n-2))),
 				Zone: Rect{reg.Pos.X - 80, reg.Pos.Y - 60, 160, 120}, Requires: func() bool { return prev.Built },
-				Locked: "Ouvre d'abord la caisse d'avant", Hint: "Une caisse de plus : l'attente à l'entrée diminue."})
+				Locked: "Ouvre d'abord la caisse d'avant", Secret: true, Hint: "Une caisse de plus : l'attente à l'entrée diminue."})
 		}
 		p.Stations = append(p.Stations, st)
 	}
@@ -330,7 +328,7 @@ func newParc(g *Game) *Place {
 			Costs: []float64{math.Round(25000 * (1 + 0.5*float64(n-1)))},
 			Desc:  func(int) string { return "Elle encaisse les entrées à ta place." }})
 		z := reg.Zone()
-		spot("caissiere"+itoa(n), "Caissière", Rect{z.X, z.Y - 10, 120, 110}, "caisse"+itoa(n), func(int) string { return "Caissière embauchée !" })
+		spot("caissiere"+itoa(n), "Caissière", Rect{z.X - 5, z.Y - 150, 130, 124}, "caisse"+itoa(n), func(int) string { return "Caissière embauchée !" })
 	}
 	p.ups = append(p.ups,
 		&Upgrade{Key: k("parking"), Name: "Parking +10", Max: (ParcParkMax - parcParkStart) / 10, Now: true, Base: 9000, Mult: 1.13,
@@ -375,17 +373,27 @@ func newParc(g *Game) *Place {
 		})
 	}
 
-	// parking : trois allées de deux rangées de 50 places, les plus proches de l'entrée d'abord
+	// parking : trois allées de deux rangées de 50 places. Il grandit allée par
+	// allée (la plus proche de la route d'abord), du centre vers les côtés.
 	for _, a := range ParcAisles {
 		for c := 0; c < 50; c++ {
-			x := parcAccessX + 130 + float64(c)*parcSpotW
+			x := ParcAvX + (float64(c)-24.5)*parcSpotW
 			p.Parks = append(p.Parks, &PSpot{Pos: V{x, a - 105}, Aisle: a}, &PSpot{Pos: V{x, a + 105}, Aisle: a})
 		}
 	}
 	sort.SliceStable(p.Parks, func(i, j int) bool {
-		di := math.Abs(p.Parks[i].Pos.X-ParcAvX) + 0.6*(p.Parks[i].Pos.Y-roadY)
-		dj := math.Abs(p.Parks[j].Pos.X-ParcAvX) + 0.6*(p.Parks[j].Pos.Y-roadY)
-		return di < dj
+		a, b := p.Parks[i], p.Parks[j]
+		if a.Aisle != b.Aisle {
+			return a.Aisle < b.Aisle
+		}
+		da, db := math.Round(math.Abs(a.Pos.X-ParcAvX)), math.Round(math.Abs(b.Pos.X-ParcAvX))
+		if da != db {
+			return da < db
+		}
+		if a.Pos.X != b.Pos.X {
+			return a.Pos.X < b.Pos.X
+		}
+		return a.Pos.Y < b.Pos.Y
 	})
 	p.setupYard(-620)
 	// l'agrandissement du parking : dans la zone du joueur
@@ -429,6 +437,35 @@ func (p *Place) ParcParkTotalAt(l int) int { return min(ParcParkMax, parcParkSta
 // ParcParkTotal, ParcTrottTotal : ce qu'il y a aujourd'hui.
 func (p *Place) ParcParkTotal() int  { return p.ParcParkTotalAt(p.g.Levels[p.key("parking")]) }
 func (p *Place) ParcTrottTotal() int { return min(ParcTrottMax, 10*p.g.Levels[p.key("trott")]) }
+
+// ParcAccessX, ParcExitX : les routes d'accès (à gauche) et de sortie (à droite)
+// du parking ; elles s'écartent quand le parking grandit.
+func (p *Place) ParcAccessX() float64 {
+	x := ParcAvX
+	for _, s := range p.Parks[:p.ParcParkTotal()] {
+		x = math.Min(x, s.Pos.X)
+	}
+	return x - 140
+}
+
+func (p *Place) ParcExitX() float64 {
+	x := ParcAvX
+	for _, s := range p.Parks[:p.ParcParkTotal()] {
+		x = math.Max(x, s.Pos.X)
+	}
+	return x + 140
+}
+
+// ParkUsedParc : places de parking occupées.
+func (p *Place) ParkUsedParc() int {
+	n := 0
+	for _, s := range p.Parks[:p.ParcParkTotal()] {
+		if s.used {
+			n++
+		}
+	}
+	return n
+}
 
 // ParcTrottFree : trottinettes au râtelier de l'entrée.
 func (p *Place) ParcTrottFree() int { return max(0, p.ParcTrottTotal()-p.Parc.trottOut) }
@@ -565,7 +602,7 @@ func (p *Place) parcSpawn() {
 			pc.Refused++
 			p.g.Stats.Missed++
 			p.reputation(-0.01)
-			p.g.emit(Event{Kind: EvAngry, Pos: V{parcAccessX, roadY + 200}})
+			p.g.emit(Event{Kind: EvAngry, Pos: V{p.ParcAccessX(), roadY + 200}})
 		}
 		return
 	}
@@ -577,7 +614,8 @@ func (p *Place) parcSpawn() {
 	} else {
 		veh.Pos = V{-250, laneE}
 	}
-	veh.path = []V{{parcAccessX, veh.Pos.Y}, {parcAccessX, spot.Aisle}, {spot.Pos.X, spot.Aisle}, spot.Pos}
+	ax := p.ParcAccessX()
+	veh.path = []V{{ax, veh.Pos.Y}, {ax, spot.Aisle}, {spot.Pos.X, spot.Aisle}, spot.Pos}
 	veh.Dir = veh.path[0].Sub(veh.Pos).Norm()
 	p.Vehicles = append(p.Vehicles, veh)
 	pc.cars[veh] = n
@@ -812,7 +850,8 @@ func (p *Place) parcFromPlace(from V) []V {
 func (p *Place) parcDepart(veh *Vehicle) {
 	veh.State, veh.Rider = 2, true
 	s := veh.spot
-	veh.path = []V{{s.Pos.X, s.Aisle}, {parcExitX, s.Aisle}, {parcExitX, laneE}, {ParcW + 300, laneE}}
+	ex := p.ParcExitX()
+	veh.path = []V{{s.Pos.X, s.Aisle}, {ex, s.Aisle}, {ex, laneE}, {ParcW + 300, laneE}}
 }
 
 // stepRide : embarquement, tour, débarquement.

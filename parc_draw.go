@@ -47,31 +47,42 @@ func (g *game) parcGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	for y := parcRoadY + 12.0; y < parcRoadY+140; y += 26 {
 		rect(dst, gx-70, y, 140, 14, rgb(0xf2f2e6))
 	}
-	// le parking : trois allées de places
-	top := parcRoadY + 175.0
-	bot := sim.ParcAisles[len(sim.ParcAisles)-1] + 170
-	x0, x1 := 2150.0, 7050.0
+	// le parking : de l'herbe au départ ; chaque agrandissement goudronne ses places
+	// (et l'allée qui y mène). Les routes d'accès et de sortie descendent jusqu'à
+	// la dernière allée utilisée.
+	asph, edge := rgb(0x5f6368), rgb(0x9a9a92)
 	rect(dst, tl.X-10, parcRoadY+162, br.X-tl.X+20, 13, rgb(0xc9c3b8))
-	roundRect(dst, x0-12, top-12, x1-x0+24, bot-top+24, 18, rgb(0x9a9a92))
-	roundRect(dst, x0, top, x1-x0, bot-top, 12, rgb(0x5f6368))
-	rect(dst, 2200, parcRoadY+150, 100, top-parcRoadY-140, rgb(0x5f6368)) // entrée
-	rect(dst, 6900, parcRoadY+150, 100, top-parcRoadY-140, rgb(0x5f6368)) // sortie
 	total := p.ParcParkTotal()
-	for i, s := range p.Parks {
+	deep := 0.0
+	aisleOn := map[float64]bool{}
+	for _, s := range p.Parks[:total] {
+		aisleOn[s.Aisle] = true
+		deep = math.Max(deep, s.Aisle)
+	}
+	ax0, ax1 := p.ParcAccessX()-50, p.ParcExitX()-50 // routes d'accès (gauche) et de sortie (droite)
+	for _, x := range []float64{ax0, ax1} {
+		rect(dst, x-6, parcRoadY+150, 112, deep+60-parcRoadY-150, edge)
+		rect(dst, x, parcRoadY+150, 100, deep+55-parcRoadY-150, asph)
+	}
+	for a := range aisleOn {
+		rect(dst, ax0, a-62, ax1+100-ax0, 124, edge)
+		rect(dst, ax0, a-55, ax1+100-ax0, 110, asph)
+		for x := math.Floor(math.Max(ax0, tl.X)/120) * 120; x < math.Min(ax1, br.X); x += 120 {
+			rect(dst, x, a-3, 50, 6, rgba(0xffffff, 0.5))
+		}
+	}
+	for _, s := range p.Parks[:total] {
 		if s.Pos.X < tl.X-60 || s.Pos.X > br.X+60 {
 			continue
 		}
-		c := rgba(0xffffff, 0.8)
-		if i >= total {
-			c = rgba(0xffffff, 0.18) // (pas encore achetée)
-		}
-		t := s.Pos.Y - 55
-		line(dst, s.Pos.X-40, t, s.Pos.X-40, t+110, 3, c)
-		line(dst, s.Pos.X+40, t, s.Pos.X+40, t+110, 3, c)
+		t := s.Pos.Y - 58
+		rect(dst, s.Pos.X-44, t, 88, 116, asph)
+		line(dst, s.Pos.X-42, t+4, s.Pos.X-42, t+112, 3, rgba(0xffffff, 0.85))
+		line(dst, s.Pos.X+42, t+4, s.Pos.X+42, t+112, 3, rgba(0xffffff, 0.85))
 	}
 	// le panneau d'entrée, au-dessus de l'avenue
 	ax := sim.ParcAvX
-	ay := sim.ParcPlazaY - 30
+	ay := sim.ParcPlazaY - 220 // (au-dessus des cases des caissières)
 	rect(dst, ax-330, ay-130, 26, 150, rgb(0xd9534f))
 	rect(dst, ax+304, ay-130, 26, 150, rgb(0xd9534f))
 	roundRect(dst, ax-360, ay-190, 720, 90, 30, rgb(0xffd23f))

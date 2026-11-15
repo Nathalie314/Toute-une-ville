@@ -1439,3 +1439,15 @@ CAISSE {n} = REGISTER {n}
 Taille = Size
 Taille {n} = Size {n}
 Le parc d'attractions ne consomme rien et ne livre rien : les visiteurs paient l'entrée (plus chère à chaque nouvelle attraction) et viennent pour les attractions, qui grandissent avec leur taille. Un employé (ou toi) fait monter et descendre les visiteurs ; l'attente fait baisser leur bonheur. Au parc, tu roules en trottinette. = The amusement park uses nothing and delivers nothing: visitors pay to get in (the ticket costs more with each new ride) and come for the rides, which grow with their size. An operator (or you) loads and unloads the visitors; waiting lowers their happiness. In the park, you ride a scooter.
+
+# ---- Parc : aide / Park: tips
+Embauche une caissière : sa case est derrière la caisse 1, sur la place de l'entrée. = Hire a cashier: her spot is behind register 1, on the entrance square.
+Achète le petit train : arrête-toi sur sa zone, à gauche de l'avenue. = Buy the little train: stand on its area, left of the avenue.
+Tu fais monter et descendre les visiteurs du petit train. Embauche un employé pour être libre ! = You're loading and unloading the little train's visitors. Hire an operator to be free!
+Embauche un employé pour le petit train : sa case est à côté de sa cabine rouge. = Hire an operator for the little train: the spot is next to its red booth.
+Achète des trottinettes : leur case est à côté du râtelier, sur la place de l'entrée. = Buy scooters: the spot is next to the rack, on the entrance square.
+Agrandis le petit train (Taille +1) : un tour plus long rend les visiteurs plus heureux. = Make the little train bigger (Size +1): a longer ride makes visitors happier.
+« {nom} » n'a pas d'employé : des visiteurs attendent ! Embauche-le, ou entre dans sa cabine rouge. = “{nom}” has no operator: visitors are waiting! Hire one, or step into its red booth.
+Des visiteurs attendent à la caisse {n} : embauche une caissière, ou mets-toi derrière la cabine. = Visitors are waiting at register {n}: hire a cashier, or stand behind the booth.
+Le parking est plein : des visiteurs repartent ! Agrandis-le (case dans ta zone, à gauche). = The parking lot is full: visitors are leaving! Make it bigger (spot in your area, on the left).
+TROTTINETTES = SCOOTERS
