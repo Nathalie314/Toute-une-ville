@@ -972,3 +972,12 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   commandes livrées. (sim : incomeRec garde le lieu et le montant réel ; EarningsByPlace ; sessionStart.)
   Règle (sa demande) : tout lieu qui ne rapporte pas d'argent par définition (école, ferme d'élevage) n'apparaît pas ;
   tout nouveau lieu qui gagne de l'argent doit apparaître (Place.EarnsMoney ; règle notée dans CLAUDE.md).
+- Commandes de la cantine de l'école élargies (sa demande) : boulangerie, crèmerie ET glacier. Même calcul qu'avant
+  (un produit par personne présente à l'école à l'apparition de la commande, récompense ×3 la valeur, 10 min,
+  express en 2 min) ; menus (primaire, collège, lycée, université, adultes = profs + surveillants + secrétaire) :
+  boulangerie baguette, brioche, croissant, pain au chocolat, pain blé-maïs ; crèmerie lait (pris dans sa réserve),
+  fromage blanc, yaourt de vache, fromage de vache, beurre ; glacier sorbet fraise, sorbet mangue, sorbet ananas,
+  glace vanille, glace café. Chacun de ces trois ateliers est une source de commandes à part entière : à chaque
+  tirage, moitié particuliers, moitié cantine (si l'école est ouverte) — la boulangerie et le glacier reçoivent
+  donc aussi des commandes de particuliers. Le glacier a maintenant sa caisse « Commandes » (zone du joueur), et
+  donc les points Logistique et Réclame.

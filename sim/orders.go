@@ -102,11 +102,19 @@ func (g *Game) orderBox(o *Order) (*Place, *Station) {
 // (Plus tard : hôpital, prison…)
 func (g *Game) orderSources() []func() *Order {
 	src := []func() *Order{g.farmOrder}
-	if sc, b := g.Place("ecole"), g.Place("boulangerie"); sc != nil && sc.Owned && b != nil && b.Owned {
-		src = append(src, g.schoolOrder)
-	}
-	if c := g.Place("cremerie"); c != nil && c.Owned {
-		src = append(src, g.cremerieOrder)
+	// boulangerie, crèmerie, glacier : des particuliers ou la cantine de l'école, au hasard
+	for _, id := range []string{"boulangerie", "cremerie", "glacier"} {
+		if c := g.Place(id); c != nil && c.Owned {
+			id := id
+			src = append(src, func() *Order {
+				if sc := g.Place("ecole"); sc != nil && sc.Owned && g.rng.Float64() < 0.5 {
+					if o := g.schoolOrder(id); o != nil {
+						return o
+					}
+				}
+				return g.shopOrder(id)
+			})
+		}
 	}
 	if c := g.Place("exotique"); c != nil && c.Owned {
 		src = append(src, g.exoticOrder)
@@ -267,9 +275,6 @@ func (g *Game) farmOrder() *Order {
 	return o
 }
 
-// cremerieOrder : un particulier commande deux ou trois produits de la crèmerie.
-func (g *Game) cremerieOrder() *Order { return g.shopOrder("cremerie") }
-
 // shopOrder : un particulier commande deux ou trois produits d'un lieu, à livrer
 // dans ce lieu (nil : pas encore assez de produits).
 func (g *Game) shopOrder(at string) *Order {
@@ -308,32 +313,37 @@ func (g *Game) shopOrder(at string) *Order {
 // schoolTime : la cantine laisse plus de temps (beaucoup de pains).
 const schoolTime = 600.0
 
-// schoolOrder : la cantine de l'école commande du pain pour tous ceux qui
-// sont à l'école en ce moment, à livrer à la boulangerie.
-func (g *Game) schoolOrder() *Order {
+// schoolOrder : la cantine de l'école commande, dans cet atelier (boulangerie,
+// crèmerie ou glacier), un produit pour chaque personne présente à l'école.
+func (g *Game) schoolOrder(at string) *Order {
+	// un produit par personne : primaire, collège, lycée, université, puis les adultes
+	// (même si l'atelier ne sait pas encore le faire : la commande pousse à ouvrir la recette)
+	menu := map[string][]Item{
+		"boulangerie": {Pain, Brioche, Croissant, PainChoco, PainMele},
+		"cremerie":    {Lait, FromageBlanc, Yaourt, Fromage, Beurre},
+		"glacier":     {SorbetFraise, SorbetMangue, SorbetAnanas, GlaceVanille, GlaceCafe},
+	}[at]
 	sc := g.Place("ecole")
 	n := map[Item]int{}
 	for _, st := range sc.Students {
 		if st.Room == nil {
 			continue
 		}
-		// primaire, collège, lycée, université (même si la boulangerie ne sait pas encore
-		// le faire : la commande pousse à ouvrir la nouvelle recette)
-		it := []Item{Pain, Brioche, Croissant, PainChoco}[st.Room.Level]
-		n[it]++
+		n[menu[st.Room.Level]]++
 	}
+	adult := menu[4]
 	for _, r := range sc.Rooms {
 		if r.built && sc.HasProf(r) {
-			n[PainMele]++ // les profs
+			n[adult]++ // les profs
 		}
 	}
-	n[PainMele] += len(sc.Workers) // les surveillants (tous les adultes : du pain blé-maïs)
+	n[adult] += len(sc.Workers) // les surveillants
 	if g.Levels[sc.key("secretaire")] > 0 {
-		n[PainMele]++ // la secrétaire
+		n[adult]++ // la secrétaire
 	}
-	o := &Order{Who: "la cantine de l'école", At: "boulangerie", Left: schoolTime, Total: schoolTime, Fast: 120}
+	o := &Order{Who: "la cantine de l'école", At: at, Left: schoolTime, Total: schoolTime, Fast: 120}
 	value := 0.0
-	for _, it := range []Item{Pain, BaguetteMais, PainMele, Brioche, Croissant, PainChoco} {
+	for _, it := range menu {
 		if n[it] > 0 {
 			o.Lines = append(o.Lines, OrderLine{It: it, N: n[it]})
 			value += Items[it].Price * float64(n[it])
