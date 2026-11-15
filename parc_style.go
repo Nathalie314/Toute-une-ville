@@ -118,6 +118,15 @@ var parcProps = func() []parcProp {
 				if row == 1 && math.Abs(x-sim.ParcAvX) < sim.ParcAvW/2+60 {
 					continue
 				}
+				nearStand := false // (pas de lampadaire devant un stand)
+				for _, k := range sim.StandKinds {
+					if (k.Slot < 4) == (row == 0) && math.Abs(sim.ParcSlot(k.Slot).X+k.DX-x) < 150 {
+						nearStand = true
+					}
+				}
+				if nearStand {
+					continue
+				}
 				ps = append(ps, parcProp{x, y, []int{0, 1, 3, 1, 0, 2, 3}[k%7]})
 				k++
 			}
