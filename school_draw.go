@@ -292,7 +292,7 @@ func (g *game) schoolDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable) [
 	for i := 0; i < 3; i++ {
 		pos, dir := tricyclePos(i, t)
 		lk := lookFrom(4242 + i*977)
-		ds = append(ds, drawable{pos.Y, func() {
+		ds = append(ds, drawable{y: pos.Y, fn: func() {
 			circle(dst, pos.X-dir.X*14, pos.Y+6, 7, rgb(0x2b2b2b))
 			circle(dst, pos.X+dir.X*14, pos.Y+6, 9, rgb(0x2b2b2b))
 			line(dst, pos.X-dir.X*14, pos.Y, pos.X+dir.X*14, pos.Y-4, 4, rgb(0xe74c3c))
@@ -306,7 +306,7 @@ func (g *game) schoolDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable) [
 		r := r
 		for n := 0; n < p.Tables(r); n++ {
 			c := r.SeatPos(n)
-			ds = append(ds, drawable{c.Y + 20, func() {
+			ds = append(ds, drawable{y: c.Y + 20, fn: func() {
 				ellipse(dst, c.X, c.Y+22, 46, 8, rgba(0x000000, 0.15))
 				roundRect(dst, c.X-44, c.Y-14, 88, 36, 6, rgb(0xb07d4a))
 				roundRect(dst, c.X-44, c.Y-14, 88, 10, 5, rgb(0xc8955e))
@@ -317,12 +317,12 @@ func (g *game) schoolDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable) [
 			}})
 		}
 		if r.Want >= 0 || r.BoostT > 0 {
-			ds = append(ds, drawable{r.Body.Y + 2000, func() { g.drawRoomRequest(dst, r) }}) // par-dessus tout
+			ds = append(ds, drawable{y: r.Body.Y + 2000, fn: func() { g.drawRoomRequest(dst, r) }}) // par-dessus tout
 		}
 		// formation express : la case, puis l'intervenant (costume, mallette) et son compte à rebours
 		if p.ExpressOK(r) {
 			z := r.ExpressZone()
-			ds = append(ds, drawable{z.Y, func() {
+			ds = append(ds, drawable{y: z.Y, fn: func() {
 				in := g.sim.Player != nil && z.Has(g.sim.Player.Pos)
 				zoneBox(dst, z, in, t, 0xb48cff)
 				sayFit(dst, "Formation express", z.C().X, z.Y+18, 15, true, 0, z.W-8, rgb(0x5a3a9a))
@@ -332,7 +332,7 @@ func (g *game) schoolDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable) [
 			}})
 		}
 		if ex := r.Expert; ex != nil {
-			ds = append(ds, drawable{ex.Pos.Y, func() {
+			ds = append(ds, drawable{y: ex.Pos.Y, fn: func() {
 				lk := lookFrom(4242 * 31)
 				lk.shirt, lk.pants = 0x2b3a5a, 0x2b2b3a
 				drawPerson(dst, ex.Pos, ex.Face, ex.WalkT, ex.Moving, lk, nil)
@@ -347,7 +347,7 @@ func (g *game) schoolDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable) [
 			}})
 		}
 		if pr := r.Prof; pr != nil {
-			ds = append(ds, drawable{pr.Pos.Y, func() {
+			ds = append(ds, drawable{y: pr.Pos.Y, fn: func() {
 				lk := lookFrom(pr.Look * 31)
 				lk.shirt, lk.pants = 0x7a5a3a, 0x3b3b4a
 				drawPerson(dst, pr.Pos, V{X: 1}, t, false, lk, nil)
@@ -363,7 +363,7 @@ func (g *game) schoolDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable) [
 			lv = s.Room.Level
 			k = []float64{0.72, 0.82, 0.92, 1}[lv]
 		}
-		ds = append(ds, drawable{a.Pos.Y, func() {
+		ds = append(ds, drawable{y: a.Pos.Y, fn: func() {
 			lk := lookFrom(a.Look)
 			scaled(a.Pos.X, a.Pos.Y, k, func() {
 				drawPerson(dst, a.Pos, a.Face, a.WalkT, a.Moving, lk, nil)

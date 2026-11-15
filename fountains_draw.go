@@ -51,6 +51,10 @@ func pool(dst *ebiten.Image, x, y, rx, ry, t float64) {
 }
 
 func drawFancyFountain(dst *ebiten.Image, kind int, q V, k, t float64) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(q.X, q.Y, func() { drawFancyFountain(dst, kind, q, k, t) })
+		return
+	}
 	scaled(q.X, q.Y, k, func() { fancyFountain(dst, kind%nFountainKinds, q.X, q.Y, t) })
 }
 

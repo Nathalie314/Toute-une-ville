@@ -32,6 +32,10 @@ func kiosk(dst *ebiten.Image, x, y float64, body, stripe uint32, name string) {
 }
 
 func drawStand(dst *ebiten.Image, s *sim.Stand, t float64) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(s.Pos.X, s.Pos.Y, func() { drawStand(dst, s, t) })
+		return
+	}
 	// le food truck et la boutique de souvenirs : à la taille du parc (agrandi)
 	if k := map[string]float64{"foodtruck": 1.7, "souvenirs": 1.8}[s.Kind.ID]; k > 0 {
 		scaled(s.Pos.X, s.Pos.Y, k, func() { drawStandBody(dst, s, t) })
@@ -177,6 +181,10 @@ func drawStandBody(dst *ebiten.Image, s *sim.Stand, t float64) {
 
 // drawHeld : ce qu'un visiteur a acheté, dans sa main.
 func drawHeld(dst *ebiten.Image, v *sim.Visitor, t float64) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(v.Pos.X, v.Pos.Y, func() { drawHeld(dst, v, t) })
+		return
+	}
 	if v.Holding <= 0 || v.Holding > len(sim.StandKinds) {
 		return
 	}
@@ -224,7 +232,7 @@ func standDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable, tl, br V, t 
 		if !p.StandBuilt(s) || s.Pos.X < tl.X-200 || s.Pos.X > br.X+200 {
 			continue
 		}
-		ds = append(ds, drawable{s.Pos.Y, func() { drawStand(dst, s, t) }})
+		ds = append(ds, drawable{x: s.Pos.X, y: s.Pos.Y, fn: func() { drawStand(dst, s, t) }})
 	}
 	return ds
 }

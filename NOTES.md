@@ -1146,3 +1146,14 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   d'eau. Petits bateaux : 1 + taille/2 fontaines, chacune d'un modèle différent (à la place des petites). Ailleurs
   dans la ville : le décor automatique en pose de temps en temps (jusqu'à 3 par lieu, très espacées, là où il y a
   beaucoup de place ; rien d'autre autour).
+
+## Essai : vue isométrique du parc (version à part)
+- Elle a demandé si tout le jeu pourrait être en 2D isométrique ; on fait d'abord un essai sur le parc, dans une
+  version à part. Le vrai jeu n'est pas touché : l'essai ne s'active qu'avec un exe construit avec
+  -ldflags "-X main.isoTrial=parc" (isoTrial vide sinon).
+- Comment : la simulation ne change pas. Le dessin projette le sol (view.iso, view.P : rotation de 45°, hauteur
+  divisée par 2 ; rect, roundRect, ellipse, cercle, ligne, polygone, texte) ; ce qui est debout (personnages,
+  arbres, rochers, bâtiments, stands, lampadaires, porte, monstres, sorcière, statues, fontaines, montagne, tour
+  volante, cabine de la loco…) est dessiné droit, posé sur son pied projeté (upright) ; ce qui est en hauteur
+  (rails du grand huit et des pieds dans le vide, piliers, gerbes d'eau) passe par lift(sol, hauteur). Les
+  objets sont triés par x + y (drawable.x). Flèches et souris tournées pour suivre le losange ; caméra non bornée.

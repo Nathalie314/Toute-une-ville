@@ -15,13 +15,31 @@ import (
 // worldView : transformation du monde vers les pixels (k : sur-échantillonnage).
 func (g *game) worldView(k float64) view {
 	z := scr.S * k * g.zoom
+	if g.isoHere() {
+		cx, cy := isoProj(g.camPos.X, g.camPos.Y)
+		return view{s: z, ox: scr.W*k/2 - cx*z, oy: scr.H*k/2 - cy*z, iso: true}
+	}
 	return view{s: z, ox: scr.W*k/2 - g.camPos.X*z, oy: scr.H*k/2 - g.camPos.Y*z}
+}
+
+// isoTrial : l'essai de vue isométrique (une version à part : on construit l'exe avec
+// -ldflags "-X main.isoTrial=parc") ; vide dans le vrai jeu.
+var isoTrial = ""
+
+// isoHere : le lieu affiché est-il en vue isométrique ?
+func (g *game) isoHere() bool {
+	return isoTrial != "" && g.sim.Cur != nil && g.sim.Cur.ID == isoTrial && g.scene == scenePlace
 }
 
 func (g *game) updateCamera(p *sim.Place, dt float64) {
 	t := g.sim.Player.Pos
 	k := 1 - math.Exp(-dt*6)
 	g.camPos = g.camPos.Add(t.Sub(g.camPos).Mul(k))
+	if g.isoHere() { // (vue isométrique : on reste simplement sur le terrain)
+		g.camPos.X = math.Max(p.MinX(), math.Min(p.MaxX(), g.camPos.X))
+		g.camPos.Y = math.Max(p.Top, math.Min(p.H, g.camPos.Y))
+		return
+	}
 	// on ne sort pas (trop) du terrain
 	hw := scr.VW / 2 / g.zoom
 	hh := scr.VH / 2 / g.zoom
@@ -46,6 +64,7 @@ func (g *game) updateCamera(p *sim.Place, dt float64) {
 type drawable struct {
 	y  float64
 	fn func()
+	x  float64 // (vue isométrique : la profondeur est x + y)
 }
 
 func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
@@ -55,6 +74,11 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	// --- herbe et décor au sol
 	tl := cam.toLogical(0, 0)
 	br := cam.toLogical(scr.W*scr.K, scr.H*scr.K)
+	if cam.iso { // la partie du monde visible : le rectangle qui contient les quatre coins
+		a, b := cam.toLogical(scr.W*scr.K, 0), cam.toLogical(0, scr.H*scr.K)
+		tl = V{X: math.Min(math.Min(tl.X, br.X), math.Min(a.X, b.X)), Y: math.Min(math.Min(tl.Y, br.Y), math.Min(a.Y, b.Y))}
+		br = V{X: math.Max(math.Max(cam.toLogical(0, 0).X, br.X), math.Max(a.X, b.X)), Y: math.Max(math.Max(cam.toLogical(0, 0).Y, br.Y), math.Max(a.Y, b.Y))}
+	}
 	dec := g.placeDecor(p)
 	gameT = g.t
 	drawGrass(dst, p, tl, br)
@@ -130,15 +154,15 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 		if !s.Built || s.Kind == sim.Field {
 			continue
 		}
-		ds = append(ds, drawable{s.Body.Y + s.Body.H, func() { g.drawStation(dst, p, s) }})
+		ds = append(ds, drawable{x: s.Body.C().X, y: s.Body.Y + s.Body.H, fn: func() { g.drawStation(dst, p, s) }})
 	}
 	for _, w := range p.Workers {
 		w := w
-		ds = append(ds, drawable{w.Pos.Y, func() { drawAgent(dst, p.ID, w, t) }})
+		ds = append(ds, drawable{x: w.Pos.X, y: w.Pos.Y, fn: func() { drawAgent(dst, p.ID, w, t) }})
 	}
 	for _, r := range p.Registers() {
 		if c := r.Cashier; c != nil {
-			ds = append(ds, drawable{c.Pos.Y, func() { drawAgent(dst, p.ID, c, t) }})
+			ds = append(ds, drawable{x: c.Pos.X, y: c.Pos.Y, fn: func() { drawAgent(dst, p.ID, c, t) }})
 		}
 	}
 	for _, c := range p.Customers {
@@ -149,24 +173,24 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 		if c.Pos.X < tl.X-150 || c.Pos.X > br.X+150 || c.Pos.Y < tl.Y-150 || c.Pos.Y > br.Y+200 {
 			continue // hors de l'écran (il peut y en avoir des centaines)
 		}
-		ds = append(ds, drawable{c.Pos.Y, func() { drawCustomer(dst, p, c, t) }})
+		ds = append(ds, drawable{x: c.Pos.X, y: c.Pos.Y, fn: func() { drawCustomer(dst, p, c, t) }})
 	}
 	for _, v := range p.Vehicles {
 		v := v
 		if v.Pos.X < tl.X-200 || v.Pos.X > br.X+200 || v.Hidden {
 			continue
 		}
-		ds = append(ds, drawable{v.Pos.Y + 20, func() { drawVehicle(dst, v) }})
+		ds = append(ds, drawable{x: v.Pos.X, y: v.Pos.Y + 20, fn: func() { drawVehicle(dst, v) }})
 	}
 	if g.sim.Cur == p {
 		pl := g.sim.Player
-		ds = append(ds, drawable{pl.Pos.Y, func() { g.drawPlayer(dst, pl) }})
+		ds = append(ds, drawable{x: pl.Pos.X, y: pl.Pos.Y, fn: func() { g.drawPlayer(dst, pl) }})
 	}
 	if p.Yard.W > 0 {
-		ds = append(ds, drawable{p.YardPad().Y + 50, func() { g.drawHelicopter(dst, p) }})
+		ds = append(ds, drawable{x: p.YardPad().X, y: p.YardPad().Y + 50, fn: func() { g.drawHelicopter(dst, p) }})
 	}
 	if r, ok := serreRect(p); ok && p.ID == "ferme" {
-		ds = append(ds, drawable{r.Y + 1, func() { drawSerreRoof(dst, p) }})
+		ds = append(ds, drawable{y: r.Y + 1, fn: func() { drawSerreRoof(dst, p) }})
 	}
 	if p.ID == "ecole" {
 		ds = g.schoolDrawables(dst, p, ds)
@@ -181,9 +205,13 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 			break
 		}
 		tr := tr
-		ds = append(ds, drawable{tr.Y, func() { drawTree(dst, tr.X, tr.Y, tr.Z) }})
+		ds = append(ds, drawable{x: tr.X, y: tr.Y, fn: func() { drawTree(dst, tr.X, tr.Y, tr.Z) }})
 	}
-	sort.SliceStable(ds, func(i, j int) bool { return ds[i].y < ds[j].y })
+	if cam.iso { // la profondeur : x + y
+		sort.SliceStable(ds, func(i, j int) bool { return ds[i].x+ds[i].y < ds[j].x+ds[j].y })
+	} else {
+		sort.SliceStable(ds, func(i, j int) bool { return ds[i].y < ds[j].y })
+	}
 	for _, d := range ds {
 		d.fn()
 	}
@@ -554,6 +582,10 @@ func (g *game) drawUnlock(dst *ebiten.Image, u *sim.Unlock) {
 // ---------------------------------------------------------------- bâtiments
 
 func building(dst *ebiten.Image, b sim.Rect, wall, roof uint32) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(b.C().X, b.Y+b.H, func() { building(dst, b, wall, roof) })
+		return
+	}
 	// ombre portée vers le bas à droite
 	roundRect(dst, b.X+16, b.Y+40, b.W+6, b.H-14, 10, rgba(0x1d3a12, 0.18))
 	roundRect(dst, b.X, b.Y+30, b.W, b.H-30, 8, rgb(wall))
@@ -1050,6 +1082,10 @@ func lookFrom(n int) look {
 }
 
 func drawPerson(dst *ebiten.Image, pos, face V, walkT float64, moving bool, lk look, carry []sim.Item) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(pos.X, pos.Y, func() { drawPerson(dst, pos, face, walkT, moving, lk, carry) })
+		return
+	}
 	x, y := pos.X, pos.Y
 	sw := 0.0
 	if moving {

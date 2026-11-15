@@ -94,18 +94,18 @@ func (g *game) parcDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable, tl,
 		if !p.ParcRegOpen(r) {
 			continue
 		}
-		ds = append(ds, drawable{r.Pos.Y + 30, func() { drawParcBooth(dst, p, r) }})
+		ds = append(ds, drawable{x: r.Pos.X, y: r.Pos.Y + 30, fn: func() { drawParcBooth(dst, p, r) }})
 		if c := r.Cashier; c != nil {
-			ds = append(ds, drawable{c.Pos.Y, func() { drawAgent(dst, p.ID, c, t) }})
+			ds = append(ds, drawable{x: c.Pos.X, y: c.Pos.Y, fn: func() { drawAgent(dst, p.ID, c, t) }})
 		}
 	}
 	ds = parcStyleDrawables(dst, p, ds, tl, br, t)
 	ds = standDrawables(dst, p, ds, tl, br, t)
 	// le râtelier des trottinettes
-	ds = append(ds, drawable{sim.ParcRackTop + 40, func() { drawTrottRack(dst, p) }})
+	ds = append(ds, drawable{x: sim.ParcRackX + sim.ParcRackW/2, y: sim.ParcRackTop + 40, fn: func() { drawTrottRack(dst, p) }})
 	for _, r := range pc.Rides {
 		if o := r.Operator; o != nil && p.RideBuilt(r) {
-			ds = append(ds, drawable{o.Pos.Y, func() { drawAgent(dst, p.ID, o, t) }})
+			ds = append(ds, drawable{x: o.Pos.X, y: o.Pos.Y, fn: func() { drawAgent(dst, p.ID, o, t) }})
 		}
 	}
 	for _, v := range pc.Visitors {
@@ -116,13 +116,17 @@ func (g *game) parcDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable, tl,
 		if v.Pos.X < tl.X-150 || v.Pos.X > br.X+150 || v.Pos.Y < tl.Y-150 || v.Pos.Y > br.Y+200 {
 			continue
 		}
-		ds = append(ds, drawable{v.Pos.Y, func() { drawVisitor(dst, v); drawHeld(dst, v, t) }})
+		ds = append(ds, drawable{x: v.Pos.X, y: v.Pos.Y, fn: func() { drawVisitor(dst, v); drawHeld(dst, v, t) }})
 	}
 	return ds
 }
 
 // drawParcBooth : une cabine de caisse (on paie l'entrée).
 func drawParcBooth(dst *ebiten.Image, p *sim.Place, r *sim.ParcReg) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(r.Pos.X, r.Pos.Y+30, func() { drawParcBooth(dst, p, r) })
+		return
+	}
 	x, y := r.Pos.X, r.Pos.Y
 	ellipse(dst, x, y+30, 70, 14, rgba(0x000000, 0.18))
 	roundRect(dst, x-60, y-40, 120, 70, 8, rgb(0xf3ead8))
@@ -140,6 +144,10 @@ func drawParcBooth(dst *ebiten.Image, p *sim.Place, r *sim.ParcReg) {
 // drawTrottRack : le râtelier des trottinettes, sur la place de l'entrée (visible
 // même vide : on sait où elles iront).
 func drawTrottRack(dst *ebiten.Image, p *sim.Place) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(sim.ParcRackX+sim.ParcRackW/2, sim.ParcRackTop+40, func() { drawTrottRack(dst, p) })
+		return
+	}
 	x, y, w := sim.ParcRackX, sim.ParcRackTop, sim.ParcRackW
 	total, free := p.ParcTrottTotal(), p.ParcTrottFree()
 	// l'abri : un toit et son panneau
@@ -163,6 +171,10 @@ func drawTrottRack(dst *ebiten.Image, p *sim.Place) {
 
 // drawScooter : une trottinette électrique (vue de côté), couleur selon n.
 func drawScooter(dst *ebiten.Image, at, face V, k float64, n int) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(at.X, at.Y, func() { drawScooter(dst, at, face, k, n) })
+		return
+	}
 	sx := 1.0
 	if face.X < -0.2 {
 		sx = -1

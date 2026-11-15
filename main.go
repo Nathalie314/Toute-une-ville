@@ -253,6 +253,11 @@ func (g *game) input(dt float64) {
 		if dir.Len() > 1 {
 			dir = dir.Norm()
 		}
+		if g.isoHere() && dir.Len() > 0 { // flèche vers le haut de l'écran : vers le haut du losange
+			l := dir.Len()
+			x, y := isoInv(dir.X, dir.Y)
+			dir = V{X: x, Y: y}.Norm().Mul(l)
+		}
 		g.sim.MovePlayer(dir, dt)
 	}
 }

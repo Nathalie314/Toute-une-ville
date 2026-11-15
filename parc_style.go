@@ -144,6 +144,10 @@ var parcProps = func() []parcProp {
 }()
 
 func drawParcProp(dst *ebiten.Image, pr parcProp, t float64) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(pr.x, pr.y, func() { drawParcProp(dst, pr, t) })
+		return
+	}
 	x, y := pr.x, pr.y
 	switch pr.kind {
 	case 0: // lampadaire
@@ -184,6 +188,10 @@ func drawParcProp(dst *ebiten.Image, pr parcProp, t float64) {
 
 // drawParcGate : la grande porte d'entrée (deux tours, une arche, des drapeaux).
 func drawParcGate(dst *ebiten.Image, t float64) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(sim.ParcAvX, sim.ParcPlazaY-220, func() { drawParcGate(dst, t) })
+		return
+	}
 	ax := sim.ParcAvX
 	ay := sim.ParcPlazaY - 220
 	tower := func(x float64, flag uint32) {
@@ -224,8 +232,8 @@ func parcStyleDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable, tl, br V
 		if pr.x < tl.X-100 || pr.x > br.X+100 || pr.y < tl.Y-20 || pr.y > br.Y+160 {
 			continue
 		}
-		ds = append(ds, drawable{pr.y, func() { drawParcProp(dst, pr, t) }})
+		ds = append(ds, drawable{x: pr.x, y: pr.y, fn: func() { drawParcProp(dst, pr, t) }})
 	}
-	ds = append(ds, drawable{sim.ParcPlazaY - 210, func() { drawParcGate(dst, t) }})
+	ds = append(ds, drawable{x: sim.ParcAvX, y: sim.ParcPlazaY - 210, fn: func() { drawParcGate(dst, t) }})
 	return ds
 }

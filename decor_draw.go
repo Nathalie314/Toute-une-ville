@@ -356,7 +356,7 @@ func decorDrawables(dst *ebiten.Image, c *decorCache, ds []drawable, tl, br V) [
 		if d.x < tl.X-150 || d.x > br.X+150 || d.y < tl.Y-40 || d.y > br.Y+260 {
 			continue
 		}
-		ds = append(ds, drawable{d.y, func() {
+		ds = append(ds, drawable{x: d.x, y: d.y, fn: func() {
 			switch d.kind {
 			case dTree:
 				drawTree(dst, d.x, d.y, d.z)
@@ -381,6 +381,10 @@ func dropShadow(dst *ebiten.Image, x, y, rx, ry, h float64) {
 
 // drawTree : un arbre rond, en volume (côté éclairé, côté à l'ombre).
 func drawTree(dst *ebiten.Image, x, y, z float64) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(x, y, func() { drawTree(dst, x, y, z) })
+		return
+	}
 	dropShadow(dst, x, y, 40*z, 15*z, 70*z)
 	rect(dst, x-8*z, y-46*z, 16*z, 48*z, rgb(0x7a4e2c))
 	rect(dst, x-8*z, y-46*z, 6*z, 48*z, rgb(0x9a6a40))
@@ -396,6 +400,10 @@ func drawTree(dst *ebiten.Image, x, y, z float64) {
 
 // drawPine : un sapin à facettes (moitié gauche éclairée).
 func drawPine(dst *ebiten.Image, x, y, z float64) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(x, y, func() { drawPine(dst, x, y, z) })
+		return
+	}
 	dropShadow(dst, x, y, 30*z, 12*z, 110*z)
 	rect(dst, x-6*z, y-24*z, 12*z, 26*z, rgb(0x6e4526))
 	for k := 0; k < 3; k++ {
@@ -410,6 +418,10 @@ func drawPine(dst *ebiten.Image, x, y, z float64) {
 
 // drawBush : un buisson (trois boules), parfois fleuri.
 func drawBush(dst *ebiten.Image, x, y, z float64, seed int) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(x, y, func() { drawBush(dst, x, y, z, seed) })
+		return
+	}
 	dropShadow(dst, x, y, 34*z, 10*z, 22*z)
 	circle(dst, x-16*z, y-14*z, 18*z, rgb(0x3a8a3a))
 	circle(dst, x+16*z, y-14*z, 17*z, rgb(0x2f7a32))
@@ -426,6 +438,10 @@ func drawBush(dst *ebiten.Image, x, y, z float64, seed int) {
 
 // drawRock : un rocher à facettes.
 func drawRock(dst *ebiten.Image, x, y, z float64, seed int) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(x, y, func() { drawRock(dst, x, y, z, seed) })
+		return
+	}
 	s := 0.8 + 0.4*float64(seed%5)/4
 	w, h := 34*z*s, 26*z*s
 	dropShadow(dst, x, y, w, 9*z, 20*z)

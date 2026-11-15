@@ -1329,7 +1329,10 @@ func shadeHex(c uint32, k float64) uint32 {
 // scaled dessine fn réduit (ou agrandi) d'un facteur k autour de (cx, cy).
 func scaled(cx, cy, k float64, fn func()) {
 	saved := cam
-	cam = view{s: saved.s * k, ox: saved.ox + cx*saved.s*(1-k), oy: saved.oy + cy*saved.s*(1-k)}
+	if saved.iso {
+		cx, cy = isoProj(cx, cy)
+	}
+	cam = view{s: saved.s * k, ox: saved.ox + cx*saved.s*(1-k), oy: saved.oy + cy*saved.s*(1-k), iso: saved.iso}
 	fn()
 	cam = saved
 }

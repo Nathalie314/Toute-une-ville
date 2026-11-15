@@ -57,6 +57,10 @@ func box(at, dir V, l, w float64) []V {
 // seated : un passager assis (le haut du corps), à la taille des visiteurs.
 // arms : 0 bras le long du corps, 1 bras levés (grand huit), 2 mains sur la barre.
 func seated(dst *ebiten.Image, x, y float64, lookN, arms int, t float64) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(x, y, func() { seated(dst, x, y, lookN, arms, t) })
+		return
+	}
 	lk := lookFrom(lookN)
 	switch arms {
 	case 1:
@@ -297,6 +301,10 @@ func railPair(dst *ebiten.Image, pts []V, half float64, c uint32) {
 // drawMountain : une montagne à facettes (plusieurs sommets, faces éclairées et à
 // l'ombre, neige, rochers au pied) et une cascade qui tombe dans un bassin.
 func drawMountain(dst *ebiten.Image, m V, t float64) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(m.X, m.Y, func() { drawMountain(dst, m, t) })
+		return
+	}
 	ellipse(dst, m.X+60, m.Y+40, 300, 70, rgba(0x1d3a12, 0.25))
 	peaks := []struct{ dx, h, w float64 }{{-150, 230, 150}, {120, 260, 160}, {0, 360, 190}}
 	for _, pk := range peaks {
@@ -337,17 +345,21 @@ func drawMountain(dst *ebiten.Image, m V, t float64) {
 func drawLoco(dst *ebiten.Image, at, dir V, t float64, running bool) {
 	vehicle(dst, at, dir, 62, 34, 0xd9534f)
 	c := at.Add(dir.Mul(30))
-	circle(dst, c.X, c.Y-8, 16, rgb(0x2b2b2b))
-	circle(dst, c.X, c.Y-12, 10, rgb(0x4a4a4a))
-	if running {
-		for k := 0; k < 3; k++ {
-			f := math.Mod(t*1.5+float64(k)/3, 1)
-			circle(dst, c.X-dir.X*60*f, c.Y-30-60*f, 10+14*f, rgba(0xffffff, 0.7*(1-f)))
-		}
-	}
 	cab := at.Sub(dir.Mul(26))
-	roundRect(dst, cab.X-30, cab.Y-54, 60, 50, 8, rgb(0x2b4a8a))
-	roundRect(dst, cab.X-22, cab.Y-46, 44, 18, 4, rgb(0x9fd3ff))
+	upright(cab.X, cab.Y, func() { // (la cabine est debout)
+		roundRect(dst, cab.X-30, cab.Y-54, 60, 50, 8, rgb(0x2b4a8a))
+		roundRect(dst, cab.X-22, cab.Y-46, 44, 18, 4, rgb(0x9fd3ff))
+	})
+	upright(c.X, c.Y, func() { // (la cheminée et sa fumée)
+		circle(dst, c.X, c.Y-8, 16, rgb(0x2b2b2b))
+		circle(dst, c.X, c.Y-12, 10, rgb(0x4a4a4a))
+		if running {
+			for k := 0; k < 3; k++ {
+				f := math.Mod(t*1.5+float64(k)/3, 1)
+				circle(dst, c.X-dir.X*60*f, c.Y-30-60*f, 10+14*f, rgba(0xffffff, 0.7*(1-f)))
+			}
+		}
+	})
 }
 
 // ---------------------------------------------------------------- train fantôme
@@ -425,6 +437,10 @@ func inTunnel(s float64, tunnels [][2]float64) bool {
 
 // drawMonster : un monstre (0 squelette, 1 momie, 2 vampire, 3 zombie) ; up : 0 caché, 1 surgi.
 func drawMonster(dst *ebiten.Image, kind int, at V, up, t float64) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(at.X, at.Y, func() { drawMonster(dst, kind, at, up, t) })
+		return
+	}
 	// sa cachette : une tombe, un sarcophage, un cercueil, un tas de terre
 	switch kind {
 	case 0:
@@ -477,6 +493,10 @@ func drawMonster(dst *ebiten.Image, kind int, at V, up, t float64) {
 // drawWitch : une sorcière qui touille son chaudron (at : pied de la sorcière ;
 // le chaudron est à sa droite).
 func drawWitch(dst *ebiten.Image, at V, t float64) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(at.X, at.Y, func() { drawWitch(dst, at, t) })
+		return
+	}
 	ellipse(dst, at.X+50, at.Y+28, 70, 16, rgba(0x000000, 0.25))
 	cx := at.X + 70
 	// le feu sous le chaudron
@@ -785,6 +805,10 @@ func drawSwingTower(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t f
 	if r.Top {
 		base.Y = tr.Y + tr.H*0.84
 	}
+	if cam.iso { // (la tour est debout : seul son pied est projeté)
+		upright(base.X, base.Y, func() { drawSwingTower(dst, p, r, level, t) })
+		return
+	}
 	h := 260 + 90*f      // hauteur du mât
 	cr := 130 + 22*f     // rayon de la couronne
 	up, spin := 0.0, 0.0 // montée (0 à 1), vitesse
@@ -965,7 +989,7 @@ func coasterTimes(c []cPt) []float64 {
 	return ts
 }
 
-func cScreen(q cPt) V { return V{X: q.g.X, Y: q.g.Y - q.h} }
+func cScreen(q cPt) V { return lift(q.g, q.h) }
 
 // drawCoaster : le grand huit. Le circuit est en hauteur, sur des piliers de
 // hauteurs différentes ; une montée lente, des descentes qui vont très vite,
@@ -992,9 +1016,11 @@ func drawCoaster(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t floa
 			continue
 		}
 		ellipse(dst, q.g.X+14, q.g.Y+6, 22, 8, rgba(0x1d3a12, 0.25))
-		rect(dst, q.g.X-9, q.g.Y-q.h, 18, q.h, rgb(0xf5a623))
-		rect(dst, q.g.X-9, q.g.Y-q.h, 6, q.h, rgb(0xffc65c))
-		rect(dst, q.g.X-13, q.g.Y-8, 26, 10, rgb(0xc77d12))
+		top := lift(q.g, q.h)
+		line(dst, q.g.X, q.g.Y, top.X, top.Y, 18, rgb(0xf5a623))
+		l1, l2 := lift(q.g.Add(V{X: -4}), 0), lift(q.g.Add(V{X: -4}), q.h)
+		line(dst, l1.X, l1.Y, l2.X, l2.Y, 6, rgb(0xffc65c))
+		circle(dst, q.g.X, q.g.Y, 12, rgb(0xc77d12))
 	}
 	// les pieds des loopings
 	for i := 1; i < n; i++ {
@@ -1002,8 +1028,9 @@ func drawCoaster(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t floa
 			q := c[i]
 			rad := 70 + 9*float64(level)
 			for _, sg := range []float64{-1, 1} {
-				x := q.g.X + sg*rad*0.6
-				line(dst, x, q.g.Y-q.h-rad*0.3, x, q.g.Y+4, 12, rgb(0xf5a623))
+				g := q.g.Add(V{X: sg * rad * 0.6})
+				a := lift(g, q.h+rad*0.3)
+				line(dst, a.X, a.Y, g.X, g.Y, 12, rgb(0xf5a623))
 			}
 		}
 	}
@@ -1165,19 +1192,28 @@ func drawSplash(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float
 // drawInverted : un grand huit suspendu : rails sur de grosses colonnes, des vrilles
 // (une tous les deux niveaux), les passagers suspendus sous les rails, jambes dans le vide.
 func drawInverted(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float64) {
-	pts := trackLoop(r, level, 0.32)
-	decorTrees(dst, r, level/2, pts)
-	const lift = 150.0   // les rails sont haut au-dessus du sol
-	for i := range pts { // l'ombre du circuit au sol
-		a, b := pts[i].Add(V{X: 40, Y: lift}), pts[(i+1)%len(pts)].Add(V{X: 40, Y: lift})
+	ground := trackLoop(r, level, 0.32)
+	decorTrees(dst, r, level/2, ground)
+	const up = 150.0        // les rails sont haut au-dessus du sol
+	for i := range ground { // (le sol est 150 plus bas que le circuit dessiné d'avant)
+		ground[i] = ground[i].Add(V{Y: up})
+	}
+	pts := make([]V, len(ground)) // les rails, en hauteur
+	for i, g := range ground {
+		pts[i] = lift(g, up)
+	}
+	for i := range ground { // l'ombre du circuit au sol
+		a, b := ground[i].Add(V{X: 40}), ground[(i+1)%len(ground)].Add(V{X: 40})
 		line(dst, a.X, a.Y, b.X, b.Y, 30, rgba(0x1d3a12, 0.2))
 	}
-	for i := 0; i < len(pts); i += 5 { // les colonnes et leur bras
-		q := pts[i]
-		ellipse(dst, q.X+16, q.Y+lift, 30, 10, rgba(0x1d3a12, 0.25))
-		rect(dst, q.X-14, q.Y-30, 28, lift+30, rgb(0x6c4bb8))
-		rect(dst, q.X-14, q.Y-30, 9, lift+30, rgb(0x8f72d8))
-		rect(dst, q.X-20, q.Y+lift-10, 40, 12, rgb(0x4a3290))
+	for i := 0; i < len(pts); i += 5 { // les colonnes
+		g := ground[i]
+		ellipse(dst, g.X+16, g.Y, 30, 10, rgba(0x1d3a12, 0.25))
+		top := lift(g, up+30)
+		line(dst, g.X, g.Y, top.X, top.Y, 28, rgb(0x6c4bb8))
+		l1, l2 := lift(g.Add(V{X: -8}), 0), lift(g.Add(V{X: -8}), up+30)
+		line(dst, l1.X, l1.Y, l2.X, l2.Y, 9, rgb(0x8f72d8))
+		circle(dst, g.X, g.Y, 20, rgb(0x4a3290))
 	}
 	drawLoop(dst, pts, 30, 0x1f3a7a)
 	drawLoop(dst, pts, 14, 0xffd23f)
@@ -1189,8 +1225,8 @@ func drawInverted(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t flo
 			at, dir := along(pts, s+float64(k)*0.002)
 			n := V{X: -dir.Y, Y: dir.X}
 			a := float64(k) * math.Pi / 6
-			q := at.Add(n.Mul(32 * math.Sin(a)))
-			circle(dst, q.X, q.Y-18*math.Cos(a), 7, rgb(0xffd23f))
+			q := lift(at.Add(n.Mul(32*math.Sin(a))), 18*math.Cos(a))
+			circle(dst, q.X, q.Y, 7, rgb(0xffd23f))
 		}
 	}
 	pos := ridePos(r, s0)
@@ -1205,17 +1241,20 @@ func drawInverted(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t flo
 		looks := riderLooks(r.Riders, k, 2)
 		for i := 0; i < 2; i++ {
 			sx := at.Add(dir.Mul(float64(i)*44 - 22))
-			roundRect(dst, sx.X-22, sx.Y-6, 44, 52, 10, rgb(0x4fc3ff)) // le siège sous les rails
-			if i < len(looks) {
-				lk := lookFrom(looks[i])
-				seated(dst, sx.X, sx.Y+40, looks[i], 2, t)
-				sw := 7 * math.Sin(t*8+float64(k+i)) // les jambes balancent dans le vide
-				line(dst, sx.X-7, sx.Y+42, sx.X-7+sw, sx.Y+86, 9, rgb(lk.pants))
-				line(dst, sx.X+7, sx.Y+42, sx.X+7-sw, sx.Y+86, 9, rgb(lk.pants))
-				roundRect(dst, sx.X-14+sw, sx.Y+82, 14, 8, 3, rgb(0x3a2a1a))
-				roundRect(dst, sx.X-sw, sx.Y+82, 14, 8, 3, rgb(0x3a2a1a))
-				line(dst, sx.X-18, sx.Y+14, sx.X+18, sx.Y+14, 6, rgb(0x3b3b3b)) // l'arceau de sécurité
-			}
+			i := i
+			upright(sx.X, sx.Y, func() { // (sièges et passagers pendent, debout)
+				roundRect(dst, sx.X-22, sx.Y-6, 44, 52, 10, rgb(0x4fc3ff)) // le siège sous les rails
+				if i < len(looks) {
+					lk := lookFrom(looks[i])
+					seated(dst, sx.X, sx.Y+40, looks[i], 2, t)
+					sw := 7 * math.Sin(t*8+float64(k+i)) // les jambes balancent dans le vide
+					line(dst, sx.X-7, sx.Y+42, sx.X-7+sw, sx.Y+86, 9, rgb(lk.pants))
+					line(dst, sx.X+7, sx.Y+42, sx.X+7-sw, sx.Y+86, 9, rgb(lk.pants))
+					roundRect(dst, sx.X-14+sw, sx.Y+82, 14, 8, 3, rgb(0x3a2a1a))
+					roundRect(dst, sx.X-sw, sx.Y+82, 14, 8, 3, rgb(0x3a2a1a))
+					line(dst, sx.X-18, sx.Y+14, sx.X+18, sx.Y+14, 6, rgb(0x3b3b3b)) // l'arceau de sécurité
+				}
+			})
 		}
 	}
 }
@@ -1312,6 +1351,10 @@ func drawFlowerBed(dst *ebiten.Image, q V, i int) {
 
 // drawStatue : une statue de pierre sur son socle (un personnage, ou un vase).
 func drawStatue(dst *ebiten.Image, q V, i int) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(q.X, q.Y, func() { drawStatue(dst, q, i) })
+		return
+	}
 	ellipse(dst, q.X+20, q.Y+6, 56, 14, rgba(0x1d3a12, 0.25))
 	rect(dst, q.X-36, q.Y-50, 72, 52, rgb(0xb8b4aa))
 	rect(dst, q.X-36, q.Y-50, 20, 52, rgb(0xd6d2c8))
@@ -1369,7 +1412,9 @@ func drawSplashSpray(dst *ebiten.Image, at, dir V, f, t float64) {
 			for j := 0; j <= 10; j++ {
 				u := float64(j) / 10
 				q := back.Add(n.Mul(side * (50 + reach*u)))
-				y := q.Y - h*4*u*(1-u) // une parabole
+				pq := lift(q, h*4*u*(1-u)) // une parabole
+				q.X = pq.X
+				y := pq.Y
 				r := (24 - 12*u) * (0.6 + 0.4*amp)
 				circle(dst, q.X, y, r*1.3, rgba(0x9fd3ff, 0.45))
 				circle(dst, q.X, y, r, rgba(0xdff4ff, 0.9))
@@ -1379,7 +1424,8 @@ func drawSplashSpray(dst *ebiten.Image, at, dir V, f, t float64) {
 			for j := 0; j < 4; j++ {
 				u := 0.6 + 0.12*float64(j)
 				q := back.Add(n.Mul(side * (60 + reach*u + 10*math.Sin(t*9+float64(j)))))
-				circle(dst, q.X, q.Y-h*0.3*(1-f), 5, rgba(0xffffff, 0.8))
+				dq := lift(q, h*0.3*(1-f))
+				circle(dst, dq.X, dq.Y, 5, rgba(0xffffff, 0.8))
 			}
 		}
 		// l'écume à la surface, au pied de la gerbe
