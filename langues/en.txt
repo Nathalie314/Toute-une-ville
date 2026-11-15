@@ -1383,4 +1383,4 @@ De base = Base
 Avec une étagère = With one shelf
 Avec deux étagères = With two shelves
 Avec deux étagères et un vidéoprojecteur = With two shelves and a projector
-Temps réel actuel (tes étagères, tes points université) = Actual time now (your shelves, your college points)
+Temps réel actuel (tes étagères, vidéoprojecteurs et points université) = Actual time now (your shelves, projectors and college points)

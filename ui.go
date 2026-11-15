@@ -892,7 +892,7 @@ func (g *game) formationTable(dst *ebiten.Image, x, y, w float64) {
 		{"Avec une étagère", func(l int) float64 { return sim.BaseFormation(l) / 1.15 }},
 		{"Avec deux étagères", func(l int) float64 { return sim.BaseFormation(l) / 1.3 }},
 		{"Avec deux étagères et un vidéoprojecteur", func(l int) float64 { return sim.BaseFormation(l) / 1.3 / 1.5 }},
-		{"Temps réel actuel (tes étagères, tes points université)", func(l int) float64 { return g.sim.FormationTime(l) }},
+		{"Temps réel actuel (tes étagères, vidéoprojecteurs et points université)", func(l int) float64 { return g.sim.FormationTime(l) }},
 	}
 	const rh = 40.0
 	// en-tête : les quatre niveaux
@@ -910,10 +910,27 @@ func (g *game) formationTable(dst *ebiten.Image, x, y, w float64) {
 		if last {
 			bg, col = rgba(0x2fa86b, 0.25), rgb(0x1e5e3a)
 		}
-		roundRect(dst, x, ry, w-6, rh, 10, bg)
-		sayFit(dst, r.label, x+16, ry+rh/2, 19, last, -1, lw-30, col)
+		h := rh
+		if last {
+			h = rh + 22 // (l'intitulé tient sur deux lignes)
+		}
+		roundRect(dst, x, ry, w-6, h, 10, bg)
+		if ls := wrap(r.label, 18, lw-30, last); last && len(ls) > 1 {
+			for k, l := range ls[:2] {
+				say(dst, l, x+16, ry+h/2-11+float64(k)*22, 18, true, -1, col)
+			}
+		} else {
+			sayFit(dst, r.label, x+16, ry+rh/2, 19, last, -1, lw-30, col)
+		}
 		for l := 0; l < 4; l++ {
-			say(dst, duration(r.f(l)), x+lw+float64(l)*cw+cw/2-3, ry+rh/2, 20, true, 0, col)
+			txt := duration(r.f(l))
+			if last { // le vidéoprojecteur, classe par classe : la moyenne des classes ouvertes du niveau
+				if with, open := g.sim.VideoShare(l); with > 0 {
+					t := r.f(l)
+					txt = duration((float64(with)*t/1.5 + float64(open-with)*t) / float64(open))
+				}
+			}
+			sayFit(dst, txt, x+lw+float64(l)*cw+cw/2-3, ry+h/2, 20, true, 0, cw-16, col)
 		}
 	}
 }
@@ -950,7 +967,7 @@ func (g *game) drawSchoolHelp(dst *ebiten.Image) {
 		say(dst, l, x+50, y+160+float64(i)*38, 22, false, -1, rgb(0x3b2a10))
 	}
 	g.formationTable(dst, x+40, y+350, w-80)
-	ty := y + 488
+	ty := y + 510
 	f := g.sim.FailChance()
 	say(dst, tr.F("Échec : 1 élève sur {n} rate sa formation (il repart avec un point du niveau d'en dessous, rien au primaire).", "n", itoa(int(math.Round(1/f)))), x+w/2, ty+160, 21, false, 0, rgb(0x7a3a2a))
 	say(dst, "La Pédagogie (points Université) réduit les échecs ; la Formation accélère toutes les classes.", x+w/2, ty+200, 21, false, 0, rgb(0x5a4a3a))

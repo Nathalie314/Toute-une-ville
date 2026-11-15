@@ -960,5 +960,7 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   Mrs. Miller, the Johnson family, Grandma Jean, Mr. White…
 - École, aide « ? » : tableau des durées de formation (son modèle) : par niveau, de base, avec une étagère, avec
   deux étagères, avec deux étagères et un vidéoprojecteur (×1,5), puis le temps réel du moment (ses étagères
-  déjà achetées, ses points université « Formation », le cadeau de la cantine s'il dure). Il remplace l'ancien
+  déjà achetées, ses vidéoprojecteurs — moyenne des classes ouvertes du niveau si toutes n'en ont pas —, ses
+  points université « Formation », le cadeau de la cantine s'il dure ; pas les livraisons des surveillants ni
+  l'ensemble du diplômé). Il remplace l'ancien
   encadré « Durée d'une formation aujourd'hui ». Durées en m:ss (h:mm:ss au-delà d'une heure).

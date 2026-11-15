@@ -178,6 +178,23 @@ func (p *Place) RoomAt(v V) *Room {
 // Tables : nombre de tables d'une salle (1 à 6).
 func (p *Place) Tables(r *Room) int { return 1 + p.g.Levels[p.key("tables_"+r.ID)] }
 
+// VideoShare : parmi les classes ouvertes d'un niveau, combien ont un vidéoprojecteur.
+func (g *Game) VideoShare(level int) (with, open int) {
+	p := g.Place("ecole")
+	if p == nil {
+		return 0, 0
+	}
+	for _, r := range p.Rooms {
+		if r.Level == level && r.built {
+			open++
+			if p.HasVideo(r) {
+				with++
+			}
+		}
+	}
+	return
+}
+
 // HasVideo : la salle a-t-elle un vidéoprojecteur ?
 func (p *Place) HasVideo(r *Room) bool { return p.g.Levels[p.key("video_"+r.ID)] > 0 }
 
