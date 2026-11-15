@@ -209,6 +209,7 @@ func newDomaine(g *Game) *Place {
 	unlock("pal_pdt", "Palette de pommes de terre", 90000, "Le camion de ma ferme apporte des pommes de terre.", "ferme:pdt", "Il faut les pommes de terre (ma ferme)")
 	unlock("vodka", "Distillerie de vodka", 100000, "Les pommes de terre deviennent de la vodka.", "", "")
 	unlock("pal_ble", "Palette de blé", 110000, "Le camion de ma ferme apporte du blé (son silo à blé).", "ferme:silo", "Il faut le silo à blé (ma ferme)")
+	p.Unlocks[len(p.Unlocks)-1].Secret = true // (rien d'écrit tant qu'on ne peut pas l'acheter)
 	unlock("whisky", "Distillerie de whisky", 125000, "Le blé devient du whisky : le plus cher du domaine.", "", "")
 	// chaque machine de la distillerie attend sa palette (et le cidre, le pressoir)
 	for _, u := range p.Unlocks {

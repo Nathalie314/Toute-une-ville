@@ -115,12 +115,12 @@ func (g *game) backTruckV(dst *ebiten.Image, p *sim.Place) {
 	switch {
 	case best < 3: // il monte depuis la route du bas
 		f := (3 - best) / 3
-		drawTruck(dst, x, stop+1300*(1-f)*(1-f), true)
+		drawTruckTop(dst, x, stop+1300*(1-f)*(1-f), true)
 	case e < 2: // il décharge
-		drawTruck(dst, x, stop, true)
+		drawTruckTop(dst, x, stop, true)
 	case e < 4.5: // il continue vers le nord
 		f := (e - 2) / 2.5
-		drawTruck(dst, x, stop-2400*f*f, false)
+		drawTruckTop(dst, x, stop-2400*f*f, false)
 	}
 	sayOutlined(dst, "Prochaine livraison ("+strings.ToLower(from)+") : "+itoa(int(best))+" s", sim.DomPalX-20, sim.DomColY0-52, 18, -1, rgb(0xffffff), rgb(0x2b2b2b))
 }
@@ -143,14 +143,14 @@ func (g *game) drawDockV(dst *ebiten.Image, s *sim.Station) {
 	e := every - left
 	x := sim.DomRoadX + sim.DomRoadW/2 + 30
 	y0 := b.C().Y + 10
-	truck := func(y float64) { scaled(x, y, 0.75, func() { drawTruck(dst, x, y, true) }) }
+	truck := func(y float64) { scaled(x, y, 0.58, func() { drawTruckTop(dst, x, y, true) }) }
 	if e < 2.5 { // il vient de partir vers le nord
 		f := e / 2.5
 		truck(y0 - 1800*f*f)
 	}
 	switch {
 	case e >= 4.5:
-		scaled(x, y0, 0.75, func() { drawTruck(dst, x, y0, left < 2) })
+		scaled(x, y0, 0.58, func() { drawTruckTop(dst, x, y0, left < 2) })
 		sayOutlined(dst, "Départ dans "+itoa(int(left))+" s", x, y0+50, 15, 0, rgb(0xffffff), rgb(0x2b2b2b))
 	case e >= 1.5: // le suivant monte depuis le sud
 		f := (e - 1.5) / 3
@@ -165,7 +165,7 @@ func drawDomaineMachine(dst *ebiten.Image, s *sim.Station, t float64) {
 	work := s.Working
 	switch s.ID {
 	case "vin_blanc", "vin_rouge":
-		// une grosse bassine de raisin, la presse au-dessus, le foudre (gros tonneau couché) à côté
+		// une grosse bassine de raisin, la presse au-dessus, le foudre (grand tonneau debout) à côté
 		wine := uint32(0xe8d77a)
 		if s.ID == "vin_rouge" {
 			wine = 0x8a1f3a
@@ -184,15 +184,27 @@ func drawDomaineMachine(dst *ebiten.Image, s *sim.Station, t float64) {
 		rect(dst, bx+10, b.Y+6, 8, b.H-40, rgb(0x6e4322))
 		rect(dst, bx+122, b.Y+6, 8, b.H-40, rgb(0x6e4322))
 		// le tuyau vers le foudre
-		line(dst, bx+130, b.Y+b.H-40, bx+170, b.Y+b.H-60, 6, rgb(0x9a9a9a))
-		// le foudre
-		fx, fy := b.X+b.W-110, b.Y+b.H-70
-		ellipse(dst, fx, fy, 100, 62, rgb(0xa86a3a))
-		for k := -2; k <= 2; k++ {
-			line(dst, fx+float64(k)*36, fy-60, fx+float64(k)*36, fy+60, 4, rgb(0x5a3a22))
+		line(dst, bx+130, b.Y+b.H-40, b.X+b.W-150, b.Y+b.H-60, 6, rgb(0x9a9a9a))
+		// le foudre : un grand tonneau debout
+		fx, top, bot := b.X+b.W-85, b.Y-20, b.Y+b.H-8
+		ellipse(dst, fx+20, bot+4, 70, 14, rgba(0x000000, 0.2))
+		mid := (top + bot) / 2
+		hh := (bot - top) / 2
+		polygon(dst, []V{{X: fx - 52, Y: top + 14}, {X: fx - 64, Y: mid}, {X: fx - 52, Y: bot - 6}, {X: fx + 52, Y: bot - 6}, {X: fx + 64, Y: mid}, {X: fx + 52, Y: top + 14}}, rgb(0xa86a3a))
+		polygon(dst, []V{{X: fx - 52, Y: top + 14}, {X: fx - 64, Y: mid}, {X: fx - 52, Y: bot - 6}, {X: fx - 30, Y: bot - 6}, {X: fx - 38, Y: mid}, {X: fx - 30, Y: top + 14}}, rgb(0xc0824d))
+		for k := -2; k <= 2; k++ { // les douelles
+			x := fx + float64(k)*22
+			line(dst, x, top+16, x+float64(k)*3, mid, 2, rgba(0x5a3a22, 0.5))
+			line(dst, x+float64(k)*3, mid, x, bot-8, 2, rgba(0x5a3a22, 0.5))
 		}
-		ellipse(dst, fx-92, fy, 14, 50, rgb(0x8a5a33))
-		roundRect(dst, fx-40, fy-16, 80, 32, 6, rgb(wine))
+		for _, y := range []float64{top + 26, mid - hh*0.35, mid + hh*0.35, bot - 18} { // les cercles de fer
+			w := 52 + 12*(1-math.Abs(y-mid)/hh)
+			line(dst, fx-w, y, fx+w, y, 5, rgb(0x4a4a4a))
+		}
+		ellipse(dst, fx, top+14, 52, 12, rgb(0x8a5a33)) // le dessus
+		ellipse(dst, fx, top+14, 44, 8, rgb(0x6e4322))
+		roundRect(dst, fx-20, mid-8, 40, 34, 8, rgb(wine)) // l'étiquette du vin
+		circle(dst, fx, bot-30, 5, rgb(0x5a3a22))          // le robinet
 	case "biere":
 		// deux cuves de cuivre et une cheminée
 		for k, x := range []float64{b.X + 70, b.X + 200} {
@@ -328,16 +340,17 @@ func drawItemDomaine(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 			col := []float64{-1, 0, 1, -0.5, 0.5, 1.5, 0, 1, 0.5}[k]
 			circle(dst, x+(col-0.5)*r*0.32, y-r*0.4+float64(row)*r*0.3, r*0.18, rgb(0x6a2a6e))
 		}
-	case sim.JusRaisin, sim.JusPomme:
+	case sim.JusPomme:
+		// une bouteille en verre, couleur du jus (jaune orangé), une pomme sur l'étiquette
+		drawBottle(dst, x, y, r, 0xf0a530, 0xfff6e0, 0x2f8a4a)
+		drawItem(dst, sim.Pomme, x, y+r*0.25, r*0.22)
+	case sim.JusRaisin:
 		c := uint32(0x6a1f4e)
-		if it == sim.JusPomme {
-			c = 0xe8b43a
-		}
 		// une brique de jus
 		roundRect(dst, x-r*0.45, y-r*0.6, r*0.9, r*1.4, r*0.08, rgb(0xffffff))
 		rect(dst, x-r*0.45, y-r*0.1, r*0.9, r*0.5, rgb(c))
 		polygon(dst, []V{{X: x - r*0.45, Y: y - r*0.6}, {X: x, Y: y - r*0.9}, {X: x + r*0.45, Y: y - r*0.6}}, rgb(0xeeeeee))
-		drawItem(dst, map[sim.Item]sim.Item{sim.JusRaisin: sim.Raisin, sim.JusPomme: sim.Pomme}[it], x, y+r*0.15, r*0.35)
+		drawItem(dst, sim.Raisin, x, y+r*0.15, r*0.35)
 	case sim.VinBlanc:
 		drawBottle(dst, x, y, r, 0x6f9a4a, 0xf3ead8, 0xd9a441)
 	case sim.VinRouge:
@@ -367,4 +380,33 @@ func drawItemDomaine(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		return false
 	}
 	return true
+}
+
+// drawTruckTop : un camion vu du dessus, qui roule vers le nord (route verticale) :
+// la cabine devant, la remorque derrière ; d'où il vient est écrit sur son toit.
+func drawTruckTop(dst *ebiten.Image, cx, cy float64, busy bool) {
+	label := map[string]string{"ferme": "MA FERME", "domaine": "LE DOMAINE", "elevage": "ÉLEVAGE"}[truckFrom]
+	if label == "" {
+		label = "MA FERME"
+	}
+	roundRect(dst, cx-44, cy-118, 104, 250, 12, rgba(0x000000, 0.22)) // ombre
+	for _, wy := range []float64{-80, 50, 92} {                       // les roues, qui dépassent un peu
+		roundRect(dst, cx-56, cy+wy, 12, 30, 4, rgb(0x2b2b2b))
+		roundRect(dst, cx+44, cy+wy, 12, 30, 4, rgb(0x2b2b2b))
+	}
+	// la remorque et son toit
+	roundRect(dst, cx-48, cy-50, 96, 180, 8, rgb(0xd9ccb2))
+	roundRect(dst, cx-44, cy-46, 88, 172, 6, rgb(0xf3ead8))
+	for y := cy - 30; y < cy+120; y += 24 {
+		line(dst, cx-40, y, cx+40, y, 1.5, rgba(0xb9ab90, 0.6))
+	}
+	roundRect(dst, cx-42, cy+22, 84, 34, 6, rgba(0xffffff, 0.9))
+	sayFit(dst, label, cx, cy+39, 16, true, 0, 80, rgb(0x2fa86b))
+	// la cabine, devant (au nord)
+	roundRect(dst, cx-44, cy-112, 88, 58, 12, rgb(0x2fa86b))
+	roundRect(dst, cx-36, cy-108, 72, 18, 6, rgb(0x9fd3ff)) // le pare-brise
+	rect(dst, cx-44, cy-112, 14, 58, rgb(0x46c283))
+	if busy {
+		circle(dst, cx, cy+136, 7, rgb(0xffd23f))
+	}
 }

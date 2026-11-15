@@ -312,7 +312,8 @@ type Place struct {
 	Boats          []*Boat // port : les bateaux de pêche
 	dredges        []*Dredge
 	boatsInit      bool
-	Vestiaire      Rect // porte du vestiaire : on s'y arrête pour ouvrir la page « Personnage »
+	Vestiaire      Rect  // porte du vestiaire : on s'y arrête pour ouvrir la page « Personnage »
+	Parc           *Parc // parc d'attractions : attractions, caisses, visiteurs
 
 	spawnT   float64
 	queueSeq int
@@ -352,6 +353,14 @@ func (p *Place) Registers() []*Station {
 
 // HasCashier : au moins une caissière embauchée.
 func (p *Place) HasCashier() bool {
+	if p.Parc != nil {
+		for _, r := range p.Parc.Regs {
+			if p.g.Levels[p.key("caissiere"+itoa(r.N))] > 0 {
+				return true
+			}
+		}
+		return false
+	}
 	for _, r := range p.Registers() {
 		if r.Cashier != nil {
 			return true
@@ -403,6 +412,10 @@ func (p *Place) step(dt float64, active bool) {
 	g := p.g
 	if p.ID == "ecole" {
 		p.stepSchool(dt, active)
+		return
+	}
+	if p.ID == "parc" {
+		p.stepParc(dt, active)
 		return
 	}
 	// une caissière sans client s'ennuie (elle sifflote : dessin)
@@ -597,6 +610,9 @@ func isColumnTeam(id string) bool { return id == "serre" || id == "verger" }
 func (p *Place) agentSpeed(a *Agent) float64 {
 	g := p.g
 	if a.Kind == PlayerAgent {
+		if p.ID == "parc" {
+			return 600 * g.playerSpeedF() // (au parc, immense, le joueur roule en trottinette)
+		}
 		return 300 * g.playerSpeedF()
 	}
 	return 170 * (1 + 0.15*float64(g.Levels[p.key("vitesse")])) * (1 + p.ptsF("pts_ent_vit")) * p.whistleBoost(a)
@@ -918,7 +934,7 @@ func (p *Place) interact(a *Agent, dt float64) {
 
 // Visible : on ne montre que les deux prochains déblocages.
 func (p *Place) Visible(u *Unlock) bool {
-	if p.ID == "super" || p.ID == "ecole" {
+	if p.ID == "super" || p.ID == "ecole" || p.ID == "parc" {
 		return !u.Done && (u.Requires == nil || u.Requires())
 	}
 	if p.ID == "boucherie" {
@@ -1149,6 +1165,9 @@ func (p *Place) SpotUpgrade(sp *Spot) *Upgrade {
 				c := *u
 				c.Max = min(u.Max, max(p.DroneMax(sp.Shelf), p.g.Levels[u.Key]))
 				return &c
+			}
+			if p.Parc != nil {
+				return p.parcSpotMax(sp, u)
 			}
 			return u
 		}

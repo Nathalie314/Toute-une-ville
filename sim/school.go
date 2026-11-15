@@ -769,7 +769,7 @@ func (p *Place) sells() bool { return p.ID != "ecole" && p.ID != "elevage" }
 func (p *Place) EarnsMoney() bool { return p.sells() }
 
 // hasStaff : lieux qui ont des employés (marche, charge).
-func (p *Place) hasStaff() bool { return p.ID != "ecole" }
+func (p *Place) hasStaff() bool { return p.ID != "ecole" && p.ID != "parc" } // (au parc, personne ne marche)
 
 // hasOrders : lieux où l'on livre des commandes.
 func (p *Place) hasOrders() bool { return p.Station("commande") != nil }
@@ -809,6 +809,10 @@ func (p *Place) PointKinds() []PointKind {
 	if p.sells() {
 		add("pts_caisse", "ouvrier", "Mécaniciens", "Caisses", "Les caisses passent les articles plus vite (+2 % par point).", func(n int) string { return pctVal(2 * n) })
 	}
+	if p.ID == "parc" {
+		add("pts_embarq", "ouvrier", "Opérateurs", "Embarquement", "Les employés des attractions font monter et descendre les visiteurs plus vite (+1 % par point).", pctVal)
+		add("pts_trott", "ouvrier", "Mécaniciens", "Trottinettes", "Les trottinettes des visiteurs vont plus vite (+1 % par point).", pctVal)
+	}
 	if p.ID == "super" {
 		add("pts_caddie", "ouvrier", "Mécaniciens", "Caddies", "Avec de bons caddies, les clients marchent plus vite (+1 % par point).", pctVal)
 	}
@@ -843,8 +847,15 @@ func (p *Place) PointKinds() []PointKind {
 	// collège
 	// (« Clients » et « Patience » ne s'achètent plus : les points déjà placés comptent toujours)
 	if p.sells() {
-		add("pts_panier", "marketing", "Panier moyen", "Panier", "Chaque client achète plus de produits (+1 % par point : à 100, un produit de plus par article).", pctVal)
+		if p.ID == "parc" {
+			add("pts_panier", "marketing", "Panier moyen", "Stands", "Les visiteurs dépensent plus aux stands (+1 % par point).", pctVal)
+		} else {
+			add("pts_panier", "marketing", "Panier moyen", "Panier", "Chaque client achète plus de produits (+1 % par point : à 100, un produit de plus par article).", pctVal)
+		}
 		add("pts_fidele", "marketing", "Clients fidèles", "Absences", "Tes gains pendant ton absence augmentent (+1 % par point, moyenne de tes lieux).", pctVal)
+	}
+	if p.ID == "parc" {
+		add("pts_reclame", "marketing", "Réclame", "Visiteurs", "Plus de visiteurs dans le parc (+1 % par point).", pctVal)
 	}
 	if p.hasOrders() {
 		add("pts_reclame", "marketing", "Réclame", "Cadeaux", "Les cadeaux des commandes de ce lieu durent plus longtemps (+1 % par point) et les cadeaux spéciaux viennent plus souvent.", pctVal)

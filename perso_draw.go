@@ -150,6 +150,11 @@ func (g *game) drawPlayer(dst *ebiten.Image, a *sim.Agent) {
 		}
 	}
 	ring(dst, a.Pos.X, a.Pos.Y, 30, 4, rgba(0x4fc3ff, 0.8))
+	if c := g.sim.Cur; c != nil && c.ID == "parc" { // au parc, on roule en trottinette
+		g.drawHero(dst, a.Pos.Add(V{Y: -12}), a.Face, 0, false, a.Carry)
+		drawScooter(dst, a.Pos, a.Face, 1.15, 0)
+		return
+	}
 	g.drawHero(dst, a.Pos, a.Face, a.WalkT, a.Moving, a.Carry)
 }
 

@@ -52,6 +52,7 @@ const (
 	panelPoints
 	panelLang
 	panelGains
+	panelPlaceHelp // le « ? » d'un lieu : comment fonctionne ce lieu
 )
 
 type button struct {
@@ -61,6 +62,7 @@ type button struct {
 }
 
 type game struct {
+	wheelAcc  float64    // crans de molette pas encore utilisés par une liste
 	lastPlace *sim.Place // le dernier lieu visité (Tab sur la carte y ramène)
 	mapHover  string     // carte : le lieu sous la main ou la souris (un chiffre en fait un favori)
 	sim       *sim.Game
@@ -184,6 +186,7 @@ func (g *game) input(dt float64) {
 	}
 	_, wy := ebiten.Wheel()
 	wy += pinchZoom() // (deux doigts : on zoome en pinçant)
+	g.wheelAcc += wy  // (pour les listes des fenêtres, lues au dessin)
 	// Tab : la carte de la ville (et retour au lieu) ; Échap : fermer une fenêtre
 	if inpututil.IsKeyJustPressed(ebiten.KeyTab) {
 		switch {
@@ -199,7 +202,7 @@ func (g *game) input(dt float64) {
 	}
 	// l'aide : la touche « , ? » (avec ou sans majuscule), aussi sur la carte
 	if g.panel == panelNone && g.typedAny(',', '?') {
-		g.openPanel(panelHelp)
+		g.openHelp()
 	}
 	if g.panel != panelNone {
 		g.scroll -= wy * 60
@@ -211,7 +214,7 @@ func (g *game) input(dt float64) {
 			g.openPanel(panelBadges)
 		}
 		if inpututil.IsKeyJustPressed(ebiten.KeyH) || inpututil.IsKeyJustPressed(ebiten.KeyF1) {
-			g.openPanel(panelHelp)
+			g.openHelp()
 		}
 		// zoom : molette, ou + et - au clavier
 		if inpututil.IsKeyJustPressed(ebiten.KeyEqual) || inpututil.IsKeyJustPressed(ebiten.KeyNumpadAdd) {
@@ -220,7 +223,11 @@ func (g *game) input(dt float64) {
 		if inpututil.IsKeyJustPressed(ebiten.KeyMinus) || inpututil.IsKeyJustPressed(ebiten.KeyNumpadSubtract) || inpututil.IsKeyJustPressed(ebiten.Key6) {
 			wy--
 		}
-		g.zoom = math.Max(0.6, math.Min(1.9, g.zoom*math.Pow(1.1, wy)))
+		minZ := 0.6
+		if g.sim.Cur != nil && g.sim.Cur.ID == "parc" {
+			minZ = 0.2 // (le parc est immense : on peut reculer bien plus)
+		}
+		g.zoom = math.Max(minZ, math.Min(1.9, g.zoom*math.Pow(1.1, wy)))
 		dir := V{}
 		k := ebiten.IsKeyPressed
 		if k(ebiten.KeyArrowUp) || k(ebiten.KeyW) || k(ebiten.KeyZ) {
@@ -248,8 +255,22 @@ func (g *game) input(dt float64) {
 		if dir.Len() > 1 {
 			dir = dir.Norm()
 		}
+		if g.isoHere() && dir.Len() > 0 { // flèche vers le haut de l'écran : vers le haut du losange
+			l := dir.Len()
+			x, y := isoInv(dir.X, dir.Y)
+			dir = V{X: x, Y: y}.Norm().Mul(l)
+		}
 		g.sim.MovePlayer(dir, dt)
 	}
+}
+
+// openHelp : dans un lieu, le « ? » explique ce lieu ; sur la carte de la ville, comment jouer.
+func (g *game) openHelp() {
+	if g.scene == scenePlace && g.sim.Cur != nil {
+		g.openPanel(panelPlaceHelp)
+		return
+	}
+	g.openPanel(panelHelp)
 }
 
 func (g *game) openPanel(p panel) {
@@ -332,6 +353,8 @@ func (g *game) Draw(screen *ebiten.Image) {
 		g.drawWelcome(dst)
 	case panelHelp:
 		g.drawHelp(dst)
+	case panelPlaceHelp:
+		g.drawPlaceHelp(dst)
 	case panelReset:
 		g.drawReset(dst)
 	case panelBadges:
@@ -346,6 +369,7 @@ func (g *game) Draw(screen *ebiten.Image) {
 		g.drawGains(dst)
 	}
 	g.drawHand(dst)
+	g.wheelAcc = 0 // (un cran de molette ne sert qu'une fois)
 	flush()
 	op := &ebiten.DrawImageOptions{Filter: ebiten.FilterLinear}
 	op.GeoM.Scale(1/k, 1/k)

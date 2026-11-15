@@ -14,26 +14,27 @@ import (
 // On reste une seconde dessus pour partir. Raccourcis : 1 à 9 (lieux), 0 (carte),
 // V (mairie), P (personnage). Le vestiaire ouvre aussi la page « Personnage ».
 
-var busOrder = []string{"ferme", "ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "elevage", "boucherie", "port", "domaine", "patisserie"} // (le port : touche 0 ; le domaine : sans touche au départ)
+var busOrder = []string{"ferme", "ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "elevage", "boucherie", "port", "domaine", "patisserie", "parc"} // (le port : touche 0 ; le domaine : sans touche au départ)
 
-var busNames = map[string]string{"ferme": "Ma ferme", "ecole": "École", "super": "Supermarché", "boulangerie": "Boulangerie", "cremerie": "Crèmerie", "glacier": "Glacier", "elevage": "Élevage", "boucherie": "Boucherie", "exotique": "Exotique", "port": "Port", "domaine": "Domaine", "patisserie": "Pâtisserie"}
-var busCols = map[string]uint32{"ferme": 0xc0623a, "ecole": 0xd4a017, "super": 0x2fa86b, "boulangerie": 0xa0522d, "cremerie": 0x7fb3d5, "glacier": 0x5aa0e0, "elevage": 0x8a5a2b, "boucherie": 0xb03a3a, "exotique": 0x1f8a5a, "port": 0x2b6cd6, "domaine": 0x7a2a4a, "patisserie": 0xe0567f, "": 0x5b7fd6}
+var busNames = map[string]string{"ferme": "Ma ferme", "ecole": "École", "super": "Supermarché", "boulangerie": "Boulangerie", "cremerie": "Crèmerie", "glacier": "Glacier", "elevage": "Élevage", "boucherie": "Boucherie", "exotique": "Exotique", "port": "Port", "domaine": "Domaine", "patisserie": "Pâtisserie", "parc": "Parc"}
+var busCols = map[string]uint32{"ferme": 0xc0623a, "ecole": 0xd4a017, "super": 0x2fa86b, "boulangerie": 0xa0522d, "cremerie": 0x7fb3d5, "glacier": 0x5aa0e0, "elevage": 0x8a5a2b, "boucherie": 0xb03a3a, "exotique": 0x1f8a5a, "port": 0x2b6cd6, "domaine": 0x7a2a4a, "patisserie": 0xe0567f, "parc": 0xff8a3d, "": 0x5b7fd6}
 
 type busDest struct {
 	id   string // "" : la carte
 	zone sim.Rect
+	here bool // le lieu où l'on est (grisé : la liste reste complète et à la même place)
 }
 
 func (g *game) busDests(p *sim.Place) []busDest {
 	ids := []string{""}
 	for _, id := range busOrder {
-		if q := g.sim.Place(id); q != nil && q.Owned && q != p {
+		if q := g.sim.Place(id); q != nil && q.Owned {
 			ids = append(ids, id)
 		}
 	}
 	var out []busDest
 	for i, id := range ids {
-		out = append(out, busDest{id: id, zone: p.YardTele(i)})
+		out = append(out, busDest{id: id, zone: p.YardTele(i), here: id == p.ID})
 	}
 	return out
 }
@@ -102,7 +103,7 @@ func (g *game) updateBus(dt float64) {
 		g.vestDone = false
 	}
 	for _, d := range g.busDests(p) {
-		if d.zone.Has(pl.Pos) && !pl.Moving {
+		if d.zone.Has(pl.Pos) && !pl.Moving && !d.here {
 			g.busT += dt
 			if g.busT >= 1 {
 				g.busGo(d.id)
@@ -123,6 +124,13 @@ func (g *game) drawBus(dst *ebiten.Image, p *sim.Place) {
 	for _, d := range ds {
 		r := d.zone
 		c := busCols[d.id]
+		if d.here { // le lieu où l'on est
+			roundRect(dst, r.X, r.Y, r.W, r.H, 14, rgba(0x000000, 0.15))
+			roundRect(dst, r.X+10, r.Y+12, r.W-20, 34, 8, rgba(0x8a8a8a, 0.8))
+			sayFit(dst, busNames[d.id], r.C().X, r.Y+29, 16, true, 0, r.W-24, rgb(0xffffff))
+			say(dst, "Tu es ici", r.C().X, r.Y+r.H-26, 14, true, 0, rgb(0xffffff))
+			continue
+		}
 		roundRect(dst, r.X, r.Y, r.W, r.H, 14, rgba(0x000000, 0.3))
 		dashedRect(dst, r.X+3, r.Y+3, r.W-6, r.H-6, 4, 10, g.t*25, rgb(c))
 		name := "Carte"

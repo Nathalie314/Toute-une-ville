@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 
@@ -38,9 +39,44 @@ func newSaveShots(dir, file string) *saveShots {
 			}
 			g.sim.Events = g.sim.Events[:0]
 		}
+		if os.Getenv("CAPMAP") != "" { // CAPMAP=1 : la carte de la ville d'abord
+			s.queue = append(s.queue, func(g *game) string {
+				g.goMap()
+				return "carte"
+			})
+		}
 		for _, p := range g.sim.Places {
 			p := p
 			if !p.Owned || (os.Getenv("CAPPLACES") != "" && !strings.Contains(","+os.Getenv("CAPPLACES")+",", ","+p.ID+",")) {
+				continue
+			}
+			if os.Getenv("CAPHELP") != "" { // CAPHELP=1 : le « ? » de chaque lieu
+				s.queue = append(s.queue, func(g *game) string {
+					g.goPlace(p)
+					g.openPanel(panelPlaceHelp)
+					return p.ID + "_aide"
+				}, func(g *game) string { g.closePanel(); return "" })
+			}
+			if at := os.Getenv("CAPAT"); at != "" { // CAPAT=x,y : une seule photo, centrée sur ce point
+				var x, y float64
+				fmt.Sscanf(at, "%f,%f", &x, &y)
+				for k := 0; k < int(envF("CAPN", 1)); k++ {
+					k := k
+					s.queue = append(s.queue, func(g *game) string {
+						g.goPlace(p)
+						if k > 0 {
+							for t := 0.0; t < envF("CAPDT", 3); t += 1.0 / 30 {
+								g.sim.Step(1.0 / 30)
+							}
+						}
+						g.zoom = envF("CAPZOOM", 0.55)
+						g.sim.Player.Pos = sim.V{X: x, Y: y}
+						for i := 0; i < 60; i++ {
+							g.updateCamera(p, 1)
+						}
+						return p.ID + "_vise_" + itoa2(k)
+					})
+				}
 				continue
 			}
 			s.queue = append(s.queue, func(g *game) string {

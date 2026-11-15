@@ -232,6 +232,9 @@ func (g *game) hint() (string, V, bool) {
 			}
 		}
 	}
+	if p.ID == "parc" {
+		return g.parcHint(p) // (les conseils des autres lieux n'ont pas de sens ici)
+	}
 	if p.ID == "super" {
 		if txt, at, arrow := g.superRefused(p); txt != "" {
 			return txt, at, arrow
@@ -432,7 +435,7 @@ type gainsView struct {
 // gainNames : le nom d'un lieu dans le tableau des gains.
 var gainNames = map[string]string{"ferme": "Ma ferme", "super": "Supermarché", "cremerie": "Crèmerie", "exotique": "Ferme exotique",
 	"boulangerie": "Boulangerie", "glacier": "Glacier", "port": "Port", "elevage": "Ferme d'élevage", "boucherie": "Boucherie",
-	"domaine": "Le domaine", "patisserie": "Pâtisserie"}
+	"domaine": "Le domaine", "patisserie": "Pâtisserie", "parc": "Parc d'attractions"}
 
 // openGains : la photo des gains des 10 dernières minutes, prise à l'ouverture
 // (elle ne bouge plus tant que la page reste ouverte).
@@ -563,7 +566,7 @@ func (g *game) drawHUD(dst *ebiten.Image) {
 	x -= 230
 	g.btn(dst, "Badges  [B]", x, 24, 216, 70, 0xd4a017, true, func() { g.openPanel(panelBadges) })
 	x -= 90
-	g.btn(dst, "?", x, 24, 76, 70, 0x9b6bd6, true, func() { g.openPanel(panelHelp) })
+	g.btn(dst, "?", x, 24, 76, 70, 0x9b6bd6, true, func() { g.openPanel(panelPlaceHelp) })
 	// raccourci : la mairie (il s'illumine quand on peut acheter)
 	x -= 90
 	g.roundShortcut(dst, x, 24, g.canBuyMairie() || g.hasPoints(), func(cx, cy float64) {
@@ -809,10 +812,6 @@ func (g *game) drawWelcome(dst *ebiten.Image) {
 }
 
 func (g *game) drawHelp(dst *ebiten.Image) {
-	if g.sim.Cur != nil && g.sim.Cur.ID == "ecole" && g.scene == scenePlace {
-		g.drawSchoolHelp(dst)
-		return
-	}
 	w, h := math.Min(1500, scr.VW-80), 960.0
 	if scr.Small {
 		w = math.Min(2300, scr.VW-80)
@@ -1108,6 +1107,17 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		y := math.Mod(float64(i)*211.7, scr.VH)
 		circle(dst, x, y, 30+math.Mod(float64(i)*13.1, 40), rgba(0x8cc56a, 0.6))
 	}
+	// berges de sable de la rivière
+	var bank []V
+	for k := 0; k <= 40; k++ {
+		y := float64(k) / 40 * scr.VH
+		bank = append(bank, V{X: scr.VW - 156 + math.Sin(y/120+t*0.2)*30, Y: y})
+	}
+	for k := 40; k >= 0; k-- {
+		y := float64(k) / 40 * scr.VH
+		bank = append(bank, V{X: scr.VW - 24 + math.Sin(y/120+t*0.2)*30, Y: y})
+	}
+	polygon(dst, bank, rgb(0xe6d39c))
 	var pts []V
 	for k := 0; k <= 40; k++ {
 		y := float64(k) / 40 * scr.VH
@@ -1141,6 +1151,7 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		g.placeTile("boucherie", "Boucherie", 0xb03a3a),
 		g.placeTile("domaine", "Le domaine", 0x7a2a4a),
 		g.placeTile("patisserie", "Pâtisserie", 0xe0567f),
+		g.placeTile("parc", "Parc d'attractions", 0xff8a3d),
 		{id: "creperie", name: "Crêperie", status: "Bientôt", col: 0xd9a55a},
 		{id: "fleuriste", name: "Fleuriste", status: "Bientôt", col: 0xff6fa8},
 		{id: "restaurant", name: "Restaurant", status: "Bientôt", col: 0xe67e22},
@@ -1148,7 +1159,6 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		{id: "zoo", name: "Zoo", status: "Bientôt", col: 0x7a9a2a},
 		{id: "hopital", name: "Hôpital", status: "Bientôt", col: 0xe74c3c},
 		{id: "prison", name: "Prison", status: "Bientôt", col: 0x5d6d7e},
-		{id: "parc", name: "Parc d'attractions", status: "Bientôt", col: 0xff8a3d},
 	}
 	cols := (len(tiles) + 2) / 3 // trois rangées
 	gap := 26.0
@@ -1174,6 +1184,7 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		if hot {
 			glow(dst, x, y, tw, th, g.t)
 		}
+		roundRect(dst, x+8, y+10, tw, th, 18, rgba(0x1d3a12, 0.22)) // (ombre portée)
 		g.drawTile(dst, tl, x, y, tw, th, farm)
 		if hot {
 			badge(dst, x+tw-8, y+8, g.t)
@@ -1190,6 +1201,7 @@ func (g *game) drawMap(dst *ebiten.Image) {
 			sayFit(dst, "Commande à livrer !", x+tw/2, y+th-12-3*k, 16, true, 0, tw*0.58, rgb(0x5a3d00))
 		}
 	}
+	mapTrees(dst, x0-30, y0-30, gw+60, 3*th+2*gap+60)
 	for i, tl := range side {
 		draw(tl, x0, y0+float64(i)*(th+gap))
 	}
@@ -1211,6 +1223,7 @@ func (g *game) drawMap(dst *ebiten.Image) {
 	g.btn(dst, "Recommencer à zéro", 50, scr.VH-100, 330, 70, 0x8a7a6a, true, func() { g.openPanel(panelReset) })
 	g.btn(dst, "Badges", scr.VW-600, scr.VH-100, 220, 70, 0xd4a017, true, func() { g.openPanel(panelBadges) })
 	g.flagButtons(dst, scr.VW-200, 70)
+	g.btn(dst, "?", scr.VW-400, 34, 76, 70, 0x9b6bd6, true, func() { g.openPanel(panelHelp) })
 	say(dst, "Clique sur un lieu, ou vas-y avec les flèches et reste dessus.", 420, scr.VH-62, 24, true, -1, rgba(0x1e3a12, 0.85))
 	if b := g.sim.Boost; b != nil && b.Kind == "maire" { // le cadeau du maire : bien visible
 		txt := tr.F("Cadeau du maire : {quoi} ! Encore {temps}", "quoi", lowerTr(b.Text()), "temps", clock(b.Left))
@@ -1316,7 +1329,10 @@ func shadeHex(c uint32, k float64) uint32 {
 // scaled dessine fn réduit (ou agrandi) d'un facteur k autour de (cx, cy).
 func scaled(cx, cy, k float64, fn func()) {
 	saved := cam
-	cam = view{s: saved.s * k, ox: saved.ox + cx*saved.s*(1-k), oy: saved.oy + cy*saved.s*(1-k)}
+	if saved.iso {
+		cx, cy = isoProj(cx, cy)
+	}
+	cam = view{s: saved.s * k, ox: saved.ox + cx*saved.s*(1-k), oy: saved.oy + cy*saved.s*(1-k), iso: saved.iso}
 	fn()
 	cam = saved
 }
@@ -1452,7 +1468,7 @@ func (g *game) drawBadges(dst *ebiten.Image) {
 	ch := 150.0
 	total := 0.0
 	type sect struct{ id, title string }
-	sects := []sect{{"ferme", "Ma ferme"}, {"super", "Le supermarché"}, {"boulangerie", "La boulangerie"}, {"cremerie", "La crèmerie"}, {"glacier", "Le glacier"}, {"exotique", "La ferme exotique"}, {"elevage", "La ferme d'élevage"}, {"boucherie", "La boucherie"}, {"port", "Le port"}, {"domaine", "Le domaine"}, {"patisserie", "La pâtisserie"}, {"ecole", "L'école"}, {"ville", "Clairbourg"}}
+	sects := []sect{{"ferme", "Ma ferme"}, {"super", "Le supermarché"}, {"boulangerie", "La boulangerie"}, {"cremerie", "La crèmerie"}, {"glacier", "Le glacier"}, {"exotique", "La ferme exotique"}, {"elevage", "La ferme d'élevage"}, {"boucherie", "La boucherie"}, {"port", "Le port"}, {"domaine", "Le domaine"}, {"patisserie", "La pâtisserie"}, {"parc", "Le parc d'attractions"}, {"ecole", "L'école"}, {"ville", "Clairbourg"}}
 	for _, sc := range sects {
 		n := 0
 		for _, b := range sim.Badges {
@@ -1691,16 +1707,39 @@ func (g *game) superHint(p *sim.Place) (string, V, bool) {
 
 // ---------------------------------------------------------------- achat d'un lieu
 
-func (g *game) drawBuyPlace(dst *ebiten.Image) {
-	p := g.buying
+// drawPlaceHelp : le « ? » d'un lieu : comment il fonctionne (l'aide générale est
+// sur la carte de la ville).
+func (g *game) drawPlaceHelp(dst *ebiten.Image) {
+	p := g.sim.Cur
 	if p == nil {
 		g.panel = panelNone
 		return
 	}
-	w, h := 940.0, 520.0
-	x, y := g.panelFrame(dst, tr.F("Acheter {lieu} ?", "lieu", lowerTr(p.Name)), w, h)
+	if p.ID == "ecole" {
+		g.drawSchoolHelp(dst)
+		return
+	}
+	w := math.Min(1300, scr.VW-80)
+	size, lh := 28.0, 42.0
+	if scr.Small {
+		size, lh = 36, 50
+	}
+	lines := wrap(placeDesc(p.ID), size, w-140, false)
+	h := math.Min(scr.VH-60, 90+60+float64(len(lines))*lh+110)
+	x, y := g.panelFrame(dst, p.Name, w, h)
+	for i, l := range lines {
+		say(dst, l, x+w/2, y+60+float64(i)*lh, size, false, 0, rgb(0x5a4a3a))
+	}
+	sayFit(dst, "Comment jouer : le « ? » de la carte de la ville.", x+w/2, y+h-140, 22, true, 0, w-80, rgb(0x8a7a6a))
+}
+
+// placeDesc : comment fonctionne un lieu (à l'achat, et dans le « ? » du lieu).
+func placeDesc(id string) string {
+	if id == "ferme" {
+		return "Ta ferme fait pousser blé, maïs, légumes, fruits et fleurs, et élève poules, vaches, chèvres, brebis et abeilles. Marche dans un champ mûr pour récolter, dépose les produits sur les étals : les clients se servent et paient à la caisse. Les bâtiments (moulin, poulailler, étable…) transforment ce que tu y déposes. Le long de la route, les quais envoient les produits en camion vers tes autres lieux. Chaque zone a ses ouvriers, et un drone peut porter les produits d'un étal jusqu'à son quai."
+	}
 	txt := "L'immense supermarché vend les produits de tes lieux, espace par espace (ferme, légumes, fruits, puis crèmerie, boulangerie, glaces…). Ce qui part en camion arrive dans son entrepôt (1 objet livré = 3 en réserve). Les clients viennent en voiture et prennent un caddie : achète des places et des caddies !"
-	switch p.ID {
+	switch id {
 	case "boulangerie":
 		txt = "La boulangerie fait du pain et des viennoiseries : baguettes, pain blé-maïs, brioches, puis croissants et pains au chocolat (avec le beurre de la crèmerie). Les ingrédients arrivent en camion depuis le quai « → boulangerie » de la ferme."
 	case "cremerie":
@@ -1717,9 +1756,23 @@ func (g *game) drawBuyPlace(dst *ebiten.Image) {
 		txt = "La pâtisserie : tartes aux pommes, riz au lait, clafoutis, gâteaux au chocolat, éclairs au café et fraisiers. Chaque recette demande au moins 3 ingrédients, qui viennent de ta ferme, de la crèmerie et de la ferme exotique. Rien n'est offert : même la première machine s'achète."
 	case "domaine":
 		txt = "Le domaine : la vigne, le houblon et une distillerie. Le raisin et les jus partent en camion au supermarché ; on vend sur place les vins, la bière, le cidre et les alcools (avec les pommes, poires, pommes de terre et le blé de ta ferme). Chaque espace a ses ouvriers. L'alcool est dangereux pour la santé : à consommer avec modération."
+	case "parc":
+		txt = "Le parc d'attractions ne consomme rien et ne livre rien : les visiteurs paient l'entrée (plus chère à chaque nouvelle attraction) et viennent pour les attractions, qui grandissent avec leur taille. Un employé (ou toi) fait monter et descendre les visiteurs ; l'attente fait baisser leur bonheur. Les stands (ballons, glaces, pop-corn…) n'ont besoin de personne : les visiteurs heureux qui passent devant y dépensent un peu. Au parc, tu roules en trottinette."
 	case "glacier":
 		txt = "Le glacier fait des sorbets (fraise, mangue, ananas) avec les fruits, puis des glaces : crème et œufs avec de la vanille, du café, de la noix de coco, du chocolat ou des poires. Les ingrédients arrivent en camion (ferme, crèmerie, ferme exotique)."
 	}
+	return txt
+}
+
+func (g *game) drawBuyPlace(dst *ebiten.Image) {
+	p := g.buying
+	if p == nil {
+		g.panel = panelNone
+		return
+	}
+	w, h := 940.0, 520.0
+	x, y := g.panelFrame(dst, tr.F("Acheter {lieu} ?", "lieu", lowerTr(p.Name)), w, h)
+	txt := placeDesc(p.ID)
 	for i, l := range wrap(txt, 26, w-120, false) {
 		say(dst, l, x+w/2, y+56+float64(i)*36, 26, false, 0, rgb(0x5a4a3a))
 	}
@@ -1779,6 +1832,101 @@ func (g *game) placeTile(id, name string, col uint32) tile {
 		t.fn = func() { g.buying = sup; g.openPanel(panelBuy) }
 	}
 	return t
+}
+
+// parcHint : au parc, les premières étapes dans l'ordre (caissière, petit train,
+// son employé, des trottinettes, un petit train plus grand), puis ce qui manque.
+func (g *game) parcHint(p *sim.Place) (string, V, bool) {
+	gs := g.sim
+	pl := gs.Player
+	lv := func(k string) int { return gs.Levels["parc."+k] }
+	spotAt := func(id string) (sim.Rect, bool) {
+		for _, sp := range p.Spots {
+			if sp.ID == id && p.SpotVisible(sp) {
+				return sp.Zone, true
+			}
+		}
+		return sim.Rect{}, false
+	}
+	// une case ou une zone : « reste dessus » quand on y est, sinon on y mène
+	goTo := func(txt string, z sim.Rect) (string, V, bool) {
+		if z.Has(pl.Pos) {
+			return "Reste immobile sur la case : l'argent s'y verse…", V{}, false
+		}
+		return txt, z.C(), true
+	}
+	var train *sim.Ride
+	for _, r := range p.Parc.Rides {
+		if r.Kind.ID == "train" {
+			train = r
+		}
+	}
+	// 1. une caissière à la caisse 1
+	if lv("caissiere1") == 0 {
+		if z, ok := spotAt("caissiere1"); ok {
+			return goTo("Embauche une caissière : sa case est derrière la caisse 1, sur la place de l'entrée.", z)
+		}
+	}
+	// 2. le petit train
+	if train != nil && !p.RideBuilt(train) {
+		for _, u := range p.Unlocks {
+			if u.ID == "attr_train" {
+				return goTo("Achète le petit train : arrête-toi sur sa zone, à gauche de l'avenue.", u.Zone)
+			}
+		}
+	}
+	// 3. son employé
+	if train != nil && lv("operateur_train") == 0 {
+		if z, ok := spotAt("operateur_train"); ok {
+			if p.RideManned(train) {
+				return "Tu fais monter et descendre les visiteurs du petit train. Embauche un employé pour être libre !", V{}, false
+			}
+			return goTo("Embauche un employé pour le petit train : sa case est à côté de sa cabine rouge.", z)
+		}
+	}
+	// 4. des trottinettes
+	if lv("trott") == 0 {
+		if z, ok := spotAt("trott"); ok {
+			return goTo("Achète des trottinettes : leur case est à côté du râtelier, sur la place de l'entrée.", z)
+		}
+	}
+	// 5. un petit train plus grand
+	if train != nil && lv("taille_train") == 0 {
+		if z, ok := spotAt("taille_train"); ok {
+			return goTo("Agrandis le petit train (Taille +1) : un tour plus long rend les visiteurs plus heureux.", z)
+		}
+	}
+	// ensuite : une attraction qui ne tourne pas, une caisse sans personne, le parking plein
+	for _, r := range p.Parc.Rides {
+		if p.RideBuilt(r) && !p.RideManned(r) && len(r.Queue) > 0 {
+			if z, ok := spotAt("operateur_" + r.Kind.ID); ok {
+				return goTo(tr.F("« {nom} » n'a pas d'employé : des visiteurs attendent ! Embauche-le, ou entre dans sa cabine rouge.", "nom", tr.T(r.Kind.Name)), z)
+			}
+		}
+	}
+	for _, r := range p.Parc.Regs {
+		if p.ParcRegOpen(r) && !p.ParcRegManned(r) && len(r.Queue) > 0 {
+			return tr.F("Des visiteurs attendent à la caisse {n} : embauche une caissière, ou mets-toi derrière la cabine.", "n", itoa(r.N)), r.Pos, true
+		}
+	}
+	if p.Parc.Refused > 0 && p.ParcParkTotal() < sim.ParcParkMax && p.ParcParkTotal()-p.ParkUsedParc() <= 2 {
+		if z, ok := spotAt("parking"); ok {
+			return goTo("Le parking est plein : des visiteurs repartent ! Agrandis-le (case dans ta zone, à gauche).", z)
+		}
+	}
+	// sinon : l'achat le moins cher à portée (une attraction, une caisse)
+	best, bestTxt := 1e18, ""
+	var bz sim.Rect
+	for _, u := range p.Unlocks {
+		if !u.Done && p.Visible(u) && gs.Money >= u.Cost-u.Paid && u.Cost < best {
+			best, bz = u.Cost, u.Zone
+			bestTxt = tr.F("Tu peux acheter « {nom} » : arrête-toi sur sa zone.", "nom", tr.T(u.Name))
+		}
+	}
+	if bestTxt != "" {
+		return goTo(bestTxt, bz)
+	}
+	return "", V{}, false
 }
 
 // workshopHint : boulangerie et glacier, tant qu'il n'y a pas d'employé.
@@ -1924,12 +2072,13 @@ func (g *game) drawPointsPanel(dst *ebiten.Image) {
 	if len(places) > vis {
 		vis = max(1, int((listH-70)/70)) // (la place des flèches en bas)
 		maxS := len(places) - vis
-		if g.hover(x+30, y, lw, listH) {
-			if _, wy := ebiten.Wheel(); wy > 0 {
+		if g.hover(x, y-10, lw+60, listH+20) { // (toute la colonne des lieux)
+			if wy := g.wheelAcc; wy > 0 {
 				g.ptsScroll--
 			} else if wy < 0 {
 				g.ptsScroll++
 			}
+			g.wheelAcc = 0
 		}
 		g.ptsScroll = max(0, min(maxS, g.ptsScroll))
 		ay := y + listH - 56

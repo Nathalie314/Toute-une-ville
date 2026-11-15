@@ -981,3 +981,212 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   tirage, moitié particuliers, moitié cantine (si l'école est ouverte) — la boulangerie et le glacier reçoivent
   donc aussi des commandes de particuliers. Le glacier a maintenant sa caisse « Commandes » (zone du joueur), et
   donc les points Logistique et Réclame.
+
+## Le parc d'attractions (13e lieu) — étape 1
+- Sa demande (discutée avant de coder) : immense et aéré ; ne consomme rien, ne livre rien, autonome, rapporte de
+  l'argent. Parking au sud (10 → 300 places, 1 à 4 visiteurs par voiture) ; caisses : une ouverte au départ (sans
+  caissière), 10 au final ; entrée payante, son prix monte avec le nombre d'attractions ouvertes (pas leur taille).
+  Attractions : aucune offerte ; chacune a son employé (ou le joueur dans sa cabine) qui fait monter et descendre ;
+  une « taille » 1 à 10 (tour plus long, bonheur plus grand, dessin qui grandit) ; wagons ≤ taille (un tous les deux
+  niveaux pour les attractions à 4 places ; tour volante : nacelles par deux, 10 paires). Le parc attire 1 à 2
+  visiteurs par place à bord selon les étoiles (+ réclame). Jauge de bonheur : baisse en file (6 par minute),
+  monte à chaque tour (6 + 3,5 × taille) ; à la sortie de CHAQUE attraction : jauge au plus bas → −réputation,
+  jauge haute → +réputation ; un visiteur ne quitte jamais une file, sauf dans une attraction SANS employé
+  embauché, à 0 de bonheur (−réputation). Autre attraction seulement si jauge ≥ 75 % (la 1re est obligatoire) ;
+  il peut donc toutes les faire. Trottinettes (600 max, par 10) : prises à l'entrée, posées à l'entrée de chaque
+  attraction, rendues en sortant ; le joueur, lui, roule toujours en trottinette au parc (2 fois plus vite).
+- Attractions : petit train (2 par wagon, 10), train fantôme (2, 10), tour volante (chaises volantes géantes : 1
+  par nacelle, par paires, 20), petits bateaux (4, 5), grand huit (4, 5), grand splash (rondins, 4, 5), les pieds
+  dans le vide (2 par rangée, 10). Pas de commandes au parc. Points d'école : caisses, « Opérateurs :
+  embarquement » (pts_embarq), « Mécaniciens : trottinettes » (pts_trott), panier, clients fidèles, réclame
+  (= plus de visiteurs), comptables ; pas d'entraînement (personne ne marche).
+- Plan : 9000 de large ; deux rangées de quatre terrains (7 attractions, un terrain libre) de part et d'autre d'un
+  grand boulevard ; avenue jusqu'à la place de l'entrée et ses 10 caisses ; route ; parking (3 allées × 2 rangées
+  × 50). Code : sim/parc.go (Place.Parc : attractions, caisses, visiteurs ; stepParc), parc_draw.go.
+- Étape 1 : tout fonctionne ; le petit train a son vrai dessin (circuit qui s'allonge, étang et pont, colline et
+  tunnel, village, montagne et cascade) ; les autres attractions ont un dessin provisoire (étape 2). Étape 3 :
+  stands, badges, réglage du prix d'entrée (parcFeeBase, provisoire) pour rapporter ~2 fois la pâtisserie.
+- Pour qu'elle essaie : une partie d'essai (sa sauvegarde, tous les lieux jusqu'à la pâtisserie achetés, 2 × 10⁹ €)
+  dans un dossier à part avec l'exe (la sauvegarde est rangée à côté de l'exe : sa vraie partie n'est pas touchée).
+- Retours d'essai : le parc est sur la carte juste après la pâtisserie (avant les « Bientôt ») ; l'agrandissement du
+  parking est dans la zone du joueur (rangée des améliorations) ; les trottinettes se voient mieux : un râtelier
+  avec son toit et son panneau « TROTTINETTES » sur la place, à droite des caisses (30 places dessinées, compteur
+  libres / total, visible même vide), sa case d'achat juste à côté, des trottinettes plus grandes et colorées
+  sous les visiteurs et sous le joueur.
+- Retours d'essai (2) : bandeau d'aide du parc pas à pas (parcHint) : caissière de la caisse 1 → petit train → son
+  employé → trottinettes → petit train plus grand ; puis : attraction sans employé avec une file, caisse sans
+  personne avec une file, parking plein. Case de la caissière remontée (on voit son prix), panneau d'entrée
+  remonté au-dessus. Le parking sort de l'herbe : seules les places achetées sont goudronnées ; il grandit allée par
+  allée (la plus proche de la route d'abord), du centre vers les côtés, et ses routes d'accès et de sortie
+  s'écartent avec lui (ParcAccessX/ParcExitX). Les caisses pas encore achetables ne s'affichent plus.
+
+## Le parc d'attractions — étape 2 : les dessins des attractions (parc_rides.go)
+- Chaque attraction grandit avec sa taille (1 à 10) ; tout est dessiné par le code (circuit qui s'allonge et se
+  tortille avec la taille, décor de plus en plus riche), pas 70 images :
+  - train fantôme : maison hantée qui s'agrandit (tours aux tailles 3, 6, 9), fenêtres qui luisent, tombes,
+    citrouilles, arbres morts, fantômes et chauves-souris ; les wagons disparaissent dans la maison ;
+  - petits bateaux : rivière dans un jardin (fleurs, saules), ponts (un tous les 3 niveaux), kiosque (4),
+    fontaine (5), cygnes ; bateaux blancs à auvent coloré ;
+  - tour volante : mât rouge et blanc de plus en plus haut, couronne et nacelles (par paires) ; pendant le tour,
+    la couronne monte en haut du mât et les nacelles s'envolent en tournant, puis redescendent ; drapeaux (5+) ;
+  - grand huit : rails rouges sur pylônes, montée à chaîne au départ, un looping tous les 3 niveaux ;
+  - grand splash : canal en bois sur l'eau, chutes dans les rochers (une de plus tous les 3 niveaux) avec bassin,
+    éclaboussures quand un rondin passe la chute ; sapins ;
+  - les pieds dans le vide : rails bleu et jaune sur grosses colonnes, vrilles (une tous les 2 niveaux),
+    passagers suspendus sous les rails, jambes qui balancent.
+- Bandeau d'aide du parc : après les premières étapes, il propose l'achat le moins cher à portée (attraction,
+  caisse) ; plus jamais de conseils d'un autre lieu (« remplis son quai… »).
+- Outil de capture : CAPAT=x,y (photo centrée sur ce point), CAPN (nombre de photos), CAPDT (secondes entre deux).
+- Train fantôme redessiné (sa demande) : circuit à lui, en allers-retours (1 + taille/3, arrondis) très différent
+  de la boucle du petit train ; il disparaît sous des tunnels sombres (1 + taille/3, courts) ; des squelettes,
+  momies, vampires et zombies (2 + taille, 14 au plus) surgissent de leur tombe, sarcophage, cercueil ou tas de terre
+  quand un wagon passe près d'eux ; une sorcière touille son chaudron (feu, bulles vertes) près des rails ; plus de
+  maison hantée. La partie d'essai a maintenant 10¹³ € pour tout débloquer.
+
+## Nouveau style « nature » pour toute la ville (sa demande, sans copier aucun jeu)
+- Elle a montré des images d'un jeu de parc pour l'ambiance (vue de biais, nature, relief), en précisant bien
+  qu'elle ne veut rien copier. On reste vu du dessus, en formes tracées par le code, avec une fausse profondeur :
+  lumière en haut à gauche, ombres portées vers le bas à droite, côté gauche des formes plus clair.
+- decor_draw.go : décor automatique de tous les lieux. Le sol du lieu est dessiné une fois en tout petit
+  (une case = 20 unités) ; les cases restées « herbe » (loin des machines, zones, cases d'achat, cour, parking
+  du parc…) reçoivent arbres ronds, sapins, buissons (parfois fleuris), rochers, fleurs et touffes, groupés en
+  bosquets par un bruit doux. Recalculé quand le lieu change (decorKey : stations construites). Dans le lieu
+  lui-même, pas de forêt (il doit rester aéré) : seulement quelques arbres isolés, buissons et fleurs ; les
+  bosquets sont autour. Au parc, les bosquets vont aussi entre les attractions.
+- L'herbe a de grandes taches plus claires ou plus foncées ; dalles en relief (slab : cour du joueur, bâtiments des
+  ateliers, du supermarché, de l'école) ; ombre sous chaque machine ou bâtiment (stationShadow) ; building() a un
+  toit à deux pans (clair / ombre) et une ombre portée ; route avec bordures et joints de trottoir.
+- Carte de la ville : arbres et sapins autour des tuiles (mapTrees), ombre sous les tuiles, berges de sable.
+- Le parc (parc_style.go) : boulevard et avenue en sable aux bords bosselés, bouts d'allée devant les entrées et
+  sorties, haies autour des attractions (ouvertes côté file et sortie), lampadaires, bancs, poubelles et massifs de
+  fleurs le long des allées, grande porte d'entrée (deux tours, toits pointus, drapeaux qui flottent, arche et
+  guirlande qui clignote). Grand huit en hauteur : ombre au sol, gros piliers orange, rails bleus, loopings sur
+  pieds ; « pieds dans le vide » : ombre au sol, colonnes violettes.
+- Outil de capture : CAPMAP=1 photographie aussi la carte de la ville.
+
+## Le parc d'attractions — étape 3 : stands, badges, prix d'entrée
+- sim/parc_stands.go : 8 stands au bord du boulevard, chacun devant une attraction (il apparaît quand elle est
+  ouverte) : ballons (petit train), marchand de glaces (train fantôme), pop-corn (tour volante), barbe à papa
+  (petits bateaux), photo souvenir (sortie du grand huit), food truck (grand splash), pêche aux canards et
+  boutique de souvenirs (pieds dans le vide). 40 k€ à 12 M€. Personne ne les tient, rien n'est livré (« c'est
+  magique ») : un visiteur qui passe devant (une fois par stand), de bonne humeur (55 % ou plus), achète une fois
+  sur deux (part du prix d'entrée de base : 6 à 20 %), gagne un peu de bonheur et garde son achat à la main
+  25 s (ballon au-dessus de la tête, glace, pop-corn…). Chaque stand est surmonté en géant de ce qu'il vend.
+- Points d'école « Panier moyen » au parc : « Stands », les visiteurs y dépensent plus (+1 % par point).
+- Badges : placeBadges (Ticket d'entrée, Tout le parc, Équipe au complet — toutes les caissières et tous les
+  employés —, Premier client, Bonne adresse, Parc étoilé) + Grand frisson (ouvrir le grand huit), Barbe à papa
+  et pop-corn (1 000 ventes aux stands, sauvegardées dans PlaceSave.Stands), Toujours plus grand (une attraction
+  à la taille 10). Section « Le parc d'attractions » dans la page des badges.
+- Prix d'entrée : parcFeeBase = 3 000 (au lieu de 2 000 provisoire). Mesure : pâtisserie tout acheté, ingrédients
+  illimités ≈ 72 k€/min ; parc tout acheté, ≈ 95 k€/min à 2 000 → ≈ 140 k€/min à 3 000 (deux fois la pâtisserie).
+
+## Le parc : retours d'essai (3)
+- Au parc aussi, le joueur près d'une caissière embauchée l'aide : la caisse va deux fois plus vite
+  (ParcPlayerHelps, « Tu l'aides : ça va plus vite ! ») — comme dans les autres lieux (PlayerHelps).
+- Parc agrandi (visiteurs à taille réelle dans les attractions) : terrains de 3 000 × ~1 550 au lieu de
+  1 900 × ~900 (ParcW 13 800, ParcTop −2 950, boulevard à −900, avenue à 6 900), stands repositionnés.
+  Rien de tout ça n'est dans la sauvegarde : les parties existantes se chargent telles quelles.
+- Petits bateaux et grand splash : chaque bateau (rondin) est autonome (sim/parc_boats.go, Ride.Boats) : au quai,
+  il se remplit, part dès qu'il est plein (ou après 8 s d'attente avec au moins un passager), 3 s entre deux
+  départs ; au retour il débarque et se range derrière le quai.
+- Dessins refaits à la taille des visiteurs (parc_rides.go) : wagons, bateaux, rondins, voitures et sièges avec
+  leurs passagers assis (seated : buste, tête, cheveux, couleurs du visiteur).
+  - Train fantôme : nouveau circuit en serpentin + retour par le fond, voies bien écartées, virages larges ;
+    monstres, citrouilles et arbres toujours à l'écart des rails (trackDist) ; la sorcière est à l'endroit le plus
+    loin des rails et aucun monstre ne se dresse devant elle.
+  - Tour volante : sièges à dossier pendus à deux chaînes (sur les côtés), barre de sécurité, jambes qui pendent.
+  - Petit train : plus de « triangles » (le village était fait de maisons minuscules) : de vraies maisons autour de
+    l'étang ; montagne à facettes (trois sommets, faces éclairées et à l'ombre, neige, rochers, cascade et bassin) ;
+    plus d'arbres dans l'étang ni sur les maisons.
+  - Grand huit : circuit en relief (coasterPath : montée à chaîne, descentes et bosses, piliers de hauteur
+    variable, ombre au sol décalée selon la hauteur) ; les loopings font partie du circuit et le train les
+    emprunte ; vitesse selon la hauteur (lent en montée, très rapide en bas) ; deux tours de circuit par tour ;
+    passagers bras levés.
+  - Pieds dans le vide : rails plus hauts, sièges suspendus et jambes dans le vide à taille réelle, un tour et demi.
+- Mesure (tout au max, avec les stands) : environ 120 000 €/min en moyenne (par vagues) : parcFeeBase reste 3 000.
+- Partie d'essai : parking, trottinettes, caisses et attractions au max ; 10¹³ € pour acheter les stands.
+
+## Retours sur les autres lieux (domaine, ferme, aide)
+- Domaine : les camions de la route verticale sont dessinés vus du dessus (drawTruckTop), cabine vers le nord
+  (ils montent, voie de droite), et d'où ils viennent est écrit sur le toit ; les camions garés aux quais aussi.
+- Les foudres (presses à vin blanc et rouge) sont debout : grand tonneau, douelles, cercles de fer, étiquette.
+- Le jus de pomme est une bouteille en verre jaune orangé (le jus de raisin reste une brique).
+- Palette de blé du domaine : rien d'écrit tant qu'on ne peut pas l'acheter (Secret).
+- Drone d'un étal qui n'a encore nulle part où livrer (DroneLock) : il dit où ouvrir la suite : la palette d'un lieu
+  (« Achète sa palette | au domaine » pour le silo à blé), sinon le rayon du supermarché, et rien s'il n'y a ni l'un
+  ni l'autre (avant : toujours « Ouvre son rayon au supermarché », faux pour le blé du silo).
+- Le « ? » d'un lieu (bouton, touches « , ? », H, F1) explique ce lieu (placeDesc, les mêmes textes qu'à l'achat ;
+  un texte pour la ferme ; l'école garde son aide). « Comment jouer » est le « ? » de la carte de la ville (nouveau
+  bouton « ? » à côté des drapeaux). Capture : CAPHELP=1.
+- Parc : le food truck (×1,7) et la boutique de souvenirs (×1,8) sont agrandis, à l'échelle du parc agrandi (un peu
+  plus bas sur le boulevard) ; au parc, on peut reculer le zoom jusqu'à 0,2 (0,6 ailleurs, ramené à 0,6 en sortant).
+- Petits bateaux (ses retours) : plus de ponts (ils ne passaient pas par-dessus l'eau) ; rivière en grande boucle
+  aux courbes douces (boatTrack : deux ou trois larges méandres) ; un vrai quai en bois sur la berge, côté cabine ;
+  décor qui grandit avec la taille : parterres de fleurs (2 + taille), statues (1 + taille/2 : personnage ou vase),
+  fontaines (taille/3), loin de la rivière et du kiosque.
+- Petits bateaux (ses retours) : la rivière passe sous le boulevard (deux ponts de bois, le boulevard les traverse),
+  monte dans le terrain d'en face (rangée du haut, à droite : il devient un jardin quand l'attraction est achetée) et
+  redescend ; le méandre grandit avec la taille (boatGeom). Barbe à papa et boutique de souvenirs décalées à gauche.
+  Haies et mobilier s'écartent là où passe la rivière ; le décor (statues, parterres, fontaines) va des deux côtés.
+- Parking et trottinettes à la mesure des visiteurs : tout au max, ~283 visiteurs à la fois, ~130 places de parking
+  prises, ~280 trottinettes. Parking 200 places au plus (deux allées au lieu de trois ; ParcH réduit), trottinettes
+  400 au plus (de la marge pour les points « Réclame »). Une sauvegarde au-delà est bornée au chargement.
+- Petits bateaux : le boulevard s'arrête avant la rivière (ParcBoulEnd) : au-delà, le terrain d'en face, l'entre-deux
+  et le terrain des bateaux ne font qu'un, entouré d'une haie (plus de ponts) ; la sortie est près de l'entrée.
+  Les bateaux ne sautent plus quand ils se vident : chacun garde sa couleur (Col) et glisse vers sa place dans la
+  file (Back, EndBack : son tour se termine au bout de la file qui attend).
+- Tour volante : l'angle s'accumule (lente en bas, de plus en plus vite en montant, vitesse maximale en haut) ;
+  en haut, chaque chaîne s'allonge et raccourcit à son rythme.
+- Grand splash : les rondins vont très vite dans les descentes (le temps du tour est réparti selon une vitesse
+  qui monte dans la chute puis retombe) ; au pied d'une chute, deux grandes gerbes d'eau jaillissent à gauche et
+  à droite du canal (plus de cercles sur les passagers).
+- Partie d'essai : tout le parc débloqué (stands compris), 10¹³ €.
+- Fontaines (fountains_draw.go, d'après une image qu'elle a montrée, redessinées vues du dessus) : sept modèles :
+  à étages, à la boule, grande à colonnes, bassin carré à jets, bassin octogonal, jets qui sortent des dalles, mur
+  d'eau. Petits bateaux : 1 + taille/2 fontaines, chacune d'un modèle différent (à la place des petites). Ailleurs
+  dans la ville : le décor automatique en pose de temps en temps (jusqu'à 3 par lieu, très espacées, là où il y a
+  beaucoup de place ; rien d'autre autour).
+
+## Essai : vue isométrique du parc (version à part)
+- Elle a demandé si tout le jeu pourrait être en 2D isométrique ; on fait d'abord un essai sur le parc, dans une
+  version à part. Le vrai jeu n'est pas touché : l'essai ne s'active qu'avec un exe construit avec
+  -ldflags "-X main.isoTrial=parc" (isoTrial vide sinon).
+- Comment : la simulation ne change pas. Le dessin projette le sol (view.iso, view.P : rotation de 45°, hauteur
+  divisée par 2 ; rect, roundRect, ellipse, cercle, ligne, polygone, texte) ; ce qui est debout (personnages,
+  arbres, rochers, bâtiments, stands, lampadaires, porte, monstres, sorcière, statues, fontaines, montagne, tour
+  volante, cabine de la loco…) est dessiné droit, posé sur son pied projeté (upright) ; ce qui est en hauteur
+  (rails du grand huit et des pieds dans le vide, piliers, gerbes d'eau) passe par lift(sol, hauteur). Les
+  objets sont triés par x + y (drawable.x). Flèches et souris tournées pour suivre le losange ; caméra non bornée.
+
+## Hélicoptère et sons
+- Téléporteurs de la zone du joueur : le parc manquait (busOrder) ; le lieu où l'on est garde sa case, grisée,
+  « Tu es ici » (avant, elle disparaissait : on croyait qu'il manquait la pâtisserie quand on y était).
+- Sons (« insupportable » avec beaucoup d'ouvriers rapides) : chaque son a son volume (sfxVol) et un écart minimal
+  entre deux fois le même (sfxGap). Les petits sons courts (récolte, dépôt, pièces, caisse, client fâché) sont très
+  doux et s'atténuent encore quand ils s'enchaînent (jusqu'à 4 fois). Le téléphone (commande) reste au maximum,
+  et un peu plus fort qu'avant.
+- À faire plus tard (sa demande) : réfléchir à une musique.
+- Verdict : elle n'aime pas le parc entier en isométrique (l'essai reste dans le code, inactif). En revanche, un
+  mélange : la vue reste de dessus, et certaines attractions deviennent une petite maquette vue de biais
+  (isoLocal : la projection isométrique autour du centre de l'attraction). Le grand huit d'abord : hauteurs,
+  piliers et loopings bien visibles ; ses wagons sont en volume (vehicle3D : une boîte, côtés ombrés, dessus,
+  intérieur), les passagers assis dedans.
+- Grand huit plus grand (ses retours) : le circuit, dessiné « de dessus », est replacé pour que la maquette vue de
+  biais remplisse tout le terrain (isoMapPts) ; rails, piliers, loopings et wagons plus épais.
+- Même maquette vue de biais pour les pieds dans le vide (rails à 200 de haut) et le grand splash (rochers debout
+  aux chutes, rondins en volume) ; arbres et sapins autour restent vus de dessus.
+- En volume (vehicle3D) : wagons et locomotive du petit train, wagons du train fantôme, bateaux des petits bateaux
+  (coque, proue, auvent) ; les fontaines ont une margelle épaisse.
+- Grand splash (ses retours) : le canal a un relief : avant chaque chute, il monte lentement sur des tréteaux
+  de bois (ombre au sol), puis plonge de plus en plus raide jusqu'au bassin ; les rondins suivent cette hauteur,
+  lents dans la montée (×0,45), très rapides dans la chute, puis les gerbes d'eau au pied.
+- Grand splash : canal en boucle presque ronde une fois vue de biais (splashTrack : plus de virages serrés) ; le
+  rondin suit la pente et la courbe du canal (direction prise entre un peu devant et un peu derrière lui), plus
+  court, pour ne plus déborder du canal.
+- Bateaux et rondins : au départ, le suivant n'avance vers le quai qu'à mesure que celui qui part s'éloigne
+  (target = rang + max(0, 1 − gapT/2,5)) : ils ne se rentrent plus dedans.
+- Bateaux et rondins : ceux qui attendent ne reculent plus jamais (la limite « à mesure que le bateau parti
+  s'éloigne » ne fait que retenir ; avant, elle les renvoyait d'une place en arrière à chaque départ).
+- Points de l'école : la molette fait de nouveau défiler la liste des lieux. Les crans de molette sont lus dans
+  Update (g.wheelAcc) et utilisés une seule fois au dessin ; toute la colonne des lieux réagit ; tourner la
+  molette rend la main à la souris (la « main » du clavier gardait sa position et le survol ratait la liste).

@@ -22,6 +22,64 @@ import (
 
 type view struct {
 	s, ox, oy float64
+	iso       bool // vue isométrique (essai) : le sol est projeté en losanges
+}
+
+// isoK : la projection isométrique (rotation de 45°, hauteur divisée par 2).
+const isoK = 0.70710678
+
+func isoProj(x, y float64) (float64, float64) { return (x - y) * isoK, (x + y) * isoK * 0.5 }
+func isoInv(sx, sy float64) (float64, float64) {
+	a, b := sx/isoK, 2*sy/isoK // a = x − y, b = x + y
+	return (a + b) / 2, (b - a) / 2
+}
+
+// P : un point du monde, en pixels.
+func (v view) P(x, y float64) (float32, float32) {
+	if v.iso {
+		x, y = isoProj(x, y)
+	}
+	return float32(v.ox + x*v.s), float32(v.oy + y*v.s)
+}
+
+// upright : ce qui est debout (personnages, arbres, bâtiments…) est dessiné droit,
+// posé sur son point au sol (x, y) : en vue isométrique, seul ce point est projeté.
+func upright(x, y float64, fn func()) {
+	if !cam.iso {
+		fn()
+		return
+	}
+	saved := cam
+	px, py := cam.P(x, y)
+	cam = view{s: saved.s, ox: float64(px) - x*saved.s, oy: float64(py) - y*saved.s}
+	fn()
+	cam = saved
+}
+
+// isoLocal : une petite maquette vue de biais (isométrique) au milieu de la vue de
+// dessus : le point c reste à sa place à l'écran, tout le reste est projeté autour.
+func isoLocal(c V, fn func()) {
+	if cam.iso {
+		fn()
+		return
+	}
+	saved := cam
+	nx, ny := cam.P(c.X, c.Y)
+	ix, iy := isoProj(c.X, c.Y)
+	cam = view{s: saved.s, ox: float64(nx) - ix*saved.s, oy: float64(ny) - iy*saved.s, iso: true}
+	fn()
+	cam = saved
+}
+
+// lift : le point du monde qui s'affiche h unités au-dessus du point au sol g
+// (rails en hauteur, gerbes d'eau…).
+func lift(g V, h float64) V {
+	if !cam.iso {
+		return V{X: g.X, Y: g.Y - h}
+	}
+	sx, sy := isoProj(g.X, g.Y)
+	x, y := isoInv(sx, sy-h)
+	return V{X: x, Y: y}
 }
 
 var cam view
@@ -31,6 +89,10 @@ func (v view) Y(y float64) float32 { return float32(v.oy + y*v.s) }
 func (v view) L(l float64) float32 { return float32(l * v.s) }
 
 func (v view) toLogical(px, py float64) sim.V {
+	if v.iso {
+		x, y := isoInv((px-v.ox)/v.s, (py-v.oy)/v.s)
+		return sim.V{X: x, Y: y}
+	}
 	return sim.V{X: (px - v.ox) / v.s, Y: (py - v.oy) / v.s}
 }
 
@@ -169,12 +231,29 @@ func circle(dst *ebiten.Image, x, y, r float64, c color.Color) {
 	if R <= 0.2 {
 		return
 	}
-	xs, ys := ellipsePts(cam.X(x), cam.Y(y), R, R, segs(R))
+	X, Y := cam.P(x, y)
+	if cam.iso { // un cercle au sol : une ellipse aplatie
+		xs, ys := ellipsePts(X, Y, R, R/2, segs(R))
+		fan(dst, xs, ys, c)
+		return
+	}
+	xs, ys := ellipsePts(X, Y, R, R, segs(R))
 	fan(dst, xs, ys, c)
 }
 
 func ellipse(dst *ebiten.Image, cx, cy, rx, ry float64, c color.Color) {
 	RX, RY := cam.L(rx), cam.L(ry)
+	if cam.iso { // une ellipse au sol, projetée point par point
+		n := segs(max(RX, RY))
+		tmpX, tmpY = tmpX[:0], tmpY[:0]
+		for i := 0; i < n; i++ {
+			a := float64(i) / float64(n) * 2 * math.Pi
+			X, Y := cam.P(cx+rx*math.Cos(a), cy+ry*math.Sin(a))
+			tmpX, tmpY = append(tmpX, X), append(tmpY, Y)
+		}
+		fan(dst, tmpX, tmpY, c)
+		return
+	}
 	xs, ys := ellipsePts(cam.X(cx), cam.Y(cy), RX, RY, segs(max(RX, RY)))
 	fan(dst, xs, ys, c)
 }
@@ -182,10 +261,15 @@ func ellipse(dst *ebiten.Image, cx, cy, rx, ry float64, c color.Color) {
 func ring(dst *ebiten.Image, x, y, r, w float64, c color.Color) {
 	R, W := cam.L(r), cam.L(w)
 	n := segs(R)
-	ox, oy := ellipsePts(cam.X(x), cam.Y(y), R+W/2, R+W/2, n)
+	X, Y := cam.P(x, y)
+	sq := float32(1)
+	if cam.iso {
+		sq = 0.5
+	}
+	ox, oy := ellipsePts(X, Y, R+W/2, (R+W/2)*sq, n)
 	tmpX2 = append(tmpX2[:0], ox...)
 	tmpY2 = append(tmpY2[:0], oy...)
-	ix, iy := ellipsePts(cam.X(x), cam.Y(y), max(0, R-W/2), max(0, R-W/2), n)
+	ix, iy := ellipsePts(X, Y, max(0, R-W/2), max(0, R-W/2)*sq, n)
 	strip(dst, tmpX2, tmpY2, ix, iy, c)
 }
 
@@ -196,7 +280,8 @@ func quad(dst *ebiten.Image, x1, y1, x2, y2, x3, y3, x4, y4 float32, c color.Col
 }
 
 func line(dst *ebiten.Image, x1, y1, x2, y2, w float64, c color.Color) {
-	X1, Y1, X2, Y2 := cam.X(x1), cam.Y(y1), cam.X(x2), cam.Y(y2)
+	X1, Y1 := cam.P(x1, y1)
+	X2, Y2 := cam.P(x2, y2)
 	dx, dy := X2-X1, Y2-Y1
 	l := float32(math.Hypot(float64(dx), float64(dy)))
 	if l < 1e-4 {
@@ -208,6 +293,14 @@ func line(dst *ebiten.Image, x1, y1, x2, y2, w float64, c color.Color) {
 }
 
 func rect(dst *ebiten.Image, x, y, w, h float64, c color.Color) {
+	if cam.iso {
+		x1, y1 := cam.P(x, y)
+		x2, y2 := cam.P(x+w, y)
+		x3, y3 := cam.P(x+w, y+h)
+		x4, y4 := cam.P(x, y+h)
+		quad(dst, x1, y1, x2, y2, x3, y3, x4, y4, c)
+		return
+	}
 	X, Y, W, H := cam.X(x), cam.Y(y), cam.L(w), cam.L(h)
 	quad(dst, X, Y, X+W, Y, X+W, Y+H, X, Y+H, c)
 }
@@ -229,6 +322,23 @@ var whiteSub = whiteImg.SubImage(image.Rect(1, 1, 2, 2)).(*ebiten.Image)
 // roundPts : contour d'un rectangle arrondi, en pixels.
 func roundPts(x, y, w, h, r float64, n int, xs, ys []float32) ([]float32, []float32) {
 	r = math.Max(0, math.Min(r, math.Min(w, h)/2))
+	if cam.iso { // le contour au sol, projeté point par point
+		if n <= 0 {
+			n = segs(cam.L(r))/4 + 2
+		}
+		corner := func(cx, cy, a0 float64) {
+			for i := 0; i <= n; i++ {
+				a := a0 + float64(i)/float64(n)*math.Pi/2
+				X, Y := cam.P(cx+r*math.Cos(a), cy+r*math.Sin(a))
+				xs, ys = append(xs, X), append(ys, Y)
+			}
+		}
+		corner(x+w-r, y+r, -math.Pi/2)
+		corner(x+w-r, y+h-r, 0)
+		corner(x+r, y+h-r, math.Pi/2)
+		corner(x+r, y+r, math.Pi)
+		return xs, ys
+	}
 	X, Y, W, H, R := cam.X(x), cam.Y(y), cam.L(w), cam.L(h), cam.L(r)
 	if n <= 0 {
 		n = segs(R)/4 + 2
@@ -266,8 +376,9 @@ func roundStroke(dst *ebiten.Image, x, y, w, h, r, lw float64, c color.Color) {
 func polygon(dst *ebiten.Image, pts []V, c color.Color) {
 	tmpX, tmpY = tmpX[:0], tmpY[:0]
 	for _, q := range pts {
-		tmpX = append(tmpX, cam.X(q.X))
-		tmpY = append(tmpY, cam.Y(q.Y))
+		X, Y := cam.P(q.X, q.Y)
+		tmpX = append(tmpX, X)
+		tmpY = append(tmpY, Y)
 	}
 	fan(dst, tmpX, tmpY, c)
 }
@@ -343,7 +454,8 @@ func say(dst *ebiten.Image, s string, x, y, size float64, bold bool, align int, 
 	}
 	f := &text.GoTextFace{Source: src, Size: size * cam.s}
 	op := &text.DrawOptions{}
-	op.GeoM.Translate(float64(cam.X(x)), float64(cam.Y(y)))
+	X, Y := cam.P(x, y)
+	op.GeoM.Translate(float64(X), float64(Y))
 	switch align {
 	case 0:
 		op.PrimaryAlign = text.AlignCenter
