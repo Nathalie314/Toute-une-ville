@@ -88,3 +88,7 @@ func extraLanguageFiles() map[string][]byte {
 	}
 	return out
 }
+
+// (pas de navigateur : pas de conseil « plein écran »)
+func screenTipUseful() bool { return false }
+func showScreenTip()        {}

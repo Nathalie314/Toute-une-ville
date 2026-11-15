@@ -48,3 +48,17 @@ func writeSaveData(b []byte) {
 
 // extraLanguageFiles : rien dans le navigateur (les langues sont intégrées au jeu).
 func extraLanguageFiles() map[string][]byte { return nil }
+
+// screenTipUseful : téléphone ou tablette, jeu ouvert dans le navigateur (pas depuis
+// l'écran d'accueil) : le conseil « plein écran » a un sens (voir web/index.html).
+func screenTipUseful() bool {
+	f := js.Global().Get("ToutUneVilleConseilUtile")
+	return f.Type() == js.TypeFunction && f.Invoke().Truthy()
+}
+
+// showScreenTip : réaffiche le conseil « jouer en plein écran ».
+func showScreenTip() {
+	if f := js.Global().Get("ToutUneVilleConseil"); f.Type() == js.TypeFunction {
+		f.Invoke()
+	}
+}

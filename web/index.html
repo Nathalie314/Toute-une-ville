@@ -26,6 +26,15 @@
   #tourne h2 { color: #ffe066; margin: 0.4em 0; }
   @keyframes tourne { 0%, 20% { transform: rotate(0deg); } 50%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0deg); } }
   @media (orientation: portrait) and (pointer: coarse) { #tourne { display: flex; } }
+  /* Téléphone ou tablette, jeu ouvert dans le navigateur : conseil pour le plein écran. */
+  #ecran { display: none; position: fixed; inset: 0; z-index: 900; background: rgba(30,50,20,0.94); color: #fff;
+    font-family: system-ui, sans-serif; text-align: center; flex-direction: column; align-items: center;
+    justify-content: center; padding: 20px; overflow-y: auto; }
+  #ecran h2 { color: #ffe066; margin: 0.2em 0 0.4em; }
+  #ecran ol { text-align: left; max-width: 34em; margin: 0.4em auto; line-height: 1.5; }
+  #ecran .attention { max-width: 34em; font-size: 0.9em; opacity: 0.9; margin: 0.6em auto; }
+  #ecran button { font: inherit; font-weight: bold; border: 0; border-radius: 12px; padding: 0.7em 1.6em;
+    margin: 0.5em; background: #2fa86b; color: #fff; }
 </style>
 </head>
 <body>
@@ -33,6 +42,17 @@
   <div class="icone">📱</div>
   <h2 data-en="Turn your phone">Tourne ton téléphone</h2>
   <p data-en="Toute une Ville is played in landscape mode.">Toute une Ville se joue à l'horizontale.</p>
+</div>
+<div id="ecran">
+  <h2 data-en="Play full screen, without the search bar">Jouer en plein écran, sans la barre de recherche</h2>
+  <ol>
+    <li class="ios" data-en="Tap the Share button (the square with an arrow pointing up).">Touche le bouton Partager (le carré avec la flèche vers le haut).</li>
+    <li class="ios" data-en="Choose “Add to Home Screen” (keep “Open as Web App” on if you see it).">Choisis « Sur l'écran d'accueil » (laisse « Ouvrir comme app web » activé si tu le vois).</li>
+    <li class="android" data-en="Open the browser menu (⋮), then choose “Add to Home screen” or “Install app”.">Ouvre le menu du navigateur (⋮), puis choisis « Ajouter à l'écran d'accueil » ou « Installer l'application ».</li>
+    <li data-en="Then start the game with its icon: it opens full screen, like an app.">Lance ensuite le jeu avec son icône : il s'ouvre en plein écran, comme une application.</li>
+  </ol>
+  <p class="attention" data-en="Note: the game started from the icon has its own save; the game played here in the browser does not carry over.">Attention : le jeu lancé depuis l'icône a sa propre sauvegarde ; la partie jouée ici, dans le navigateur, ne le suit pas.</p>
+  <button id="ecranOk" data-en="Play here anyway">Jouer ici quand même</button>
 </div>
 <div id="chargement">
   <h1>Toute une Ville</h1>
@@ -52,6 +72,24 @@ if (anglais) {
   document.documentElement.lang = "en";
   for (const el of document.querySelectorAll("[data-en]")) el.textContent = el.dataset.en;
 }
+// téléphone ou tablette, jeu ouvert dans le navigateur (pas depuis l'écran d'accueil) :
+// on explique comment jouer en plein écran (une seule fois)
+const tactile = matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 1;
+const appli = navigator.standalone === true || matchMedia("(display-mode: standalone)").matches || matchMedia("(display-mode: fullscreen)").matches;
+const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+for (const el of document.querySelectorAll(ios ? "#ecran .android" : "#ecran .ios")) el.remove();
+// (le jeu s'en sert : le « ? » de la carte propose de revoir ce conseil)
+window.ToutUneVilleConseilUtile = () => tactile && !appli;
+window.ToutUneVilleConseil = () => { document.getElementById("ecran").style.display = "flex"; };
+document.getElementById("ecranOk").onclick = () => {
+  document.getElementById("ecran").style.display = "none";
+  try { localStorage.setItem("ToutUneVille_conseil_ecran", "1"); } catch (e) {}
+};
+(() => {
+  let vu = false;
+  try { vu = localStorage.getItem("ToutUneVille_conseil_ecran") === "1"; } catch (e) {}
+  if (tactile && !appli && !vu) window.ToutUneVilleConseil();
+})();
 const chargement = anglais ? "Loading the game… " : "Chargement du jeu… ";
 (async () => {
   const texte = document.getElementById("texte");

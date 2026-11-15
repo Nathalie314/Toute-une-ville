@@ -1190,3 +1190,12 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Points de l'école : la molette fait de nouveau défiler la liste des lieux. Les crans de molette sont lus dans
   Update (g.wheelAcc) et utilisés une seule fois au dessin ; toute la colonne des lieux réagit ; tourner la
   molette rend la main à la souris (la « main » du clavier gardait sa position et le survol ratait la liste).
+
+## Téléphone et tablette : jouer en plein écran
+- Une testeuse sur iPhone se plaignait de la barre de recherche de Safari au-dessus du jeu : une page web ne peut
+  pas la cacher ; la solution est d'ajouter le jeu à l'écran d'accueil (il s'ouvre alors en plein écran).
+- web/index.html : sur téléphone ou tablette, jeu ouvert dans le navigateur (pas depuis l'écran d'accueil), un
+  conseil s'affiche une fois (Safari : Partager → Sur l'écran d'accueil ; Android : menu ⋮ → Ajouter à l'écran
+  d'accueil), avec l'avertissement que la partie de l'icône est à part. Bouton « Jouer ici quand même ».
+- Le « ? » de la carte (Comment jouer) a alors un bouton « Plein écran » qui rouvre ce conseil (screenTipUseful,
+  showScreenTip : save_web.go ; rien hors du navigateur, ni sur ordinateur, ni depuis l'écran d'accueil).

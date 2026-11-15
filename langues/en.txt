@@ -1468,6 +1468,7 @@ Ta ferme fait pousser blé, maïs, légumes, fruits et fleurs, et élève poules
 Comment jouer : le « ? » de la carte de la ville. = How to play: the “?” on the town map.
 Achète sa palette = Buy its pallet
 Tu es ici = You are here
+Plein écran = Full screen
 au domaine = at the estate
 à la boulangerie = at the bakery
 au glacier = at the ice cream parlor
