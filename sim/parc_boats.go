@@ -51,19 +51,22 @@ func (p *Place) stepBoats(r *Ride, dt float64) {
 	// ils glissent jusqu'à leur place (vers l'avant seulement)
 	const glide = 1.3 // places par seconde
 	for _, b := range r.Boats {
-		// (il n'avance vers le quai qu'à mesure que le bateau parti s'éloigne : pas de collision)
-		target := float64(b.Line) + math.Max(0, 1-r.gapT/2.5)
+		// sa place dans la file ; il n'avance vers le quai qu'à mesure que le bateau parti
+		// s'éloigne (pas de collision), et il ne recule jamais
+		base := float64(b.Line)
+		limit := base + math.Max(0, 1-r.gapT/2.5)
 		switch b.State {
 		case 2:
 			b.EndBack += math.Max(-glide*dt, math.Min(glide*dt, float64(len(line))-b.EndBack))
 			continue
 		case 3:
-			target = float64(len(line))
+			base = float64(len(line))
+			limit = base
 		}
-		if b.Back > target {
-			b.Back = math.Max(target, b.Back-glide*dt)
-		} else {
-			b.Back = target
+		if b.Back > limit {
+			b.Back = math.Max(limit, b.Back-glide*dt)
+		} else if b.Back < base {
+			b.Back = base
 		}
 	}
 	if len(line) > 0 && manned && r.gapT >= boatGap && line[0].Back < 0.05 {

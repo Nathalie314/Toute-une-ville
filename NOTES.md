@@ -1185,3 +1185,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   court, pour ne plus déborder du canal.
 - Bateaux et rondins : au départ, le suivant n'avance vers le quai qu'à mesure que celui qui part s'éloigne
   (target = rang + max(0, 1 − gapT/2,5)) : ils ne se rentrent plus dedans.
+- Bateaux et rondins : ceux qui attendent ne reculent plus jamais (la limite « à mesure que le bateau parti
+  s'éloigne » ne fait que retenir ; avant, elle les renvoyait d'une place en arrière à chaque départ).
