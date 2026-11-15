@@ -58,7 +58,7 @@ func parcLanding(dst *ebiten.Image, r *sim.Ride) {
 
 // parcHedge : la haie qui borde le terrain d'une attraction (sauf côté allée,
 // entre l'entrée et la sortie).
-func parcHedge(dst *ebiten.Image, r *sim.Ride, gaps ...float64) {
+func parcHedge(dst *ebiten.Image, r *sim.Ride, openFrom float64) {
 	pl := r.Plot
 	bush := func(x, y float64, i int) {
 		k := 0.8 + 0.4*hash2(i, r.Kind.Slot, 9)
@@ -86,12 +86,8 @@ func parcHedge(dst *ebiten.Image, r *sim.Ride, gaps ...float64) {
 		if x > pl.X+20 && x < pl.X+560 || x > r.Exit().X-110 && x < r.Exit().X+110 {
 			continue
 		}
-		open := false
-		for _, gx := range gaps {
-			open = open || math.Abs(x-gx) < 170 // (la rivière passe ici)
-		}
-		if open {
-			continue
+		if x > openFrom-30 {
+			continue // (le terrain continue au-delà du boulevard)
 		}
 		bush(x, near, i)
 		i++
@@ -105,7 +101,7 @@ type parcProp struct {
 
 // parcProps : le mobilier le long du boulevard, dans les bandes de 100 entre
 // les terrains et l'allée (jamais devant une entrée ou une sortie).
-func parcPropsFor(gaps []float64) []parcProp {
+var parcProps = func() []parcProp {
 	var ps []parcProp
 	bt := sim.ParcBoulY - sim.ParcBoulH/2
 	bb := sim.ParcBoulY + sim.ParcBoulH/2
@@ -131,9 +127,7 @@ func parcPropsFor(gaps []float64) []parcProp {
 						nearStand = true
 					}
 				}
-				for _, gx := range gaps {
-					nearStand = nearStand || math.Abs(x-gx) < 210 // (ni sur un pont)
-				}
+				nearStand = nearStand || x > sim.ParcBoulEnd-80 // (le boulevard s'arrête)
 				if nearStand {
 					continue
 				}
@@ -147,7 +141,7 @@ func parcPropsFor(gaps []float64) []parcProp {
 		ps = append(ps, parcProp{sim.ParcAvX - sim.ParcAvW/2 - 40, y, 0}, parcProp{sim.ParcAvX + sim.ParcAvW/2 + 40, y, 0})
 	}
 	return ps
-}
+}()
 
 func drawParcProp(dst *ebiten.Image, pr parcProp, t float64) {
 	x, y := pr.x, pr.y
@@ -225,7 +219,7 @@ func drawParcGate(dst *ebiten.Image, t float64) {
 
 // parcStyleDrawables : la porte et le mobilier (ils ont une hauteur).
 func parcStyleDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable, tl, br V, t float64) []drawable {
-	for _, pr := range parcPropsFor(boatCrossings(p)) {
+	for _, pr := range parcProps {
 		pr := pr
 		if pr.x < tl.X-100 || pr.x > br.X+100 || pr.y < tl.Y-20 || pr.y > br.Y+160 {
 			continue

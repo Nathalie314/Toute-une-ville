@@ -643,15 +643,10 @@ func drawGhostRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t fl
 // Il part du quai (s0), fait le tour et débarque juste avant le quai ; ceux qui
 // attendent se rangent derrière.
 func boatAt(b *sim.RideBoat, s0, gapL float64) float64 {
-	switch b.State {
-	case 2:
-		return s0 + b.Prog*(1-gapL)
-	case 3:
-		return s0 - gapL
-	case 1:
-		return s0
+	if b.State == 2 {
+		return s0 + b.Prog*(1-gapL*b.EndBack)
 	}
-	return s0 - gapL*float64(b.Line+1)
+	return s0 - gapL*b.Back
 }
 
 // drawBoatRide : une rivière aux courbes douces dans un jardin : un kiosque (4),
@@ -752,9 +747,9 @@ func drawBoatRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t flo
 		line(dst, e.X-nn.X*28, e.Y-nn.Y*28, e.X+nn.X*28, e.Y+nn.Y*28, 2, rgba(0x6e4322, 0.6))
 	}
 	gapL := 170.0 / pathLen(pts)
-	for k, b := range r.Boats {
+	for _, b := range r.Boats {
 		at, dir := along(pts, boatAt(b, s0, gapL))
-		col := []uint32{0xff6fa8, 0xffd23f, 0x4fc3ff, 0x7ed957, 0xff8a3d}[k%5]
+		col := []uint32{0xff6fa8, 0xffd23f, 0x4fc3ff, 0x7ed957, 0xff8a3d}[b.Col%5]
 		vehicle(dst, at, dir, 70, 44, 0xffffff)
 		bn := V{X: -dir.Y, Y: dir.X}
 		front := at.Add(dir.Mul(70))
@@ -771,13 +766,12 @@ func drawBoatRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t flo
 		circle(dst, at.X+dir.X*22, at.Y-32, 7, rgb(0xffffff))
 		circle(dst, at.X+dir.X*28, at.Y-31, 3, rgb(0xff8a3d))
 	}
-	// le boulevard passe sur la rivière : deux ponts (les bateaux passent dessous)
-	g := boatGeom(r, level)
-	drawBoulevardBridge(dst, g.xa)
-	drawBoulevardBridge(dst, g.xb)
 }
 
 // ---------------------------------------------------------------- tour volante
+
+// swingAng, swingT : l'angle de la couronne de la tour volante (il s'accumule d'une image à l'autre).
+var swingAng, swingT = map[string]float64{}, map[string]float64{}
 
 // drawSwingTower : la tour de chaises volantes. Le mât monte avec la taille ;
 // pendant le tour, la couronne grimpe le long du mât et les nacelles s'envolent.
@@ -798,7 +792,13 @@ func drawSwingTower(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t f
 		up = math.Min(1, math.Min(pr/0.15, (1-pr)/0.12))
 		spin = up
 	}
-	ang := t * 1.6 * spin
+	// la rotation s'accumule : lente quand la couronne est en bas, de plus en plus
+	// vite en montant, vitesse maximale en haut (et l'inverse en redescendant)
+	if dt := t - swingT[r.Kind.ID]; dt > 0 && dt < 0.5 {
+		swingAng[r.Kind.ID] += dt * 1.9 * spin * spin
+	}
+	swingT[r.Kind.ID] = t
+	ang := swingAng[r.Kind.ID]
 	hc := 120 + (h-200)*up // hauteur de la couronne
 	// la plate-forme
 	ellipse(dst, base.X+20, base.Y+16, cr+140, (cr+140)*0.38, rgba(0x1d3a12, 0.25))
@@ -818,7 +818,9 @@ func drawSwingTower(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t f
 		}
 		ox, oy := math.Cos(a), math.Sin(a)*0.38
 		top := V{X: base.X + ox*cr*0.9, Y: cy + oy*cr*0.9}
-		s := V{X: base.X + ox*(cr+swing), Y: cy + oy*(cr+swing) + 150 - 70*up}
+		// en haut, chaque chaîne s'allonge et se raccourcit à son rythme : ça donne de la vitesse
+		e := 1 + 0.22*up*up*up*math.Sin(t*2.6+float64(i)*1.9)
+		s := V{X: base.X + ox*(cr+swing*e), Y: cy + oy*(cr+swing*e) + (150-70*up)*e}
 		col := []uint32{0xd9534f, 0xffd23f, 0x4fc3ff}[i%3]
 		// les deux chaînes, accrochées aux côtés du siège
 		line(dst, top.X-10, top.Y, s.X-22, s.Y-40, 2.5, rgb(0x9a9a9a))
@@ -1101,27 +1103,59 @@ func drawSplash(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float
 		line(dst, q.X-10, q.Y, q.X+10, q.Y, 3, rgba(0xffffff, 0.6))
 	}
 	gapL := 210.0 / pathLen(pts)
+	// la vitesse le long du tour : très rapide dans chaque descente, puis elle retombe
+	rels := make([]float64, drops)
+	for i := range rels {
+		rels[i] = float64(i+1) / float64(drops+1)
+	}
+	speed := func(u float64) float64 {
+		v := 1.0
+		for _, d := range rels {
+			switch {
+			case u > d-0.035 && u <= d: // la descente
+				v = math.Max(v, 2+5*(u-(d-0.035))/0.035)
+			case u > d && u < d+0.06: // l'élan, qui retombe
+				v = math.Max(v, 7-6*(u-d)/0.06)
+			}
+		}
+		return v
+	}
+	const nWarp = 400
+	var cumT [nWarp + 1]float64
+	for i := 0; i < nWarp; i++ {
+		cumT[i+1] = cumT[i] + 1/speed((float64(i)+0.5)/nWarp)
+	}
+	warp := func(prog float64) float64 { // la fraction de temps écoulée → la fraction du tour parcourue
+		want := prog * cumT[nWarp]
+		k := 0
+		for k < nWarp-1 && cumT[k+1] < want {
+			k++
+		}
+		return (float64(k) + (want-cumT[k])/(cumT[k+1]-cumT[k])) / nWarp
+	}
 	for _, b := range r.Boats {
-		s := boatAt(b, s0, gapL)
+		var s float64
+		if b.State == 2 {
+			s = s0 + warp(b.Prog)*(1-gapL*b.EndBack)
+		} else {
+			s = boatAt(b, s0, gapL)
+		}
 		at, dir := along(pts, s)
+		// au pied d'une chute : des gerbes d'eau jaillissent des deux côtés du canal (sous les passagers)
+		if b.State == 2 {
+			for i := 1; i <= drops; i++ {
+				d := math.Mod(s-dropAt(i)+10, 1)
+				if d < 0.03 {
+					drawSplashSpray(dst, at, dir, d/0.03, t)
+				}
+			}
+		}
 		// le rondin : un tronc creusé, quatre passagers l'un derrière l'autre
 		vehicle(dst, at, dir, 92, 30, 0x8a5a2b)
 		front := at.Add(dir.Mul(92))
 		circle(dst, front.X, front.Y-2, 22, rgb(0xa0703b))
 		circle(dst, front.X, front.Y-2, 13, rgb(0xc89a5a))
 		ridersIn(dst, at.Add(dir.Mul(-10)), dir, riderLooks(b.Riders, 0, 4), 1, 4, 38, 0, t)
-		// au pied d'une chute : ça éclabousse !
-		if b.State == 2 {
-			for i := 1; i <= drops; i++ {
-				d := math.Mod(s-dropAt(i)+10, 1)
-				if d < 0.03 {
-					for j := 0; j < 12; j++ {
-						a := float64(j)*math.Pi/6 + t*3
-						circle(dst, at.X+math.Cos(a)*(60+d*3000), at.Y+math.Sin(a)*(26+d*1200)-40, 12, rgba(0xffffff, 0.85))
-					}
-				}
-			}
-		}
 	}
 }
 
@@ -1186,7 +1220,7 @@ func drawInverted(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t flo
 }
 
 // boatGeom : la forme de la rivière des petits bateaux à cette taille : une boucle
-// dans son terrain, et un grand méandre qui passe sous le boulevard (deux ponts),
+// dans son terrain, et un grand méandre qui passe au bout du boulevard,
 // monte dans le terrain d'en face et redescend ; il grandit avec la taille.
 type boatShape struct{ xa, xb, yTop, yb0, yBot, xl, xr float64 }
 
@@ -1195,7 +1229,7 @@ func boatGeom(r *sim.Ride, level int) boatShape {
 	p3 := sim.ParcSlot(3)
 	f := float64(level) / 10
 	g := boatShape{}
-	g.xa = pl.X + 1300
+	g.xa = pl.X + 1450
 	g.xb = g.xa + 600 + 500*f
 	g.yb0 = pl.Y + 190
 	g.yTop = p3.Y + p3.H - 210 - 1000*f
@@ -1203,17 +1237,6 @@ func boatGeom(r *sim.Ride, level int) boatShape {
 	g.xl = pl.X + 700
 	g.xr = math.Max(g.xb+350, math.Min(pl.X+pl.W-150, g.xl+1300+900*f))
 	return g
-}
-
-// boatCrossings : où la rivière passe sous le boulevard (rien si l'attraction n'est pas achetée).
-func boatCrossings(p *sim.Place) []float64 {
-	for _, r := range p.Parc.Rides {
-		if r.Kind.ID == "bateaux" && p.RideBuilt(r) {
-			g := boatGeom(r, p.RideLevel(r))
-			return []float64{g.xa, g.xb}
-		}
-	}
-	return nil
 }
 
 // boatTrack : la rivière des petits bateaux (courbes douces).
@@ -1228,13 +1251,19 @@ func boatTrack(r *sim.Ride, level int) []V {
 	return resample(smoothClosed(raw, 4), 260)
 }
 
-// drawBoatGarden : le terrain d'en face (rangée du haut), quand la rivière y monte :
-// une pelouse, une haie ouverte là où passe la rivière.
-func drawBoatGarden(dst *ebiten.Image, gaps []float64) {
-	pl := sim.ParcSlot(3)
-	roundRect(dst, pl.X, pl.Y, pl.W, pl.H, 40, rgb(0x8cc56a))
+// drawBoatGarden : la rivière des petits bateaux monte dans le terrain d'en face (rangée
+// du haut) en passant là où le boulevard s'arrête : tout cet ensemble est à l'attraction,
+// une seule pelouse entourée d'une haie.
+func drawBoatGarden(dst *ebiten.Image) {
+	up, lo := sim.ParcSlot(3), sim.ParcSlot(7)
+	x1 := up.X + up.W
+	bt := sim.ParcBoulY - sim.ParcBoulH/2
+	bb := sim.ParcBoulY + sim.ParcBoulH/2
+	grass := rgb(0x8cc56a)
+	roundRect(dst, up.X, up.Y, up.W, up.H, 40, grass)
+	rect(dst, sim.ParcBoulEnd, up.Y+up.H-40, x1-sim.ParcBoulEnd, lo.Y-(up.Y+up.H)+80, grass)
 	for i := 0; i < 7; i++ {
-		ellipse(dst, pl.X+240+(pl.W-480)*hash2(i, 3, 1), pl.Y+160+(pl.H-320)*hash2(i, 3, 2), 220, 140, rgba(0x9fd47a, 0.5))
+		ellipse(dst, up.X+240+(up.W-480)*hash2(i, 3, 1), up.Y+160+(up.H-320)*hash2(i, 3, 2), 220, 140, rgba(0x9fd47a, 0.5))
 	}
 	bush := func(x, y float64, i int) {
 		k := 0.8 + 0.4*hash2(i, 3, 9)
@@ -1243,38 +1272,24 @@ func drawBoatGarden(dst *ebiten.Image, gaps []float64) {
 		circle(dst, x-7*k, y-7*k, 15*k, rgb(0x5cae4c))
 	}
 	i := 0
-	for x := pl.X + 30; x <= pl.X+pl.W-30; x += 44 {
-		bush(x, pl.Y, i)
-		open := false
-		for _, gx := range gaps {
-			open = open || math.Abs(x-gx) < 170
-		}
-		if !open {
-			bush(x, pl.Y+pl.H, i+1)
+	for x := up.X + 30; x <= x1-30; x += 44 {
+		bush(x, up.Y, i)
+		if x < sim.ParcBoulEnd-30 {
+			bush(x, up.Y+up.H, i+1)
 		}
 		i += 2
 	}
-	for y := pl.Y + 30; y <= pl.Y+pl.H-30; y += 44 {
-		bush(pl.X, y, i)
-		bush(pl.X+pl.W, y, i+1)
-		i += 2
+	for y := up.Y + 30; y <= up.Y+up.H-30; y += 44 {
+		bush(up.X, y, i)
+		i++
 	}
-}
-
-// drawBoulevardBridge : le boulevard passe sur la rivière : un pont de bois, ses garde-corps.
-func drawBoulevardBridge(dst *ebiten.Image, x float64) {
-	bt := sim.ParcBoulY - sim.ParcBoulH/2
-	bb := sim.ParcBoulY + sim.ParcBoulH/2
-	rect(dst, x-170, bt+14, 340, bb-bt-28+18, rgba(0x1d3a12, 0.25))
-	rect(dst, x-160, bt, 320, bb-bt, rgb(0x9a6a3e))
-	for xx := x - 156; xx < x+156; xx += 26 {
-		rect(dst, xx, bt, 22, bb-bt, rgb(0xb98a56))
+	for y := up.Y + 30; y <= lo.Y+20; y += 44 { // le bord droit, tout du long
+		bush(x1, y, i)
+		i++
 	}
-	for _, y := range []float64{bt + 6, bb - 10} { // garde-corps
-		rect(dst, x-170, y-4, 340, 10, rgb(0x6e4322))
-		for xx := x - 160; xx <= x+160; xx += 40 {
-			rect(dst, xx-4, y-14, 8, 20, rgb(0x5a3a22))
-		}
+	for y := bt - 90; y <= bb+90; y += 44 { // le bout du boulevard
+		bush(sim.ParcBoulEnd, y, i)
+		i++
 	}
 }
 
@@ -1334,5 +1349,40 @@ func drawFountain(dst *ebiten.Image, fo V, k, t float64) {
 	for j := 0; j < 5; j++ {
 		ph := math.Mod(t*1.2+float64(j)*0.2, 1)
 		circle(dst, fo.X+math.Cos(float64(j)*1.3)*70*k*ph, fo.Y-4+math.Sin(float64(j)*1.3)*28*k*ph, 4*k, rgba(0xffffff, 0.6*(1-ph)))
+	}
+}
+
+// drawSplashSpray : deux grandes gerbes d'eau, à gauche et à droite du canal, quand un
+// rondin arrive au pied d'une chute (f : 0 au moment de l'impact, 1 quand ça retombe).
+func drawSplashSpray(dst *ebiten.Image, at, dir V, f, t float64) {
+	n := V{X: -dir.Y, Y: dir.X}
+	amp := math.Sin(math.Min(1, f*1.4) * math.Pi) // ça jaillit, puis retombe
+	if amp <= 0 {
+		return
+	}
+	for _, side := range []float64{-1, 1} {
+		for row := 0; row < 3; row++ {
+			back := at.Add(dir.Mul(float64(row)*-40 + 30))
+			reach := (120 + 80*float64(row%2)) * amp
+			h := (150 - 30*float64(row)) * amp
+			for j := 0; j <= 10; j++ {
+				u := float64(j) / 10
+				q := back.Add(n.Mul(side * (50 + reach*u)))
+				y := q.Y - h*4*u*(1-u) // une parabole
+				r := (24 - 12*u) * (0.6 + 0.4*amp)
+				circle(dst, q.X, y, r*1.3, rgba(0x9fd3ff, 0.45))
+				circle(dst, q.X, y, r, rgba(0xdff4ff, 0.9))
+				circle(dst, q.X-r*0.3, y-r*0.3, r*0.45, rgba(0xffffff, 0.9))
+			}
+			// les gouttes qui retombent
+			for j := 0; j < 4; j++ {
+				u := 0.6 + 0.12*float64(j)
+				q := back.Add(n.Mul(side * (60 + reach*u + 10*math.Sin(t*9+float64(j)))))
+				circle(dst, q.X, q.Y-h*0.3*(1-f), 5, rgba(0xffffff, 0.8))
+			}
+		}
+		// l'écume à la surface, au pied de la gerbe
+		e := at.Add(n.Mul(side * 70))
+		ellipse(dst, e.X, e.Y+6, 60*amp, 18*amp, rgba(0xffffff, 0.6))
 	}
 }

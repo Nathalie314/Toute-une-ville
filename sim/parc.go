@@ -34,8 +34,9 @@ const (
 	ParcBoulH     = 460.0
 	ParcAvX       = 6900.0 // l'avenue qui monte de l'entrée jusqu'au boulevard
 	ParcAvW       = 500.0
-	ParcPlazaY    = 1080.0 // haut de la place de l'entrée
-	ParcRegY      = 1200.0 // les cabines des caisses
+	ParcBoulEnd   = 11750.0 // le boulevard s'arrête là : au-delà, tout est aux petits bateaux
+	ParcPlazaY    = 1080.0  // haut de la place de l'entrée
+	ParcRegY      = 1200.0  // les cabines des caisses
 	ParcRegGap    = 190.0
 	ParcRackY     = 1000.0        // en montant l'avenue après les caisses (on rend sa trottinette en repassant ici)
 	ParcRackX     = ParcAvX + 960 // le râtelier des trottinettes, sur la place, à droite des caisses
@@ -128,7 +129,12 @@ func (r *Ride) in() float64 {
 
 // Entrance, Exit : sur le boulevard, à gauche (entrée) et à droite (sortie).
 func (r *Ride) Entrance() V { return V{r.Plot.X + 180, r.Edge() - r.in()*60} }
-func (r *Ride) Exit() V     { return V{r.Plot.X + r.Plot.W - 180, r.Edge() - r.in()*60} }
+func (r *Ride) Exit() V {
+	if r.Kind.ID == "bateaux" { // (le boulevard s'arrête avant la rivière : la sortie est près de l'entrée)
+		return V{r.Plot.X + 1080, r.Edge() - r.in()*60}
+	}
+	return V{r.Plot.X + r.Plot.W - 180, r.Edge() - r.in()*60}
+}
 
 // QueuePos : la place n° k dans la file (en serpentin, dans le terrain).
 func (r *Ride) QueuePos(k int) V {

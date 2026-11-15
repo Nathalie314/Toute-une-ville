@@ -1131,3 +1131,13 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Parking et trottinettes à la mesure des visiteurs : tout au max, ~283 visiteurs à la fois, ~130 places de parking
   prises, ~280 trottinettes. Parking 200 places au plus (deux allées au lieu de trois ; ParcH réduit), trottinettes
   400 au plus (de la marge pour les points « Réclame »). Une sauvegarde au-delà est bornée au chargement.
+- Petits bateaux : le boulevard s'arrête avant la rivière (ParcBoulEnd) : au-delà, le terrain d'en face, l'entre-deux
+  et le terrain des bateaux ne font qu'un, entouré d'une haie (plus de ponts) ; la sortie est près de l'entrée.
+  Les bateaux ne sautent plus quand ils se vident : chacun garde sa couleur (Col) et glisse vers sa place dans la
+  file (Back, EndBack : son tour se termine au bout de la file qui attend).
+- Tour volante : l'angle s'accumule (lente en bas, de plus en plus vite en montant, vitesse maximale en haut) ;
+  en haut, chaque chaîne s'allonge et raccourcit à son rythme.
+- Grand splash : les rondins vont très vite dans les descentes (le temps du tour est réparti selon une vitesse
+  qui monte dans la chute puis retombe) ; au pied d'une chute, deux grandes gerbes d'eau jaillissent à gauche et
+  à droite du canal (plus de cercles sur les passagers).
+- Partie d'essai : tout le parc débloqué (stands compris), 10¹³ €.

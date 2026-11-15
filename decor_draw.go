@@ -127,6 +127,7 @@ func (g *game) placeDecor(p *sim.Place) *decorCache {
 			block(r.Plot, 30)
 			if r.Kind.ID == "bateaux" && p.RideBuilt(r) {
 				block(sim.ParcSlot(3), 30) // (la rivière des petits bateaux y monte)
+				block(sim.Rect{X: sim.ParcBoulEnd, Y: sim.ParcBoulY - 400, W: 2000, H: 800}, 30)
 			}
 		}
 		// tout le futur parking reste dégagé (il sort de l'herbe au fil des achats)
