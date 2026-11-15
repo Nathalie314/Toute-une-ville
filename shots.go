@@ -206,6 +206,11 @@ func (s *shotScript) update(g *game) error {
 		g.openPanel(panelHelp)
 		cap("19e_aide_ecole")
 	case 23:
+		g.closePanel()
+		g.openGains()
+		cap("19f_gains")
+	case 24:
+		g.closePanel()
 		g.resetGame()
 		cap("11_apres_remise")
 	default:

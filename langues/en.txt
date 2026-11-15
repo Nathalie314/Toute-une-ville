@@ -1384,3 +1384,15 @@ Avec une étagère = With one shelf
 Avec deux étagères = With two shelves
 Avec deux étagères et un vidéoprojecteur = With two shelves and a projector
 Temps réel actuel (tes étagères, vidéoprojecteurs et points université) = Actual time now (your shelves, projectors and college points)
+
+# ---- Gains par lieu / Earnings by place
+Gains par lieu = Earnings by place
+Calculé sur les {n} dernières minutes de jeu (sans le temps où le jeu était fermé). = Based on the last {n} minutes of play (not counting time while the game was closed).
+Calculé sur la dernière minute de jeu (sans le temps où le jeu était fermé). = Based on the last minute of play (not counting time while the game was closed).
+Lieu = Place
+Gain par minute = Earnings per minute
+Gain estimé en 10 minutes = Estimated earnings in 10 minutes
+% des gains totaux = % of total earnings
+Total = Total
+Rien n'a encore été vendu depuis l'ouverture du jeu. = Nothing has been sold since the game was opened.
+Fermer = Close

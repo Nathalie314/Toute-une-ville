@@ -51,6 +51,7 @@ const (
 	panelBuy
 	panelPoints
 	panelLang
+	panelGains
 )
 
 type button struct {
@@ -65,7 +66,8 @@ type game struct {
 	sim       *sim.Game
 	scene     scene
 	panel     panel
-	helpPage  int // page de l'aide (petits écrans : l'aide tient sur plusieurs pages)
+	helpPage  int       // page de l'aide (petits écrans : l'aide tient sur plusieurs pages)
+	gains     gainsView // la page des gains par lieu (calculée à son ouverture)
 	zoom      float64
 	camPos    V
 	t         float64
@@ -340,6 +342,8 @@ func (g *game) Draw(screen *ebiten.Image) {
 		g.drawPointsPanel(dst)
 	case panelLang:
 		g.drawLangPanel(dst)
+	case panelGains:
+		g.drawGains(dst)
 	}
 	g.drawHand(dst)
 	flush()
