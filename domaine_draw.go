@@ -204,7 +204,7 @@ func drawDomaineMachine(dst *ebiten.Image, s *sim.Station, t float64) {
 		ellipse(dst, fx, top+14, 52, 12, rgb(0x8a5a33)) // le dessus
 		ellipse(dst, fx, top+14, 44, 8, rgb(0x6e4322))
 		roundRect(dst, fx-20, mid-8, 40, 34, 8, rgb(wine)) // l'étiquette du vin
-		circle(dst, fx, bot-30, 5, rgb(0x5a3a22)) // le robinet
+		circle(dst, fx, bot-30, 5, rgb(0x5a3a22))          // le robinet
 	case "biere":
 		// deux cuves de cuivre et une cheminée
 		for k, x := range []float64{b.X + 70, b.X + 200} {
@@ -390,7 +390,7 @@ func drawTruckTop(dst *ebiten.Image, cx, cy float64, busy bool) {
 		label = "MA FERME"
 	}
 	roundRect(dst, cx-44, cy-118, 104, 250, 12, rgba(0x000000, 0.22)) // ombre
-	for _, wy := range []float64{-80, 50, 92} { // les roues, qui dépassent un peu
+	for _, wy := range []float64{-80, 50, 92} {                       // les roues, qui dépassent un peu
 		roundRect(dst, cx-56, cy+wy, 12, 30, 4, rgb(0x2b2b2b))
 		roundRect(dst, cx+44, cy+wy, 12, 30, 4, rgb(0x2b2b2b))
 	}

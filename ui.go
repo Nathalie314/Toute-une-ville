@@ -1761,7 +1761,6 @@ func placeDesc(id string) string {
 	return txt
 }
 
-
 func (g *game) drawBuyPlace(dst *ebiten.Image) {
 	p := g.buying
 	if p == nil {
