@@ -43,16 +43,16 @@ const (
 	ParcRackTop   = 1130.0
 	parcSpotW     = 85.0
 	ParcRegMax    = 10
-	ParcParkMax   = 300
-	ParcTrottMax  = 600
+	ParcParkMax   = 200 // (tout au max : ~130 places prises ; de la marge pour les points « Réclame »)
+	ParcTrottMax  = 400 // (tout au max : ~280 visiteurs)
 	parcParkStart = 10
 )
 
 // ParcAisles : les allées du parking (une rangée de places de chaque côté).
-var ParcAisles = []float64{roadY + 330, roadY + 660, roadY + 990}
+var ParcAisles = []float64{roadY + 330, roadY + 660}
 
 // ParcH : le bas du lieu (sous le parking).
-const ParcH = roadY + 1150
+const ParcH = roadY + 840
 
 // ---------------------------------------------------------------- attractions
 

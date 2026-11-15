@@ -21,11 +21,11 @@ var StandKinds = []StandKind{
 	{ID: "ballons", Name: "Ballons", Cost: 40000, Share: 0.06, Slot: 5, DX: 1500, Ride: "train"},
 	{ID: "glaces", Name: "Marchand de glaces", Cost: 100000, Share: 0.08, Slot: 4, DX: 1500, Ride: "fantome"},
 	{ID: "popcorn", Name: "Pop-corn", Cost: 250000, Share: 0.08, Slot: 6, DX: 1580, Ride: "volante"},
-	{ID: "barbe", Name: "Barbe à papa", Cost: 600000, Share: 0.09, Slot: 7, DX: 1500, Ride: "bateaux"},
+	{ID: "barbe", Name: "Barbe à papa", Cost: 600000, Share: 0.09, Slot: 7, DX: 550, Ride: "bateaux"},
 	{ID: "photo", Name: "Photo souvenir", Cost: 1300000, Share: 0.16, Slot: 1, DX: 2400, Ride: "grandhuit"},
 	{ID: "foodtruck", Name: "Food truck", Cost: 3000000, Share: 0.14, Slot: 2, DX: 2300, Ride: "splash"},
 	{ID: "canards", Name: "Pêche aux canards", Cost: 6500000, Share: 0.12, Slot: 0, DX: 2300, Ride: "vide"},
-	{ID: "souvenirs", Name: "Boutique de souvenirs", Cost: 12000000, Share: 0.2, Slot: 3, DX: 950, Ride: "vide"},
+	{ID: "souvenirs", Name: "Boutique de souvenirs", Cost: 12000000, Share: 0.2, Slot: 3, DX: 700, Ride: "vide"},
 }
 
 // Stand : un stand dans la partie.

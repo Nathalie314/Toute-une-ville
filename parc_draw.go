@@ -99,7 +99,7 @@ func (g *game) parcDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable, tl,
 			ds = append(ds, drawable{c.Pos.Y, func() { drawAgent(dst, p.ID, c, t) }})
 		}
 	}
-	ds = parcStyleDrawables(dst, ds, tl, br, t)
+	ds = parcStyleDrawables(dst, p, ds, tl, br, t)
 	ds = standDrawables(dst, p, ds, tl, br, t)
 	// le râtelier des trottinettes
 	ds = append(ds, drawable{sim.ParcRackTop + 40, func() { drawTrottRack(dst, p) }})
@@ -211,12 +211,17 @@ func (g *game) drawRidePlot(dst *ebiten.Image, p *sim.Place, r *sim.Ride) {
 		return
 	}
 	level := p.RideLevel(r)
+	var gaps []float64
+	if r.Kind.ID == "bateaux" {
+		gaps = boatCrossings(p)
+		drawBoatGarden(dst, gaps) // (la rivière monte dans le terrain d'en face)
+	}
 	// le sol de l'attraction : une grande pelouse bordée d'une haie
 	roundRect(dst, pl.X, pl.Y, pl.W, pl.H, 40, rgb(0x8cc56a))
 	for i := 0; i < 7; i++ {
 		ellipse(dst, pl.X+240+(pl.W-480)*hash2(i, r.Kind.Slot, 1), pl.Y+160+(pl.H-320)*hash2(i, r.Kind.Slot, 2), 220, 140, rgba(0x9fd47a, 0.5))
 	}
-	parcHedge(dst, r)
+	parcHedge(dst, r, gaps...)
 	// la file d'attente : des barrières en serpentin
 	qb := r.QueueBox()
 	roundRect(dst, qb.X, qb.Y, qb.W, qb.H, 16, rgb(0xe8dcc0))

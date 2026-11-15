@@ -117,11 +117,15 @@ func vehicle(dst *ebiten.Image, at, dir V, l, w float64, col uint32) {
 
 // scatter : des positions fixes (selon la graine) dans la zone, loin du circuit.
 func scatter(r *sim.Ride, pts []V, n, seed int, keep float64) []V {
-	tr := r.Track()
+	return scatterRect(r.Track(), r.Kind.Slot, pts, n, seed, keep)
+}
+
+// scatterRect : comme scatter, dans un rectangle donné.
+func scatterRect(tr sim.Rect, slot int, pts []V, n, seed int, keep float64) []V {
 	var out []V
 	for i := 0; i < n*4 && len(out) < n; i++ {
-		x := tr.X + 50 + math.Mod(float64(i+seed)*373.7+float64(r.Kind.Slot)*91, tr.W-100)
-		y := tr.Y + 70 + math.Mod(float64(i+seed)*211.3+float64(r.Kind.Slot)*57, tr.H-110)
+		x := tr.X + 50 + math.Mod(float64(i+seed)*373.7+float64(slot)*91, tr.W-100)
+		y := tr.Y + 70 + math.Mod(float64(i+seed)*211.3+float64(slot)*57, tr.H-110)
 		q := V{X: x, Y: y}
 		if trackDist(pts, q) < keep {
 			continue
@@ -656,11 +660,14 @@ func boatAt(b *sim.RideBoat, s0, gapL float64) float64 {
 // Chaque bateau part seul, dès qu'il est plein.
 func drawBoatRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float64) {
 	pts := boatTrack(r, level)
-	c := centroid(pts)
+	bg := boatGeom(r, level)
+	c := V{X: (bg.xl + bg.xr) / 2, Y: (bg.yb0+bg.yBot)/2 + 60} // (le kiosque : au milieu de la boucle du bas)
 	// le décor : statues, parterres de fleurs, fontaines (de plus en plus avec la taille),
 	// loin de la rivière et du kiosque
 	var spots []V
-	for _, q := range scatter(r, pts, 60, 23, 190) {
+	cand := scatter(r, pts, 60, 23, 190)
+	cand = append(cand, scatterRect(sim.ParcSlot(3), r.Kind.Slot+3, pts, 40, 29, 190)...)
+	for _, q := range cand {
 		if level >= 4 && math.Abs(q.X-c.X) < 220 && math.Abs(q.Y-c.Y) < 200 {
 			continue
 		}
@@ -764,6 +771,10 @@ func drawBoatRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t flo
 		circle(dst, at.X+dir.X*22, at.Y-32, 7, rgb(0xffffff))
 		circle(dst, at.X+dir.X*28, at.Y-31, 3, rgb(0xff8a3d))
 	}
+	// le boulevard passe sur la rivière : deux ponts (les bateaux passent dessous)
+	g := boatGeom(r, level)
+	drawBoulevardBridge(dst, g.xa)
+	drawBoulevardBridge(dst, g.xb)
 }
 
 // ---------------------------------------------------------------- tour volante
@@ -1174,29 +1185,97 @@ func drawInverted(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t flo
 	}
 }
 
-// boatTrack : la rivière des petits bateaux : une grande boucle aux courbes douces
-// (deux ou trois larges méandres, jamais de virage serré).
-func boatTrack(r *sim.Ride, level int) []V {
-	tr := r.Track()
+// boatGeom : la forme de la rivière des petits bateaux à cette taille : une boucle
+// dans son terrain, et un grand méandre qui passe sous le boulevard (deux ponts),
+// monte dans le terrain d'en face et redescend ; il grandit avec la taille.
+type boatShape struct{ xa, xb, yTop, yb0, yBot, xl, xr float64 }
+
+func boatGeom(r *sim.Ride, level int) boatShape {
+	pl := r.Plot
+	p3 := sim.ParcSlot(3)
 	f := float64(level) / 10
-	w := tr.W * (0.4 + 0.55*f)
-	h := tr.H * math.Min(0.86, 0.5+0.4*f)
-	cx := tr.X + w/2 + 40
-	cy := tr.Y + tr.H/2
-	if r.Top {
-		cy = tr.Y + tr.H - h/2 - 40
-	} else {
-		cy = tr.Y + h/2 + 40
+	g := boatShape{}
+	g.xa = pl.X + 1300
+	g.xb = g.xa + 600 + 500*f
+	g.yb0 = pl.Y + 190
+	g.yTop = p3.Y + p3.H - 210 - 1000*f
+	g.yBot = g.yb0 + 500 + 700*f
+	g.xl = pl.X + 700
+	g.xr = math.Max(g.xb+350, math.Min(pl.X+pl.W-150, g.xl+1300+900*f))
+	return g
+}
+
+// boatCrossings : où la rivière passe sous le boulevard (rien si l'attraction n'est pas achetée).
+func boatCrossings(p *sim.Place) []float64 {
+	for _, r := range p.Parc.Rides {
+		if r.Kind.ID == "bateaux" && p.RideBuilt(r) {
+			g := boatGeom(r, p.RideLevel(r))
+			return []float64{g.xa, g.xb}
+		}
 	}
-	n := 160
-	pts := make([]V, 0, n)
-	amp := 0.1 * f
-	for i := 0; i < n; i++ {
-		a := 2 * math.Pi * float64(i) / float64(n)
-		m := (1 + amp*math.Sin(3*a+0.5)) / (1 + amp)
-		pts = append(pts, V{X: cx + (w/2-120)*math.Cos(a)*m, Y: cy + (h/2-120)*math.Sin(a)*m})
+	return nil
+}
+
+// boatTrack : la rivière des petits bateaux (courbes douces).
+func boatTrack(r *sim.Ride, level int) []V {
+	g := boatGeom(r, level)
+	raw := []V{
+		{X: g.xl, Y: g.yb0 + 150}, {X: g.xa - 160, Y: g.yb0}, {X: g.xa, Y: g.yb0 - 200},
+		{X: g.xa, Y: g.yTop + 260}, {X: g.xa + 170, Y: g.yTop}, {X: g.xb - 170, Y: g.yTop}, {X: g.xb, Y: g.yTop + 260},
+		{X: g.xb, Y: g.yb0 - 200}, {X: g.xb + 160, Y: g.yb0}, {X: g.xr, Y: g.yb0 + 150},
+		{X: g.xr, Y: g.yBot - 160}, {X: g.xr - 160, Y: g.yBot}, {X: g.xl + 160, Y: g.yBot}, {X: g.xl, Y: g.yBot - 160},
 	}
-	return pts
+	return resample(smoothClosed(raw, 4), 260)
+}
+
+// drawBoatGarden : le terrain d'en face (rangée du haut), quand la rivière y monte :
+// une pelouse, une haie ouverte là où passe la rivière.
+func drawBoatGarden(dst *ebiten.Image, gaps []float64) {
+	pl := sim.ParcSlot(3)
+	roundRect(dst, pl.X, pl.Y, pl.W, pl.H, 40, rgb(0x8cc56a))
+	for i := 0; i < 7; i++ {
+		ellipse(dst, pl.X+240+(pl.W-480)*hash2(i, 3, 1), pl.Y+160+(pl.H-320)*hash2(i, 3, 2), 220, 140, rgba(0x9fd47a, 0.5))
+	}
+	bush := func(x, y float64, i int) {
+		k := 0.8 + 0.4*hash2(i, 3, 9)
+		circle(dst, x+6, y+8, 26*k, rgba(0x1d3a12, 0.25))
+		circle(dst, x, y, 26*k, rgb(0x3f8a3a))
+		circle(dst, x-7*k, y-7*k, 15*k, rgb(0x5cae4c))
+	}
+	i := 0
+	for x := pl.X + 30; x <= pl.X+pl.W-30; x += 44 {
+		bush(x, pl.Y, i)
+		open := false
+		for _, gx := range gaps {
+			open = open || math.Abs(x-gx) < 170
+		}
+		if !open {
+			bush(x, pl.Y+pl.H, i+1)
+		}
+		i += 2
+	}
+	for y := pl.Y + 30; y <= pl.Y+pl.H-30; y += 44 {
+		bush(pl.X, y, i)
+		bush(pl.X+pl.W, y, i+1)
+		i += 2
+	}
+}
+
+// drawBoulevardBridge : le boulevard passe sur la rivière : un pont de bois, ses garde-corps.
+func drawBoulevardBridge(dst *ebiten.Image, x float64) {
+	bt := sim.ParcBoulY - sim.ParcBoulH/2
+	bb := sim.ParcBoulY + sim.ParcBoulH/2
+	rect(dst, x-170, bt+14, 340, bb-bt-28+18, rgba(0x1d3a12, 0.25))
+	rect(dst, x-160, bt, 320, bb-bt, rgb(0x9a6a3e))
+	for xx := x - 156; xx < x+156; xx += 26 {
+		rect(dst, xx, bt, 22, bb-bt, rgb(0xb98a56))
+	}
+	for _, y := range []float64{bt + 6, bb - 10} { // garde-corps
+		rect(dst, x-170, y-4, 340, 10, rgb(0x6e4322))
+		for xx := x - 160; xx <= x+160; xx += 40 {
+			rect(dst, xx-4, y-14, 8, 20, rgb(0x5a3a22))
+		}
+	}
 }
 
 // drawFlowerBed : un parterre de fleurs (bordure de buis, fleurs en rangs).

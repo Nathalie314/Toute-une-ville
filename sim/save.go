@@ -115,6 +115,13 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 	g.Money = s.Money
 	if s.Levels != nil {
 		g.Levels = s.Levels
+		// parc : moins de places de parking et de trottinettes qu'avant : on borne
+		if g.Levels["parc.parking"] > (ParcParkMax-parcParkStart)/10 {
+			g.Levels["parc.parking"] = (ParcParkMax - parcParkStart) / 10
+		}
+		if g.Levels["parc.trott"] > ParcTrottMax/10 {
+			g.Levels["parc.trott"] = ParcTrottMax / 10
+		}
 	}
 	// la serre et le verger n'ont plus qu'une équipe chacun : les ouvriers d'une
 	// colonne (anciennes sauvegardes) rejoignent l'équipe de la serre ou du verger

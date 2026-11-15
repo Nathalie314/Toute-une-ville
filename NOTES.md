@@ -1124,3 +1124,10 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   aux courbes douces (boatTrack : deux ou trois larges méandres) ; un vrai quai en bois sur la berge, côté cabine ;
   décor qui grandit avec la taille : parterres de fleurs (2 + taille), statues (1 + taille/2 : personnage ou vase),
   fontaines (taille/3), loin de la rivière et du kiosque.
+- Petits bateaux (ses retours) : la rivière passe sous le boulevard (deux ponts de bois, le boulevard les traverse),
+  monte dans le terrain d'en face (rangée du haut, à droite : il devient un jardin quand l'attraction est achetée) et
+  redescend ; le méandre grandit avec la taille (boatGeom). Barbe à papa et boutique de souvenirs décalées à gauche.
+  Haies et mobilier s'écartent là où passe la rivière ; le décor (statues, parterres, fontaines) va des deux côtés.
+- Parking et trottinettes à la mesure des visiteurs : tout au max, ~283 visiteurs à la fois, ~130 places de parking
+  prises, ~280 trottinettes. Parking 200 places au plus (deux allées au lieu de trois ; ParcH réduit), trottinettes
+  400 au plus (de la marge pour les points « Réclame »). Une sauvegarde au-delà est bornée au chargement.
