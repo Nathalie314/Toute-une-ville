@@ -264,6 +264,9 @@ func (p *Place) Teaching(r *Room) bool {
 // FormationMult : vitesse de formation (points de formation).
 func (g *Game) FormationMult() float64 { return 1 + float64(g.Levels["ecole.pts_formation"])/100 }
 
+// BaseFormation : durée d'une formation à ce niveau, sans aucun bonus (secondes).
+func BaseFormation(level int) float64 { return formation[level] }
+
 // FormationTime : durée d'une formation à ce niveau, en secondes.
 func (g *Game) FormationTime(level int) float64 {
 	return formation[level] / (g.FormationMult() * g.SupplyBonus(level) * g.boostF("ecole", "")) // (cadeau de la cantine)

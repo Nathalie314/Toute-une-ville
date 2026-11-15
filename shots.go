@@ -202,8 +202,9 @@ func (s *shotScript) update(g *game) error {
 	case 22:
 		g.closePanel()
 		g.zoom = 1.15
-		g.goMap()
-		cap("20_carte")
+		g.goPlace(g.sim.Place("ecole"))
+		g.openPanel(panelHelp)
+		cap("19e_aide_ecole")
 	case 23:
 		g.resetGame()
 		cap("11_apres_remise")

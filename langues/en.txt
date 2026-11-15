@@ -1377,3 +1377,10 @@ Il faut le verger (ma ferme) = Needs the orchard (my farm)
 2 roues = Bikes
 2e main = 2nd hand
 
+# ---- École : tableau des formations / School: training table
+Temps de formation = Training time
+De base = Base
+Avec une étagère = With one shelf
+Avec deux étagères = With two shelves
+Avec deux étagères et un vidéoprojecteur = With two shelves and a projector
+Temps réel actuel (tes étagères, tes points université) = Actual time now (your shelves, your college points)

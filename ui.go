@@ -879,6 +879,59 @@ func (g *game) drawLangPanel(dst *ebiten.Image) {
 	}
 }
 
+// formationTable : la durée d'une formation par niveau, selon l'équipement de la
+// classe (étagères de fournitures, vidéoprojecteur), puis la durée réelle du moment.
+func (g *game) formationTable(dst *ebiten.Image, x, y, w float64) {
+	lw := 430.0
+	cw := (w - lw) / 4
+	rows := []struct {
+		label string
+		f     func(l int) float64
+	}{
+		{"De base", func(l int) float64 { return sim.BaseFormation(l) }},
+		{"Avec une étagère", func(l int) float64 { return sim.BaseFormation(l) / 1.15 }},
+		{"Avec deux étagères", func(l int) float64 { return sim.BaseFormation(l) / 1.3 }},
+		{"Avec deux étagères et un vidéoprojecteur", func(l int) float64 { return sim.BaseFormation(l) / 1.3 / 1.5 }},
+		{"Temps réel actuel (tes étagères, tes points université)", func(l int) float64 { return g.sim.FormationTime(l) }},
+	}
+	const rh = 40.0
+	// en-tête : les quatre niveaux
+	roundRect(dst, x, y, lw-6, rh, 10, rgba(0x8a5a33, 0.25))
+	say(dst, "Temps de formation", x+16, y+rh/2, 20, true, -1, rgb(0x3b2a10))
+	for l := 0; l < 4; l++ {
+		cx := x + lw + float64(l)*cw
+		roundRect(dst, cx, y, cw-6, rh, 10, rgba(levelColUI(l), 0.45))
+		say(dst, pointTabs[l].name, cx+cw/2-3, y+rh/2, 20, true, 0, rgb(0x3b2a10))
+	}
+	for i, r := range rows {
+		ry := y + float64(i+1)*(rh+6)
+		last := i == len(rows)-1
+		bg, col := rgba(0xf3e6cc, 1), rgb(0x3b2a10)
+		if last {
+			bg, col = rgba(0x2fa86b, 0.25), rgb(0x1e5e3a)
+		}
+		roundRect(dst, x, ry, w-6, rh, 10, bg)
+		sayFit(dst, r.label, x+16, ry+rh/2, 19, last, -1, lw-30, col)
+		for l := 0; l < 4; l++ {
+			say(dst, duration(r.f(l)), x+lw+float64(l)*cw+cw/2-3, ry+rh/2, 20, true, 0, col)
+		}
+	}
+}
+
+// duration : une durée lisible (8:42 ; 1:20:00 au-delà d'une heure).
+func duration(sec float64) string {
+	sec = math.Round(sec)
+	if sec >= 3600 {
+		h := int(sec) / 3600
+		rest := clock(sec - float64(h*3600))
+		if len(rest) < 5 {
+			rest = "0" + rest
+		}
+		return itoa(h) + ":" + rest
+	}
+	return clock(sec)
+}
+
 // drawSchoolHelp : l'aide de l'école (temps de formation, échecs).
 func (g *game) drawSchoolHelp(dst *ebiten.Image) {
 	w, h := math.Min(1300, scr.VW-80), 920.0
@@ -894,17 +947,10 @@ func (g *game) drawSchoolHelp(dst *ebiten.Image) {
 		"• Les fournitures (étagères) font travailler les classes plus vite.",
 	}
 	for i, l := range lines {
-		say(dst, l, x+50, y+170+float64(i)*42, 22, false, -1, rgb(0x3b2a10))
+		say(dst, l, x+50, y+160+float64(i)*38, 22, false, -1, rgb(0x3b2a10))
 	}
-	ty := y + 400
-	say(dst, "Durée d'une formation aujourd'hui", x+w/2, ty, 26, true, 0, rgb(0x5a3a1a))
-	cw := (w - 100) / 4
-	for i := range sim.PointTypes {
-		cx := x + 50 + float64(i)*cw
-		roundRect(dst, cx+6, ty+26, cw-12, 90, 14, rgba(levelColUI(i), 0.3))
-		say(dst, pointTabs[i].name, cx+cw/2, ty+52, 22, true, 0, rgb(0x3b2a10))
-		say(dst, clock(g.sim.FormationTime(i)), cx+cw/2, ty+88, 26, true, 0, rgb(0x3b2a10))
-	}
+	g.formationTable(dst, x+40, y+350, w-80)
+	ty := y + 488
 	f := g.sim.FailChance()
 	say(dst, tr.F("Échec : 1 élève sur {n} rate sa formation (il repart avec un point du niveau d'en dessous, rien au primaire).", "n", itoa(int(math.Round(1/f)))), x+w/2, ty+160, 21, false, 0, rgb(0x7a3a2a))
 	say(dst, "La Pédagogie (points Université) réduit les échecs ; la Formation accélère toutes les classes.", x+w/2, ty+200, 21, false, 0, rgb(0x5a4a3a))

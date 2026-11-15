@@ -958,3 +958,7 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - README : le jeu existe en français et en anglais ; lien vers langues/LISEZMOI.txt pour traduire.
 - Anglais : les clients des commandes ont des noms américains (son idée : « Mr. Smith » plutôt que « Mr. Dupont ») :
   Mrs. Miller, the Johnson family, Grandma Jean, Mr. White…
+- École, aide « ? » : tableau des durées de formation (son modèle) : par niveau, de base, avec une étagère, avec
+  deux étagères, avec deux étagères et un vidéoprojecteur (×1,5), puis le temps réel du moment (ses étagères
+  déjà achetées, ses points université « Formation », le cadeau de la cantine s'il dure). Il remplace l'ancien
+  encadré « Durée d'une formation aujourd'hui ». Durées en m:ss (h:mm:ss au-delà d'une heure).
