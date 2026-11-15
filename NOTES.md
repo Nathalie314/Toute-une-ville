@@ -1171,3 +1171,9 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   (isoLocal : la projection isométrique autour du centre de l'attraction). Le grand huit d'abord : hauteurs,
   piliers et loopings bien visibles ; ses wagons sont en volume (vehicle3D : une boîte, côtés ombrés, dessus,
   intérieur), les passagers assis dedans.
+- Grand huit plus grand (ses retours) : le circuit, dessiné « de dessus », est replacé pour que la maquette vue de
+  biais remplisse tout le terrain (isoMapPts) ; rails, piliers, loopings et wagons plus épais.
+- Même maquette vue de biais pour les pieds dans le vide (rails à 200 de haut) et le grand splash (rochers debout
+  aux chutes, rondins en volume) ; arbres et sapins autour restent vus de dessus.
+- En volume (vehicle3D) : wagons et locomotive du petit train, wagons du train fantôme, bateaux des petits bateaux
+  (coque, proue, auvent) ; les fontaines ont une margelle épaisse.

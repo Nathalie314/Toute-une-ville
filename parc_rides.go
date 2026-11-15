@@ -261,8 +261,8 @@ func drawTrainRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t fl
 			drawLoco(dst, cr.at, cr.dir, t, r.State == 1)
 			continue
 		}
-		vehicle(dst, cr.at, cr.dir, 54, 32, []uint32{0x4fc3ff, 0xffd23f, 0x7ed957, 0xff6fa8}[cr.k%4])
-		ridersIn(dst, cr.at, cr.dir, riderLooks(r.Riders, cr.k-1, 2), 1, 2, 40, 0, t)
+		vehicle3D(dst, cr.at, cr.dir, 54, 32, 22, []uint32{0x4fc3ff, 0xffd23f, 0x7ed957, 0xff6fa8}[cr.k%4])
+		ridersIn(dst, lift(cr.at, 14), cr.dir, riderLooks(r.Riders, cr.k-1, 2), 1, 2, 40, 0, t)
 	}
 	// tunnel dans une colline (taille 6+), par-dessus les rails
 	if level >= 6 {
@@ -343,7 +343,7 @@ func drawMountain(dst *ebiten.Image, m V, t float64) {
 
 // drawLoco : la locomotive (rouge, avec sa cheminée qui fume).
 func drawLoco(dst *ebiten.Image, at, dir V, t float64, running bool) {
-	vehicle(dst, at, dir, 62, 34, 0xd9534f)
+	vehicle3D(dst, at, dir, 62, 34, 28, 0xd9534f)
 	c := at.Add(dir.Mul(30))
 	cab := at.Sub(dir.Mul(26))
 	upright(cab.X, cab.Y, func() { // (la cabine est debout)
@@ -583,12 +583,12 @@ func drawGhostRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t fl
 		if inTunnel(s, tunnels) {
 			continue // sous le tunnel
 		}
-		vehicle(dst, at, dir, 44, 32, 0x7a4bc8)
-		front := at.Add(dir.Mul(40))
+		vehicle3D(dst, at, dir, 44, 32, 22, 0x7a4bc8)
+		front := lift(at.Add(dir.Mul(40)), 18)
 		circle(dst, front.X, front.Y-12, 13, rgb(0xe8e8e8)) // la tête de mort à l'avant
 		circle(dst, front.X-4, front.Y-14, 3, rgb(0x1b1b1b))
 		circle(dst, front.X+4, front.Y-14, 3, rgb(0x1b1b1b))
-		ridersIn(dst, at, dir, riderLooks(r.Riders, k, 2), 1, 2, 40, 0, t)
+		ridersIn(dst, lift(at, 14), dir, riderLooks(r.Riders, k, 2), 1, 2, 40, 0, t)
 	}
 	// les tunnels par-dessus les rails : une voûte sombre et ses deux bouches
 	for _, tn := range tunnels {
@@ -771,13 +771,15 @@ func drawBoatRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t flo
 	for _, b := range r.Boats {
 		at, dir := along(pts, boatAt(b, s0, gapL))
 		col := []uint32{0xff6fa8, 0xffd23f, 0x4fc3ff, 0x7ed957, 0xff8a3d}[b.Col%5]
-		vehicle(dst, at, dir, 70, 44, 0xffffff)
+		vehicle3D(dst, at, dir, 70, 44, 20, 0xffffff)
 		bn := V{X: -dir.Y, Y: dir.X}
 		front := at.Add(dir.Mul(70))
-		polygon(dst, []V{front.Add(dir.Mul(30)), front.Add(bn.Mul(44)), front.Sub(bn.Mul(44))}, rgb(0xffffff))
-		ridersIn(dst, at, dir, riderLooks(b.Riders, 0, 4), 2, 2, 50, 0, t)
+		fa, fb, fc := front.Add(dir.Mul(30)), front.Add(bn.Mul(44)), front.Sub(bn.Mul(44))
+		polygon(dst, []V{fa, fb, fc}, rgb(0xd8dde4)) // la proue : un côté, puis le pont
+		polygon(dst, []V{lift(fa, 20), lift(fb, 20), lift(fc, 20)}, rgb(0xffffff))
+		ridersIn(dst, lift(at, 12), dir, riderLooks(b.Riders, 0, 4), 2, 2, 50, 0, t)
 		// l'auvent coloré, à l'arrière
-		polygon(dst, box(at.Sub(dir.Mul(50)), dir, 16, 46), rgb(col))
+		vehicle3D(dst, at.Sub(dir.Mul(56)), dir, 14, 46, 46, col) // l'auvent coloré, à l'arrière
 	}
 	for i := 0; i < 1+level/3; i++ { // les cygnes
 		at, dir := along(pts, float64(i)*0.31+t*0.006)
@@ -920,6 +922,7 @@ func coasterPath(r *sim.Ride, level int) []cPt {
 	for i, q := range ground {
 		ground[i].Y = bot - (bot-q.Y)*(tr.H-60-H-140)/(tr.H-60)
 	}
+	ground = isoMapPts(tr.C(), ground) // (vue de biais : le circuit remplit tout son terrain)
 	s0 := rideStart(r, ground)
 	i0 := int(s0 * float64(n))
 	var raw []cPt
@@ -950,9 +953,10 @@ func coasterPath(r *sim.Ride, level int) []cPt {
 		if done < nl && u > 0.3+0.6*float64(done)/float64(max(1, nl)) && k+6 < len(raw) {
 			a, b := raw[k], raw[k+6]
 			d := b.g.Sub(a.g)
-			if math.Abs(d.X) > 2.5*math.Abs(d.Y) && a.h < H*0.55 {
+			sx, sy := isoProj(d.X, d.Y) // (à l'écran : le circuit va de gauche à droite)
+			if math.Abs(sx) > 2.5*math.Abs(sy) && a.h < H*0.55 {
 				dir := d.Norm()
-				rad := 70 + 9*f
+				rad := 90 + 12*f
 				for j := 0; j <= 28; j++ {
 					th := 2 * math.Pi * float64(j) / 28
 					fr := float64(j) / 28
@@ -997,6 +1001,7 @@ func cScreen(q cPt) V { return lift(q.g, q.h) }
 // le circuit ; les passagers lèvent les bras.
 func drawCoaster(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float64) {
 	if !cam.iso { // (une maquette vue de biais : on voit les hauteurs, les piliers, les loopings)
+		decorTrees(dst, r, level/2+1, trackLoop(r, level, 0.38)) // (les arbres : vus de dessus, autour)
 		isoLocal(r.Track().C(), func() { drawCoaster(dst, p, r, level, t) })
 		return
 	}
@@ -1005,13 +1010,12 @@ func drawCoaster(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t floa
 	for i, q := range c {
 		ground[i] = q.g
 	}
-	decorTrees(dst, r, level/2+1, ground)
 	n := len(c)
 	// l'ombre au sol (décalée selon la hauteur)
 	for i := range c {
 		a, b := c[i], c[(i+1)%n]
 		sa, sb := a.g.Add(V{X: a.h * 0.25, Y: 10}), b.g.Add(V{X: b.h * 0.25, Y: 10})
-		line(dst, sa.X, sa.Y, sb.X, sb.Y, 26, rgba(0x1d3a12, 0.18))
+		line(dst, sa.X, sa.Y, sb.X, sb.Y, 40, rgba(0x1d3a12, 0.18))
 	}
 	// les piliers (plus hauts là où le circuit est haut)
 	for i := 0; i < n; i += 3 {
@@ -1019,36 +1023,36 @@ func drawCoaster(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t floa
 		if q.loop || q.h < 35 {
 			continue
 		}
-		ellipse(dst, q.g.X+14, q.g.Y+6, 22, 8, rgba(0x1d3a12, 0.25))
+		ellipse(dst, q.g.X+18, q.g.Y+8, 30, 11, rgba(0x1d3a12, 0.25))
 		top := lift(q.g, q.h)
-		line(dst, q.g.X, q.g.Y, top.X, top.Y, 18, rgb(0xf5a623))
-		l1, l2 := lift(q.g.Add(V{X: -4}), 0), lift(q.g.Add(V{X: -4}), q.h)
-		line(dst, l1.X, l1.Y, l2.X, l2.Y, 6, rgb(0xffc65c))
-		circle(dst, q.g.X, q.g.Y, 12, rgb(0xc77d12))
+		line(dst, q.g.X, q.g.Y, top.X, top.Y, 26, rgb(0xf5a623))
+		l1, l2 := lift(q.g.Add(V{X: -6}), 0), lift(q.g.Add(V{X: -6}), q.h)
+		line(dst, l1.X, l1.Y, l2.X, l2.Y, 8, rgb(0xffc65c))
+		circle(dst, q.g.X, q.g.Y, 17, rgb(0xc77d12))
 	}
 	// les pieds des loopings
 	for i := 1; i < n; i++ {
 		if c[i].loop && !c[i-1].loop {
 			q := c[i]
-			rad := 70 + 9*float64(level)
+			rad := 90 + 12*float64(level)
 			for _, sg := range []float64{-1, 1} {
 				g := q.g.Add(V{X: sg * rad * 0.6})
 				a := lift(g, q.h+rad*0.3)
-				line(dst, a.X, a.Y, g.X, g.Y, 12, rgb(0xf5a623))
+				line(dst, a.X, a.Y, g.X, g.Y, 18, rgb(0xf5a623))
 			}
 		}
 	}
 	// les rails, en hauteur (plus clairs en haut)
 	for i := range c {
 		a, b := cScreen(c[i]), cScreen(c[(i+1)%n])
-		line(dst, a.X, a.Y, b.X, b.Y, 26, rgb(0x23408f))
-		circle(dst, a.X, a.Y, 13, rgb(0x23408f))
+		line(dst, a.X, a.Y, b.X, b.Y, 42, rgb(0x23408f))
+		circle(dst, a.X, a.Y, 21, rgb(0x23408f))
 	}
 	for i := range c {
 		a, b := cScreen(c[i]), cScreen(c[(i+1)%n])
-		line(dst, a.X, a.Y, b.X, b.Y, 14, shade(0x3b6fe0, 1+math.Min(0.35, c[i].h/900)))
+		line(dst, a.X, a.Y, b.X, b.Y, 24, shade(0x3b6fe0, 1+math.Min(0.35, c[i].h/900)))
 		if c[i].lift && i%2 == 0 {
-			circle(dst, a.X, a.Y, 4, rgb(0xffd23f)) // la chaîne de la montée
+			circle(dst, a.X, a.Y, 6, rgb(0xffd23f)) // la chaîne de la montée
 		}
 	}
 	// le train : la tête suit le temps (lente en montée, rapide en descente)
@@ -1095,10 +1099,10 @@ func drawCoaster(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t floa
 	head := cum[hi] + fr*(cum[hi+1]-cum[hi])
 	units := p.RideUnits(r)
 	for k := units - 1; k >= 0; k-- {
-		q, dir, h := at(head - float64(k)*112)
+		q, dir, h := at(head - float64(k)*132)
 		_ = h
 		col := []uint32{0xff5d8f, 0xffd23f, 0x4fc3ff, 0x7ed957, 0xff8a3d}[k%5]
-		vehicle3D(dst, q, dir, 50, 32, 22, col)
+		vehicle3D(dst, q, dir, 58, 38, 24, col)
 		arms := 0
 		if r.State == 1 {
 			arms = 1
@@ -1117,10 +1121,14 @@ func drawCoaster(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t floa
 // niveaux (et de grandes éclaboussures quand un rondin la descend) ; des sapins.
 // Chaque rondin part seul, dès qu'il est plein.
 func drawSplash(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float64) {
-	pts := trackLoop(r, level, 0.22)
-	for i, q := range scatter(r, pts, 4+3*level, 17, 150) {
-		drawPine(dst, q.X, q.Y, 0.9+0.4*math.Mod(float64(i)*0.41, 1))
+	if !cam.iso { // (une maquette vue de biais : les chutes, les rochers)
+		for i, q := range scatter(r, trackLoop(r, level, 0.22), 4+3*level, 17, 150) {
+			drawPine(dst, q.X, q.Y, 0.9+0.4*math.Mod(float64(i)*0.41, 1))
+		}
+		isoLocal(r.Track().C(), func() { drawSplash(dst, p, r, level, t) })
+		return
 	}
+	pts := isoMapPts(r.Track().C(), trackLoop(r, level, 0.22))
 	s0 := rideStart(r, pts)
 	drops := 1 + level/3
 	dropAt := func(i int) float64 { return s0 + float64(i)/float64(drops+1) }
@@ -1129,9 +1137,12 @@ func drawSplash(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float
 		top, _ := along(pts, dropAt(i)-0.035)
 		bot, _ := along(pts, dropAt(i))
 		ellipse(dst, bot.X, bot.Y+20, 200, 80, rgb(0x9fd3ff))
-		hh := 120 + 10*float64(level)
-		polygon(dst, []V{{X: top.X - 170, Y: top.Y + 50}, {X: top.X - 60, Y: top.Y - hh}, {X: top.X + 10, Y: top.Y - hh*0.6}, {X: top.X - 20, Y: top.Y + 50}}, rgb(0xa89a8a))
-		polygon(dst, []V{{X: top.X - 20, Y: top.Y + 50}, {X: top.X + 10, Y: top.Y - hh*0.6}, {X: top.X + 80, Y: top.Y - hh*0.8}, {X: top.X + 170, Y: top.Y + 50}}, rgb(0x7a6c5e))
+		hh := 160 + 14*float64(level)
+		upright(top.X, top.Y, func() { // (les rochers sont debout)
+			polygon(dst, []V{{X: top.X - 170, Y: top.Y + 50}, {X: top.X - 60, Y: top.Y - hh}, {X: top.X + 10, Y: top.Y - hh*0.6}, {X: top.X - 20, Y: top.Y + 50}}, rgb(0xa89a8a))
+			polygon(dst, []V{{X: top.X - 20, Y: top.Y + 50}, {X: top.X + 10, Y: top.Y - hh*0.6}, {X: top.X + 80, Y: top.Y - hh*0.8}, {X: top.X + 170, Y: top.Y + 50}}, rgb(0x7a6c5e))
+			polygon(dst, []V{{X: top.X - 60, Y: top.Y - hh}, {X: top.X - 30, Y: top.Y - hh*0.75}, {X: top.X + 10, Y: top.Y - hh*0.6}}, rgb(0xc8bcae))
+		})
 	}
 	drawLoop(dst, pts, 120, 0x6e4322)
 	drawLoop(dst, pts, 100, 0x8a5a2b)
@@ -1189,11 +1200,11 @@ func drawSplash(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float
 			}
 		}
 		// le rondin : un tronc creusé, quatre passagers l'un derrière l'autre
-		vehicle(dst, at, dir, 92, 30, 0x8a5a2b)
-		front := at.Add(dir.Mul(92))
-		circle(dst, front.X, front.Y-2, 22, rgb(0xa0703b))
-		circle(dst, front.X, front.Y-2, 13, rgb(0xc89a5a))
-		ridersIn(dst, at.Add(dir.Mul(-10)), dir, riderLooks(b.Riders, 0, 4), 1, 4, 38, 0, t)
+		vehicle3D(dst, at, dir, 92, 32, 20, 0x8a5a2b)
+		front := lift(at.Add(dir.Mul(92)), 10)
+		circle(dst, front.X, front.Y, 22, rgb(0xa0703b))
+		circle(dst, front.X, front.Y, 13, rgb(0xc89a5a))
+		ridersIn(dst, lift(at.Add(dir.Mul(-10)), 12), dir, riderLooks(b.Riders, 0, 4), 1, 4, 38, 0, t)
 	}
 }
 
@@ -1202,12 +1213,17 @@ func drawSplash(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float
 // drawInverted : un grand huit suspendu : rails sur de grosses colonnes, des vrilles
 // (une tous les deux niveaux), les passagers suspendus sous les rails, jambes dans le vide.
 func drawInverted(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float64) {
-	ground := trackLoop(r, level, 0.32)
-	decorTrees(dst, r, level/2, ground)
-	const up = 150.0        // les rails sont haut au-dessus du sol
-	for i := range ground { // (le sol est 150 plus bas que le circuit dessiné d'avant)
-		ground[i] = ground[i].Add(V{Y: up})
+	if !cam.iso { // (une maquette vue de biais, comme le grand huit)
+		decorTrees(dst, r, level/2, trackLoop(r, level, 0.32))
+		isoLocal(r.Track().C(), func() { drawInverted(dst, p, r, level, t) })
+		return
 	}
+	const up = 200.0 // les rails sont haut au-dessus du sol
+	ground := trackLoop(r, level, 0.32)
+	for i := range ground { // (le sol plus bas que les rails : tout reste dans le terrain)
+		ground[i] = ground[i].Add(V{Y: up * 0.8})
+	}
+	ground = isoMapPts(r.Track().C(), ground)
 	pts := make([]V, len(ground)) // les rails, en hauteur
 	for i, g := range ground {
 		pts[i] = lift(g, up)
@@ -1480,4 +1496,15 @@ func vehicle3D(dst *ebiten.Image, at, dir V, l, w, h float64, col uint32) {
 		in[i] = lift(in[i], h)
 	}
 	polygon(dst, in, shade(col, 0.5))
+}
+
+// isoMapPts : des points dessinés « vus de dessus » autour de c, placés pour qu'une
+// maquette vue de biais (isoLocal autour de c) les montre au même endroit à l'écran.
+func isoMapPts(c V, pts []V) []V {
+	out := make([]V, len(pts))
+	for i, q := range pts {
+		x, y := isoInv(q.X-c.X, q.Y-c.Y)
+		out[i] = V{X: c.X + x, Y: c.Y + y}
+	}
+	return out
 }

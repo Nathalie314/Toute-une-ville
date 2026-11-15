@@ -39,8 +39,12 @@ func jet(dst *ebiten.Image, x, y, h, spread, t, ph float64) {
 
 // pool : un bassin rond (bord de pierre, eau, reflets, vaguelettes).
 func pool(dst *ebiten.Image, x, y, rx, ry, t float64) {
-	ellipse(dst, x+14, y+16, rx+10, ry+8, rgba(0x1d3a12, 0.22))
-	ellipse(dst, x, y+10, rx, ry, rgb(stoneD))
+	ellipse(dst, x+16, y+24, rx+10, ry+8, rgba(0x1d3a12, 0.22))
+	// le rebord en volume : une margelle épaisse (côté à l'ombre, dessus clair)
+	ellipse(dst, x, y+22, rx, ry, rgb(stoneD))
+	rect(dst, x-rx, y, 2*rx, 22, rgb(stoneD))
+	ellipse(dst, x, y+12, rx, ry, rgb(stoneM))
+	rect(dst, x-rx, y, 2*rx, 12, rgb(stoneM))
 	ellipse(dst, x, y, rx, ry, rgb(stoneL))
 	ellipse(dst, x, y+2, rx-16, ry-12, rgb(waterD))
 	ellipse(dst, x-rx*0.15, y-ry*0.1, rx*0.55, ry*0.4, rgba(waterL, 0.55))
