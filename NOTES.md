@@ -1180,3 +1180,8 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Grand splash (ses retours) : le canal a un relief : avant chaque chute, il monte lentement sur des tréteaux
   de bois (ombre au sol), puis plonge de plus en plus raide jusqu'au bassin ; les rondins suivent cette hauteur,
   lents dans la montée (×0,45), très rapides dans la chute, puis les gerbes d'eau au pied.
+- Grand splash : canal en boucle presque ronde une fois vue de biais (splashTrack : plus de virages serrés) ; le
+  rondin suit la pente et la courbe du canal (direction prise entre un peu devant et un peu derrière lui), plus
+  court, pour ne plus déborder du canal.
+- Bateaux et rondins : au départ, le suivant n'avance vers le quai qu'à mesure que celui qui part s'éloigne
+  (target = rang + max(0, 1 − gapT/2,5)) : ils ne se rentrent plus dedans.

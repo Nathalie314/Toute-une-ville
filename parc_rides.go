@@ -1122,13 +1122,13 @@ func drawCoaster(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t floa
 // Chaque rondin part seul, dès qu'il est plein.
 func drawSplash(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float64) {
 	if !cam.iso { // (une maquette vue de biais : les chutes, les rochers)
-		for i, q := range scatter(r, trackLoop(r, level, 0.22), 4+3*level, 17, 150) {
+		for i, q := range scatter(r, splashTrack(r, level), 4+3*level, 17, 150) {
 			drawPine(dst, q.X, q.Y, 0.9+0.4*math.Mod(float64(i)*0.41, 1))
 		}
 		isoLocal(r.Track().C(), func() { drawSplash(dst, p, r, level, t) })
 		return
 	}
-	pts := isoMapPts(r.Track().C(), trackLoop(r, level, 0.22))
+	pts := isoMapPts(r.Track().C(), splashTrack(r, level))
 	s0 := rideStart(r, pts)
 	drops := 1 + level/3
 	dropAt := func(i int) float64 { return s0 + float64(i)/float64(drops+1) }
@@ -1249,8 +1249,14 @@ func drawSplash(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float
 		} else {
 			s = boatAt(b, s0, gapL)
 		}
-		at, dir := along(pts, s)
-		at = lift(at, hAt(s)) // (sur le canal, en hauteur s'il le faut)
+		// le rondin suit le canal : sa direction est celle du canal en hauteur, entre
+		// un peu devant et un peu derrière lui (il penche dans les pentes, tourne dans les virages)
+		eps := 45 / pathLen(pts)
+		g0, _ := along(pts, s)
+		ga, _ := along(pts, s+eps)
+		gb, _ := along(pts, s-eps)
+		at := lift(g0, hAt(s))
+		dir := lift(ga, hAt(s+eps)).Sub(lift(gb, hAt(s-eps))).Norm()
 		// au pied d'une chute : des gerbes d'eau jaillissent des deux côtés du canal (sous les passagers)
 		if b.State == 2 {
 			for i := 1; i <= drops; i++ {
@@ -1261,11 +1267,11 @@ func drawSplash(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float
 			}
 		}
 		// le rondin : un tronc creusé, quatre passagers l'un derrière l'autre
-		vehicle3D(dst, at, dir, 92, 32, 20, 0x8a5a2b)
-		front := lift(at.Add(dir.Mul(92)), 10)
-		circle(dst, front.X, front.Y, 22, rgb(0xa0703b))
-		circle(dst, front.X, front.Y, 13, rgb(0xc89a5a))
-		ridersIn(dst, lift(at.Add(dir.Mul(-10)), 12), dir, riderLooks(b.Riders, 0, 4), 1, 4, 38, 0, t)
+		vehicle3D(dst, at, dir, 66, 28, 18, 0x8a5a2b)
+		front := lift(at.Add(dir.Mul(66)), 9)
+		circle(dst, front.X, front.Y, 18, rgb(0xa0703b))
+		circle(dst, front.X, front.Y, 11, rgb(0xc89a5a))
+		ridersIn(dst, lift(at, 11), dir, riderLooks(b.Riders, 0, 4), 1, 4, 30, 0, t)
 	}
 }
 
@@ -1568,4 +1574,22 @@ func isoMapPts(c V, pts []V) []V {
 		out[i] = V{X: c.X + x, Y: c.Y + y}
 	}
 	return out
+}
+
+// splashTrack : le canal du grand splash, vu de dessus : une grande boucle aux
+// courbes douces (de légères ondulations, arrondies : jamais de virage serré).
+func splashTrack(r *sim.Ride, level int) []V {
+	// (une ellipse vue de biais devient un losange aux pointes serrées : on prend un
+	// cercle légèrement ovale, centré, qui se projette en une forme bien ronde)
+	tr := r.Track()
+	f := float64(level) / 10
+	c := tr.C()
+	rad := math.Min(tr.W, tr.H*2) * (0.2 + 0.17*f)
+	pts := make([]V, 0, 160)
+	for i := 0; i < 160; i++ {
+		a := 2 * math.Pi * float64(i) / 160
+		m := 1 + 0.06*f*math.Sin(3*a)
+		pts = append(pts, V{X: c.X + rad*m*math.Cos(a)*1.25, Y: c.Y + rad*m*math.Sin(a)*0.55})
+	}
+	return pts
 }

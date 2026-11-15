@@ -51,7 +51,8 @@ func (p *Place) stepBoats(r *Ride, dt float64) {
 	// ils glissent jusqu'à leur place (vers l'avant seulement)
 	const glide = 1.3 // places par seconde
 	for _, b := range r.Boats {
-		target := float64(b.Line)
+		// (il n'avance vers le quai qu'à mesure que le bateau parti s'éloigne : pas de collision)
+		target := float64(b.Line) + math.Max(0, 1-r.gapT/2.5)
 		switch b.State {
 		case 2:
 			b.EndBack += math.Max(-glide*dt, math.Min(glide*dt, float64(len(line))-b.EndBack))
