@@ -1079,3 +1079,29 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   à la taille 10). Section « Le parc d'attractions » dans la page des badges.
 - Prix d'entrée : parcFeeBase = 3 000 (au lieu de 2 000 provisoire). Mesure : pâtisserie tout acheté, ingrédients
   illimités ≈ 72 k€/min ; parc tout acheté, ≈ 95 k€/min à 2 000 → ≈ 140 k€/min à 3 000 (deux fois la pâtisserie).
+
+## Le parc : retours d'essai (3)
+- Au parc aussi, le joueur près d'une caissière embauchée l'aide : la caisse va deux fois plus vite
+  (ParcPlayerHelps, « Tu l'aides : ça va plus vite ! ») — comme dans les autres lieux (PlayerHelps).
+- Parc agrandi (visiteurs à taille réelle dans les attractions) : terrains de 3 000 × ~1 550 au lieu de
+  1 900 × ~900 (ParcW 13 800, ParcTop −2 950, boulevard à −900, avenue à 6 900), stands repositionnés.
+  Rien de tout ça n'est dans la sauvegarde : les parties existantes se chargent telles quelles.
+- Petits bateaux et grand splash : chaque bateau (rondin) est autonome (sim/parc_boats.go, Ride.Boats) : au quai,
+  il se remplit, part dès qu'il est plein (ou après 8 s d'attente avec au moins un passager), 3 s entre deux
+  départs ; au retour il débarque et se range derrière le quai.
+- Dessins refaits à la taille des visiteurs (parc_rides.go) : wagons, bateaux, rondins, voitures et sièges avec
+  leurs passagers assis (seated : buste, tête, cheveux, couleurs du visiteur).
+  - Train fantôme : nouveau circuit en serpentin + retour par le fond, voies bien écartées, virages larges ;
+    monstres, citrouilles et arbres toujours à l'écart des rails (trackDist) ; la sorcière est à l'endroit le plus
+    loin des rails et aucun monstre ne se dresse devant elle.
+  - Tour volante : sièges à dossier pendus à deux chaînes (sur les côtés), barre de sécurité, jambes qui pendent.
+  - Petit train : plus de « triangles » (le village était fait de maisons minuscules) : de vraies maisons autour de
+    l'étang ; montagne à facettes (trois sommets, faces éclairées et à l'ombre, neige, rochers, cascade et bassin) ;
+    plus d'arbres dans l'étang ni sur les maisons.
+  - Grand huit : circuit en relief (coasterPath : montée à chaîne, descentes et bosses, piliers de hauteur
+    variable, ombre au sol décalée selon la hauteur) ; les loopings font partie du circuit et le train les
+    emprunte ; vitesse selon la hauteur (lent en montée, très rapide en bas) ; deux tours de circuit par tour ;
+    passagers bras levés.
+  - Pieds dans le vide : rails plus hauts, sièges suspendus et jambes dans le vide à taille réelle, un tour et demi.
+- Mesure (tout au max, avec les stands) : environ 120 000 €/min en moyenne (par vagues) : parcFeeBase reste 3 000.
+- Partie d'essai : parking, trottinettes, caisses et attractions au max ; 10¹³ € pour acheter les stands.

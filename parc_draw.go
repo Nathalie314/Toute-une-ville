@@ -129,6 +129,9 @@ func drawParcBooth(dst *ebiten.Image, p *sim.Place, r *sim.ParcReg) {
 	rect(dst, x-60, y-40, 120, 14, rgb(0xd9534f))
 	roundRect(dst, x-44, y-20, 88, 30, 6, rgb(0x9fd3ff))
 	say(dst, "CAISSE "+itoa(r.N), x, y+18, 13, true, 0, rgb(0x6e4322))
+	if p.ParcPlayerHelps(r) {
+		sayOutlined(dst, "Tu l'aides : ça va plus vite !", x, y-150, 17, 0, rgb(0xffffff), rgb(0x2f8a4a))
+	}
 	if !p.ParcRegManned(r) && len(r.Queue) > 0 {
 		say(dst, "!", x, y-60, 30, true, 0, rgb(0xd9534f))
 	}
@@ -255,8 +258,6 @@ func (g *game) drawRidePlot(dst *ebiten.Image, p *sim.Place, r *sim.Ride) {
 		drawSplash(dst, p, r, level, g.t)
 	case "vide":
 		drawInverted(dst, p, r, level, g.t)
-	default:
-		drawGenericRide(dst, p, r, level, g.t)
 	}
 	// taille (en haut à droite)
 	tr := r.Track()
@@ -293,7 +294,7 @@ func trackLoop(r *sim.Ride, level int, wiggle float64) []V {
 	for i := 0; i < n; i++ {
 		a := 2 * math.Pi * float64(i) / float64(n)
 		m := 1 + amp*math.Sin(float64(k)*a)
-		pts = append(pts, V{X: cx + w/2*math.Cos(a)*m*0.95, Y: cy + h/2*math.Sin(a)*(1-0.1*f+0.1*f*math.Cos(2*a))*0.95})
+		pts = append(pts, V{X: cx + w/2*math.Cos(a)*m*0.95/(1+amp), Y: cy + h/2*math.Sin(a)*(1-0.1*f+0.1*f*math.Cos(2*a))*0.95})
 	}
 	return pts
 }
@@ -323,116 +324,29 @@ func drawLoop(dst *ebiten.Image, pts []V, w float64, c uint32) {
 	for i := range pts {
 		a, b := pts[i], pts[(i+1)%len(pts)]
 		line(dst, a.X, a.Y, b.X, b.Y, w, rgb(c))
+		if w > 12 {
+			circle(dst, a.X, a.Y, w/2, rgb(c)) // (les jointures arrondies)
+		}
 	}
 }
 
 // decorTrees : des arbres et des massifs de fleurs, de plus en plus nombreux avec la taille.
-func decorTrees(dst *ebiten.Image, r *sim.Ride, level int, pts []V) {
-	tr := r.Track()
-	n := 3 + 3*level
-	for i := 0; i < n; i++ {
-		x := tr.X + 40 + math.Mod(float64(i)*373.7+float64(r.Kind.Slot)*91, tr.W-80)
-		y := tr.Y + 50 + math.Mod(float64(i)*211.3+float64(r.Kind.Slot)*57, tr.H-100)
-		near := false
-		for k := 0; k < len(pts); k += 4 {
-			if pts[k].Dist(V{X: x, Y: y}) < 70 {
-				near = true
-				break
-			}
-		}
-		if near {
+func decorTrees(dst *ebiten.Image, r *sim.Ride, level int, pts []V, avoid ...func(V) bool) {
+	for i, q := range scatter(r, pts, 4+3*level, 3, 120) {
+		if len(avoid) > 0 && avoid[0](q) {
 			continue
 		}
 		if i%3 == 0 {
-			for j := 0; j < 5; j++ {
-				circle(dst, x+float64(j%3)*14-14, y+float64(j/3)*12, 8, rgb([]uint32{0xff6fa8, 0xffd23f, 0xff8a3d, 0xb36bd6}[(i+j)%4]))
+			for j := 0; j < 7; j++ {
+				circle(dst, q.X+float64(j%4)*16-24, q.Y+float64(j/4)*14, 9, rgb([]uint32{0xff6fa8, 0xffd23f, 0xff8a3d, 0xb36bd6}[(i+j)%4]))
 			}
 			continue
 		}
-		drawTree(dst, x, y, 0.55+0.25*math.Mod(float64(i)*0.37, 1))
-	}
-}
-
-// drawTrainRide : le petit train. Taille 1 : un tout petit rond près de la gare ;
-// puis le circuit s'allonge et se tortille ; un étang et son pont (taille 4), un
-// tunnel dans une colline (taille 6), un village miniature (taille 8), une
-// grande montagne et une cascade (taille 10).
-func drawTrainRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float64) {
-	pts := trackLoop(r, level, 0.18)
-	tr := r.Track()
-	decorTrees(dst, r, level, pts)
-	// étang (taille 4+)
-	if level >= 4 {
-		c := pts[len(pts)/4]
-		ellipse(dst, c.X, c.Y+(pts[0].Y-c.Y)*0.5, 160+12*float64(level), 70+6*float64(level), rgb(0x6fb7e6))
-	}
-	// le ballast puis les rails
-	drawLoop(dst, pts, 30, 0xb59f78)
-	drawLoop(dst, pts, 14, 0x8a6a4a)
-	for i := 0; i < len(pts); i += 2 {
-		a, b := pts[i], pts[(i+1)%len(pts)]
-		d := b.Sub(a).Norm()
-		n := V{X: -d.Y, Y: d.X}
-		line(dst, a.X-n.X*13, a.Y-n.Y*13, a.X+n.X*13, a.Y+n.Y*13, 4, rgb(0x6e4322))
-	}
-	drawLoop(dst, pts, 3, 0xd0d0d0)
-	// pont sur l'étang
-	if level >= 4 {
-		c := pts[len(pts)/4]
-		roundRect(dst, c.X-50, c.Y-22, 100, 44, 10, rgb(0xa0522d))
-	}
-	// la gare, au départ du circuit (le point le plus proche de la cabine)
-	st := 0
-	b := r.Booth().C()
-	for i, q := range pts {
-		if q.Dist(b) < pts[st].Dist(b) {
-			st = i
-		}
-	}
-	s0 := float64(st) / float64(len(pts))
-	g := pts[st]
-	building(dst, sim.Rect{X: g.X - 70, Y: g.Y - 120, W: 140, H: 80}, 0xf3ead8, 0xc0623a)
-	// tunnel dans une colline (taille 6+)
-	var hill V
-	if level >= 6 {
-		hill = pts[len(pts)*5/8]
-	}
-	// village miniature (taille 8+)
-	if level >= 8 {
-		for i := 0; i < 6; i++ {
-			x := tr.X + tr.W*0.55 + float64(i%3)*90
-			y := tr.Y + tr.H*0.45 + float64(i/3)*90
-			building(dst, sim.Rect{X: x, Y: y, W: 60, H: 40}, []uint32{0xf3ead8, 0xffe8b0, 0xd8e8f8}[i%3], []uint32{0xc0623a, 0x5a6a8a, 0x8a5a2b}[i%3])
-		}
-	}
-	// montagne et cascade (taille 10)
-	if level >= 10 {
-		m := pts[len(pts)*7/8]
-		polygon(dst, []V{{X: m.X - 160, Y: m.Y + 40}, {X: m.X, Y: m.Y - 220}, {X: m.X + 160, Y: m.Y + 40}}, rgb(0x8a8a80))
-		polygon(dst, []V{{X: m.X - 40, Y: m.Y - 150}, {X: m.X, Y: m.Y - 220}, {X: m.X + 40, Y: m.Y - 150}}, rgb(0xf2f2f2))
-		rect(dst, m.X+50, m.Y-120, 16, 160, rgba(0x9fd3ff, 0.9))
-	}
-	// le train : la locomotive et ses wagons
-	units := p.RideUnits(r)
-	pos := s0
-	if r.State == 1 {
-		pos = s0 + r.Prog
-	}
-	riders := len(r.Riders)
-	gap := 52.0 / pathLen(pts)
-	for k := 0; k <= units; k++ {
-		at, dir := along(pts, pos-float64(k)*gap)
-		if k == 0 {
-			drawLoco(dst, at, dir)
+		if i%5 == 1 {
+			drawPine(dst, q.X, q.Y, 0.8+0.3*math.Mod(float64(i)*0.37, 1))
 			continue
 		}
-		seats := 2
-		drawWagon(dst, at, dir, min(seats, max(0, riders-(k-1)*seats)), []uint32{0x4fc3ff, 0xffd23f, 0x7ed957, 0xff6fa8}[k%4])
-	}
-	if level >= 6 {
-		ellipse(dst, hill.X, hill.Y, 120, 80, rgb(0x6a8a4a))
-		ellipse(dst, hill.X, hill.Y-14, 90, 56, rgb(0x7ea85a))
-		ellipse(dst, hill.X-60, hill.Y+20, 26, 22, rgb(0x2b2b2b))
+		drawTree(dst, q.X, q.Y, 0.8+0.3*math.Mod(float64(i)*0.37, 1))
 	}
 }
 
@@ -442,71 +356,4 @@ func pathLen(pts []V) float64 {
 		t += pts[i].Dist(pts[(i+1)%len(pts)])
 	}
 	return t
-}
-
-// drawLoco : la locomotive (rouge, avec sa cheminée).
-func drawLoco(dst *ebiten.Image, at, dir V) {
-	n := V{X: -dir.Y, Y: dir.X}
-	body := []V{at.Add(dir.Mul(26)).Add(n.Mul(16)), at.Add(dir.Mul(26)).Sub(n.Mul(16)), at.Sub(dir.Mul(22)).Sub(n.Mul(16)), at.Sub(dir.Mul(22)).Add(n.Mul(16))}
-	polygon(dst, body, rgb(0xd9534f))
-	c := at.Add(dir.Mul(12))
-	circle(dst, c.X, c.Y-6, 9, rgb(0x2b2b2b))
-	cab := at.Sub(dir.Mul(12))
-	roundRect(dst, cab.X-14, cab.Y-26, 28, 22, 4, rgb(0x2b4a8a))
-}
-
-// drawWagon : un wagon et ses passagers (des têtes).
-func drawWagon(dst *ebiten.Image, at, dir V, riders int, col uint32) {
-	n := V{X: -dir.Y, Y: dir.X}
-	body := []V{at.Add(dir.Mul(20)).Add(n.Mul(15)), at.Add(dir.Mul(20)).Sub(n.Mul(15)), at.Sub(dir.Mul(20)).Sub(n.Mul(15)), at.Sub(dir.Mul(20)).Add(n.Mul(15))}
-	polygon(dst, body, rgb(col))
-	for i := 0; i < riders; i++ {
-		h := at.Add(dir.Mul(float64(i)*16 - 8))
-		circle(dst, h.X, h.Y-10, 8, rgb(0xf2c9a0))
-	}
-}
-
-// drawGenericRide : en attendant leur dessin (étape 2), les autres attractions
-// sont une boucle avec leurs wagons ; la tour volante, un mât et ses nacelles.
-func drawGenericRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float64) {
-	if r.Kind.ID == "volante" {
-		tr := r.Track()
-		c := tr.C()
-		h := 80 + 30*float64(level)
-		rad := 60 + 14*float64(level)
-		ellipse(dst, c.X, c.Y+20, rad+30, (rad+30)*0.4, rgba(0x000000, 0.15))
-		rect(dst, c.X-10, c.Y-h, 20, h+20, rgb(0xd9534f))
-		n := 2 * p.RideUnits(r)
-		ang := 0.0
-		if r.State == 1 {
-			ang = t * 2
-		}
-		for i := 0; i < n; i++ {
-			a := ang + 2*math.Pi*float64(i)/float64(n)
-			x, y := c.X+rad*math.Cos(a), c.Y-h*0.7+rad*0.35*math.Sin(a)
-			line(dst, c.X, c.Y-h*0.75, x, y, 2, rgb(0x888888))
-			circle(dst, x, y, 9, rgb(0xffd23f))
-		}
-		return
-	}
-	pts := trackLoop(r, level, 0.25)
-	decorTrees(dst, r, level, pts)
-	col := map[string]uint32{"fantome": 0x3b2a52, "bateaux": 0x6fb7e6, "grandhuit": 0xd9534f, "splash": 0x4f9ee6, "vide": 0x5b7fd6}[r.Kind.ID]
-	if r.Kind.Water {
-		drawLoop(dst, pts, 44, 0x4f8fc6)
-		drawLoop(dst, pts, 34, col)
-	} else {
-		drawLoop(dst, pts, 18, 0x555555)
-		drawLoop(dst, pts, 8, col)
-	}
-	units := p.RideUnits(r)
-	pos := 0.0
-	if r.State == 1 {
-		pos = r.Prog
-	}
-	gap := 60.0 / pathLen(pts)
-	for k := 0; k < units; k++ {
-		at, dir := along(pts, pos-float64(k)*gap)
-		drawWagon(dst, at, dir, min(r.Kind.Seats, max(0, len(r.Riders)-k*r.Kind.Seats)), 0xffffff)
-	}
 }

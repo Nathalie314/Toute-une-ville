@@ -28,17 +28,17 @@ import (
 
 // géométrie
 const (
-	ParcW         = 9000.0
-	ParcTop       = -2300.0
-	ParcBoulY     = -350.0 // centre du grand boulevard, entre les deux rangées d'attractions
-	ParcBoulH     = 400.0
-	ParcAvX       = 4600.0 // l'avenue qui monte de l'entrée jusqu'au boulevard
+	ParcW         = 13800.0
+	ParcTop       = -2950.0
+	ParcBoulY     = -900.0 // centre du grand boulevard, entre les deux rangées d'attractions
+	ParcBoulH     = 460.0
+	ParcAvX       = 6900.0 // l'avenue qui monte de l'entrée jusqu'au boulevard
 	ParcAvW       = 500.0
 	ParcPlazaY    = 1080.0 // haut de la place de l'entrée
 	ParcRegY      = 1200.0 // les cabines des caisses
 	ParcRegGap    = 190.0
-	ParcRackY     = 1000.0 // en montant l'avenue après les caisses (on rend sa trottinette en repassant ici)
-	ParcRackX     = 5560.0 // le râtelier des trottinettes, sur la place, à droite des caisses
+	ParcRackY     = 1000.0        // en montant l'avenue après les caisses (on rend sa trottinette en repassant ici)
+	ParcRackX     = ParcAvX + 960 // le râtelier des trottinettes, sur la place, à droite des caisses
 	ParcRackW     = 400.0
 	ParcRackTop   = 1130.0
 	parcSpotW     = 85.0
@@ -83,13 +83,13 @@ var RideKinds = []RideKind{
 
 // ParcSlot : l'emplacement n° i (0 à 3 : rangée du haut ; 4 à 7 : rangée du bas).
 func ParcSlot(i int) Rect {
-	xs := []float64{200, 2300, 4900, 7000}
+	xs := []float64{200, 3500, 7300, 10600}
 	x := xs[i%4]
 	if i < 4 {
-		return Rect{x, ParcTop + 100, 1900, ParcBoulY - ParcBoulH/2 - (ParcTop + 100) - 100}
+		return Rect{x, ParcTop + 100, 3000, ParcBoulY - ParcBoulH/2 - (ParcTop + 100) - 100}
 	}
 	y := ParcBoulY + ParcBoulH/2 + 100
-	return Rect{x, y, 1900, ParcPlazaY - 120 - y}
+	return Rect{x, y, 3000, ParcPlazaY - 120 - y}
 }
 
 // Ride : une attraction dans la partie.
@@ -104,7 +104,9 @@ type Ride struct {
 	Prog     float64 // avancement du tour (0 à 1)
 	boardT   float64
 	idleT    float64
-	Trotts   int // trottinettes garées à l'entrée
+	Trotts   int         // trottinettes garées à l'entrée
+	Boats    []*RideBoat // attractions sur l'eau : bateaux (rondins) autonomes
+	gapT     float64
 	Operator *Agent
 }
 
@@ -492,6 +494,12 @@ func (p *Place) ParcRegManned(r *ParcReg) bool {
 	return p.g.Cur == p && pl != nil && r.Zone().Has(pl.Pos)
 }
 
+// ParcPlayerHelps : le joueur se tient près d'une caissière embauchée (il l'aide).
+func (p *Place) ParcPlayerHelps(r *ParcReg) bool {
+	pl := p.g.Player
+	return r.Cashier != nil && p.g.Cur == p && pl != nil && pl.Pos.Dist(r.Cashier.Pos) < HelpDist
+}
+
 // ParcFee : le prix d'entrée (il monte avec le nombre d'attractions ouvertes).
 func (p *Place) ParcFee() float64 {
 	n := 0
@@ -802,6 +810,9 @@ func (p *Place) stepParcReg(r *ParcReg, dt float64) {
 		return
 	}
 	r.T += dt * (1 + p.ptsF("pts_caisse"))
+	if p.ParcPlayerHelps(r) {
+		r.T += dt // le joueur aide la caissière : deux fois plus vite
+	}
 	if r.T < 2.2 {
 		return
 	}
@@ -874,6 +885,10 @@ func (p *Place) parcDepart(veh *Vehicle) {
 
 // stepRide : embarquement, tour, débarquement.
 func (p *Place) stepRide(r *Ride, dt float64) {
+	if r.Indep() {
+		p.stepBoats(r, dt)
+		return
+	}
 	manned := p.RideManned(r)
 	board := 1.0 / (1 + p.ptsF("pts_embarq")) // (points « Opérateurs : embarquement »)
 	switch r.State {

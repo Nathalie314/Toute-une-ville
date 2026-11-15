@@ -1442,6 +1442,7 @@ Le parc d'attractions ne consomme rien et ne livre rien : les visiteurs paient l
 
 # ---- Parc : stands et badges / Park: stands and badges
 Ballons = Balloons
+GARE = STATION
 Marchand de glaces = Ice cream cart
 Pop-corn = Popcorn
 Barbe à papa = Cotton candy
