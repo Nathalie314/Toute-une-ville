@@ -233,9 +233,7 @@ func (g *game) hint() (string, V, bool) {
 		}
 	}
 	if p.ID == "parc" {
-		if txt, at, arrow := g.parcHint(p); txt != "" {
-			return txt, at, arrow
-		}
+		return g.parcHint(p) // (les conseils des autres lieux n'ont pas de sens ici)
 	}
 	if p.ID == "super" {
 		if txt, at, arrow := g.superRefused(p); txt != "" {
@@ -1867,6 +1865,18 @@ func (g *game) parcHint(p *sim.Place) (string, V, bool) {
 		if z, ok := spotAt("parking"); ok {
 			return goTo("Le parking est plein : des visiteurs repartent ! Agrandis-le (case dans ta zone, à gauche).", z)
 		}
+	}
+	// sinon : l'achat le moins cher à portée (une attraction, une caisse)
+	best, bestTxt := 1e18, ""
+	var bz sim.Rect
+	for _, u := range p.Unlocks {
+		if !u.Done && p.Visible(u) && gs.Money >= u.Cost-u.Paid && u.Cost < best {
+			best, bz = u.Cost, u.Zone
+			bestTxt = tr.F("Tu peux acheter « {nom} » : arrête-toi sur sa zone.", "nom", tr.T(u.Name))
+		}
+	}
+	if bestTxt != "" {
+		return goTo(bestTxt, bz)
 	}
 	return "", V{}, false
 }

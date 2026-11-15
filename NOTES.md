@@ -1019,3 +1019,21 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   remonté au-dessus. Le parking sort de l'herbe : seules les places achetées sont goudronnées ; il grandit allée par
   allée (la plus proche de la route d'abord), du centre vers les côtés, et ses routes d'accès et de sortie
   s'écartent avec lui (ParcAccessX/ParcExitX). Les caisses pas encore achetables ne s'affichent plus.
+
+## Le parc d'attractions — étape 2 : les dessins des attractions (parc_rides.go)
+- Chaque attraction grandit avec sa taille (1 à 10) ; tout est dessiné par le code (circuit qui s'allonge et se
+  tortille avec la taille, décor de plus en plus riche), pas 70 images :
+  - train fantôme : maison hantée qui s'agrandit (tours aux tailles 3, 6, 9), fenêtres qui luisent, tombes,
+    citrouilles, arbres morts, fantômes et chauves-souris ; les wagons disparaissent dans la maison ;
+  - petits bateaux : rivière dans un jardin (fleurs, saules), ponts (un tous les 3 niveaux), kiosque (4),
+    fontaine (5), cygnes ; bateaux blancs à auvent coloré ;
+  - tour volante : mât rouge et blanc de plus en plus haut, couronne et nacelles (par paires) ; pendant le tour,
+    la couronne monte en haut du mât et les nacelles s'envolent en tournant, puis redescendent ; drapeaux (5+) ;
+  - grand huit : rails rouges sur pylônes, montée à chaîne au départ, un looping tous les 3 niveaux ;
+  - grand splash : canal en bois sur l'eau, chutes dans les rochers (une de plus tous les 3 niveaux) avec bassin,
+    éclaboussures quand un rondin passe la chute ; sapins ;
+  - les pieds dans le vide : rails bleu et jaune sur grosses colonnes, vrilles (une tous les 2 niveaux),
+    passagers suspendus sous les rails, jambes qui balancent.
+- Bandeau d'aide du parc : après les premières étapes, il propose l'achat le moins cher à portée (attraction,
+  caisse) ; plus jamais de conseils d'un autre lieu (« remplis son quai… »).
+- Outil de capture : CAPAT=x,y (photo centrée sur ce point), CAPN (nombre de photos), CAPDT (secondes entre deux).

@@ -250,6 +250,18 @@ func (g *game) drawRidePlot(dst *ebiten.Image, p *sim.Place, r *sim.Ride) {
 	switch r.Kind.ID {
 	case "train":
 		drawTrainRide(dst, p, r, level, g.t)
+	case "fantome":
+		drawGhostRide(dst, p, r, level, g.t)
+	case "bateaux":
+		drawBoatRide(dst, p, r, level, g.t)
+	case "volante":
+		drawSwingTower(dst, p, r, level, g.t)
+	case "grandhuit":
+		drawCoaster(dst, p, r, level, g.t)
+	case "splash":
+		drawSplash(dst, p, r, level, g.t)
+	case "vide":
+		drawInverted(dst, p, r, level, g.t)
 	default:
 		drawGenericRide(dst, p, r, level, g.t)
 	}
