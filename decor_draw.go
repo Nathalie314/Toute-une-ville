@@ -28,6 +28,7 @@ const (
 	dRock
 	dFlowers
 	dTuft
+	dFountain // une fontaine décorative (rare)
 )
 
 type decor struct {
@@ -148,14 +149,14 @@ func (g *game) placeDecor(p *sim.Place) *decorCache {
 		k := 4 * (j*w + i)
 		return pix[k] > 240 && pix[k+1] < 20 && pix[k+2] > 240
 	}
-	// distance (en cases) à la chose la plus proche, jusqu'à 6
+	// distance (en cases) à la chose la plus proche, jusqu'à 9
 	dist := make([]uint8, w*h)
 	for j := 0; j < h; j++ {
 		for i := 0; i < w; i++ {
 			d := uint8(0)
 			if free(i, j) {
-				d = 7
-				for r := 1; r <= 6 && d == 7; r++ {
+				d = 10
+				for r := 1; r <= 9 && d == 10; r++ {
 					for k := -r; k <= r; k++ {
 						if !free(i+k, j-r) || !free(i+k, j+r) || !free(i-r, j+k) || !free(i+r, j+k) {
 							d = uint8(r)
@@ -207,6 +208,19 @@ func (g *game) placeDecor(p *sim.Place) *decorCache {
 			z := 0.75 + 0.45*hash2(ci, cj, sd+5)
 			seed := int(hash2(ci, cj, sd+6) * 1e6)
 			in := inside(x, y)
+			// de temps en temps, une fontaine (assez de place tout autour, loin des autres)
+			if hash2(ci, cj, sd+9) < 0.012 && room(x, y) >= 9 && room(x-150, y) >= 7 && room(x+150, y) >= 7 && room(x, y-150) >= 7 && room(x, y+80) >= 6 {
+				far := true
+				for _, o := range c.tall {
+					if o.kind == dFountain && math.Hypot(o.x-x, o.y-y) < 2500 {
+						far = false
+					}
+				}
+				if far && len(fountainsIn(c)) < 3 {
+					c.tall = append(c.tall, decor{x, y, 0.8, dFountain, seed})
+					continue
+				}
+			}
 			switch {
 			case !in && forest > 0.62 && r < (forest-0.5)*1.6 && tallRoom(x, y, z):
 				k := dTree
@@ -227,6 +241,24 @@ func (g *game) placeDecor(p *sim.Place) *decorCache {
 			}
 		}
 	}
+	// rien d'autre autour d'une fontaine
+	fs := fountainsIn(c)
+	keep := func(ds []decor) []decor {
+		out := ds[:0]
+		for _, d := range ds {
+			ok := true
+			for _, f := range fs {
+				if d.kind != dFountain && math.Abs(d.x-f.x) < 260 && d.y > f.y-120 && d.y < f.y+260 {
+					ok = false
+				}
+			}
+			if ok {
+				out = append(out, d)
+			}
+		}
+		return out
+	}
+	c.tall, c.flat = keep(c.tall), keep(c.flat)
 	return c
 }
 
@@ -334,6 +366,8 @@ func decorDrawables(dst *ebiten.Image, c *decorCache, ds []drawable, tl, br V) [
 				drawBush(dst, d.x, d.y, d.z, d.seed)
 			case dRock:
 				drawRock(dst, d.x, d.y, d.z, d.seed)
+			case dFountain:
+				drawFancyFountain(dst, d.seed, V{X: d.x, Y: d.y}, d.z, gameT)
 			}
 		}})
 	}
@@ -459,3 +493,16 @@ func mapTrees(dst *ebiten.Image, bx, by, bw, bh float64) {
 		}
 	}
 }
+
+func fountainsIn(c *decorCache) []decor {
+	var out []decor
+	for _, d := range c.tall {
+		if d.kind == dFountain {
+			out = append(out, d)
+		}
+	}
+	return out
+}
+
+// gameT : le temps du jeu (pour animer le décor : jets d'eau…).
+var gameT float64

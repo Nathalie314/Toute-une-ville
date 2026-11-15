@@ -56,6 +56,7 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	tl := cam.toLogical(0, 0)
 	br := cam.toLogical(scr.W*scr.K, scr.H*scr.K)
 	dec := g.placeDecor(p)
+	gameT = g.t
 	drawGrass(dst, p, tl, br)
 	drawFlatDecor(dst, dec, tl, br)
 	g.drawGround(dst, p, tl, br)

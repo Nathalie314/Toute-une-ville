@@ -677,7 +677,7 @@ func drawBoatRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t flo
 			spots = append(spots, q)
 		}
 	}
-	nStat, nBed, nFont := 1+level/2, 2+level, level/3
+	nStat, nBed, nFont := 1+level/2, 2+level, 1+level/2
 	decorTrees(dst, r, level/2+1, pts, func(q V) bool {
 		if level >= 4 && math.Abs(q.X-c.X) < 220 && math.Abs(q.Y-c.Y) < 220 {
 			return true
@@ -712,7 +712,8 @@ func drawBoatRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t flo
 		case 1:
 			drawStatue(dst, q, i)
 		case 2:
-			drawFountain(dst, q, 0.8, t)
+			drawFancyFountain(dst, i*3+r.Kind.Slot, q, 0.75, t)
+			_ = drawFountain
 		}
 	}
 	if level >= 4 { // le kiosque, au milieu

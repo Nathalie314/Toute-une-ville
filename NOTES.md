@@ -1141,3 +1141,8 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   qui monte dans la chute puis retombe) ; au pied d'une chute, deux grandes gerbes d'eau jaillissent à gauche et
   à droite du canal (plus de cercles sur les passagers).
 - Partie d'essai : tout le parc débloqué (stands compris), 10¹³ €.
+- Fontaines (fountains_draw.go, d'après une image qu'elle a montrée, redessinées vues du dessus) : sept modèles :
+  à étages, à la boule, grande à colonnes, bassin carré à jets, bassin octogonal, jets qui sortent des dalles, mur
+  d'eau. Petits bateaux : 1 + taille/2 fontaines, chacune d'un modèle différent (à la place des petites). Ailleurs
+  dans la ville : le décor automatique en pose de temps en temps (jusqu'à 3 par lieu, très espacées, là où il y a
+  beaucoup de place ; rien d'autre autour).
