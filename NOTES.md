@@ -1120,3 +1120,7 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   bouton « ? » à côté des drapeaux). Capture : CAPHELP=1.
 - Parc : le food truck (×1,7) et la boutique de souvenirs (×1,8) sont agrandis, à l'échelle du parc agrandi (un peu
   plus bas sur le boulevard) ; au parc, on peut reculer le zoom jusqu'à 0,2 (0,6 ailleurs, ramené à 0,6 en sortant).
+- Petits bateaux (ses retours) : plus de ponts (ils ne passaient pas par-dessus l'eau) ; rivière en grande boucle
+  aux courbes douces (boatTrack : deux ou trois larges méandres) ; un vrai quai en bois sur la berge, côté cabine ;
+  décor qui grandit avec la taille : parterres de fleurs (2 + taille), statues (1 + taille/2 : personnage ou vase),
+  fontaines (taille/3), loin de la rivière et du kiosque.

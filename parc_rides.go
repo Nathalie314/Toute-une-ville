@@ -650,13 +650,69 @@ func boatAt(b *sim.RideBoat, s0, gapL float64) float64 {
 	return s0 - gapL*float64(b.Line+1)
 }
 
-// drawBoatRide : une rivière qui serpente dans un jardin : des ponts (un tous les
-// trois niveaux), un kiosque (4), une fontaine (5), des cygnes, des arbres.
+// drawBoatRide : une rivière aux courbes douces dans un jardin : un kiosque (4),
+// des statues, des parterres de fleurs et des fontaines (de plus en plus avec la
+// taille), des cygnes, des arbres.
 // Chaque bateau part seul, dès qu'il est plein.
 func drawBoatRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t float64) {
-	pts := trackLoop(r, level, 0.3)
+	pts := boatTrack(r, level)
 	c := centroid(pts)
-	decorTrees(dst, r, level, pts)
+	// le décor : statues, parterres de fleurs, fontaines (de plus en plus avec la taille),
+	// loin de la rivière et du kiosque
+	var spots []V
+	for _, q := range scatter(r, pts, 60, 23, 190) {
+		if level >= 4 && math.Abs(q.X-c.X) < 220 && math.Abs(q.Y-c.Y) < 200 {
+			continue
+		}
+		ok := true
+		for _, o := range spots {
+			if o.Dist(q) < 220 {
+				ok = false
+				break
+			}
+		}
+		if ok {
+			spots = append(spots, q)
+		}
+	}
+	nStat, nBed, nFont := 1+level/2, 2+level, level/3
+	decorTrees(dst, r, level/2+1, pts, func(q V) bool {
+		if level >= 4 && math.Abs(q.X-c.X) < 220 && math.Abs(q.Y-c.Y) < 220 {
+			return true
+		}
+		for i, o := range spots {
+			if i < 3+2*level && o.Dist(q) < 170 {
+				return true
+			}
+		}
+		return false
+	})
+	// (dans l'ordre : fontaine, statue, parterres… pour que chaque sorte ait sa place)
+	var kinds []int
+	for nStat+nBed+nFont > 0 {
+		if nFont > 0 {
+			kinds, nFont = append(kinds, 2), nFont-1
+		}
+		if nStat > 0 {
+			kinds, nStat = append(kinds, 1), nStat-1
+		}
+		for k := 0; k < 2 && nBed > 0; k++ {
+			kinds, nBed = append(kinds, 0), nBed-1
+		}
+	}
+	for i, q := range spots {
+		if i >= len(kinds) {
+			break
+		}
+		switch kinds[i] {
+		case 0:
+			drawFlowerBed(dst, q, i)
+		case 1:
+			drawStatue(dst, q, i)
+		case 2:
+			drawFountain(dst, q, 0.8, t)
+		}
+	}
 	if level >= 4 { // le kiosque, au milieu
 		ellipse(dst, c.X+20, c.Y+40, 130, 40, rgba(0x1d3a12, 0.25))
 		roundRect(dst, c.X-110, c.Y-60, 220, 110, 50, rgb(0xf3ead8))
@@ -665,19 +721,6 @@ func drawBoatRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t flo
 		}
 		polygon(dst, []V{{X: c.X - 140, Y: c.Y - 50}, {X: c.X, Y: c.Y - 190}, {X: c.X, Y: c.Y - 50}}, rgb(0x46c283))
 		polygon(dst, []V{{X: c.X, Y: c.Y - 190}, {X: c.X + 140, Y: c.Y - 50}, {X: c.X, Y: c.Y - 50}}, rgb(0x2fa86b))
-	}
-	if level >= 5 { // la fontaine
-		fo := V{X: c.X, Y: c.Y + 230}
-		if trackDist(pts, fo) < 170 {
-			fo = V{X: c.X, Y: c.Y - 300}
-		}
-		ellipse(dst, fo.X, fo.Y, 120, 50, rgb(0xb0b0a8))
-		ellipse(dst, fo.X, fo.Y, 100, 38, rgb(0x6fb7e6))
-		for j := 0; j < 8; j++ {
-			a := float64(j) * math.Pi / 4
-			h := 50 + 10*math.Sin(t*5+float64(j))
-			line(dst, fo.X, fo.Y, fo.X+math.Cos(a)*50, fo.Y-h, 4, rgba(0xffffff, 0.8))
-		}
 	}
 	drawLoop(dst, pts, 230, 0xd9c48f) // la berge
 	drawLoop(dst, pts, 210, 0x4f8fc6)
@@ -690,8 +733,17 @@ func drawBoatRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t flo
 	// le quai
 	dq, dd := along(pts, s0)
 	nn := V{X: -dd.Y, Y: dd.X}
-	polygon(dst, box(dq.Add(nn.Mul(110)), dd, 120, 26), rgb(0x8a5a2b))
-	polygon(dst, box(dq.Add(nn.Mul(110)), dd, 114, 20), rgb(0xb07d4a))
+	if dq.Add(nn.Mul(140)).Dist(r.Booth().C()) > dq.Sub(nn.Mul(140)).Dist(r.Booth().C()) {
+		nn = nn.Mul(-1) // (le quai, sur la berge du côté de la cabine)
+	}
+	pq := dq.Add(nn.Mul(140))
+	polygon(dst, box(pq.Add(V{X: 6, Y: 10}), dd, 130, 34), rgba(0x1d3a12, 0.25))
+	polygon(dst, box(pq, dd, 130, 34), rgb(0x8a5a2b))
+	polygon(dst, box(pq, dd, 124, 28), rgb(0xb07d4a))
+	for k := -2; k <= 2; k++ {
+		e := pq.Add(dd.Mul(float64(k) * 50))
+		line(dst, e.X-nn.X*28, e.Y-nn.Y*28, e.X+nn.X*28, e.Y+nn.Y*28, 2, rgba(0x6e4322, 0.6))
+	}
 	gapL := 170.0 / pathLen(pts)
 	for k, b := range r.Boats {
 		at, dir := along(pts, boatAt(b, s0, gapL))
@@ -703,19 +755,6 @@ func drawBoatRide(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t flo
 		ridersIn(dst, at, dir, riderLooks(b.Riders, 0, 4), 2, 2, 50, 0, t)
 		// l'auvent coloré, à l'arrière
 		polygon(dst, box(at.Sub(dir.Mul(50)), dir, 16, 46), rgb(col))
-	}
-	// les ponts par-dessus la rivière
-	for i := 1; i <= level/3; i++ {
-		s := math.Mod(s0+float64(i)/float64(level/3+1)+0.06, 1)
-		q, dir := along(pts, s)
-		n := V{X: -dir.Y, Y: dir.X}
-		polygon(dst, box(q.Add(V{X: 8, Y: 14}), n, 150, 50), rgba(0x1d3a12, 0.25))
-		polygon(dst, box(q, n, 150, 50), rgb(0x8a5a2b))
-		polygon(dst, box(q, n, 150, 38), rgb(0xc0824d))
-		for _, sg := range []float64{-1, 1} {
-			a, b := q.Add(n.Mul(150)).Add(dir.Mul(46*sg)), q.Sub(n.Mul(150)).Add(dir.Mul(46*sg))
-			line(dst, a.X, a.Y-16, b.X, b.Y-16, 6, rgb(0x6e4322))
-		}
 	}
 	for i := 0; i < 1+level/3; i++ { // les cygnes
 		at, dir := along(pts, float64(i)*0.31+t*0.006)
@@ -1132,5 +1171,89 @@ func drawInverted(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t flo
 				line(dst, sx.X-18, sx.Y+14, sx.X+18, sx.Y+14, 6, rgb(0x3b3b3b)) // l'arceau de sécurité
 			}
 		}
+	}
+}
+
+// boatTrack : la rivière des petits bateaux : une grande boucle aux courbes douces
+// (deux ou trois larges méandres, jamais de virage serré).
+func boatTrack(r *sim.Ride, level int) []V {
+	tr := r.Track()
+	f := float64(level) / 10
+	w := tr.W * (0.4 + 0.55*f)
+	h := tr.H * math.Min(0.86, 0.5+0.4*f)
+	cx := tr.X + w/2 + 40
+	cy := tr.Y + tr.H/2
+	if r.Top {
+		cy = tr.Y + tr.H - h/2 - 40
+	} else {
+		cy = tr.Y + h/2 + 40
+	}
+	n := 160
+	pts := make([]V, 0, n)
+	amp := 0.1 * f
+	for i := 0; i < n; i++ {
+		a := 2 * math.Pi * float64(i) / float64(n)
+		m := (1 + amp*math.Sin(3*a+0.5)) / (1 + amp)
+		pts = append(pts, V{X: cx + (w/2-120)*math.Cos(a)*m, Y: cy + (h/2-120)*math.Sin(a)*m})
+	}
+	return pts
+}
+
+// drawFlowerBed : un parterre de fleurs (bordure de buis, fleurs en rangs).
+func drawFlowerBed(dst *ebiten.Image, q V, i int) {
+	cols := [][2]uint32{{0xff5d8f, 0xffd23f}, {0xb36bd6, 0xffffff}, {0xff8a3d, 0xffd23f}, {0x4fc3ff, 0xffffff}}[i%4]
+	ellipse(dst, q.X+8, q.Y+10, 100, 46, rgba(0x1d3a12, 0.2))
+	ellipse(dst, q.X, q.Y, 100, 46, rgb(0x3f8a3a))
+	ellipse(dst, q.X, q.Y-4, 88, 38, rgb(0x6e4a2a))
+	for k := 0; k < 26; k++ {
+		a := float64(k) * 2.4
+		rr := 0.25 + 0.7*math.Mod(float64(k)*0.37, 1)
+		x, y := q.X+math.Cos(a)*80*rr, q.Y-4+math.Sin(a)*32*rr
+		circle(dst, x, y-3, 7, rgb(0x4f9e48))
+		circle(dst, x, y-7, 6, rgb(cols[k%2]))
+		circle(dst, x, y-7, 2.2, rgb(0xffe36a))
+	}
+}
+
+// drawStatue : une statue de pierre sur son socle (un personnage, ou un vase).
+func drawStatue(dst *ebiten.Image, q V, i int) {
+	ellipse(dst, q.X+20, q.Y+6, 56, 14, rgba(0x1d3a12, 0.25))
+	rect(dst, q.X-36, q.Y-50, 72, 52, rgb(0xb8b4aa))
+	rect(dst, q.X-36, q.Y-50, 20, 52, rgb(0xd6d2c8))
+	rect(dst, q.X-42, q.Y-58, 84, 12, rgb(0xc8c4ba))
+	st, li := rgb(0xc9c6bd), rgb(0xe4e1d9)
+	if i%2 == 0 { // un personnage, un bras levé
+		roundRect(dst, q.X-16, q.Y-130, 32, 74, 12, st)
+		rect(dst, q.X-16, q.Y-130, 10, 70, li)
+		circle(dst, q.X, q.Y-146, 16, st)
+		circle(dst, q.X-5, q.Y-150, 6, li)
+		line(dst, q.X+14, q.Y-120, q.X+34, q.Y-170, 9, st)
+		line(dst, q.X-14, q.Y-120, q.X-24, q.Y-80, 9, st)
+	} else { // un grand vase
+		ellipse(dst, q.X, q.Y-96, 34, 40, st)
+		ellipse(dst, q.X-10, q.Y-104, 12, 22, li)
+		rect(dst, q.X-14, q.Y-70, 28, 14, st)
+		ellipse(dst, q.X, q.Y-134, 30, 8, li)
+		for k := 0; k < 5; k++ {
+			circle(dst, q.X-20+float64(k)*10, q.Y-140-float64(k%2)*8, 8, rgb(0x5fae4c))
+		}
+	}
+}
+
+// drawFountain : une fontaine (bassin de pierre, jets d'eau qui bougent).
+func drawFountain(dst *ebiten.Image, fo V, k, t float64) {
+	ellipse(dst, fo.X+12, fo.Y+12, 120*k, 50*k, rgba(0x1d3a12, 0.2))
+	ellipse(dst, fo.X, fo.Y, 120*k, 50*k, rgb(0xb0b0a8))
+	ellipse(dst, fo.X, fo.Y-4, 102*k, 40*k, rgb(0x6fb7e6))
+	rect(dst, fo.X-10*k, fo.Y-60*k, 20*k, 56*k, rgb(0xc8c4ba))
+	ellipse(dst, fo.X, fo.Y-60*k, 34*k, 12*k, rgb(0xb0b0a8))
+	for j := 0; j < 8; j++ {
+		a := float64(j) * math.Pi / 4
+		h := (40 + 10*math.Sin(t*5+float64(j))) * k
+		line(dst, fo.X, fo.Y-62*k, fo.X+math.Cos(a)*60*k, fo.Y-62*k-h*0.4+math.Sin(a)*20*k+h*0.6, 4, rgba(0xffffff, 0.8))
+	}
+	for j := 0; j < 5; j++ {
+		ph := math.Mod(t*1.2+float64(j)*0.2, 1)
+		circle(dst, fo.X+math.Cos(float64(j)*1.3)*70*k*ph, fo.Y-4+math.Sin(float64(j)*1.3)*28*k*ph, 4*k, rgba(0xffffff, 0.6*(1-ph)))
 	}
 }
