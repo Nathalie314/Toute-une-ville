@@ -764,6 +764,10 @@ func (p *Place) cooks() bool {
 // sells : lieux qui reçoivent des clients.
 func (p *Place) sells() bool { return p.ID != "ecole" && p.ID != "elevage" }
 
+// EarnsMoney : le lieu gagne-t-il de l'argent (des clients) ? L'école et la ferme
+// d'élevage, non : elles n'apparaissent pas dans le tableau des gains.
+func (p *Place) EarnsMoney() bool { return p.sells() }
+
 // hasStaff : lieux qui ont des employés (marche, charge).
 func (p *Place) hasStaff() bool { return p.ID != "ecole" }
 

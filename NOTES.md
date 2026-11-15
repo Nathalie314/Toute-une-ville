@@ -970,3 +970,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   début d'une séance : rien n'est compté pendant que le jeu est fermé), photo prise à l'ouverture de la page (elle
   ne bouge plus tant qu'elle reste ouverte). Compte l'argent vraiment gagné : ventes, cadeau « ventes ×2 » et
   commandes livrées. (sim : incomeRec garde le lieu et le montant réel ; EarningsByPlace ; sessionStart.)
+  Règle (sa demande) : tout lieu qui ne rapporte pas d'argent par définition (école, ferme d'élevage) n'apparaît pas ;
+  tout nouveau lieu qui gagne de l'argent doit apparaître (Place.EarnsMoney ; règle notée dans CLAUDE.md).

@@ -444,8 +444,8 @@ func (g *game) openGains() {
 	}
 	var rows []gainRow
 	for _, p := range g.sim.Places {
-		if !p.Owned || p.ID == "ecole" {
-			continue // (l'école ne rapporte pas d'argent)
+		if !p.Owned || !p.EarnsMoney() {
+			continue // (l'école, la ferme d'élevage : elles ne rapportent pas d'argent)
 		}
 		r := gainRow{id: p.ID, perMin: by[p.ID] / span * 60}
 		if total > 0 {
@@ -504,7 +504,11 @@ func (g *game) drawGains(dst *ebiten.Image) {
 	}
 	for i, r := range rows {
 		ry := ty + float64(i+1)*(rh+6)
-		line(ry, gainNames[r.id], r.perMin, r.pc, 0x3b2a10, false, rgba(0xf3e6cc, 1))
+		name := gainNames[r.id]
+		if name == "" { // (un nouveau lieu : son nom)
+			name = g.sim.Place(r.id).Name
+		}
+		line(ry, name, r.perMin, r.pc, 0x3b2a10, false, rgba(0xf3e6cc, 1))
 		roundRect(dst, tx, ry+6, 6, rh-12, 3, rgb(busCols[r.id])) // (la couleur du lieu)
 		total += r.perMin
 	}
