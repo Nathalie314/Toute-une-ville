@@ -122,7 +122,9 @@ type Stats struct {
 }
 
 type incomeRec struct {
-	t, a float64
+	t, a  float64 // a : revenu régulier, sans cadeau (gains pendant l'absence)
+	real  float64 // l'argent vraiment gagné (cadeau et commandes compris)
+	place string
 }
 
 type Game struct {
@@ -141,14 +143,15 @@ type Game struct {
 	diagT    float64            // (rayons vides du supermarché)
 	TruckT   map[string]float64 // chrono de chaque camion (par quai)
 
-	Events    []Event
-	Order     *Order            // commande spéciale en cours (ferme)
-	Boost     *Boost            // cadeau d'une commande en cours (un seul à la fois)
-	Fav       map[string]string // favoris : touche ("1" à "9", "0") → lieu
-	orderT    float64           // avant la prochaine commande
-	lastOrder string            // la dernière commande (qui + quoi)
-	income    []incomeRec
-	rng       *rand.Rand
+	Events       []Event
+	Order        *Order            // commande spéciale en cours (ferme)
+	Boost        *Boost            // cadeau d'une commande en cours (un seul à la fois)
+	Fav          map[string]string // favoris : touche ("1" à "9", "0") → lieu
+	orderT       float64           // avant la prochaine commande
+	lastOrder    string            // la dernière commande (qui + quoi)
+	income       []incomeRec
+	sessionStart float64 // g.T à l'ouverture du jeu (l'historique des gains part de là)
+	rng          *rand.Rand
 }
 
 // DefaultFav : les favoris au départ (les touches d'avant).
@@ -272,8 +275,9 @@ func (g *Game) emit(e Event) {
 
 func (g *Game) earn(a float64, at V, place string) {
 	a = math.Round(a)
-	g.income = append(g.income, incomeRec{g.T, a}) // (sans le cadeau : il ne compte pas pour les absences)
-	a *= g.boostF("ventes", place)                 // cadeau : ventes ×2 dans ce lieu
+	pre := a
+	a *= g.boostF("ventes", place)                                                // cadeau : ventes ×2 dans ce lieu
+	g.income = append(g.income, incomeRec{t: g.T, a: pre, real: a, place: place}) // (a : sans le cadeau, il ne compte pas pour les absences)
 	g.Money += a
 	g.Stats.Earned += a
 	g.emit(Event{Kind: EvCoin, Pos: at, Amount: a, Text: place})
@@ -306,9 +310,24 @@ func (g *Game) rateOver(win float64) float64 {
 	return sum / span
 }
 
+// EarningsByPlace : l'argent gagné par chaque lieu sur les win dernières
+// secondes de jeu (ventes, cadeaux et commandes compris), et la durée vraiment
+// couverte (moins de win au début d'une séance : rien n'est compté hors ligne).
+func (g *Game) EarningsByPlace(win float64) (map[string]float64, float64) {
+	g.rateOver(win) // (range l'historique)
+	out := map[string]float64{}
+	for _, r := range g.income {
+		if r.t >= g.T-win {
+			out[r.place] += r.real
+		}
+	}
+	return out, math.Min(win, math.Max(60, g.T-g.sessionStart))
+}
+
 // earnBonus : de l'argent qui ne compte pas dans le revenu régulier (commandes).
 func (g *Game) earnBonus(a float64, at V, place string) {
 	a = math.Round(a)
+	g.income = append(g.income, incomeRec{t: g.T, real: a, place: place})
 	g.Money += a
 	g.Stats.Earned += a
 	g.emit(Event{Kind: EvCoin, Pos: at, Amount: a, Text: place})

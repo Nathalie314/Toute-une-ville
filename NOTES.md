@@ -958,3 +958,17 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - README : le jeu existe en français et en anglais ; lien vers langues/LISEZMOI.txt pour traduire.
 - Anglais : les clients des commandes ont des noms américains (son idée : « Mr. Smith » plutôt que « Mr. Dupont ») :
   Mrs. Miller, the Johnson family, Grandma Jean, Mr. White…
+- École, aide « ? » : tableau des durées de formation (son modèle) : par niveau, de base, avec une étagère, avec
+  deux étagères, avec deux étagères et un vidéoprojecteur (×1,5), puis le temps réel du moment (ses étagères
+  déjà achetées, ses vidéoprojecteurs — moyenne des classes ouvertes du niveau si toutes n'en ont pas —, ses
+  points université « Formation », le cadeau de la cantine s'il dure ; pas les livraisons des surveillants ni
+  l'ensemble du diplômé). Il remplace l'ancien
+  encadré « Durée d'une formation aujourd'hui ». Durées en m:ss (h:mm:ss au-delà d'une heure).
+- Clic sur l'argent (en haut à gauche, dans un lieu ou sur la carte) : page « Gains par lieu » (son modèle). Pour
+  chaque lieu acheté sauf l'école : gain par minute, gain estimé en 10 minutes, % des gains totaux ; du lieu qui
+  rapporte le plus au moins rentable, puis une ligne Total. Calculé sur les 10 dernières minutes de jeu (moins au
+  début d'une séance : rien n'est compté pendant que le jeu est fermé), photo prise à l'ouverture de la page (elle
+  ne bouge plus tant qu'elle reste ouverte). Compte l'argent vraiment gagné : ventes, cadeau « ventes ×2 » et
+  commandes livrées. (sim : incomeRec garde le lieu et le montant réel ; EarningsByPlace ; sessionStart.)
+  Règle (sa demande) : tout lieu qui ne rapporte pas d'argent par définition (école, ferme d'élevage) n'apparaît pas ;
+  tout nouveau lieu qui gagne de l'argent doit apparaître (Place.EarnsMoney ; règle notée dans CLAUDE.md).

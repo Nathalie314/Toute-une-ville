@@ -3,6 +3,7 @@ package main
 import (
 	"image/color"
 	"math"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -411,6 +412,120 @@ func (g *game) moneyBox(dst *ebiten.Image, showRate bool) {
 	if showRate {
 		say(dst, rateText(g.sim.Rate()), 106, 90, 20, false, -1, rgb(0xd8d0f0))
 	}
+	if g.panel == panelNone {
+		g.addButton(20, 18, 380, 92, func() { g.openGains() }) // (clic sur l'argent : les gains par lieu)
+	}
+}
+
+// ---------------------------------------------------------------- gains par lieu
+
+type gainRow struct {
+	id         string
+	perMin, pc float64
+}
+
+type gainsView struct {
+	rows []gainRow
+	span float64 // secondes vraiment couvertes (au plus 10 min)
+}
+
+// gainNames : le nom d'un lieu dans le tableau des gains.
+var gainNames = map[string]string{"ferme": "Ma ferme", "super": "Supermarché", "cremerie": "Crèmerie", "exotique": "Ferme exotique",
+	"boulangerie": "Boulangerie", "glacier": "Glacier", "port": "Port", "elevage": "Ferme d'élevage", "boucherie": "Boucherie",
+	"domaine": "Le domaine", "patisserie": "Pâtisserie"}
+
+// openGains : la photo des gains des 10 dernières minutes, prise à l'ouverture
+// (elle ne bouge plus tant que la page reste ouverte).
+func (g *game) openGains() {
+	by, span := g.sim.EarningsByPlace(600)
+	total := 0.0
+	for _, v := range by {
+		total += v
+	}
+	var rows []gainRow
+	for _, p := range g.sim.Places {
+		if !p.Owned || !p.EarnsMoney() {
+			continue // (l'école, la ferme d'élevage : elles ne rapportent pas d'argent)
+		}
+		r := gainRow{id: p.ID, perMin: by[p.ID] / span * 60}
+		if total > 0 {
+			r.pc = 100 * by[p.ID] / total
+		}
+		rows = append(rows, r)
+	}
+	sort.SliceStable(rows, func(i, j int) bool { return rows[i].perMin > rows[j].perMin })
+	g.gains = gainsView{rows: rows, span: span}
+	g.openPanel(panelGains)
+}
+
+func (g *game) drawGains(dst *ebiten.Image) {
+	rows := g.gains.rows
+	const rh = 46.0
+	w, h := math.Min(1200, scr.VW-80), 330+float64(len(rows)+1)*(rh+6)
+	x, y := g.panelFrame(dst, "Gains par lieu", w, h)
+	mins := int(math.Round(g.gains.span / 60))
+	sub := tr.F("Calculé sur les {n} dernières minutes de jeu (sans le temps où le jeu était fermé).", "n", itoa(mins))
+	if mins <= 1 {
+		sub = tr.T("Calculé sur la dernière minute de jeu (sans le temps où le jeu était fermé).")
+	}
+	say(dst, sub, x+w/2, y+34, 20, false, 0, rgb(0x5a4a3a))
+	tx, tw := x+40, w-80
+	cols := []float64{0.34, 0.22, 0.24, 0.20} // largeur des colonnes
+	head := []string{"Lieu", "Gain par minute", "Gain estimé en 10 minutes", "% des gains totaux"}
+	cell := func(i int) (float64, float64) {
+		cx := tx
+		for k := 0; k < i; k++ {
+			cx += cols[k] * tw
+		}
+		return cx, cols[i] * tw
+	}
+	ty := y + 70
+	for i, t := range head {
+		cx, cw := cell(i)
+		roundRect(dst, cx, ty, cw-6, rh, 10, rgba(0x8a5a33, 0.25))
+		if i == 0 {
+			sayFit(dst, t, cx+16, ty+rh/2, 20, true, -1, cw-30, rgb(0x3b2a10))
+		} else {
+			sayFit(dst, t, cx+cw/2-3, ty+rh/2, 20, true, 0, cw-20, rgb(0x3b2a10))
+		}
+	}
+	total := 0.0
+	line := func(ry float64, name string, perMin, pc float64, c uint32, bold bool, bg color.Color) {
+		roundRect(dst, tx, ry, tw-6, rh, 10, bg)
+		col := rgb(c)
+		cx, cw := cell(0)
+		sayFit(dst, name, cx+16, ry+rh/2, 21, true, -1, cw-30, col)
+		cx, cw = cell(1)
+		say(dst, money(perMin), cx+cw/2-3, ry+rh/2, 21, bold, 0, col)
+		cx, cw = cell(2)
+		say(dst, money(perMin*10), cx+cw/2-3, ry+rh/2, 21, bold, 0, col)
+		cx, cw = cell(3)
+		say(dst, ftoa(pc, 1)+pcSuffix(), cx+cw/2-3, ry+rh/2, 21, bold, 0, col)
+	}
+	for i, r := range rows {
+		ry := ty + float64(i+1)*(rh+6)
+		name := gainNames[r.id]
+		if name == "" { // (un nouveau lieu : son nom)
+			name = g.sim.Place(r.id).Name
+		}
+		line(ry, name, r.perMin, r.pc, 0x3b2a10, false, rgba(0xf3e6cc, 1))
+		roundRect(dst, tx, ry+6, 6, rh-12, 3, rgb(busCols[r.id])) // (la couleur du lieu)
+		total += r.perMin
+	}
+	ry := ty + float64(len(rows)+1)*(rh+6)
+	line(ry, tr.T("Total"), total, 100, 0x1e5e3a, true, rgba(0x2fa86b, 0.25))
+	if total == 0 {
+		say(dst, "Rien n'a encore été vendu depuis l'ouverture du jeu.", x+w/2, ry+rh+30, 20, false, 0, rgb(0x7a3a2a))
+	}
+	g.btn(dst, "Fermer", x+w/2-150, y+h-190, 300, 76, 0x2fa86b, true, func() { g.closePanel() })
+}
+
+// pcSuffix : « % » (avec une espace en français).
+func pcSuffix() string {
+	if tr.English() {
+		return "%"
+	}
+	return "\u202f%"
 }
 
 // btn dessine un bouton et l'enregistre pour les clics.
@@ -879,6 +994,76 @@ func (g *game) drawLangPanel(dst *ebiten.Image) {
 	}
 }
 
+// formationTable : la durée d'une formation par niveau, selon l'équipement de la
+// classe (étagères de fournitures, vidéoprojecteur), puis la durée réelle du moment.
+func (g *game) formationTable(dst *ebiten.Image, x, y, w float64) {
+	lw := 430.0
+	cw := (w - lw) / 4
+	rows := []struct {
+		label string
+		f     func(l int) float64
+	}{
+		{"De base", func(l int) float64 { return sim.BaseFormation(l) }},
+		{"Avec une étagère", func(l int) float64 { return sim.BaseFormation(l) / 1.15 }},
+		{"Avec deux étagères", func(l int) float64 { return sim.BaseFormation(l) / 1.3 }},
+		{"Avec deux étagères et un vidéoprojecteur", func(l int) float64 { return sim.BaseFormation(l) / 1.3 / 1.5 }},
+		{"Temps réel actuel (tes étagères, vidéoprojecteurs et points université)", func(l int) float64 { return g.sim.FormationTime(l) }},
+	}
+	const rh = 40.0
+	// en-tête : les quatre niveaux
+	roundRect(dst, x, y, lw-6, rh, 10, rgba(0x8a5a33, 0.25))
+	say(dst, "Temps de formation", x+16, y+rh/2, 20, true, -1, rgb(0x3b2a10))
+	for l := 0; l < 4; l++ {
+		cx := x + lw + float64(l)*cw
+		roundRect(dst, cx, y, cw-6, rh, 10, rgba(levelColUI(l), 0.45))
+		say(dst, pointTabs[l].name, cx+cw/2-3, y+rh/2, 20, true, 0, rgb(0x3b2a10))
+	}
+	for i, r := range rows {
+		ry := y + float64(i+1)*(rh+6)
+		last := i == len(rows)-1
+		bg, col := rgba(0xf3e6cc, 1), rgb(0x3b2a10)
+		if last {
+			bg, col = rgba(0x2fa86b, 0.25), rgb(0x1e5e3a)
+		}
+		h := rh
+		if last {
+			h = rh + 22 // (l'intitulé tient sur deux lignes)
+		}
+		roundRect(dst, x, ry, w-6, h, 10, bg)
+		if ls := wrap(r.label, 18, lw-30, last); last && len(ls) > 1 {
+			for k, l := range ls[:2] {
+				say(dst, l, x+16, ry+h/2-11+float64(k)*22, 18, true, -1, col)
+			}
+		} else {
+			sayFit(dst, r.label, x+16, ry+rh/2, 19, last, -1, lw-30, col)
+		}
+		for l := 0; l < 4; l++ {
+			txt := duration(r.f(l))
+			if last { // le vidéoprojecteur, classe par classe : la moyenne des classes ouvertes du niveau
+				if with, open := g.sim.VideoShare(l); with > 0 {
+					t := r.f(l)
+					txt = duration((float64(with)*t/1.5 + float64(open-with)*t) / float64(open))
+				}
+			}
+			sayFit(dst, txt, x+lw+float64(l)*cw+cw/2-3, ry+h/2, 20, true, 0, cw-16, col)
+		}
+	}
+}
+
+// duration : une durée lisible (8:42 ; 1:20:00 au-delà d'une heure).
+func duration(sec float64) string {
+	sec = math.Round(sec)
+	if sec >= 3600 {
+		h := int(sec) / 3600
+		rest := clock(sec - float64(h*3600))
+		if len(rest) < 5 {
+			rest = "0" + rest
+		}
+		return itoa(h) + ":" + rest
+	}
+	return clock(sec)
+}
+
 // drawSchoolHelp : l'aide de l'école (temps de formation, échecs).
 func (g *game) drawSchoolHelp(dst *ebiten.Image) {
 	w, h := math.Min(1300, scr.VW-80), 920.0
@@ -894,17 +1079,10 @@ func (g *game) drawSchoolHelp(dst *ebiten.Image) {
 		"• Les fournitures (étagères) font travailler les classes plus vite.",
 	}
 	for i, l := range lines {
-		say(dst, l, x+50, y+170+float64(i)*42, 22, false, -1, rgb(0x3b2a10))
+		say(dst, l, x+50, y+160+float64(i)*38, 22, false, -1, rgb(0x3b2a10))
 	}
-	ty := y + 400
-	say(dst, "Durée d'une formation aujourd'hui", x+w/2, ty, 26, true, 0, rgb(0x5a3a1a))
-	cw := (w - 100) / 4
-	for i := range sim.PointTypes {
-		cx := x + 50 + float64(i)*cw
-		roundRect(dst, cx+6, ty+26, cw-12, 90, 14, rgba(levelColUI(i), 0.3))
-		say(dst, pointTabs[i].name, cx+cw/2, ty+52, 22, true, 0, rgb(0x3b2a10))
-		say(dst, clock(g.sim.FormationTime(i)), cx+cw/2, ty+88, 26, true, 0, rgb(0x3b2a10))
-	}
+	g.formationTable(dst, x+40, y+350, w-80)
+	ty := y + 510
 	f := g.sim.FailChance()
 	say(dst, tr.F("Échec : 1 élève sur {n} rate sa formation (il repart avec un point du niveau d'en dessous, rien au primaire).", "n", itoa(int(math.Round(1/f)))), x+w/2, ty+160, 21, false, 0, rgb(0x7a3a2a))
 	say(dst, "La Pédagogie (points Université) réduit les échecs ; la Formation accélère toutes les classes.", x+w/2, ty+200, 21, false, 0, rgb(0x5a4a3a))

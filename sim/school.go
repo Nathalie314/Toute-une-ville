@@ -178,6 +178,23 @@ func (p *Place) RoomAt(v V) *Room {
 // Tables : nombre de tables d'une salle (1 à 6).
 func (p *Place) Tables(r *Room) int { return 1 + p.g.Levels[p.key("tables_"+r.ID)] }
 
+// VideoShare : parmi les classes ouvertes d'un niveau, combien ont un vidéoprojecteur.
+func (g *Game) VideoShare(level int) (with, open int) {
+	p := g.Place("ecole")
+	if p == nil {
+		return 0, 0
+	}
+	for _, r := range p.Rooms {
+		if r.Level == level && r.built {
+			open++
+			if p.HasVideo(r) {
+				with++
+			}
+		}
+	}
+	return
+}
+
 // HasVideo : la salle a-t-elle un vidéoprojecteur ?
 func (p *Place) HasVideo(r *Room) bool { return p.g.Levels[p.key("video_"+r.ID)] > 0 }
 
@@ -263,6 +280,9 @@ func (p *Place) Teaching(r *Room) bool {
 
 // FormationMult : vitesse de formation (points de formation).
 func (g *Game) FormationMult() float64 { return 1 + float64(g.Levels["ecole.pts_formation"])/100 }
+
+// BaseFormation : durée d'une formation à ce niveau, sans aucun bonus (secondes).
+func BaseFormation(level int) float64 { return formation[level] }
 
 // FormationTime : durée d'une formation à ce niveau, en secondes.
 func (g *Game) FormationTime(level int) float64 {
@@ -743,6 +763,10 @@ func (p *Place) cooks() bool {
 
 // sells : lieux qui reçoivent des clients.
 func (p *Place) sells() bool { return p.ID != "ecole" && p.ID != "elevage" }
+
+// EarnsMoney : le lieu gagne-t-il de l'argent (des clients) ? L'école et la ferme
+// d'élevage, non : elles n'apparaissent pas dans le tableau des gains.
+func (p *Place) EarnsMoney() bool { return p.sells() }
 
 // hasStaff : lieux qui ont des employés (marche, charge).
 func (p *Place) hasStaff() bool { return p.ID != "ecole" }

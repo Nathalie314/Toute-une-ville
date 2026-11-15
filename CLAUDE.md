@@ -21,6 +21,9 @@ NOTES.md raconte l'histoire du projet et chaque décision de conception : lis-le
 - Le jeu doit rester « aéré » : de la place entre les machines, les rayons, les zones.
 - Chaque nouveau lieu reçoit ses badges (sim/badges.go : placeBadges + 2 ou 3 badges propres à ce qu'il fabrique) et sa
   section dans la page des badges (ui.go, sects). Elle n'y tient pas, mais des joueurs adorent.
+- Tableau des gains (clic sur l'argent) : tout lieu qui gagne de l'argent y apparaît, nouveaux lieux compris (son nom
+  dans gainNames, ui.go) ; un lieu qui ne rapporte rien par définition (école, ferme d'élevage) n'y est pas :
+  Place.EarnsMoney (sim/school.go, sells) doit le dire pour chaque nouveau lieu.
 
 - **Deux langues (et plus)** : le français est la langue du code ; chaque texte affiché passe par `say()`/`tr.T()`
   et se traduit grâce à `langues/en.txt` (« texte français = traduction »). Tout nouveau texte doit être ajouté à

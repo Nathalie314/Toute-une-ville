@@ -321,9 +321,10 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 	}
 	// on garde la mémoire du revenu pour la prochaine absence
 	if s.Rate > 0 {
-		g.income = append(g.income, incomeRec{0, s.Rate * 60})
+		g.income = append(g.income, incomeRec{t: g.T, a: s.Rate * 60})
 	}
 	g.Boost = s.Cadeau // (après les gains d'absence : un cadeau ne travaille pas jeu fermé)
+	g.sessionStart = g.T
 	return
 }
 
