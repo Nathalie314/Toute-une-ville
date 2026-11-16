@@ -1221,3 +1221,7 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   demande : au supermarché « Chaque rayon… » et « Les clients viennent… », à la ferme exotique « Elle ne reçoit
   rien… » et « Chaque espace a ses ouvriers », au port « Il ne reçoit rien ». La page de l'école a son conseil
   sous le tableau des formations. Les lieux que le parc fait commander le disent.
+- En haut à droite, les boutons sont resserrés (trois boutons du son plus étroits, « Ville » et « Badges » moins
+  larges ; le texte se réduit tout seul pour tenir) : ils prennent 790 de large au lieu de 930, et l'objectif ne
+  passe plus sous « Ville ». S'il n'y a pas la place (écran presque carré, iPad), l'objectif ne s'affiche pas,
+  comme avant. Outil de capture : CAPWIN=1200x900 (taille de la fenêtre).

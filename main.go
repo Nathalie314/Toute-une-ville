@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"image"
 	"image/color"
 	"math"
@@ -437,6 +438,10 @@ func main() {
 		ebiten.SetFullscreen(true)
 	} else {
 		ebiten.SetWindowSize(1600, 900)
+		var w, h int // CAPWIN=1200x900 : une autre taille de fenêtre (captures : écran d'iPad…)
+		if n, _ := fmt.Sscanf(os.Getenv("CAPWIN"), "%dx%d", &w, &h); n == 2 {
+			ebiten.SetWindowSize(w, h)
+		}
 	}
 	if os.Getenv("TR_LANGUE") != "" { // outil de traduction : jouer dans une langue et noter ce qui manque
 		tr.Set(os.Getenv("TR_LANGUE"))
