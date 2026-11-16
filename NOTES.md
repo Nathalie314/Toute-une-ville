@@ -1209,3 +1209,11 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   où partent ses produits, ses commandes ; un paragraphe par ligne, le conseil dans un cadre. Les circuits ont été
   vérifiés dans le code (palettes et quais). Seule la ferme a un conseil (le sien) ; les autres conseils, elle les
   écrira. Les textes à l'achat d'un lieu restent les courts (placeDesc).
+- Commandes du parc d'attractions (« le parc d'attractions », cadeau « parc ») : 200 maïs à la ferme (pop-corn),
+  50 sucres en poudre à la ferme exotique (barbe à papa), 10 glaces de chaque parfum au glacier (le marchand de
+  glaces), à livrer dans la case commande de ce lieu ; 10 min. Livrée : gains du parc ×2 (×4 en express) pendant
+  5 min (allongé par la réclame du lieu qui livre). Ratée : gains du parc ÷2 pendant 5 min (jamais allongé), à la
+  place de la perte d'étoile.
+- Commandes de la cantine ratées : l'école forme 2 fois moins vite pendant 5 min, à la place de la perte d'étoile.
+- Une pénalité occupe la place du cadeau (Boost « parc_malus » / « ecole_malus ») : jamais deux effets à la fois,
+  la commande suivante attend la fin. Bandeau rouge « Pénalité : … ».

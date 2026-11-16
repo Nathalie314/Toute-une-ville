@@ -101,6 +101,7 @@ func placeHelp(id string) []string {
 			"Le parc d'attractions ne consomme rien et ne livre rien : les visiteurs paient l'entrée (plus chère à chaque nouvelle attraction) et viennent pour les attractions, qui grandissent avec leur taille.",
 			"Un employé (ou toi) fait monter et descendre les visiteurs ; l'attente fait baisser leur bonheur.",
 			"Les stands (ballons, glaces, pop-corn…) n'ont besoin de personne : les visiteurs heureux qui passent devant y dépensent un peu.",
+			"Il passe des commandes à la ferme (maïs), à la ferme exotique (sucre en poudre) et au glacier (glaces) : livrées, ses gains sont multipliés ; ratées, ils sont divisés par deux pendant 5 minutes.",
 			"Au parc, tu roules en trottinette.",
 		}
 	}

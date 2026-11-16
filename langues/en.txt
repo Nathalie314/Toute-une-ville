@@ -1527,6 +1527,17 @@ Un employé (ou toi) fait monter et descendre les visiteurs ; l'attente fait bai
 Les stands (ballons, glaces, pop-corn…) n'ont besoin de personne : les visiteurs heureux qui passent devant y dépensent un peu. = The stands (balloons, ice cream, popcorn…) need no one: happy visitors walking by spend a little there.
 Au parc, tu roules en trottinette. = In the park, you ride a scooter.
 
+# ---- Commandes du parc, pénalités / Park orders, penalties
+Cadeau : {quoi} = Gift: {quoi}
+Pénalité : {quoi} = Penalty: {quoi}
+(pénalité : {quoi} pendant {duree}) = (penalty: {quoi} for {duree})
+Fin de la pénalité : {quoi}. = Penalty over: {quoi}.
+gains du parc d'attractions ×{n} = amusement park earnings ×{n}
+Parc d'attractions ×{n} = Amusement park ×{n}
+Gains du parc d'attractions ÷2 = Amusement park earnings ÷2
+L'école forme 2 fois moins vite = The school trains 2 times slower
+Il passe des commandes à la ferme (maïs), à la ferme exotique (sucre en poudre) et au glacier (glaces) : livrées, ses gains sont multipliés ; ratées, ils sont divisés par deux pendant 5 minutes. = It places orders at the farm (corn), the exotic farm (powdered sugar) and the ice cream parlor (ice cream): delivered, its earnings are multiplied; missed, they are halved for 5 minutes.
+
 # ---- Parc : aide / Park: tips
 Embauche une caissière : sa case est derrière la caisse 1, sur la place de l'entrée. = Hire a cashier: her spot is behind register 1, on the entrance square.
 Achète le petit train : arrête-toi sur sa zone, à gauche de l'avenue. = Buy the little train: stand on its area, left of the avenue.

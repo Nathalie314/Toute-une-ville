@@ -32,6 +32,8 @@ func giftOf(who string) string {
 		return "universite"
 	case "la cantine de l'école":
 		return "ecole"
+	case "le parc d'attractions":
+		return "parc"
 	case "le maire":
 		return "maire"
 	case "le garagiste":
@@ -89,6 +91,8 @@ func giftDesc(kind, place string, m int) string {
 		return tr.F("ventes ×{n} {alieu}", "n", itoa(m), "alieu", placeAt(place), "lieu", theName(place))
 	case "ecole":
 		return tr.F("l'école forme {n} fois plus vite", "n", itoa(m))
+	case "parc":
+		return tr.F("gains du parc d'attractions ×{n}", "n", itoa(m))
 	case "maire":
 		if m == 2 {
 			return tr.T("tous les lieux à moitié prix")
@@ -128,6 +132,9 @@ func (o *Order) GiftExpress() string {
 	return giftDesc(o.Gift, o.Place(), 4)
 }
 
+// Malus : une pénalité (commande ratée du parc ou de la cantine), pas un cadeau.
+func (b *Boost) Malus() bool { return strings.HasSuffix(b.Kind, "_malus") }
+
 // Mul : le multiplicateur du cadeau (×2 ; ×4 en livraison express).
 func (b *Boost) Mul() int {
 	if b.Mult > 0 {
@@ -144,6 +151,12 @@ func (b *Boost) Text() string {
 		return tr.F("Ventes ×{n} {alieu}", "n", itoa(m), "alieu", placeAt(b.Place), "lieu", theName(b.Place))
 	case "ecole":
 		return tr.F("École ×{n}", "n", itoa(m))
+	case "parc":
+		return tr.F("Parc d'attractions ×{n}", "n", itoa(m))
+	case "parc_malus":
+		return tr.T("Gains du parc d'attractions ÷2")
+	case "ecole_malus":
+		return tr.T("L'école forme 2 fois moins vite")
 	case "maire":
 		if m == 2 {
 			return tr.T("Lieux à moitié prix")
@@ -241,7 +254,11 @@ func (g *Game) stepBoost(dt float64) {
 	b.Left -= dt
 	if b.Left <= 0 {
 		g.Boost = nil
-		g.emit(Event{Kind: EvLevel, Pos: g.Player.Pos, Text: tr.F("Fin du cadeau : {quoi}.", "quoi", lowerFirst(b.Text()))})
+		if b.Malus() {
+			g.emit(Event{Kind: EvLevel, Pos: g.Player.Pos, Text: tr.F("Fin de la pénalité : {quoi}.", "quoi", lowerFirst(b.Text()))})
+		} else {
+			g.emit(Event{Kind: EvLevel, Pos: g.Player.Pos, Text: tr.F("Fin du cadeau : {quoi}.", "quoi", lowerFirst(b.Text()))})
+		}
 	}
 }
 

@@ -276,7 +276,13 @@ func (g *Game) emit(e Event) {
 func (g *Game) earn(a float64, at V, place string) {
 	a = math.Round(a)
 	pre := a
-	a *= g.boostF("ventes", place)                                                // cadeau : ventes ×2 dans ce lieu
+	a *= g.boostF("ventes", place) // cadeau : ventes ×2 dans ce lieu
+	if place == "parc" {
+		a *= g.boostF("parc", "") // commande du parc livrée : ses gains ×2
+		if g.Boosted("parc_malus", "") {
+			a /= 2 // commande du parc ratée : ses gains ÷2
+		}
+	}
 	g.income = append(g.income, incomeRec{t: g.T, a: pre, real: a, place: place}) // (a : sans le cadeau, il ne compte pas pour les absences)
 	g.Money += a
 	g.Stats.Earned += a
