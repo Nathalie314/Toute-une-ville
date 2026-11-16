@@ -206,14 +206,24 @@ func (g *game) drawBoostHUD(dst *ebiten.Image, x, y float64) {
 	if b == nil {
 		return
 	}
-	txt := "Cadeau : " + b.Text()
+	txt := tr.F("Cadeau : {quoi}", "quoi", tr.T(b.Text()))
+	col := uint32(0xffe066)
+	if b.Malus() { // une pénalité (commande ratée) : en rouge
+		txt = tr.F("Pénalité : {quoi}", "quoi", tr.T(b.Text()))
+		col = 0xff8a7a
+	}
 	w, h := math.Max(360, textWidth(txt, 18, true)+150), 62.0
 	roundRect(dst, x, y, w, h, 16, rgba(0x2b2140, 0.82))
 	// un léger scintillement
 	pulse := 0.5 + 0.5*math.Sin(g.t*4)
-	roundRect(dst, x+2, y+2, w-4, h-4, 14, rgba(0xffe066, 0.08+0.08*pulse))
-	drawGift(dst, x+30, y+28, 12)
-	sayFit(dst, txt, x+54, y+26, 18, true, -1, w-140, rgb(0xffe066))
+	roundRect(dst, x+2, y+2, w-4, h-4, 14, rgba(col, 0.08+0.08*pulse))
+	if b.Malus() {
+		circle(dst, x+30, y+28, 13, rgb(0xd9534f))
+		say(dst, "!", x+30, y+29, 20, true, 0, rgb(0xffffff))
+	} else {
+		drawGift(dst, x+30, y+28, 12)
+	}
+	sayFit(dst, txt, x+54, y+26, 18, true, -1, w-140, rgb(col))
 	say(dst, clock(b.Left), x+w-16, y+26, 20, true, 1, rgb(0xffffff))
-	roundRect(dst, x+16, y+h-12, (w-32)*math.Max(0, b.Left/b.Total), 5, 2, rgba(0xffe066, 0.85))
+	roundRect(dst, x+16, y+h-12, (w-32)*math.Max(0, b.Left/b.Total), 5, 2, rgba(col, 0.85))
 }

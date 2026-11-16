@@ -15,8 +15,12 @@ import (
 type saveFile struct {
 	Jeu  *sim.Save `json:"jeu"`
 	Muet bool      `json:"muet"`
-	Zoom float64   `json:"zoom"`
-	Aide bool      `json:"aide_vue"`
+	// les trois boutons du son : petits sons, téléphone, musique (vrai : coupé)
+	SansPetits  bool    `json:"sans_petits,omitempty"`
+	SansTel     bool    `json:"sans_tel,omitempty"`
+	SansMusique bool    `json:"sans_musique,omitempty"`
+	Zoom        float64 `json:"zoom"`
+	Aide        bool    `json:"aide_vue"`
 	// Langue : « fr », « en »… (vide : français, pour les parties d'avant le choix de la langue)
 	Langue string `json:"langue,omitempty"`
 }
@@ -27,6 +31,9 @@ func (g *game) save() {
 		return
 	}
 	f := saveFile{Jeu: g.sim.Snapshot(time.Now().Unix()), Muet: g.snd != nil && g.snd.muted, Zoom: g.zoom, Aide: g.helpSeen, Langue: tr.Lang()}
+	if g.snd != nil {
+		f.SansPetits, f.SansTel, f.SansMusique = g.snd.noSmall, g.snd.noPhone, g.snd.noMusic
+	}
 	b, err := json.MarshalIndent(f, "", " ")
 	if err != nil {
 		return
@@ -61,6 +68,7 @@ func (g *game) load() {
 	amount, secs := g.sim.Restore(f.Jeu, time.Now().Unix())
 	if g.snd != nil {
 		g.snd.muted = f.Muet
+		g.snd.noSmall, g.snd.noPhone, g.snd.noMusic = f.SansPetits, f.SansTel, f.SansMusique
 	}
 	if f.Zoom > 0 {
 		g.zoom = f.Zoom

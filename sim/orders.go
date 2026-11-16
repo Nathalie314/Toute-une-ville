@@ -128,6 +128,9 @@ func (g *Game) orderSources() []func() *Order {
 	if c := g.Place("patisserie"); c != nil && c.Owned {
 		src = append(src, func() *Order { return g.shopOrder("patisserie") })
 	}
+	if c := g.Place("parc"); c != nil && c.Owned {
+		src = append(src, g.parcOrder)
+	}
 	return src
 }
 
@@ -148,10 +151,17 @@ func (g *Game) stepOrders(dt float64) {
 				g.earnBonus(paid, at, o.Place())
 				txt += " " + tr.F("Ce qui a été livré est payé : +{prix}", "prix", moneyText(paid))
 			}
-			// commande ratée : le lieu perd une étoile de réputation
-			if p := g.Place(o.Place()); p != nil {
-				p.reputation(-1)
-				txt += " " + tr.T("(−1 étoile de réputation)")
+			// commande ratée : le lieu perd une étoile de réputation ; celles du parc et de la
+			// cantine ont leur propre pénalité (5 min, jamais allongées), sans double peine
+			switch o.Gift {
+			case "parc", "ecole":
+				g.Boost = &Boost{Kind: o.Gift + "_malus", Left: BoostTime, Total: BoostTime}
+				txt += " " + tr.F("(pénalité : {quoi} pendant {duree})", "quoi", lowerFirst(g.Boost.Text()), "duree", durText(BoostTime))
+			default:
+				if p := g.Place(o.Place()); p != nil {
+					p.reputation(-1)
+					txt += " " + tr.T("(−1 étoile de réputation)")
+				}
 			}
 			g.emit(Event{Kind: EvLevel, Pos: at, Text: txt})
 			g.emit(Event{Kind: EvAngry, Pos: at})
@@ -354,6 +364,32 @@ func (g *Game) schoolOrder(at string) *Order {
 	}
 	o.Reward = math.Round(value*3/10) * 10
 	return o
+}
+
+// parcOrder : le parc d'attractions commande de quoi faire tourner ses stands : du
+// maïs à la ferme (le pop-corn), du sucre en poudre à la ferme exotique (la barbe à
+// papa), des glaces au glacier (le marchand de glaces). Livrée : ses gains sont
+// multipliés ; ratée : divisés par deux pendant 5 min.
+func (g *Game) parcOrder() *Order {
+	type cmd struct {
+		at    string
+		lines []OrderLine
+	}
+	cmds := []cmd{{"ferme", []OrderLine{{It: Mais, N: 200}}}}
+	if p := g.Place("exotique"); p != nil && p.Owned {
+		cmds = append(cmds, cmd{"exotique", []OrderLine{{It: SucrePoudre, N: 50}}})
+	}
+	if p := g.Place("glacier"); p != nil && p.Owned {
+		var ls []OrderLine
+		for _, s := range p.Stations {
+			if s.Kind == Shelf && !s.NoSale {
+				ls = append(ls, OrderLine{It: s.Item, N: 10}) // (dix de chaque parfum)
+			}
+		}
+		cmds = append(cmds, cmd{"glacier", ls})
+	}
+	c := cmds[g.rng.Intn(len(cmds))]
+	return &Order{Who: "le parc d'attractions", At: c.at, Lines: c.lines, Left: schoolTime, Total: schoolTime, Fast: 180}
 }
 
 func (g *Game) finishOrder(at V) {

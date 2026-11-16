@@ -286,7 +286,11 @@ func BaseFormation(level int) float64 { return formation[level] }
 
 // FormationTime : durée d'une formation à ce niveau, en secondes.
 func (g *Game) FormationTime(level int) float64 {
-	return formation[level] / (g.FormationMult() * g.SupplyBonus(level) * g.boostF("ecole", "")) // (cadeau de la cantine)
+	t := formation[level] / (g.FormationMult() * g.SupplyBonus(level) * g.boostF("ecole", "")) // (cadeau de la cantine)
+	if g.Boosted("ecole_malus", "") {
+		t *= 2 // (commande de la cantine ratée)
+	}
+	return t
 }
 
 // SupplyBonus : chaque étagère de fournitures d'un niveau fait travailler ses classes 15 % plus vite.

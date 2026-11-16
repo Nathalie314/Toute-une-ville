@@ -166,6 +166,10 @@ func (g *game) input(dt float64) {
 	if g.typedAny('m', 'M') {
 		g.toggleMute()
 	}
+	// $ : la gestion de l'argent (le tableau des gains, comme un clic sur l'argent)
+	if g.typedAny('$') && g.panel == panelNone {
+		g.openGains()
+	}
 	// clics sur les boutons (ceux dessinés à l'image précédente)
 	if pointerJustPressed() {
 		g.pressUI = false

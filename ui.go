@@ -559,8 +559,8 @@ func (g *game) btn(dst *ebiten.Image, label string, x, y, w, h float64, col uint
 func (g *game) drawHUD(dst *ebiten.Image) {
 	g.moneyBox(dst, true)
 	x := scr.VW - 20
-	x -= 90
-	g.soundButton(dst, x, 24)
+	x -= 250
+	g.soundButtons(dst, x, 24)
 	x -= 250
 	g.btn(dst, "Ville  [Tab]", x, 24, 236, 70, 0x5b7fd6, true, func() { g.goMap() })
 	x -= 230
@@ -606,20 +606,48 @@ func (g *game) drawHUD(dst *ebiten.Image) {
 	_ = p
 }
 
-func (g *game) soundButton(dst *ebiten.Image, x, y float64) {
-	c := uint32(0x6a6a8a)
-	g.btn(dst, "", x, y, 76, 70, c, true, func() { g.toggleMute() })
-	// haut-parleur
-	cx, cy := x+30, y+35
-	rect(dst, cx-14, cy-8, 10, 16, rgb(0xffffff))
-	polygon(dst, []V{{X: cx - 6, Y: cy - 8}, {X: cx + 6, Y: cy - 18}, {X: cx + 6, Y: cy + 18}, {X: cx - 6, Y: cy + 8}}, rgb(0xffffff))
-	if g.snd != nil && g.snd.muted {
-		line(dst, cx+12, cy-10, cx+28, cy+10, 4, rgb(0xff6b6b))
-		line(dst, cx+28, cy-10, cx+12, cy+10, 4, rgb(0xff6b6b))
-	} else {
-		ring(dst, cx+8, cy, 12, 3, rgb(0xffffff))
-		rect(dst, cx-4, cy-20, 12, 40, rgb(c))
+// soundButtons : trois boutons : couper les petits sons (pièces, ramassage),
+// la sonnerie du téléphone (commandes), la musique (pour plus tard).
+func (g *game) soundButtons(dst *ebiten.Image, x, y float64) {
+	if g.snd == nil {
+		return
 	}
+	sb := g.snd
+	one := func(bx float64, off *bool, icon func(cx, cy float64, c colorRGBA)) {
+		c := uint32(0x6a6a8a)
+		if *off || sb.muted {
+			c = 0x8a5a5a
+		}
+		g.btn(dst, "", bx, y, 76, 70, c, true, func() {
+			*off = !*off
+			if !*off {
+				sb.muted = false // (rallumer un son rallume le son)
+			}
+		})
+		icon(bx+38, y+35, rgb(0xffffff))
+		if *off || sb.muted {
+			line(dst, bx+16, y+14, bx+60, y+56, 5, rgb(0xff6b6b))
+		}
+	}
+	// petits sons : une pièce
+	one(x, &sb.noSmall, func(cx, cy float64, c colorRGBA) {
+		circle(dst, cx, cy, 15, rgb(0xffd23f))
+		circle(dst, cx, cy, 10, rgb(0xf0b020))
+		say(dst, "€", cx, cy+1, 16, true, 0, rgb(0x8a5a00))
+	})
+	// téléphone : un combiné
+	one(x+82, &sb.noPhone, func(cx, cy float64, c colorRGBA) {
+		roundRect(dst, cx-16, cy-14, 32, 9, 4, c)
+		rect(dst, cx-5, cy-6, 10, 8, c)
+		roundRect(dst, cx-18, cy+2, 36, 14, 5, c)
+		circle(dst, cx, cy+9, 4, rgb(0x6a6a8a))
+	})
+	// musique : une note
+	one(x+164, &sb.noMusic, func(cx, cy float64, c colorRGBA) {
+		ellipse(dst, cx-6, cy+10, 9, 7, c)
+		rect(dst, cx+1, cy-16, 4, 26, c)
+		polygon(dst, []V{{X: cx + 1, Y: cy - 16}, {X: cx + 14, Y: cy - 10}, {X: cx + 14, Y: cy - 4}, {X: cx + 5, Y: cy - 8}}, c)
+	})
 }
 
 // ---------------------------------------------------------------- panneaux
@@ -1071,7 +1099,7 @@ func duration(sec float64) string {
 
 // drawSchoolHelp : l'aide de l'école (temps de formation, échecs).
 func (g *game) drawSchoolHelp(dst *ebiten.Image) {
-	w, h := math.Min(1300, scr.VW-80), 920.0
+	w, h := math.Min(1300, scr.VW-80), math.Min(1060, scr.VH-16)
 	x, y := g.panelFrame(dst, "L'école", w, h)
 	roundRect(dst, x+40, y+20, w-80, 110, 18, rgb(0xd9534f))
 	say(dst, "L'école ne fonctionne que quand le jeu est ouvert.", x+w/2, y+58, 34, true, 0, rgb(0xffffff))
@@ -1091,7 +1119,14 @@ func (g *game) drawSchoolHelp(dst *ebiten.Image) {
 	f := g.sim.FailChance()
 	say(dst, tr.F("Échec : 1 élève sur {n} rate sa formation (il repart avec un point du niveau d'en dessous, rien au primaire).", "n", itoa(int(math.Round(1/f)))), x+w/2, ty+160, 21, false, 0, rgb(0x7a3a2a))
 	say(dst, "La Pédagogie (points Université) réduit les échecs ; la Formation accélère toutes les classes.", x+w/2, ty+200, 21, false, 0, rgb(0x5a4a3a))
-	g.btn(dst, "Compris !", x+w/2-150, y+h-190, 300, 76, 0x2fa86b, true, func() { g.closePanel() })
+	// le conseil (comme dans les pages « ? » des autres lieux)
+	tip := wrap("Conseil : acheter une ou deux tables au plus vite, puis économiser pour acheter la secrétaire, afin de ne plus avoir à faire des allers et retours constants et de pouvoir s'occuper de la ferme. Par la suite, acheter toutes les classes de primaire avant celles du collège. Penser à acheter au moins un surveillant.", 21, w-140, true)
+	tyy := ty + 245
+	roundRect(dst, x+50, tyy-20, w-100, float64(len(tip))*30+12, 12, rgb(0xfff0c2))
+	for i, l := range tip {
+		say(dst, l, x+70, tyy+float64(i)*30, 21, true, -1, rgb(0x6a4a10))
+	}
+	g.btn(dst, "Compris !", x+w/2-150, y+h-170, 300, 70, 0x2fa86b, true, func() { g.closePanel() })
 }
 
 // ---------------------------------------------------------------- carte
@@ -1225,9 +1260,9 @@ func (g *game) drawMap(dst *ebiten.Image) {
 			g.quit = true
 		})
 	}
-	g.soundButton(dst, scr.VW-360, scr.VH-100)
+	g.soundButtons(dst, scr.VW-520, scr.VH-100)
 	g.btn(dst, "Recommencer à zéro", 50, scr.VH-100, 330, 70, 0x8a7a6a, true, func() { g.openPanel(panelReset) })
-	g.btn(dst, "Badges", scr.VW-600, scr.VH-100, 220, 70, 0xd4a017, true, func() { g.openPanel(panelBadges) })
+	g.btn(dst, "Badges", scr.VW-760, scr.VH-100, 220, 70, 0xd4a017, true, func() { g.openPanel(panelBadges) })
 	g.flagButtons(dst, scr.VW-200, 70)
 	g.btn(dst, "?", scr.VW-400, 34, 76, 70, 0x9b6bd6, true, func() { g.openPanel(panelHelp) })
 	say(dst, "Clique sur un lieu, ou vas-y avec les flèches et reste dessus.", 420, scr.VH-62, 24, true, -1, rgba(0x1e3a12, 0.85))
@@ -1725,16 +1760,36 @@ func (g *game) drawPlaceHelp(dst *ebiten.Image) {
 		g.drawSchoolHelp(dst)
 		return
 	}
-	w := math.Min(1300, scr.VW-80)
-	size, lh := 28.0, 42.0
+	w := math.Min(1400, scr.VW-80)
+	size, lh, gap := 25.0, 36.0, 12.0
 	if scr.Small {
-		size, lh = 36, 50
+		size, lh, gap = 34, 46, 14
 	}
-	lines := wrap(placeDesc(p.ID), size, w-140, false)
-	h := math.Min(scr.VH-60, 90+60+float64(len(lines))*lh+110)
+	type para struct {
+		lines []string
+		tip   bool
+	}
+	var ps []para
+	hh := 0.0
+	for _, t := range placeHelp(p.ID) {
+		tip := strings.HasPrefix(t, "Conseil")
+		ps = append(ps, para{wrap(t, size, w-140, tip), tip})
+		hh += float64(len(ps[len(ps)-1].lines))*lh + gap
+	}
+	h := math.Min(scr.VH-40, 90+40+hh+110)
 	x, y := g.panelFrame(dst, p.Name, w, h)
-	for i, l := range lines {
-		say(dst, l, x+w/2, y+60+float64(i)*lh, size, false, 0, rgb(0x5a4a3a))
+	yy := y + 40
+	for _, pa := range ps {
+		col := rgb(0x5a4a3a)
+		if pa.tip {
+			roundRect(dst, x+50, yy-lh/2-4, w-100, float64(len(pa.lines))*lh+8, 12, rgb(0xfff0c2))
+			col = rgb(0x6a4a10)
+		}
+		for _, l := range pa.lines {
+			say(dst, l, x+70, yy, size, pa.tip, -1, col)
+			yy += lh
+		}
+		yy += gap
 	}
 	sayFit(dst, "Comment jouer : le « ? » de la carte de la ville.", x+w/2, y+h-140, 22, true, 0, w-80, rgb(0x8a7a6a))
 }
