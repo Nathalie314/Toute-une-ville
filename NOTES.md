@@ -1199,3 +1199,13 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   d'accueil), avec l'avertissement que la partie de l'icône est à part. Bouton « Jouer ici quand même ».
 - Le « ? » de la carte (Comment jouer) a alors un bouton « Plein écran » qui rouvre ce conseil (screenTipUseful,
   showScreenTip : save_web.go ; rien hors du navigateur, ni sur ordinateur, ni depuis l'écran d'accueil).
+
+## Sons, touche $, pages « ? » des lieux
+- Trois boutons de son (en jeu et sur la carte) : couper les petits sons (pièces, ramassage, dépôt, caisse, client
+  fâché, graines), couper la sonnerie du téléphone des commandes, couper la musique (prévue pour plus tard ; le
+  bouton existe déjà). Sauvegardés (sans_petits, sans_tel, sans_musique). La touche M coupe toujours tout.
+- Touche $ : la gestion de l'argent (le tableau des gains, comme un clic sur l'argent).
+- Pages « ? » des lieux réécrites sur son modèle (place_help.go) : ce que fait le lieu, ce qu'il reçoit et d'où,
+  où partent ses produits, ses commandes ; un paragraphe par ligne, le conseil dans un cadre. Les circuits ont été
+  vérifiés dans le code (palettes et quais). Seule la ferme a un conseil (le sien) ; les autres conseils, elle les
+  écrira. Les textes à l'achat d'un lieu restent les courts (placeDesc).

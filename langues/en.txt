@@ -1477,6 +1477,56 @@ au glacier = at the ice cream parlor
 à la boucherie-charcuterie = at the butcher shop
 à la ferme d'élevage = at the livestock farm
 
+# ---- Pages « ? » des lieux / Place help pages
+Lieu de départ. La ferme est le lieu de production de base : champs, vergers, animaux et moulins. = Your starting place. The farm is the basic production place: fields, orchards, animals and mills.
+Tous les produits de ses étals partent au supermarché. = All the products on its stands go to the supermarket.
+Ses trois laits (vache, chèvre, brebis) partent à la crèmerie. = Its three milks (cow, goat, sheep) go to the dairy.
+Ses deux farines (blé et maïs), ses œufs et son lait de vache partent à la boulangerie. = Its two flours (wheat and corn), its eggs and its cow's milk go to the bakery.
+Ses fraises, ses poires et ses œufs partent chez le glacier. = Its strawberries, pears and eggs go to the ice cream parlor.
+Son foin, son maïs et ses pommes de terre partent à la ferme d'élevage. = Its hay, corn and potatoes go to the livestock farm.
+Son blé, ses pommes, ses poires et ses pommes de terre partent au domaine. = Its wheat, apples, pears and potatoes go to the estate.
+Ses pommes, ses cerises, ses fraises, sa farine de blé, son lait et ses œufs partent à la pâtisserie. = Its apples, cherries, strawberries, wheat flour, milk and eggs go to the pastry shop.
+Des habitants lui passent des commandes. = Townspeople place orders here.
+Des habitants et la cantine de l'école lui passent des commandes. = Townspeople and the school cafeteria place orders here.
+Conseil : maximiser la production. Commencer par la vitesse des champs, puis la vitesse des animaux (pour les machines, attendre d'avoir débloqué la boulangerie). Augmenter ce que portent les ouvriers et leur vitesse. Dès le supermarché débloqué, améliorer les drones et les camions. Ne pas améliorer les gains liés à la ferme : cela ne sert à rien, ils sont minimes de toute façon. = Tip: maximize production. Start with field speed, then animal speed (for the machines, wait until you have unlocked the bakery). Increase what the workers carry and their speed. As soon as the supermarket is unlocked, upgrade the drones and trucks. Don't upgrade the farm's earnings: it's pointless, they are tiny anyway.
+L'immense supermarché vend les produits de tous tes lieux, espace par espace. = The huge supermarket sells the products of all your places, section by section.
+Il reçoit en camion les produits de la ferme, de la crèmerie, de la ferme exotique, de la boulangerie, du glacier, du port, de la boucherie, du domaine et de la pâtisserie (1 objet livré \= 3 en réserve). = Trucks bring it the products of the farm, the dairy, the exotic farm, the bakery, the ice cream parlor, the harbor, the butcher shop, the estate and the pastry shop (1 item delivered \= 3 in stock).
+Chaque rayon a son magasinier : il le remplit depuis l'entrepôt. = Each shelf has its stock clerk, who fills it from the warehouse.
+Les clients viennent en voiture et prennent un caddie : achète des places de parking et des caddies. = Customers come by car and take a cart: buy parking spaces and carts.
+La crèmerie transforme les laits de la ferme en crème, beurre, fromages et yaourts. = The dairy turns the farm's milk into cream, butter, cheeses and yogurts.
+Elle reçoit les trois laits (vache, chèvre, brebis) de la ferme. = It receives the three milks (cow, goat, sheep) from the farm.
+Tous ses produits partent au supermarché. = All its products go to the supermarket.
+Son beurre part aussi à la boulangerie et à la pâtisserie, sa crème chez le glacier. = Its butter also goes to the bakery and the pastry shop, its cream to the ice cream parlor.
+La ferme exotique fait pousser ananas, bananes, noix de coco, mangues, canne à sucre, cacao, café, riz, vanille, thé et cannelle, et en fait du sucre, du chocolat et du café. = The exotic farm grows pineapples, bananas, coconuts, mangoes, sugar cane, cocoa, coffee, rice, vanilla, tea and cinnamon, and turns them into sugar, chocolate and coffee.
+Elle ne reçoit rien : tout pousse sur place. = It receives nothing: everything grows on site.
+Son sucre en poudre et son chocolat partent à la boulangerie. = Its powdered sugar and chocolate go to the bakery.
+Ses mangues, ses ananas, ses noix de coco, sa vanille, son café moulu et son chocolat partent chez le glacier. = Its mangoes, pineapples, coconuts, vanilla, ground coffee and chocolate go to the ice cream parlor.
+Son riz, sa vanille, son chocolat et son café moulu partent à la pâtisserie. = Its rice, vanilla, chocolate and ground coffee go to the pastry shop.
+Chaque espace a ses ouvriers. = Each area has its own workers.
+La boulangerie fait du pain et des viennoiseries : baguettes, pain de mie, pain blé-maïs, brioches, croissants et pains au chocolat. = The bakery makes bread and pastries: baguettes, sandwich bread, wheat-corn bread, brioches, croissants and chocolate croissants.
+Elle reçoit les farines, les œufs et le lait de la ferme, le beurre de la crèmerie, le sucre et le chocolat de la ferme exotique. = It receives flour, eggs and milk from the farm, butter from the dairy, sugar and chocolate from the exotic farm.
+Le glacier fait des sorbets (fraise, mangue, ananas) et des glaces (vanille, café, noix de coco, chocolat, poire-chocolat). = The ice cream parlor makes sorbets (strawberry, mango, pineapple) and ice creams (vanilla, coffee, coconut, chocolate, pear-chocolate).
+Il reçoit les fraises, les poires et les œufs de la ferme, la crème de la crèmerie, les fruits, la vanille, le café et le chocolat de la ferme exotique. = It receives strawberries, pears and eggs from the farm, cream from the dairy, fruit, vanilla, coffee and chocolate from the exotic farm.
+Le port pêche des poissons (sardines, cabillaud, thon, saumon) avec ses bateaux, et ramasse des coquillages et des crustacés (huîtres, moules, saint-jacques, gambas) avec ses dragues. = The harbor catches fish (sardines, cod, tuna, salmon) with its boats, and gathers shellfish (oysters, mussels, scallops, prawns) with its dredges.
+Il ne reçoit rien. = It receives nothing.
+La ferme d'élevage élève volailles, bovins, ovins et porcs, puis les abat. Elle ne reçoit pas de clients. = The livestock farm raises poultry, cattle, sheep and pigs, then slaughters them. It has no customers.
+Elle reçoit le maïs, le foin et les pommes de terre de la ferme. = It receives corn, hay and potatoes from the farm.
+Toute sa viande part en camion frigorifique à la boucherie. = All its meat goes to the butcher shop by refrigerated truck.
+Chaque espace a ses éleveurs. = Each area has its own farmhands.
+La boucherie-charcuterie découpe la viande de la ferme d'élevage : poulet, canard, bœuf, veau, mouton, agneau, porc. Ses clients sont rares mais achètent cher. = The butcher shop cuts the meat from the livestock farm: chicken, duck, beef, veal, mutton, lamb, pork. Its customers are few but spend a lot.
+Elle reçoit les volailles et les carcasses de la ferme d'élevage. = It receives poultry and carcasses from the livestock farm.
+Chaque espace a ses bouchers. = Each area has its own butchers.
+Le domaine cultive la vigne et le houblon, et fait des jus, des vins, de la bière, du cidre et des alcools. = The estate grows grapes and hops, and makes juices, wines, beer, cider and spirits.
+Il reçoit le blé, les pommes, les poires et les pommes de terre de la ferme. = It receives wheat, apples, pears and potatoes from the farm.
+Son raisin et ses jus partent au supermarché ; ses vins, sa bière, son cidre et ses alcools se vendent sur place et partent aussi au supermarché. = Its grapes and juices go to the supermarket; its wines, beer, cider and spirits are sold on site and also go to the supermarket.
+L'alcool est dangereux pour la santé : à consommer avec modération. = Alcohol is dangerous for your health: drink responsibly.
+La pâtisserie fait des tartes aux pommes, du riz au lait, des clafoutis, des gâteaux au chocolat, des éclairs au café et des fraisiers. = The pastry shop makes apple pies, rice pudding, clafoutis, chocolate cakes, coffee éclairs and strawberry cakes.
+Elle reçoit les pommes, les cerises, les fraises, la farine de blé, le lait et les œufs de la ferme, le beurre de la crèmerie, le riz, la vanille, le chocolat et le café de la ferme exotique. = It receives apples, cherries, strawberries, wheat flour, milk and eggs from the farm, butter from the dairy, rice, vanilla, chocolate and coffee from the exotic farm.
+Le parc d'attractions ne consomme rien et ne livre rien : les visiteurs paient l'entrée (plus chère à chaque nouvelle attraction) et viennent pour les attractions, qui grandissent avec leur taille. = The amusement park uses nothing and delivers nothing: visitors pay to get in (the ticket costs more with each new ride) and come for the rides, which grow with their size.
+Un employé (ou toi) fait monter et descendre les visiteurs ; l'attente fait baisser leur bonheur. = An operator (or you) loads and unloads the visitors; waiting lowers their happiness.
+Les stands (ballons, glaces, pop-corn…) n'ont besoin de personne : les visiteurs heureux qui passent devant y dépensent un peu. = The stands (balloons, ice cream, popcorn…) need no one: happy visitors walking by spend a little there.
+Au parc, tu roules en trottinette. = In the park, you ride a scooter.
+
 # ---- Parc : aide / Park: tips
 Embauche une caissière : sa case est derrière la caisse 1, sur la place de l'entrée. = Hire a cashier: her spot is behind register 1, on the entrance square.
 Achète le petit train : arrête-toi sur sa zone, à gauche de l'avenue. = Buy the little train: stand on its area, left of the avenue.

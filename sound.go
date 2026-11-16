@@ -34,9 +34,11 @@ type soundBank struct {
 	ctx   *audio.Context
 	data  [sCount][]byte
 	muted bool
-	last  [sCount]time.Time
-	busy  float64   // les petits sons joués récemment (ils s'atténuent quand ils s'enchaînent)
-	busyT time.Time // (mis à jour à chaque son)
+	// ce que le joueur a coupé (les trois boutons du son)
+	noSmall, noPhone, noMusic bool
+	last                      [sCount]time.Time
+	busy                      float64   // les petits sons joués récemment (ils s'atténuent quand ils s'enchaînent)
+	busyT                     time.Time // (mis à jour à chaque son)
 }
 
 // Volume de chaque son (de 0 à 1) et écart minimal entre deux fois le même son.
@@ -183,6 +185,9 @@ func newSoundBank() *soundBank {
 
 func (sb *soundBank) play(s sfx) {
 	if sb == nil || sb.muted {
+		return
+	}
+	if (petit(s) || s == sSeed) && sb.noSmall || s == sPhone && sb.noPhone {
 		return
 	}
 	now := time.Now()
