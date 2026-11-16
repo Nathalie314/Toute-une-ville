@@ -97,6 +97,20 @@ type Station struct {
 
 func (s *Station) Solid() bool { return s.Kind != Field }
 
+// PickZone : sous un étal, à côté de la place du client : là, le joueur arrêté reprend
+// les produits que la commande en cours demande.
+func (s *Station) PickZone() Rect { return Rect{s.Spot.X + 30, s.Spot.Y - 18, 64, 60} }
+
+// PickWanted : la commande en cours, dans ce lieu, demande-t-elle encore le produit de
+// cet étal (en comptant ce que le joueur porte déjà) ?
+func (p *Place) PickWanted(s *Station) bool {
+	o := p.g.Order
+	if s.Kind != Shelf || s.NoSale || o == nil || o.Place() != p.ID || p.g.Player == nil {
+		return false
+	}
+	return o.Need(s.Item) > p.g.Player.count(s.Item)
+}
+
 // PlaceID : le lieu de la station.
 func (s *Station) PlaceID() string { return s.place }
 
@@ -873,6 +887,16 @@ func (p *Place) interact(a *Agent, dt float64) {
 				}
 			}
 		case Shelf:
+			// le joueur arrêté sous l'étal (sa case, à côté de la place du client) reprend
+			// ce que la commande en cours demande ici, et seulement ce qui manque
+			if a.Kind == PlayerAgent && !a.Moving && s.Stock > 0 && a.load() < capa && p.PickWanted(s) && s.PickZone().Has(a.Pos) {
+				s.Stock--
+				s.booked = min(s.booked, s.Stock)
+				a.Carry = append(a.Carry, s.Item)
+				a.tick = period
+				g.emit(Event{Kind: EvTake, Pos: s.Body.C(), It: s.Item})
+				return
+			}
 			if s.Zone.Has(a.Pos) && s.Stock < s.StockMax && a.count(s.Item) > 0 {
 				a.remove(s.Item)
 				s.Stock++

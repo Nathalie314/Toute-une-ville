@@ -1225,3 +1225,12 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   larges ; le texte se réduit tout seul pour tenir) : ils prennent 790 de large au lieu de 930, et l'objectif ne
   passe plus sous « Ville ». S'il n'y a pas la place (écran presque carré, iPad), l'objectif ne s'affiche pas,
   comme avant. Outil de capture : CAPWIN=1200x900 (taille de la fenêtre).
+
+## Reprendre des produits dans les étals pour une commande
+- Sa demande : à haut niveau, il était pénible de se battre contre les ouvriers pour avoir les produits d'une
+  commande. Le joueur arrêté sur une petite case sous un étal, à côté de la place du client (PickZone), y reprend
+  le produit de l'étal, mais seulement ce que la commande en cours dans ce lieu demande encore (en comptant ce qu'il
+  porte) ; sans commande, rien. La case « PRENDRE » ne s'affiche que dans ce cas et si l'étal n'est pas vide (vide :
+  il faut aller chercher au-dessus, comme avant : « il faut que le joueur galère un peu »). Supermarché, école et
+  ferme d'élevage n'ont pas de commandes. Les cases ont été vérifiées : elles ne tombent sur aucun bâtiment, zone,
+  case d'achat ou place de client.
