@@ -50,6 +50,14 @@ func newSaveShots(dir, file string) *saveShots {
 			if !p.Owned || (os.Getenv("CAPPLACES") != "" && !strings.Contains(","+os.Getenv("CAPPLACES")+",", ","+p.ID+",")) {
 				continue
 			}
+			if os.Getenv("CAPPOINTS") != "" { // CAPPOINTS=1 : la page des points de l'école, pour ce lieu
+				s.queue = append(s.queue, func(g *game) string {
+					g.goPlace(p)
+					g.openPanel(panelPoints)
+					g.ptsTab, g.ptsPlace = 0, p.ID
+					return p.ID + "_points"
+				}, func(g *game) string { g.closePanel(); return "" })
+			}
 			if os.Getenv("CAPHELP") != "" { // CAPHELP=1 : le « ? » de chaque lieu
 				s.queue = append(s.queue, func(g *game) string {
 					g.goPlace(p)

@@ -1234,3 +1234,14 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   il faut aller chercher au-dessus, comme avant : « il faut que le joueur galère un peu »). Supermarché, école et
   ferme d'élevage n'ont pas de commandes. Les cases ont été vérifiées : elles ne tombent sur aucun bâtiment, zone,
   case d'achat ou place de client.
+
+## Rentabilité (points d'école) : nouvelle règle
+- Problème : RentSave = n/(n+100) plafonné à 75 % (atteint vers 300 points) : au-delà, les points ne servaient à
+  rien, sans que le jeu le dise.
+- Sa règle : 5 points = 1 %, 90 % au plus, à 450 points (RentMax) ; un seul tirage par fabrication : réussi, la
+  machine (ou l'animal) ne consomme aucun ingrédient. Elle accepte que les petites quantités soient moins fortes
+  qu'avant (100 points : 20 % au lieu de 50 %) : le jeu est en test.
+- Page des points : « {p} % gratuites », la règle écrite sous la case (5 points = 1 %…), les boutons +1 et +10
+  ne dépassent jamais 450, et la case devient grise avec « MAX » quand le maximum est atteint. SpendPoints borne
+  aussi. Une sauvegarde au-delà de 450 rend le surplus aux points ouvrier au chargement.
+- Outil de capture : CAPPOINTS=1 (la page des points de chaque lieu).

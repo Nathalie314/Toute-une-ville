@@ -2211,10 +2211,24 @@ func (g *game) drawPointsPanel(dst *ebiten.Image) {
 			} else {
 				sayFit(dst, k.Val(have), kx+20, ky+76*sc, 19*fs, true, -1, cw-200, rgb(0x5a3a1a))
 			}
-			sayFit(dst, k.Desc, kx+20, ky+ch-20*sc, 14*fs, false, -1, cw-50, rgb(0x7a6a5a))
+			desc := k.Desc
+			if k.Max > 0 { // (rentabilité : la règle, clairement)
+				desc = tr.F("5 points = 1 % de fabrications gratuites (90 % au plus, à {max} points).", "max", itoa(k.Max))
+			}
+			sayFit(dst, desc, kx+20, ky+ch-20*sc, 14*fs, false, -1, cw-50, rgb(0x7a6a5a))
+			if k.Max > 0 && have+pend >= k.Max {
+				// le maximum est atteint : la case est grisée, « MAX »
+				roundRect(dst, kx+5, ky, cw-10, ch, 14, rgba(0x8a8a8a, 0.35))
+				roundRect(dst, kx+cw-15-2*84, ky+62*sc, 160, 34*sc, 10, rgb(0x9a9a9a))
+				say(dst, "MAX", kx+cw-15-2*84+80, ky+62*sc+17*sc, 20*fs, true, 0, rgb(0xffffff))
+				continue
+			}
 			for j, n := range []int{1, 10} {
-				// « +10 » place jusqu'à 10 points (ce qui reste s'il y en a moins)
+				// « +10 » place jusqu'à 10 points (ce qui reste s'il y en a moins, et pas au-delà du maximum)
 				add := min(n, left[t])
+				if k.Max > 0 {
+					add = min(add, k.Max-have-pend)
+				}
 				g.btn(dst, "+"+itoa(n), kx+cw-15-float64(2-j)*84, ky+62*sc, 76, 34*sc, 0x2fa86b, add > 0, func() {
 					g.pending[key] += add
 				})

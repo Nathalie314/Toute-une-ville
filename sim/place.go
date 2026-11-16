@@ -489,11 +489,11 @@ func (p *Place) step(dt float64, active bool) {
 				s.Timer += dt * f
 				if s.Timer >= s.Time {
 					s.Timer = 0
-					for _, in := range s.Inputs {
-						if rent > 0 && p.rand() < rent {
-							continue // rentabilité : cet ingrédient n'a pas été consommé
+					// rentabilité : un tirage par fabrication ; réussi, elle ne consomme rien
+					if rent <= 0 || p.rand() >= rent {
+						for _, in := range s.Inputs {
+							s.Buf[in]--
 						}
-						s.Buf[in]--
 					}
 					n := max(1, s.Yield)
 					out, oz := s.Item, s.OutZone

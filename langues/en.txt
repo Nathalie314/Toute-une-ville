@@ -1549,6 +1549,12 @@ Conseil : les sorbets sont faciles à réaliser, mais les glaces demandent de la
 Conseil : impossible d'aller pêcher soi-même, alors mieux vaut augmenter la capacité de pêche des bateaux et des dragues ! = Tip: you can't go fishing yourself, so it's best to increase the catch of the boats and dredges!
 Conseil : acheter une ou deux tables au plus vite, puis économiser pour acheter la secrétaire, afin de ne plus avoir à faire des allers et retours constants et de pouvoir s'occuper de la ferme. Par la suite, acheter toutes les classes de primaire avant celles du collège. Penser à acheter au moins un surveillant. = Tip: buy one or two tables as soon as possible, then save up for the secretary, so you no longer have to keep going back and forth and can take care of the farm. Later, buy all the elementary classrooms before the middle school ones. Remember to buy at least one supervisor.
 
+{p} % gratuites = {p}% free
+Chaque fabrication peut être gratuite : elle ne consomme alors aucun ingrédient. = Each product can be free: it then uses no ingredients.
+Chaque production peut être gratuite : les animaux ne mangent alors rien. = Each product can be free: the animals then eat nothing.
+Chaque production peut être gratuite : les animaux (et les abeilles) ne mangent alors rien. = Each product can be free: the animals (and bees) then eat nothing.
+5 points = 1 % de fabrications gratuites (90 % au plus, à {max} points). = 5 points = 1% of products made for free (90% at most, at {max} points).
+
 # ---- Parc : aide / Park: tips
 Embauche une caissière : sa case est derrière la caisse 1, sur la place de l'entrée. = Hire a cashier: her spot is behind register 1, on the entrance square.
 Achète le petit train : arrête-toi sur sa zone, à gauche de l'avenue. = Buy the little train: stand on its area, left of the avenue.

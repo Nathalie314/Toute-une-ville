@@ -3,6 +3,7 @@ package sim
 import (
 	"math"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -115,6 +116,15 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 	g.Money = s.Money
 	if s.Levels != nil {
 		g.Levels = s.Levels
+		// rentabilité : 450 points au plus ; ce qui dépasse retourne aux points ouvrier
+		for k, n := range g.Levels {
+			if strings.HasSuffix(k, ".pts_mac_rent") || strings.HasSuffix(k, ".pts_soin_rent") || strings.HasSuffix(k, ".pts_chef_rent") {
+				if n > RentMax {
+					g.Levels["pts.ouvrier"] += n - RentMax
+					g.Levels[k] = RentMax
+				}
+			}
+		}
 		// parc : moins de places de parking et de trottinettes qu'avant : on borne
 		if g.Levels["parc.parking"] > (ParcParkMax-parcParkStart)/10 {
 			g.Levels["parc.parking"] = (ParcParkMax - parcParkStart) / 10

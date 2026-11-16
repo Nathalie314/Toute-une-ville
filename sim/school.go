@@ -3,6 +3,9 @@ package sim
 import (
 	"math"
 	"math/rand"
+	"strings"
+
+	"ville/tr"
 )
 
 // L'école de Clairbourg. Les élèves arrivent au portail, on les inscrit à
@@ -749,6 +752,7 @@ type PointKind struct {
 	Name  string
 	Desc  string
 	Val   func(n int) string // effet actuel, en clair
+	Max   int                // points au plus (0 : sans limite)
 }
 
 // TypeOfLevel : type de point d'un niveau (onglet).
@@ -782,7 +786,11 @@ func (p *Place) hasOrders() bool { return p.Station("commande") != nil }
 func (p *Place) PointKinds() []PointKind {
 	var ks []PointKind
 	add := func(key, t, grp, name, desc string, val func(int) string) {
-		ks = append(ks, PointKind{key, t, grp, name, desc, val})
+		k := PointKind{Key: key, Type: t, Group: grp, Name: name, Desc: desc, Val: val}
+		if strings.HasSuffix(key, "_rent") {
+			k.Max = RentMax // (rentabilité : 450 points au plus, 90 %)
+		}
+		ks = append(ks, k)
 	}
 	// primaire
 	if p.ID == "ferme" || p.ID == "exotique" || p.ID == "domaine" {
@@ -790,11 +798,11 @@ func (p *Place) PointKinds() []PointKind {
 	}
 	if p.ID == "elevage" {
 		add("pts_soin", "ouvrier", "Soigneurs", "Animaux", "Poulailler, mare, prés, porcherie vont plus vite (+3 % par point).", func(n int) string { return pctVal(3 * n) })
-		add("pts_soin_rent", "ouvrier", "Soigneurs", "Sélection génétique", "Les animaux mangent moins pour produire autant.", rentVal)
+		add("pts_soin_rent", "ouvrier", "Soigneurs", "Sélection génétique", "Chaque production peut être gratuite : les animaux ne mangent alors rien.", rentVal)
 	}
 	if p.ID == "ferme" {
 		add("pts_soin", "ouvrier", "Soigneurs", "Animaux", "Poulailler, étable, ruches… vont plus vite (+3 % par point).", func(n int) string { return pctVal(3 * n) })
-		add("pts_soin_rent", "ouvrier", "Soigneurs", "Sélection génétique", "Les animaux (et les abeilles) mangent moins pour produire autant.", rentVal)
+		add("pts_soin_rent", "ouvrier", "Soigneurs", "Sélection génétique", "Chaque production peut être gratuite : les animaux (et les abeilles) ne mangent alors rien.", rentVal)
 	}
 	if p.hasStaff() {
 		add("pts_ent_vit", "ouvrier", "Entraînement", "Vitesse de marche", "Les employés marchent plus vite (+1 % par point).", pctVal)
@@ -830,23 +838,23 @@ func (p *Place) PointKinds() []PointKind {
 	}
 	if p.ID == "exotique" {
 		add("pts_mac_vit", "ouvrier", "Mécaniciens", "Machines : vitesse", "Raffinerie, moulins, chocolaterie, torréfacteur, séchoir vont plus vite (+3 % par point).", func(n int) string { return pctVal(3 * n) })
-		add("pts_mac_rent", "ouvrier", "Mécaniciens", "Machines : rentabilité", "Elles produisent autant en consommant moins.", rentVal)
+		add("pts_mac_rent", "ouvrier", "Mécaniciens", "Machines : rentabilité", "Chaque fabrication peut être gratuite : elle ne consomme alors aucun ingrédient.", rentVal)
 	}
 	if p.ID == "domaine" {
 		add("pts_mac_vit", "ouvrier", "Mécaniciens", "Machines : vitesse", "Presses, brasserie, distilleries, pressoir vont plus vite (+3 % par point).", func(n int) string { return pctVal(3 * n) })
-		add("pts_mac_rent", "ouvrier", "Mécaniciens", "Machines : rentabilité", "Elles produisent autant en consommant moins.", rentVal)
+		add("pts_mac_rent", "ouvrier", "Mécaniciens", "Machines : rentabilité", "Chaque fabrication peut être gratuite : elle ne consomme alors aucun ingrédient.", rentVal)
 	}
 	if p.ID == "elevage" {
 		add("pts_mac_vit", "ouvrier", "Mécaniciens", "Abattoirs : vitesse", "Les abattoirs vont plus vite (+3 % par point ; ils consomment autant).", func(n int) string { return pctVal(3 * n) })
-		add("pts_mac_rent", "ouvrier", "Mécaniciens", "Abattoirs : rentabilité", "Ils produisent autant en consommant moins.", rentVal)
+		add("pts_mac_rent", "ouvrier", "Mécaniciens", "Abattoirs : rentabilité", "Chaque fabrication peut être gratuite : elle ne consomme alors aucun ingrédient.", rentVal)
 	}
 	if p.ID == "ferme" {
 		add("pts_mac_vit", "ouvrier", "Mécaniciens", "Machines : vitesse", "Moulins… vont plus vite (+3 % par point ; ils consomment autant).", func(n int) string { return pctVal(3 * n) })
-		add("pts_mac_rent", "ouvrier", "Mécaniciens", "Machines : rentabilité", "Elles produisent autant en consommant moins.", rentVal)
+		add("pts_mac_rent", "ouvrier", "Mécaniciens", "Machines : rentabilité", "Chaque fabrication peut être gratuite : elle ne consomme alors aucun ingrédient.", rentVal)
 	}
 	if p.cooks() {
 		add("pts_chef_vit", "ouvrier", "Chefs", "Machines : vitesse", "Les machines cuisinent plus vite (+3 % par point ; elles consomment autant).", func(n int) string { return pctVal(3 * n) })
-		add("pts_chef_rent", "ouvrier", "Chefs", "Machines : rentabilité", "Elles produisent autant en consommant moins.", rentVal)
+		add("pts_chef_rent", "ouvrier", "Chefs", "Machines : rentabilité", "Chaque fabrication peut être gratuite : elle ne consomme alors aucun ingrédient.", rentVal)
 	}
 	// collège
 	// (« Clients » et « Patience » ne s'achètent plus : les points déjà placés comptent toujours)
@@ -881,17 +889,26 @@ func (p *Place) PointKinds() []PointKind {
 	return ks
 }
 
-// rentVal : part des ingrédients économisés.
-func rentVal(n int) string { return "−" + itoa(int(math.Round(100*RentSave(n)))) + " % consommé" }
+// rentVal : part des fabrications gratuites.
+func rentVal(n int) string {
+	return tr.F("{p} % gratuites", "p", itoa(int(math.Round(100*RentSave(n)))))
+}
 
-// RentSave : chance de ne pas consommer un ingrédient (rentabilité), au plus 75 %.
-func RentSave(n int) float64 { return math.Min(0.75, float64(n)/(float64(n)+100)) }
+// RentMax : points de rentabilité au plus (5 points = 1 % ; 450 points = 90 %).
+const RentMax = 450
+
+// RentSave : chance qu'une fabrication ne consomme aucun ingrédient (rentabilité) :
+// 1 % tous les 5 points, 90 % au plus.
+func RentSave(n int) float64 { return math.Min(0.9, float64(n)/500) }
 
 // FailChance : chance qu'un élève échoue (1 sur 6, puis 1 sur 7… avec la pédagogie).
 func (g *Game) FailChance() float64 { return 1 / (6 + float64(g.Levels["ecole.pts_pedagogie"])) }
 
 // SpendPoints : place n points d'un usage dans un lieu (définitif).
 func (g *Game) SpendPoints(p *Place, k PointKind, n int) bool {
+	if k.Max > 0 {
+		n = min(n, k.Max-g.Levels[p.key(k.Key)]) // (pas au-delà du maximum)
+	}
 	if n <= 0 || g.Levels["pts."+k.Type] < n {
 		return false
 	}
