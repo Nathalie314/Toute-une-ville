@@ -1217,3 +1217,7 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Commandes de la cantine ratées : l'école forme 2 fois moins vite pendant 5 min, à la place de la perte d'étoile.
 - Une pénalité occupe la place du cadeau (Boost « parc_malus » / « ecole_malus ») : jamais deux effets à la fois,
   la commande suivante attend la fin. Bandeau rouge « Pénalité : … ».
+- Ses conseils ajoutés (école, supermarché, crèmerie, ferme exotique, boulangerie, glacier, port) ; retirés à sa
+  demande : au supermarché « Chaque rayon… » et « Les clients viennent… », à la ferme exotique « Elle ne reçoit
+  rien… » et « Chaque espace a ses ouvriers », au port « Il ne reçoit rien ». La page de l'école a son conseil
+  sous le tableau des formations. Les lieux que le parc fait commander le disent.

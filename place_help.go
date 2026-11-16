@@ -16,15 +16,14 @@ func placeHelp(id string) []string {
 			"Son foin, son maïs et ses pommes de terre partent à la ferme d'élevage.",
 			"Son blé, ses pommes, ses poires et ses pommes de terre partent au domaine.",
 			"Ses pommes, ses cerises, ses fraises, sa farine de blé, son lait et ses œufs partent à la pâtisserie.",
-			cmd,
+			"Des habitants et le parc d'attractions lui passent des commandes.",
 			"Conseil : maximiser la production. Commencer par la vitesse des champs, puis la vitesse des animaux (pour les machines, attendre d'avoir débloqué la boulangerie). Augmenter ce que portent les ouvriers et leur vitesse. Dès le supermarché débloqué, améliorer les drones et les camions. Ne pas améliorer les gains liés à la ferme : cela ne sert à rien, ils sont minimes de toute façon.",
 		}
 	case "super":
 		return []string{
 			"L'immense supermarché vend les produits de tous tes lieux, espace par espace.",
 			"Il reçoit en camion les produits de la ferme, de la crèmerie, de la ferme exotique, de la boulangerie, du glacier, du port, de la boucherie, du domaine et de la pâtisserie (1 objet livré = 3 en réserve).",
-			"Chaque rayon a son magasinier : il le remplit depuis l'entrepôt.",
-			"Les clients viennent en voiture et prennent un caddie : achète des places de parking et des caddies.",
+			"Conseil : penser à agrandir le parking et le nombre de caddies. Ne JAMAIS laisser une caisse sans caissière. Compter au départ un magasinier pour deux rayons.",
 		}
 	case "cremerie":
 		return []string{
@@ -33,17 +32,17 @@ func placeHelp(id string) []string {
 			"Tous ses produits partent au supermarché.",
 			"Son beurre part aussi à la boulangerie et à la pâtisserie, sa crème chez le glacier.",
 			cantine,
+			"Conseil : la crème et le beurre seront très demandés. Augmenter la vitesse de production des machines mais aussi leur rentabilité est nécessaire. Augmenter le temps pour réaliser les commandes, car les commandes de l'école sont énormes.",
 		}
 	case "exotique":
 		return []string{
 			"La ferme exotique fait pousser ananas, bananes, noix de coco, mangues, canne à sucre, cacao, café, riz, vanille, thé et cannelle, et en fait du sucre, du chocolat et du café.",
-			"Elle ne reçoit rien : tout pousse sur place.",
 			"Tous ses produits partent au supermarché.",
 			"Son sucre en poudre et son chocolat partent à la boulangerie.",
 			"Ses mangues, ses ananas, ses noix de coco, sa vanille, son café moulu et son chocolat partent chez le glacier.",
 			"Son riz, sa vanille, son chocolat et son café moulu partent à la pâtisserie.",
-			"Chaque espace a ses ouvriers.",
-			cmd,
+			"Des habitants et le parc d'attractions lui passent des commandes.",
+			"Conseil : augmenter à la fois les champs et la vitesse des machines, car le sucre sera très demandé. Augmenter le temps pour réaliser les commandes, car les commandes du parc d'attractions sont énormes.",
 		}
 	case "boulangerie":
 		return []string{
@@ -51,20 +50,22 @@ func placeHelp(id string) []string {
 			"Elle reçoit les farines, les œufs et le lait de la ferme, le beurre de la crèmerie, le sucre et le chocolat de la ferme exotique.",
 			"Tous ses produits partent au supermarché.",
 			cantine,
+			"Conseil : augmenter la vitesse des machines, mais aussi le temps pour réaliser les commandes, car les commandes de l'école sont énormes.",
 		}
 	case "glacier":
 		return []string{
 			"Le glacier fait des sorbets (fraise, mangue, ananas) et des glaces (vanille, café, noix de coco, chocolat, poire-chocolat).",
 			"Il reçoit les fraises, les poires et les œufs de la ferme, la crème de la crèmerie, les fruits, la vanille, le café et le chocolat de la ferme exotique.",
 			"Tous ses produits partent au supermarché.",
-			cantine,
+			"Des habitants, la cantine de l'école et le parc d'attractions lui passent des commandes.",
+			"Conseil : les sorbets sont faciles à réaliser, mais les glaces demandent de la crème : il faut donc augmenter la crèmerie, ainsi que ses drones et ses camions, pour assurer l'approvisionnement. Augmenter le temps pour réaliser les commandes, car les commandes du parc d'attractions sont énormes.",
 		}
 	case "port":
 		return []string{
 			"Le port pêche des poissons (sardines, cabillaud, thon, saumon) avec ses bateaux, et ramasse des coquillages et des crustacés (huîtres, moules, saint-jacques, gambas) avec ses dragues.",
-			"Il ne reçoit rien.",
 			"Tous ses produits partent au supermarché.",
 			cmd,
+			"Conseil : impossible d'aller pêcher soi-même, alors mieux vaut augmenter la capacité de pêche des bateaux et des dragues !",
 		}
 	case "elevage":
 		return []string{

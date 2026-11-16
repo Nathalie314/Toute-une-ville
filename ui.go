@@ -1099,7 +1099,7 @@ func duration(sec float64) string {
 
 // drawSchoolHelp : l'aide de l'école (temps de formation, échecs).
 func (g *game) drawSchoolHelp(dst *ebiten.Image) {
-	w, h := math.Min(1300, scr.VW-80), 920.0
+	w, h := math.Min(1300, scr.VW-80), math.Min(1060, scr.VH-16)
 	x, y := g.panelFrame(dst, "L'école", w, h)
 	roundRect(dst, x+40, y+20, w-80, 110, 18, rgb(0xd9534f))
 	say(dst, "L'école ne fonctionne que quand le jeu est ouvert.", x+w/2, y+58, 34, true, 0, rgb(0xffffff))
@@ -1119,7 +1119,14 @@ func (g *game) drawSchoolHelp(dst *ebiten.Image) {
 	f := g.sim.FailChance()
 	say(dst, tr.F("Échec : 1 élève sur {n} rate sa formation (il repart avec un point du niveau d'en dessous, rien au primaire).", "n", itoa(int(math.Round(1/f)))), x+w/2, ty+160, 21, false, 0, rgb(0x7a3a2a))
 	say(dst, "La Pédagogie (points Université) réduit les échecs ; la Formation accélère toutes les classes.", x+w/2, ty+200, 21, false, 0, rgb(0x5a4a3a))
-	g.btn(dst, "Compris !", x+w/2-150, y+h-190, 300, 76, 0x2fa86b, true, func() { g.closePanel() })
+	// le conseil (comme dans les pages « ? » des autres lieux)
+	tip := wrap("Conseil : acheter une ou deux tables au plus vite, puis économiser pour acheter la secrétaire, afin de ne plus avoir à faire des allers et retours constants et de pouvoir s'occuper de la ferme. Par la suite, acheter toutes les classes de primaire avant celles du collège. Penser à acheter au moins un surveillant.", 21, w-140, true)
+	tyy := ty + 245
+	roundRect(dst, x+50, tyy-20, w-100, float64(len(tip))*30+12, 12, rgb(0xfff0c2))
+	for i, l := range tip {
+		say(dst, l, x+70, tyy+float64(i)*30, 21, true, -1, rgb(0x6a4a10))
+	}
+	g.btn(dst, "Compris !", x+w/2-150, y+h-170, 300, 70, 0x2fa86b, true, func() { g.closePanel() })
 }
 
 // ---------------------------------------------------------------- carte
