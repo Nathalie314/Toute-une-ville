@@ -50,6 +50,13 @@ func newSaveShots(dir, file string) *saveShots {
 			if !p.Owned || (os.Getenv("CAPPLACES") != "" && !strings.Contains(","+os.Getenv("CAPPLACES")+",", ","+p.ID+",")) {
 				continue
 			}
+			if os.Getenv("CAPQUIT") != "" { // CAPQUIT=1 : la fenêtre « Quitter le jeu ? »
+				s.queue = append(s.queue, func(g *game) string {
+					g.goPlace(p)
+					g.openPanel(panelQuit)
+					return p.ID + "_quitter"
+				}, func(g *game) string { g.closePanel(); return "" })
+			}
 			if os.Getenv("CAPPOINTS") != "" { // CAPPOINTS=1 : la page des points de l'école, pour ce lieu
 				s.queue = append(s.queue, func(g *game) string {
 					g.goPlace(p)

@@ -159,7 +159,11 @@ func (g *game) drawGoal(dst *ebiten.Image, x, y float64) {
 	if p == nil {
 		return
 	}
-	w := math.Min(400, scr.VW-790-x-20) // (les boutons de droite : 790 de large)
+	right := 790.0 // (les boutons de droite : 790 de large, 862 avec la porte « Quitter »)
+	if !isWeb {
+		right += 72
+	}
+	w := math.Min(400, scr.VW-right-x-20)
 	if w < 220 {
 		return
 	}

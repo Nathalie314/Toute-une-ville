@@ -1245,3 +1245,26 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   ne dépassent jamais 450, et la case devient grise avec « MAX » quand le maximum est atteint. SpendPoints borne
   aussi. Une sauvegarde au-delà de 450 rend le surplus aux points ouvrier au chargement.
 - Outil de capture : CAPPOINTS=1 (la page des points de chaque lieu).
+
+## École : les tables de primaire restaient vides
+- Sa remarque : formation du primaire en 2 min 38, mais les élèves arrivent trop lentement : la moitié des tables
+  vides. Mesuré sur une partie (36 tables, 2 min 38) : 22,6 élèves assis en moyenne, 11 tables sans élève. Causes :
+  pas plus de 6 élèves en chemin ou dans la file (ils viennent du bout de la rue), une arrivée toutes les 2 à 4 s,
+  la secrétaire met 2,5 s par inscription, et les classes finissent souvent ensemble (beaucoup de places d'un coup).
+- Maintenant : autant d'élèves en chemin que de places libres (+3, 16 au plus), une arrivée toutes les 0,4 à 0,8 s
+  tant qu'il y a des places, ils marchent plus vite (260 vers l'accueil, 320 vers leur table), la secrétaire inscrit
+  en 0,8 s (avant 2,5 s ; avec elle, le joueur n'est plus plus lent qu'elle). Même partie : 29,2 assis sur 36.
+  Le reste : les élèves qui marchent vers leur table (la place est déjà à eux).
+
+## Quitter le jeu, ne plus perdre sa partie (retour d'un joueur sur PC)
+- Un joueur n'a pas trouvé comment quitter (plein écran, bouton « Quitter » seulement sur la carte), a fermé le jeu
+  « sauvagement » et a perdu sa partie. Le jeu sauvegardait déjà toutes les 20 s et à la fermeture de la fenêtre :
+  la cause probable est un lancement depuis le zip (dossier temporaire effacé par Windows).
+- Échap (aucune fenêtre ouverte) : « Quitter le jeu ? » (Quitter / Continuer) ; une porte rouge en haut à droite,
+  en jeu (pas dans le navigateur). Aide et README : « Échap : quitter ».
+- Lancé depuis un dossier temporaire (runFromTemp : %TEMP%, \Temp\, .zip dans le chemin ; Windows seulement) :
+  la sauvegarde va dans AppData (elle reste) et une fenêtre explique d'extraire le zip.
+- Copie de secours : à chaque sauvegarde, l'ancienne devient ToutUneVille_sauvegarde_secours.json (navigateur :
+  clé « …_secours »). Une sauvegarde illisible n'est jamais écrasée : elle est renommée « …_abimee_date.json » et la
+  partie reprend depuis la copie de secours (message).
+- Outil de capture : CAPQUIT=1.
