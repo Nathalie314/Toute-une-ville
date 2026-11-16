@@ -1225,3 +1225,23 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   larges ; le texte se réduit tout seul pour tenir) : ils prennent 790 de large au lieu de 930, et l'objectif ne
   passe plus sous « Ville ». S'il n'y a pas la place (écran presque carré, iPad), l'objectif ne s'affiche pas,
   comme avant. Outil de capture : CAPWIN=1200x900 (taille de la fenêtre).
+
+## Reprendre des produits dans les étals pour une commande
+- Sa demande : à haut niveau, il était pénible de se battre contre les ouvriers pour avoir les produits d'une
+  commande. Le joueur arrêté sur une petite case sous un étal, à côté de la place du client (PickZone), y reprend
+  le produit de l'étal, mais seulement ce que la commande en cours dans ce lieu demande encore (en comptant ce qu'il
+  porte) ; sans commande, rien. La case « PRENDRE » ne s'affiche que dans ce cas et si l'étal n'est pas vide (vide :
+  il faut aller chercher au-dessus, comme avant : « il faut que le joueur galère un peu »). Supermarché, école et
+  ferme d'élevage n'ont pas de commandes. Les cases ont été vérifiées : elles ne tombent sur aucun bâtiment, zone,
+  case d'achat ou place de client.
+
+## Rentabilité (points d'école) : nouvelle règle
+- Problème : RentSave = n/(n+100) plafonné à 75 % (atteint vers 300 points) : au-delà, les points ne servaient à
+  rien, sans que le jeu le dise.
+- Sa règle : 5 points = 1 %, 90 % au plus, à 450 points (RentMax) ; un seul tirage par fabrication : réussi, la
+  machine (ou l'animal) ne consomme aucun ingrédient. Elle accepte que les petites quantités soient moins fortes
+  qu'avant (100 points : 20 % au lieu de 50 %) : le jeu est en test.
+- Page des points : « {p} % gratuites », la règle écrite sous la case (5 points = 1 %…), les boutons +1 et +10
+  ne dépassent jamais 450, et la case devient grise avec « MAX » quand le maximum est atteint. SpendPoints borne
+  aussi. Une sauvegarde au-delà de 450 rend le surplus aux points ouvrier au chargement.
+- Outil de capture : CAPPOINTS=1 (la page des points de chaque lieu).
