@@ -43,8 +43,40 @@ func writeSaveData(b []byte) {
 	if ls.IsUndefined() || ls.IsNull() {
 		return
 	}
+	// l'ancienne sauvegarde devient la copie de secours
+	if v := ls.Call("getItem", webSaveKey); !v.IsNull() && !v.IsUndefined() {
+		ls.Call("setItem", webSaveKey+"_secours", v.String())
+	}
 	ls.Call("setItem", webSaveKey, string(b))
 }
+
+// readBackupData : la copie de secours.
+func readBackupData() ([]byte, error) {
+	ls := js.Global().Get("localStorage")
+	if ls.IsUndefined() || ls.IsNull() {
+		return nil, errors.New("pas de localStorage")
+	}
+	v := ls.Call("getItem", webSaveKey+"_secours")
+	if v.IsNull() || v.IsUndefined() {
+		return nil, errors.New("pas de copie de secours")
+	}
+	return []byte(v.String()), nil
+}
+
+// keepBrokenSave : une sauvegarde illisible est gardée de côté.
+func keepBrokenSave() {
+	ls := js.Global().Get("localStorage")
+	if ls.IsUndefined() || ls.IsNull() {
+		return
+	}
+	if v := ls.Call("getItem", webSaveKey); !v.IsNull() && !v.IsUndefined() {
+		ls.Call("setItem", webSaveKey+"_abimee", v.String())
+		ls.Call("removeItem", webSaveKey)
+	}
+}
+
+// runFromTemp : (seulement pour la version Windows)
+const runFromTemp = false
 
 // extraLanguageFiles : rien dans le navigateur (les langues sont intégrées au jeu).
 func extraLanguageFiles() map[string][]byte { return nil }

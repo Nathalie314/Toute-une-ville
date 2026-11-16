@@ -77,7 +77,7 @@ Comment jouer = How to play
 • Tu n'arrives pas à te débarrasser de quelque chose ? Arrête-toi au compost, tout à droite. = • Can't get rid of something? Stand on the compost bin, far right.
 • Supermarché, boulangerie, crèmerie, glacier (sur la carte) : chacun a son quai à la ferme, un camion y emmène les produits. = • Supermarket, bakery, dairy, ice cream parlor (on the map): each has its own dock at the farm, and a truck takes the products there.
 • La réputation (étoiles) monte avec les clients contents et attire du monde. B : tes badges. = • Reputation (stars) goes up with happy customers and brings more people. B: your badges.
-• Le jeu se sauvegarde tout seul. F11 : plein écran ou fenêtre. M : couper le son. « , ? » : cette aide. = • The game saves itself. F11: full screen or window. M: mute. “?”: this help.
+• Le jeu se sauvegarde tout seul. F11 : plein écran ou fenêtre. M : couper le son. « , ? » : cette aide. Échap : quitter. = • The game saves itself. F11: full screen or window. M: mute. “?”: this help. Esc: quit.
 • Déplace-toi en gardant le doigt posé (ou la souris, les flèches, ZQSD). Pince à deux doigts pour zoomer. Menus : touche le bouton. = • Move by keeping your finger down (or with the mouse, arrow keys, WASD). Pinch with two fingers to zoom. Menus: tap the button.
 ← Retour = ← Back
 Suite → = Next →
@@ -1554,6 +1554,14 @@ Chaque fabrication peut être gratuite : elle ne consomme alors aucun ingrédien
 Chaque production peut être gratuite : les animaux ne mangent alors rien. = Each product can be free: the animals then eat nothing.
 Chaque production peut être gratuite : les animaux (et les abeilles) ne mangent alors rien. = Each product can be free: the animals (and bees) then eat nothing.
 5 points = 1 % de fabrications gratuites (90 % au plus, à {max} points). = 5 points = 1% of products made for free (90% at most, at {max} points).
+
+# ---- Quitter, sauvegarde / Quit, save
+Quitter le jeu ? = Quit the game?
+Ta partie est enregistrée : tu la retrouveras en relançant le jeu. = Your game is saved: you'll find it again when you restart the game.
+Continuer = Continue
+Attention : extrais le jeu ! = Careful: extract the game!
+Le jeu a été lancé directement depuis le fichier .zip. Windows l'a mis dans un dossier temporaire, qu'il efface ensuite. Pour cette fois, ta partie est enregistrée dans un dossier sûr de Windows. Pour la suite : ferme le jeu, fais un clic droit sur le .zip, « Extraire tout », puis lance ToutUneVille.exe depuis le dossier extrait. = The game was started directly from the .zip file. Windows put it in a temporary folder, which it deletes later. This time, your game is saved in a safe Windows folder. From now on: close the game, right-click the .zip, choose “Extract All”, then start ToutUneVille.exe from the extracted folder.
+Ta sauvegarde était abîmée : la partie reprend depuis la copie de secours. = Your save was damaged: the game continues from the backup copy.
 
 # ---- Parc : aide / Park: tips
 Embauche une caissière : sa case est derrière la caisse 1, sur la place de l'entrée. = Hire a cashier: her spot is behind register 1, on the entrance square.

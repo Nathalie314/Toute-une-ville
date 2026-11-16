@@ -39,6 +39,7 @@ La partie est enregistrée automatiquement, dans un fichier à côté du jeu (`T
 | , ou ? | Aide |
 | B | Badges |
 | $ | Gestion de l'argent (tableau des gains) |
+| Échap | Quitter le jeu (la partie est enregistrée) |
 | M | Couper le son (les boutons du son coupent aussi séparément les petits sons, le téléphone, la musique) |
 | F11 | Plein écran |
 
@@ -129,6 +130,7 @@ Your game is saved automatically, in a file next to the game (`ToutUneVille_sauv
 | , or ? | Help |
 | B | Badges |
 | $ | Money management (earnings table) |
+| Esc | Quit the game (your game is saved) |
 | M | Mute (the sound buttons can also mute small sounds, the phone, the music separately) |
 | F11 | Full screen |
 

@@ -560,6 +560,13 @@ func (g *game) drawHUD(dst *ebiten.Image) {
 	g.moneyBox(dst, true)
 	// (les boutons de droite restent serrés : l'objectif, à gauche, ne doit pas passer dessous)
 	x := scr.VW - 20
+	if !isWeb { // quitter (Échap) : une porte
+		x -= 72
+		g.btn(dst, "", x, 24, 64, 70, 0xd9534f, true, func() { g.openPanel(panelQuit) })
+		rect(dst, x+20, 24+17, 24, 36, rgb(0xffffff))
+		rect(dst, x+24, 24+21, 16, 32, rgb(0x8a3a2a))
+		circle(dst, x+36, 24+37, 2.5, rgb(0xffd23f))
+	}
 	x -= 204
 	g.soundButtons(dst, x, 24)
 	x -= 196
@@ -605,6 +612,29 @@ func (g *game) drawHUD(dst *ebiten.Image) {
 		say(dst, hint, scr.VW/2, scr.VH-24, hs, false, 0, rgba(0x1e2a12, 0.8))
 	}
 	_ = p
+}
+
+// drawQuitPanel : « Quitter le jeu ? » (Échap, ou la porte en haut à droite).
+func (g *game) drawQuitPanel(dst *ebiten.Image) {
+	w, h := 820.0, 400.0
+	x, y := g.panelFrame(dst, "Quitter le jeu ?", w, h)
+	say(dst, "Ta partie est enregistrée : tu la retrouveras en relançant le jeu.", x+w/2, y+70, 24, false, 0, rgb(0x5a4a3a))
+	g.btn(dst, "Quitter", x+w/2-320, y+140, 280, 80, 0xd9534f, true, func() {
+		g.save()
+		g.quit = true
+	})
+	g.btn(dst, "Continuer", x+w/2+40, y+140, 280, 80, 0x2fa86b, true, func() { g.closePanel() })
+}
+
+// drawTempWarn : le jeu a été lancé sans extraire le zip.
+func (g *game) drawTempWarn(dst *ebiten.Image) {
+	w, h := 1100.0, 520.0
+	x, y := g.panelFrame(dst, "Attention : extrais le jeu !", w, h)
+	lines := wrap("Le jeu a été lancé directement depuis le fichier .zip. Windows l'a mis dans un dossier temporaire, qu'il efface ensuite. Pour cette fois, ta partie est enregistrée dans un dossier sûr de Windows. Pour la suite : ferme le jeu, fais un clic droit sur le .zip, « Extraire tout », puis lance ToutUneVille.exe depuis le dossier extrait.", 25, w-120, false)
+	for i, l := range lines {
+		say(dst, l, x+60, y+50+float64(i)*38, 25, false, -1, rgb(0x5a4a3a))
+	}
+	g.btn(dst, "Compris !", x+w/2-150, y+h-190, 300, 76, 0x2fa86b, true, func() { g.closePanel() })
 }
 
 // soundButtons : trois boutons : couper les petits sons (pièces, ramassage),
@@ -868,9 +898,10 @@ func (g *game) drawHelp(dst *ebiten.Image) {
 		"• Tu n'arrives pas à te débarrasser de quelque chose ? Arrête-toi au compost, tout à droite.",
 		"• Supermarché, boulangerie, crèmerie, glacier (sur la carte) : chacun a son quai à la ferme, un camion y emmène les produits.",
 		"• La réputation (étoiles) monte avec les clients contents et attire du monde. B : tes badges.",
-		"• Le jeu se sauvegarde tout seul. F11 : plein écran ou fenêtre. M : couper le son. « , ? » : cette aide.",
+		"• Le jeu se sauvegarde tout seul. F11 : plein écran ou fenêtre. M : couper le son. « , ? » : cette aide. Échap : quitter.",
 	}
 	if isWeb {
+		lines[len(lines)-1] = "• Le jeu se sauvegarde tout seul. F11 : plein écran ou fenêtre. M : couper le son. « , ? » : cette aide." // (pas d'Échap pour quitter dans un navigateur)
 		lines[0] = "• Déplace-toi en gardant le doigt posé (ou la souris, les flèches, ZQSD). Pince à deux doigts pour zoomer. Menus : touche le bouton."
 	}
 	// Chaque point est coupé à la largeur de la fenêtre ; s'il n'y a pas la place, l'aide

@@ -41,17 +41,39 @@ func (g *game) save() {
 	writeSaveData(b)
 }
 
+// parseSave : une sauvegarde lisible ?
+func parseSave(b []byte) (saveFile, bool) {
+	var f saveFile
+	return f, json.Unmarshal(b, &f) == nil && f.Jeu != nil
+}
+
 func (g *game) load() {
+	if runFromTemp { // lancé depuis le zip : on prévient (après le chargement)
+		defer g.openPanel(panelTempWarn)
+	}
 	b, err := readSaveData()
-	if err != nil {
+	f, ok := parseSave(b)
+	if err == nil && !ok {
+		// la sauvegarde est abîmée : on la met de côté (elle n'est jamais écrasée)…
+		keepBrokenSave()
+	}
+	if !ok {
+		// … et on repart de la copie de secours (la sauvegarde précédente), s'il y en a une
+		if bb, e := readBackupData(); e == nil {
+			if fb, okb := parseSave(bb); okb {
+				f, ok, err = fb, true, nil
+				g.toast("Ta sauvegarde était abîmée : la partie reprend depuis la copie de secours.", "")
+			}
+		}
+	}
+	if err != nil && !ok {
 		// première partie : on choisit la langue, puis on explique les commandes
 		g.openPanel(panelLang)
 		g.langThenHelp = true
 		g.helpSeen = true
 		return
 	}
-	var f saveFile
-	if json.Unmarshal(b, &f) != nil || f.Jeu == nil {
+	if !ok {
 		g.openPanel(panelLang)
 		g.langThenHelp = true
 		g.openPanel(panelHelp)

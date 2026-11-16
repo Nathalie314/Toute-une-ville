@@ -54,6 +54,8 @@ const (
 	panelLang
 	panelGains
 	panelPlaceHelp // le « ? » d'un lieu : comment fonctionne ce lieu
+	panelQuit      // « Quitter le jeu ? » (Échap)
+	panelTempWarn  // le jeu a été lancé depuis le zip : extraire d'abord
 )
 
 type button struct {
@@ -204,6 +206,8 @@ func (g *game) input(dt float64) {
 		}
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyEscape) && g.panel != panelNone {
 		g.closePanel()
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyEscape) && !isWeb {
+		g.openPanel(panelQuit) // Échap, rien d'ouvert : quitter ?
 	}
 	// l'aide : la touche « , ? » (avec ou sans majuscule), aussi sur la carte
 	if g.panel == panelNone && g.typedAny(',', '?') {
@@ -285,6 +289,16 @@ func (g *game) openPanel(p panel) {
 }
 
 func (g *game) closePanel() {
+	if g.panel == panelTempWarn { // (l'avertissement passe avant : on rouvre ce qu'il cachait)
+		switch {
+		case g.langThenHelp:
+			g.openPanel(panelLang)
+			return
+		case g.welcome.secs > 120:
+			g.openPanel(panelWelcome)
+			return
+		}
+	}
 	if g.panel == panelLang && g.langThenHelp {
 		g.langThenHelp = false
 		g.openPanel(panelHelp)
@@ -360,6 +374,10 @@ func (g *game) Draw(screen *ebiten.Image) {
 		g.drawHelp(dst)
 	case panelPlaceHelp:
 		g.drawPlaceHelp(dst)
+	case panelQuit:
+		g.drawQuitPanel(dst)
+	case panelTempWarn:
+		g.drawTempWarn(dst)
 	case panelReset:
 		g.drawReset(dst)
 	case panelBadges:
