@@ -558,15 +558,16 @@ func (g *game) btn(dst *ebiten.Image, label string, x, y, w, h float64, col uint
 
 func (g *game) drawHUD(dst *ebiten.Image) {
 	g.moneyBox(dst, true)
+	// (les boutons de droite restent serrés : l'objectif, à gauche, ne doit pas passer dessous)
 	x := scr.VW - 20
-	x -= 250
+	x -= 204
 	g.soundButtons(dst, x, 24)
-	x -= 250
-	g.btn(dst, "Ville  [Tab]", x, 24, 236, 70, 0x5b7fd6, true, func() { g.goMap() })
-	x -= 230
-	g.btn(dst, "Badges  [B]", x, 24, 216, 70, 0xd4a017, true, func() { g.openPanel(panelBadges) })
-	x -= 90
-	g.btn(dst, "?", x, 24, 76, 70, 0x9b6bd6, true, func() { g.openPanel(panelPlaceHelp) })
+	x -= 196
+	g.btn(dst, "Ville  [Tab]", x, 24, 186, 70, 0x5b7fd6, true, func() { g.goMap() })
+	x -= 186
+	g.btn(dst, "Badges  [B]", x, 24, 176, 70, 0xd4a017, true, func() { g.openPanel(panelBadges) })
+	x -= 82
+	g.btn(dst, "?", x, 24, 72, 70, 0x9b6bd6, true, func() { g.openPanel(panelPlaceHelp) })
 	// raccourci : la mairie (il s'illumine quand on peut acheter)
 	x -= 90
 	g.roundShortcut(dst, x, 24, g.canBuyMairie() || g.hasPoints(), func(cx, cy float64) {
@@ -618,15 +619,15 @@ func (g *game) soundButtons(dst *ebiten.Image, x, y float64) {
 		if *off || sb.muted {
 			c = 0x8a5a5a
 		}
-		g.btn(dst, "", bx, y, 76, 70, c, true, func() {
+		g.btn(dst, "", bx, y, 64, 70, c, true, func() {
 			*off = !*off
 			if !*off {
 				sb.muted = false // (rallumer un son rallume le son)
 			}
 		})
-		icon(bx+38, y+35, rgb(0xffffff))
+		icon(bx+32, y+35, rgb(0xffffff))
 		if *off || sb.muted {
-			line(dst, bx+16, y+14, bx+60, y+56, 5, rgb(0xff6b6b))
+			line(dst, bx+12, y+14, bx+52, y+56, 5, rgb(0xff6b6b))
 		}
 	}
 	// petits sons : une pièce
@@ -636,14 +637,14 @@ func (g *game) soundButtons(dst *ebiten.Image, x, y float64) {
 		say(dst, "€", cx, cy+1, 16, true, 0, rgb(0x8a5a00))
 	})
 	// téléphone : un combiné
-	one(x+82, &sb.noPhone, func(cx, cy float64, c colorRGBA) {
+	one(x+68, &sb.noPhone, func(cx, cy float64, c colorRGBA) {
 		roundRect(dst, cx-16, cy-14, 32, 9, 4, c)
 		rect(dst, cx-5, cy-6, 10, 8, c)
 		roundRect(dst, cx-18, cy+2, 36, 14, 5, c)
 		circle(dst, cx, cy+9, 4, rgb(0x6a6a8a))
 	})
 	// musique : une note
-	one(x+164, &sb.noMusic, func(cx, cy float64, c colorRGBA) {
+	one(x+136, &sb.noMusic, func(cx, cy float64, c colorRGBA) {
 		ellipse(dst, cx-6, cy+10, 9, 7, c)
 		rect(dst, cx+1, cy-16, 4, 26, c)
 		polygon(dst, []V{{X: cx + 1, Y: cy - 16}, {X: cx + 14, Y: cy - 10}, {X: cx + 14, Y: cy - 4}, {X: cx + 5, Y: cy - 8}}, c)
