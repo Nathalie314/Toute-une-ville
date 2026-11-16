@@ -590,11 +590,14 @@ func (p *Place) stepSchool(dt float64, active bool) {
 	if p.spawnT <= 0 {
 		// des places libres en primaire : les élèves arrivent bien plus vite
 		// (sinon l'école, plus rapide, attendait ses élèves)
+		// (et la file peut s'allonger autant qu'il y a de places libres : les élèves
+		// mettent du temps à venir du bout de la rue)
+		free := p.freeSeats(Primaire)
 		p.spawnT = 8 + 4*p.rand()
-		if p.freeSeats(Primaire) > waiting {
-			p.spawnT = 2 + 2*p.rand()
+		if free > waiting {
+			p.spawnT = 0.4 + 0.4*p.rand()
 		}
-		if waiting < 6 {
+		if waiting < max(6, min(16, free+3)) {
 			from := p.SpawnL
 			if p.rand() < 0.5 {
 				from = p.SpawnR
@@ -616,15 +619,15 @@ func (p *Place) stepSchool(dt float64, active bool) {
 			head = s
 		}
 		q++
-		p.walk(s.A, spot, 200, dt)
+		p.walk(s.A, spot, 260, dt)
 	}
 	if head != nil && head.A.Pos.Dist(reg.QueueHead) < 12 {
 		pl := g.Player
 		by := 0.0
-		if active && pl != nil && reg.Zone.Has(pl.Pos) {
-			by = 1.2
-		} else if reg.Cashier != nil {
-			by = 2.5
+		if reg.Cashier != nil {
+			by = 0.8 // la secrétaire
+		} else if active && pl != nil && reg.Zone.Has(pl.Pos) {
+			by = 1.2 // le joueur
 		}
 		if by > 0 {
 			if r, n := p.freeSeat(Primaire, false); r != nil {
@@ -644,7 +647,7 @@ func (p *Place) stepSchool(dt float64, active bool) {
 	for _, s := range p.Students {
 		switch s.State {
 		case 1:
-			if p.walk(s.A, s.Room.SeatPos(s.Seat).Add(V{0, 40}), 200, dt) {
+			if p.walk(s.A, s.Room.SeatPos(s.Seat).Add(V{0, 40}), 320, dt) { // (vite : la table attend)
 				s.State = 2
 				s.A.Face = V{0, -1}
 			}
