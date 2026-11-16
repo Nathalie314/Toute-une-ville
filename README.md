@@ -38,7 +38,8 @@ La partie est enregistrée automatiquement, dans un fichier à côté du jeu (`T
 | 1 à 9, 0 | Aller dans un lieu favori |
 | , ou ? | Aide |
 | B | Badges |
-| M | Couper le son |
+| $ | Gestion de l'argent (tableau des gains) |
+| M | Couper le son (les boutons du son coupent aussi séparément les petits sons, le téléphone, la musique) |
 | F11 | Plein écran |
 
 Pour acheter quelque chose, il suffit de **rester immobile sur sa case** : l'argent s'y verse petit à petit.
@@ -127,7 +128,8 @@ Your game is saved automatically, in a file next to the game (`ToutUneVille_sauv
 | 1 to 9, 0 | Go to a favourite place |
 | , or ? | Help |
 | B | Badges |
-| M | Mute |
+| $ | Money management (earnings table) |
+| M | Mute (the sound buttons can also mute small sounds, the phone, the music separately) |
 | F11 | Full screen |
 
 To buy something, just **stand still on its square**: the money pours in little by little.
