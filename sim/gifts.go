@@ -311,3 +311,14 @@ func (o *Order) dur() float64 {
 	}
 	return BoostTime
 }
+
+// FailText : ce que coûte une commande ratée, quand ce n'est pas une étoile de réputation
+// (parc, cantine : « l'école forme 2 fois moins vite pendant 5 min ») ; "" sinon.
+func (o *Order) FailText() string {
+	switch o.Gift {
+	case "parc", "ecole":
+		b := &Boost{Kind: o.Gift + "_malus"}
+		return tr.F("{cadeau} pendant {duree}", "cadeau", lowerFirst(b.Text()), "duree", durText(BoostTime))
+	}
+	return ""
+}
