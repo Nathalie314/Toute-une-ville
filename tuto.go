@@ -170,7 +170,7 @@ func (g *game) tutoText() string {
 	case tutoVest:
 		return "Va au vestiaire."
 	case tutoWard:
-		return "Tu peux acheter des accessoires pour améliorer ton personnage. Les chaussures le feront marcher plus vite, le sac à dos porter davantage. Ferme cette page pour retourner à la ferme."
+		return "Tu peux acheter des accessoires pour améliorer ton personnage. Les sandales le feront marcher plus vite, le sac porter davantage. Ferme cette page pour retourner à la ferme."
 	case tutoBravo:
 		return "Bravo ! Tu as acquis le minimum pour jouer. Le reste, tu le découvriras tout seul. Bon jeu !"
 	}
