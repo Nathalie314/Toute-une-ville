@@ -858,7 +858,11 @@ func (g *game) drawWelcome(dst *ebiten.Image) {
 	mm := int(secs) / 60 % 60
 	dur := tr.F("{m} min", "m", itoa(mm))
 	if hh > 0 {
-		dur = tr.F("{h} h {m}", "h", itoa(hh), "m", itoa(mm))
+		m := itoa(mm)
+		if mm < 10 {
+			m = "0" + m // (« 1 h 05 », pas « 1 h 5 »)
+		}
+		dur = tr.F("{h} h {m}", "h", itoa(hh), "m", m)
 	}
 	say(dst, tr.F("Pendant ton absence ({duree}) :", "duree", dur), x+w/2, y+60, 30, false, 0, rgb(0x5a4a3a))
 	if g.welcome.amount > 0 {
