@@ -56,6 +56,7 @@ const (
 	panelPlaceHelp // le « ? » d'un lieu : comment fonctionne ce lieu
 	panelQuit      // « Quitter le jeu ? » (Échap)
 	panelTempWarn  // le jeu a été lancé depuis le zip : extraire d'abord
+	panelStart     // première partie : « Bienvenue… » (Jouer ou Tutoriel)
 )
 
 type button struct {
@@ -91,29 +92,36 @@ type game struct {
 		amount, secs float64
 		points       int
 	}
-	pending            map[string]int // points de l'école choisis mais pas encore validés
-	ptsTab             int            // onglet des points (primaire…)
-	ptsPlace           string         // lieu choisi dans l'onglet
-	ptsScroll          int            // ascenseur de la liste des lieux (points)
-	ambiT              float64        // écran Personnage : temps appuyé sur « Ambidextre »
-	seenPark, seenCart int            // supermarché : clients refusés déjà signalés
-	refusedAt          float64
-	refusedWhat        string
-	busT               float64   // attente sur un téléporteur de l'hélicoptère
-	vestDone           bool      // la page « Personnage » s'est ouverte au vestiaire (on attend qu'il en sorte)
-	hand               handState // la main (menus au clavier)
-	panelBtn0          int       // premier bouton de la fenêtre ouverte
-	lastPay            float64
-	coinSnd            float64
-	shots              *shotScript
-	typed              []rune // caractères tapés à cette image
-	saveShots          *saveShots
-	capName            string
-	helpSeen           bool
-	langThenHelp       bool // premier lancement : après le choix de la langue, l'aide
-	quit               bool
-	off                *ebiten.Image
-	buying             *sim.Place
+	pending              map[string]int // points de l'école choisis mais pas encore validés
+	ptsTab               int            // onglet des points (primaire…)
+	ptsPlace             string         // lieu choisi dans l'onglet
+	ptsScroll            int            // ascenseur de la liste des lieux (points)
+	ambiT                float64        // écran Personnage : temps appuyé sur « Ambidextre »
+	seenPark, seenCart   int            // supermarché : clients refusés déjà signalés
+	refusedAt            float64
+	refusedWhat          string
+	busT                 float64   // attente sur un téléporteur de l'hélicoptère
+	vestDone             bool      // la page « Personnage » s'est ouverte au vestiaire (on attend qu'il en sorte)
+	hand                 handState // la main (menus au clavier)
+	panelBtn0            int       // premier bouton de la fenêtre ouverte
+	lastPay              float64
+	coinSnd              float64
+	shots                *shotScript
+	typed                []rune // caractères tapés à cette image
+	saveShots            *saveShots
+	capName              string
+	helpSeen             bool
+	langThenHelp         bool // premier lancement : après le choix de la langue, l'aide
+	quit                 bool
+	tuto                 int                   // étape du tutoriel (tuto.go ; 0 : pas de tutoriel)
+	tutoBase             int                   // compteur au début de l'étape (clients servis, pousses…)
+	tutoT                float64               // temps passé dans l'étape
+	tutoReady            bool                  // tutoBase est à jour (après un chargement)
+	panelRect            [4]float64            // la fenêtre ouverte (le tutoriel s'écrit dans sa barre de titre)
+	tutoMairie, tutoVeil [4]float64            // le bouton de la mairie, le bandeau du veilleur (flèches du tutoriel)
+	mapRects             map[string][4]float64 // carte : la tuile de chaque lieu (flèches du tutoriel)
+	off                  *ebiten.Image
+	buying               *sim.Place
 }
 
 func newGame() *game {
@@ -144,6 +152,7 @@ func (g *game) Update() error {
 	g.updateBus(dt)
 	g.sim.Step(dt)
 	g.handleEvents()
+	g.updateTuto(dt)
 	g.updateParticles(dt)
 	if g.scene == scenePlace && g.sim.Cur != nil {
 		g.updateCamera(g.sim.Cur, dt)
@@ -171,7 +180,7 @@ func (g *game) input(dt float64) {
 		g.toggleMute()
 	}
 	// $ : la gestion de l'argent (le tableau des gains, comme un clic sur l'argent)
-	if g.typedAny('$') && g.panel == panelNone {
+	if g.typedAny('$') && g.panel == panelNone && !g.tutoLock() {
 		g.openGains()
 	}
 	// clics sur les boutons (ceux dessinés à l'image précédente)
@@ -211,7 +220,7 @@ func (g *game) input(dt float64) {
 		g.openPanel(panelQuit) // Échap, rien d'ouvert : quitter ?
 	}
 	// l'aide : la touche « , ? » (avec ou sans majuscule), aussi sur la carte
-	if g.panel == panelNone && g.typedAny(',', '?') {
+	if g.panel == panelNone && g.typedAny(',', '?') && !g.tutoLock() {
 		g.openHelp()
 	}
 	if g.panel != panelNone {
@@ -302,8 +311,15 @@ func (g *game) closePanel() {
 	}
 	if g.panel == panelLang && g.langThenHelp {
 		g.langThenHelp = false
-		g.openPanel(panelHelp)
+		if g.tuto == tutoWelcome {
+			g.openPanel(panelStart)
+		} else {
+			g.openPanel(panelHelp)
+		}
 		return
+	}
+	if g.panel == panelStart { // (fermer la bienvenue : on joue, sans tutoriel)
+		g.tuto = 0
 	}
 	g.panel = panelNone
 	g.pending = nil
@@ -369,6 +385,16 @@ func (g *game) Draw(screen *ebiten.Image) {
 	} else {
 		cam = ui
 		g.drawMap(dst)
+		if g.tutoLock() && g.panel == panelNone { // (tutoriel : seule la ferme se clique)
+			r := g.mapRects["ferme"]
+			keep := g.btns[:0]
+			for _, b := range g.btns {
+				if b.x == r[0] && b.y == r[1] {
+					keep = append(keep, b)
+				}
+			}
+			g.btns = keep
+		}
 	}
 	cam = ui
 	g.drawToasts(dst)
@@ -399,7 +425,10 @@ func (g *game) Draw(screen *ebiten.Image) {
 		g.drawLangPanel(dst)
 	case panelGains:
 		g.drawGains(dst)
+	case panelStart:
+		g.drawStart(dst)
 	}
+	g.drawTuto(dst)
 	g.drawHand(dst)
 	g.wheelAcc = 0 // (un cran de molette ne sert qu'une fois)
 	flush()

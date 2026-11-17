@@ -56,6 +56,12 @@ func (g *game) updateBus(dt float64) {
 	if g.panel != panelNone {
 		return
 	}
+	if g.tutoLock() { // tutoriel, sur la carte : seule la ferme (touche 1 ou clic)
+		if g.sim.Fav["1"] == "ferme" && (inpututil.IsKeyJustPressed(ebiten.Key1) || inpututil.IsKeyJustPressed(ebiten.KeyNumpad1)) {
+			g.busGo("ferme")
+		}
+		return
+	}
 	keys := []ebiten.Key{ebiten.Key1, ebiten.Key2, ebiten.Key3, ebiten.Key4, ebiten.Key5, ebiten.Key6, ebiten.Key7, ebiten.Key8, ebiten.Key9, ebiten.Key0}
 	pad := []ebiten.Key{ebiten.KeyNumpad1, ebiten.KeyNumpad2, ebiten.KeyNumpad3, ebiten.KeyNumpad4, ebiten.KeyNumpad5, ebiten.KeyNumpad6, ebiten.KeyNumpad7, ebiten.KeyNumpad8, ebiten.KeyNumpad9, ebiten.KeyNumpad0}
 	for i := range keys {

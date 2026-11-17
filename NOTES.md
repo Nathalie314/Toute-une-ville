@@ -1290,3 +1290,17 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   « l'école forme 2 fois moins vite » (ou « gains du parc ÷2 ») pendant 5 min, jamais une étoile.
 - Désormais : « Réussite : … » (le cadeau ou l'argent) et « Échec : … » ; pour la cantine et le parc, une ligne
   rouge dit la vraie pénalité (Order.FailText, sim/gifts.go) ; ailleurs, « Échec : 1 ★ ».
+
+## Début de partie : bienvenue et tutoriel
+- Première partie (et après « Recommencer à zéro ») : choix de la langue, puis la carte de la ville avec la fenêtre
+  « Bienvenue à Toute une Ville… » : « Jouer » (ou X) ou « Tutoriel ». Elle remplace la page d'aide du premier lancement.
+- Le tutoriel (tuto.go) : 17 étapes (carte → maïs, étal, client, pousse, récolte, client → école, élève → mairie
+  (« maison »), page des points ouverte sur la ferme, veilleur entouré → retour à la ferme → vestiaire → bravo).
+  Chaque étape se valide toute seule dès qu'elle est faite, même en avance ; une flèche montre où aller (et
+  l'hélicoptère quand on n'est pas au bon lieu) ; les conseils habituels se taisent. Sur la carte, au début, seule la
+  ferme se clique (clic, main ou touche 1). Encadré en bas, ou dans la barre de titre quand une page est ouverte.
+  « Passer le tutoriel » l'arrête ; « Revoir le tutoriel » (aide de la carte) le relance sans rien effacer.
+- L'étape est gardée dans la sauvegarde (`tuto`, absent = 0 : les parties en cours ne le voient pas).
+- Captures : `CAPTUTO=1 CAPSAVE=/inexistant` photographie les écrans du tutoriel.
+- Décidé : un dossier sans sauvegarde reprend celle d'AppData s'il y en a une (le joueur qui a lancé le jeu depuis le
+  zip puis l'a extrait retrouve sa partie) ; la bienvenue n'apparaît donc que sans aucune sauvegarde, ou après une remise à zéro.

@@ -213,6 +213,9 @@ func (g *game) hint() (string, V, bool) {
 	if p == nil {
 		return "", V{}, false
 	}
+	if g.tuto > 0 { // le tutoriel : ses étapes remplacent les conseils
+		return g.tutoHint()
+	}
 	pl := gs.Player
 	for _, reg := range p.Registers() {
 		if reg.Cashier == nil && p.QueueAt(reg) > 0 {
@@ -585,6 +588,7 @@ func (g *game) drawHUD(dst *ebiten.Image) {
 		rect(dst, cx-1, cy-34, 2, 16, rgb(0x555555))
 		polygon(dst, []V{{X: cx + 1, Y: cy - 34}, {X: cx + 14, Y: cy - 30}, {X: cx + 1, Y: cy - 26}}, rgb(0x2045a8))
 	}, func() { g.openPanel(panelMairie) })
+	g.tutoMairie = [4]float64{x + 3, 24, 70, 70}
 	// (le personnage s'ouvre au vestiaire, dans la zone du joueur, ou avec P)
 	g.repBox(dst, g.sim.Cur, 416, 18) // à droite de l'argent, pour ne pas cacher les champs
 	g.drawGoal(dst, 672, 18)
@@ -593,7 +597,7 @@ func (g *game) drawHUD(dst *ebiten.Image) {
 	// alerte : clients en attente sans caissière
 	p := g.sim.Cur
 	// conseil du moment
-	if txt, _, _ := g.hint(); txt != "" {
+	if txt, _, _ := g.hint(); txt != "" && g.tuto == 0 {
 		w := textWidth(txt, 30, true) + 70
 		y := scr.VH - 110
 		roundRect(dst, scr.VW/2-w/2, y, w, 70, 35, rgba(0x2b2140, 0.85))
@@ -686,6 +690,7 @@ func (g *game) soundButtons(dst *ebiten.Image, x, y float64) {
 // panelFrame dessine le cadre d'une fenêtre et renvoie la zone intérieure.
 func (g *game) panelFrame(dst *ebiten.Image, title string, w, h float64) (x, y float64) {
 	g.panelBtn0 = len(g.btns) // la main ne vise que les boutons de la fenêtre
+	g.panelRect = [4]float64{scr.VW/2 - w/2, scr.VH/2 - h/2, w, h}
 	rect(dst, 0, 0, scr.VW, scr.VH, rgba(0x000000, 0.55))
 	x = scr.VW/2 - w/2
 	y = scr.VH/2 - h/2
@@ -811,6 +816,7 @@ func (g *game) drawMairiePanel(dst *ebiten.Image) { g.drawPointsPanel(dst) }
 func (g *game) veilleurBand(dst *ebiten.Image, x, y, w float64) {
 	u := sim.MairieUpgrades()[0]
 	l := g.sim.Levels[u.Key]
+	g.tutoVeil = [4]float64{x, y, w, 84}
 	roundRect(dst, x, y, w, 84, 16, rgb(0xe8eef8))
 	cx, cy := x+50, y+42
 	circle(dst, cx, cy, 26, rgb(0x2b2b5a))
@@ -852,7 +858,11 @@ func (g *game) drawWelcome(dst *ebiten.Image) {
 	mm := int(secs) / 60 % 60
 	dur := tr.F("{m} min", "m", itoa(mm))
 	if hh > 0 {
-		dur = tr.F("{h} h {m}", "h", itoa(hh), "m", itoa(mm))
+		m := itoa(mm)
+		if mm < 10 {
+			m = "0" + m // (« 1 h 05 », pas « 1 h 5 »)
+		}
+		dur = tr.F("{h} h {m}", "h", itoa(hh), "m", m)
 	}
 	say(dst, tr.F("Pendant ton absence ({duree}) :", "duree", dur), x+w/2, y+60, 30, false, 0, rgb(0x5a4a3a))
 	if g.welcome.amount > 0 {
@@ -942,7 +952,17 @@ func (g *game) drawHelp(dst *ebiten.Image) {
 	if g.helpPage > 0 {
 		g.btn(dst, "← Retour", x+50, y+h-190, 260, 76, 0x8a7a6a, true, func() { g.helpPage-- })
 	}
-	if len(pages) > 1 {
+	if g.helpPage == len(pages)-1 { // (dernière page : revoir le tutoriel, sans rien effacer)
+		bx := x + 50
+		if g.helpPage > 0 {
+			bx = x + w - 410
+		}
+		g.btn(dst, "Revoir le tutoriel", bx, y+h-190, 360, 76, 0xd4a017, true, func() {
+			g.closePanel()
+			g.goMap()
+			g.setTuto(tutoMap)
+		})
+	} else if len(pages) > 1 {
 		say(dst, strconv.Itoa(g.helpPage+1)+" / "+strconv.Itoa(len(pages)), x+w-150, y+h-152, 30, true, 0, rgb(0x8a5a33))
 	}
 	if g.helpPage < len(pages)-1 {
@@ -1247,6 +1267,12 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		if tl.id == "ferme" {
 			id = "ferme"
 		}
+		if id != "" {
+			if g.mapRects == nil {
+				g.mapRects = map[string][4]float64{}
+			}
+			g.mapRects[id] = [4]float64{x, y, tw, th}
+		}
 		if id != "" && g.hover(x, y, tw, th) {
 			g.mapHover = id // (un chiffre en fait un favori)
 		}
@@ -1501,8 +1527,9 @@ func (g *game) resetGame() {
 	g.panel = panelNone
 	g.scene = scenePlace
 	g.camPos = g.sim.Player.Pos
+	g.newStart()
+	g.openPanel(panelStart)
 	g.save()
-	g.toast("Nouvelle partie !", "")
 }
 
 // ---------------------------------------------------------------- réputation

@@ -636,6 +636,7 @@ func (p *Place) stepSchool(dt float64, active bool) {
 					p.regT = 0
 					r.seats[n] = head
 					head.Room, head.Seat, head.State = r, n, 1
+					p.Welcomed++
 					g.emit(Event{Kind: EvPay, Pos: reg.Body.C()})
 				}
 			}
