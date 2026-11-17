@@ -198,7 +198,10 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	if p.ID == "parc" {
 		ds = g.parcDrawables(dst, p, ds, tl, br)
 	}
-	ds = decorDrawables(dst, dec, ds, tl, br)
+	ds = decorDrawables(dst, dec, ds, tl, br, p.ID == "exotique")
+	if p.ID == "exotique" {
+		ds = exoticAnimals(dst, p, ds, tl, br, t) // perroquets, singes, toucans, flamants
+	}
 	// arbres décoratifs autour (à la ferme)
 	for _, tr := range trees {
 		if p.ID != "ferme" {
@@ -536,7 +539,11 @@ func (g *game) drawZones(dst *ebiten.Image, p *sim.Place, s *sim.Station) {
 	case sim.Dock:
 		if g.sim.DockActive(s) {
 			zoneBox(dst, s.Zone, in(s.Zone), g.t, 0x9fd3ff)
-			say(dst, "QUAI DU CAMION", s.Zone.C().X, s.Zone.Y+22, 17, true, 0, rgb(0x2b4a66))
+			lbl := "QUAI DU CAMION"
+			if p.ID == "exotique" {
+				lbl = "QUAI DU BATEAU"
+			}
+			say(dst, lbl, s.Zone.C().X, s.Zone.Y+22, 17, true, 0, rgb(0x2b4a66))
 			dest := "→ " + placeShort(s.To)
 			if m := sim.DockMult(g.sim.Place(s.To)); m > 1 {
 				dest += " (1 objet = " + itoa(m) + ")"
@@ -1979,6 +1986,10 @@ func (g *game) drawDock(dst *ebiten.Image, s *sim.Station) {
 	}
 	if s.PlaceID() == "domaine" {
 		g.drawDockV(dst, s) // (la route des camions est verticale)
+		return
+	}
+	if s.PlaceID() == "exotique" {
+		g.drawRiverDock(dst, s) // (la ferme exotique : des bateaux, sur la rivière)
 		return
 	}
 	b := s.Body

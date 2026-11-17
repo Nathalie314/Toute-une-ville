@@ -392,6 +392,17 @@ func (p *Place) shiftFarm(dx float64) {
 }
 
 // dock ajoute un quai d'expédition au bord de la route, vers un autre lieu.
+// ExoDockY : le haut des quais de la ferme exotique (sur la berge, sous la rivière).
+const ExoDockY = -410.0
+
+// riverDock : un quai au bord de la rivière (ferme exotique) : le bateau y accoste.
+func (p *Place) riverDock(id, to string, x float64) {
+	q := &Station{ID: id, Name: "Quai du bateau", Kind: Dock, BufMax: 20, Built: true, To: to}
+	q.Body = Rect{x, ExoDockY, 230, 50}
+	q.Zone = Rect{x - 10, ExoDockY + 60, 250, 110}
+	p.Stations = append(p.Stations, q)
+}
+
 func (p *Place) dock(id, to string, x float64) {
 	q := &Station{ID: id, Name: "Quai du camion", Kind: Dock, BufMax: 20, Built: true, To: to}
 	q.Body = Rect{x, 1585, 230, 50}

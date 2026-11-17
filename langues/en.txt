@@ -1575,3 +1575,8 @@ Agrandis le petit train (Taille +1) : un tour plus long rend les visiteurs plus 
 Des visiteurs attendent à la caisse {n} : embauche une caissière, ou mets-toi derrière la cabine. = Visitors are waiting at register {n}: hire a cashier, or stand behind the booth.
 Le parking est plein : des visiteurs repartent ! Agrandis-le (case dans ta zone, à gauche). = The parking lot is full: visitors are leaving! Make it bigger (spot in your area, on the left).
 TROTTINETTES = SCOOTERS
+QUAI DU BATEAU = BOAT DOCK
+Quai du bateau = Boat dock
+Bateaux : départs = Boats: departures
+Bateaux : charge = Boats: load
+Les bateaux partent plus souvent (+1 % par point). = Boats leave more often (+1% per point).

@@ -817,9 +817,15 @@ func (p *Place) PointKinds() []PointKind {
 		add("pts_dr_vit", "ouvrier", "Mécaniciens", "Drones : vitesse", "+3 % de vitesse par point.", func(n int) string { return pctVal(3 * n) })
 		add("pts_dr_cap", "ouvrier", "Mécaniciens", "Drones : charge", "+1 objet tous les 2 points (1 au départ).",
 			func(n int) string { return itoa(DroneCap(n)) + " objet(s)" })
-		add("pts_cam_vit", "ouvrier", "Mécaniciens", "Camions : départs", "Les camions partent plus souvent (+1 % par point).", pctVal)
-		add("pts_cam_cap", "ouvrier", "Mécaniciens", "Camions : charge", "+2 produits par voyage par point ; quais : +1 place tous les 2 points.",
-			func(n int) string { return "+" + itoa(2*n) + " produits" })
+		if p.ID == "exotique" { // (ici, tout part en bateau, par la rivière : mêmes points, autre nom)
+			add("pts_cam_vit", "ouvrier", "Mécaniciens", "Bateaux : départs", "Les bateaux partent plus souvent (+1 % par point).", pctVal)
+			add("pts_cam_cap", "ouvrier", "Mécaniciens", "Bateaux : charge", "+2 produits par voyage par point ; quais : +1 place tous les 2 points.",
+				func(n int) string { return "+" + itoa(2*n) + " produits" })
+		} else {
+			add("pts_cam_vit", "ouvrier", "Mécaniciens", "Camions : départs", "Les camions partent plus souvent (+1 % par point).", pctVal)
+			add("pts_cam_cap", "ouvrier", "Mécaniciens", "Camions : charge", "+2 produits par voyage par point ; quais : +1 place tous les 2 points.",
+				func(n int) string { return "+" + itoa(2*n) + " produits" })
+		}
 	}
 	if p.sells() {
 		add("pts_caisse", "ouvrier", "Mécaniciens", "Caisses", "Les caisses passent les articles plus vite (+2 % par point).", func(n int) string { return pctVal(2 * n) })

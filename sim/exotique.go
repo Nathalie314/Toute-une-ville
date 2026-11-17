@@ -137,10 +137,11 @@ func newExotic(g *Game) *Place {
 	trash.Body = Rect{W - 150, 925, 84, 76}
 	trash.Zone = Rect{W - 170, 880, 124, 150}
 	p.Stations = append(p.Stations, trash)
-	p.dock("quai", "super", 1500)
-	p.dock("quai_boul", "boulangerie", 1850)
-	p.dock("quai_glace", "glacier", 2200)
-	p.dock("quai_patisserie", "patisserie", 2550)
+	// les quais : au bord de la rivière, au nord (la ferme exotique est loin : tout part en bateau)
+	p.riverDock("quai", "super", 1500)
+	p.riverDock("quai_boul", "boulangerie", 1850)
+	p.riverDock("quai_glace", "glacier", 2200)
+	p.riverDock("quai_patisserie", "patisserie", 2550)
 	cmd := &Station{ID: "commande", Name: "Commandes", Kind: OrderBox, Built: true}
 	p.Stations = append(p.Stations, cmd)
 

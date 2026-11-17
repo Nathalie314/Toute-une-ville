@@ -1274,3 +1274,13 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   sauvegarde (« fenetre ») et repris au lancement. La phrase d'aide de la carte est remontée au-dessus des boutons.
 - Le joueur démarre doucement puis prend toute sa vitesse (25 % → 100 % en 0,45 s) : une petite pression sur une
   flèche ne fait qu'un petit pas, on peut se placer précisément même avec de gros bonus de vitesse.
+
+## Ferme exotique : un pays chaud, des bateaux sur la rivière
+- Demande : qu'on se croie dans un pays chaud et que les marchandises partent par bateau sur la rivière du nord
+  (pour faire sentir que l'endroit est loin), les points « camion » devenant « bateau ».
+- Les 4 quais (`riverDock`, sim/farm.go) sont au bord de la rivière, au nord, à droite des colonnes de fruits.
+  Un cargo vert « EXOTIQUE » attend au ponton, part vers la droite au départ ; le suivant arrive par la gauche.
+- Les quais étant loin des étals, les drones de l'exotique volent 4× plus vite : les livraisons ne ralentissent pas.
+- Points d'école : mêmes clés (pts_cam_vit, pts_cam_cap), mêmes effets, noms « Bateaux : départs / charge ».
+- Décor : palmiers, bananiers et hibiscus remplacent arbres, sapins et buissons ; perroquets en vol, singes aux
+  lianes, flamants roses au bord de l'eau (loin des quais), toucan près de la cascade.

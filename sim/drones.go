@@ -127,6 +127,9 @@ func (p *Place) stepDrones(dt float64) {
 	// (plus de soute ni d'hélices à acheter : seulement les points « mécaniciens » de l'école)
 	capa := DroneCap(g.Levels[p.key("pts_dr_cap")])
 	speed := DroneSpeed(g.Levels[p.key("pts_dr_vit")]) * g.boostF("garage", "") // (cadeau du garagiste)
+	if p.ID == "exotique" {
+		speed *= 4 // (les quais sont au bord de la rivière, loin des étals : le trajet ne doit pas durer plus)
+	}
 	for _, s := range p.Stations {
 		if s.Kind != Shelf || !s.Built || g.Levels[p.key(droneKey(s.Item))] == 0 {
 			continue
