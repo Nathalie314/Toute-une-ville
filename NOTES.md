@@ -1304,3 +1304,14 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Captures : `CAPTUTO=1 CAPSAVE=/inexistant` photographie les écrans du tutoriel.
 - Décidé : un dossier sans sauvegarde reprend celle d'AppData s'il y en a une (le joueur qui a lancé le jeu depuis le
   zip puis l'a extrait retrouve sa partie) ; la bienvenue n'apparaît donc que sans aucune sauvegarde, ou après une remise à zéro.
+
+## Lenteur sur téléphone (retour d'une testeuse Android, navigateur)
+- Constat : sur un téléphone, à la ferme du début, tout avançait au ralenti. Deux causes :
+  1. l'anticrénelage dessinait une image 2 fois plus grande que l'écran (≈ 4800 × 2160 points sur un téléphone) ;
+  2. chaque Update avançait le jeu de 1/60 s : à 10 images par seconde, le jeu tournait 6 fois trop lentement.
+- Navigateur avec un écran très fin (devicePixelRatio ≥ 1,75 : téléphones, tablettes, iPad) : plus de
+  sur-échantillonnage (k = 1), quatre fois moins de points à dessiner, sans différence visible.
+- Le temps du jeu suit l'horloge (main.go, Update) : quand l'appareil prend du retard, plusieurs pas de 1/60 s d'un
+  coup (10 au plus ; une longue pause n'est pas rattrapée, l'arrondi évite les saccades sur PC).
+- Mesure (Chromium logiciel, téléphone simulé, ferme) : images/s ×2 ; un compte à rebours avançait de 1 s pendant
+  20 s réelles, il avance maintenant presque au rythme de l'horloge.

@@ -113,6 +113,8 @@ type game struct {
 	helpSeen             bool
 	langThenHelp         bool // premier lancement : après le choix de la langue, l'aide
 	quit                 bool
+	lastTick             time.Time             // horloge du dernier Update (le temps du jeu suit le temps réel)
+	lag                  float64               // retard du jeu sur l'horloge (secondes)
 	tuto                 int                   // étape du tutoriel (tuto.go ; 0 : pas de tutoriel)
 	tutoBase             int                   // compteur au début de l'étape (clients servis, pousses…)
 	tutoT                float64               // temps passé dans l'étape
@@ -147,17 +149,32 @@ func (g *game) Update() error {
 		g.save()
 		return errQuit
 	}
-	g.t += dt
-	g.input(dt)
-	g.updateBus(dt)
-	g.sim.Step(dt)
-	g.handleEvents()
-	g.updateTuto(dt)
-	g.updateParticles(dt)
-	if g.scene == scenePlace && g.sim.Cur != nil {
-		g.updateCamera(g.sim.Cur, dt)
+	// le temps du jeu suit l'horloge : un appareil qui n'arrive pas à dessiner 60 images
+	// par seconde (téléphone) fait plusieurs pas de simulation d'un coup, au lieu de
+	// tourner au ralenti (au plus 10 par appel ; une longue pause n'est pas rattrapée ;
+	// un appel de rattrapage du navigateur, déjà compté, n'avance pas le jeu)
+	now := time.Now()
+	n := 1
+	if !g.lastTick.IsZero() {
+		g.lag += math.Min(0.25, now.Sub(g.lastTick).Seconds())
+		n = max(0, min(10, int(math.Floor(g.lag/dt+0.5)))) // (arrondi : un léger flottement de l'horloge ne saccade pas)
+		g.lag = math.Max(-dt, math.Min(dt, g.lag-float64(n)*dt))
 	}
-	g.saveT += dt
+	g.lastTick = now
+	step := float64(n) * dt
+	g.t += step
+	g.input(step)
+	g.updateBus(step)
+	for i := 0; i < n; i++ {
+		g.sim.Step(dt)
+		g.handleEvents()
+	}
+	g.updateTuto(step)
+	g.updateParticles(step)
+	if g.scene == scenePlace && g.sim.Cur != nil {
+		g.updateCamera(g.sim.Cur, step)
+	}
+	g.saveT += step
 	if g.saveT > 20 {
 		g.save()
 	}
@@ -362,7 +379,9 @@ func (g *game) Draw(screen *ebiten.Image) {
 	if scr.H > 1500 {
 		k = 1.5
 	}
-	if scr.H > 2200 {
+	if scr.H > 2200 || (isWeb && ebiten.Monitor().DeviceScaleFactor() >= 1.75) {
+		// (écran déjà très fin, téléphone ou tablette : pas de sur-échantillonnage,
+		// quatre fois moins de points à dessiner, et la différence ne se voit pas)
 		k = 1
 	}
 	scr.K = k
