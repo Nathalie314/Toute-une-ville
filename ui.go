@@ -1305,7 +1305,7 @@ func (g *game) drawMap(dst *ebiten.Image) {
 	g.flagButtons(dst, scr.VW-200, 70)
 	g.btn(dst, "?", scr.VW-400, 34, 76, 70, 0x9b6bd6, true, func() { g.openPanel(panelHelp) })
 	say(dst, "Clique sur un lieu, ou vas-y avec les flèches et reste dessus.", 50, scr.VH-128, 22, true, -1, rgba(0x1e3a12, 0.85)) // (au-dessus des boutons)
-	if b := g.sim.Boost; b != nil && b.Kind == "maire" { // le cadeau du maire : bien visible
+	if b := g.sim.Boost; b != nil && b.Kind == "maire" {                                                                           // le cadeau du maire : bien visible
 		txt := tr.F("Cadeau du maire : {quoi} ! Encore {temps}", "quoi", lowerTr(b.Text()), "temps", clock(b.Left))
 		w := textWidth(txt, 22, true) + 70
 		k := 0.5 + 0.5*math.Sin(g.t*4)
