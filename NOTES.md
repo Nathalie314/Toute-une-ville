@@ -1284,3 +1284,9 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Points d'école : mêmes clés (pts_cam_vit, pts_cam_cap), mêmes effets, noms « Bateaux : départs / charge ».
 - Décor : palmiers, bananiers et hibiscus remplacent arbres, sapins et buissons ; perroquets en vol, singes aux
   lianes, flamants roses au bord de l'eau (loin des quais), toucan près de la cascade.
+
+## Commandes : « Réussite » et « Échec »
+- Le cadre des commandes de la cantine (et du parc) affichait « Perte : 1 ★ », alors qu'une commande ratée y coûte
+  « l'école forme 2 fois moins vite » (ou « gains du parc ÷2 ») pendant 5 min, jamais une étoile.
+- Désormais : « Réussite : … » (le cadeau ou l'argent) et « Échec : … » ; pour la cantine et le parc, une ligne
+  rouge dit la vraie pénalité (Order.FailText, sim/gifts.go) ; ailleurs, « Échec : 1 ★ ».

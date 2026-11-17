@@ -67,13 +67,13 @@ func (g *game) drawOrderHUD(dst *ebiten.Image, x, y float64) {
 		lineW := 80.0
 		w, h := math.Max(380, 26+float64(len(o.Lines))*lineW+60), 74.0
 		if o.Gift != "" {
-			w = math.Max(w, textWidth("Cadeau : "+o.GiftText(), 15, true)+70)
+			w = math.Max(w, textWidth(tr.F("Réussite : {quoi}", "quoi", o.GiftText()), 15, true)+70)
 			h = 104
 		}
 		roundRect(dst, x, y, w, h, 16, rgba(0x2b2140, 0.75))
 		if o.Gift != "" {
 			drawGift(dst, x+24, y+86, 9)
-			sayFit(dst, "Cadeau : "+o.GiftText(), x+40, y+87, 15, true, -1, w-50, rgb(0xffe066))
+			sayFit(dst, tr.F("Réussite : {quoi}", "quoi", o.GiftText()), x+40, y+87, 15, true, -1, w-50, rgb(0xffe066))
 		}
 		m, sec := int(o.Left)/60, int(o.Left)%60
 		ts := itoa(m) + ":" + map[bool]string{true: "0", false: ""}[sec < 10] + itoa(sec)
@@ -97,9 +97,19 @@ func (g *game) drawOrderHUD(dst *ebiten.Image, x, y float64) {
 		lineW = 96
 	}
 	w, h := math.Max(500, 30+float64(len(o.Lines))*lineW), 142.0
+	win := ""
 	if o.Gift != "" {
-		w = math.Max(w, textWidth("Cadeau : "+o.GiftText(), 17, true)+70)
+		win = tr.F("Réussite : {quoi}", "quoi", o.GiftText())
 		h = 168
+	}
+	fail := o.FailText()
+	if fail != "" {
+		fail = tr.F("Échec : {quoi}", "quoi", fail)
+		h += 30
+		w = math.Max(w, textWidth(fail, 15, true)+40)
+	}
+	if win != "" {
+		w = math.Max(w, textWidth(win, 17, true)+70)
 	}
 	roundRect(dst, x, y, w, h, 18, rgba(0x2b2140, 0.82))
 	m := int(o.Left) / 60
@@ -111,23 +121,33 @@ func (g *game) drawOrderHUD(dst *ebiten.Image, x, y float64) {
 	}
 	sayFit(dst, "Commande : "+o.Who, x+16, y+22, 18, true, -1, w-90, rgb(0xffe066))
 	say(dst, ts, x+w-16, y+22, 20, true, 1, col)
-	// gain, perte, et livraison express
+	// réussite, échec, et livraison express
+	by := y + h // (bas des lignes du cadeau ; l'échec du parc ou de la cantine dessous)
+	if fail != "" {
+		by -= 30
+		sayFit(dst, fail, x+16, y+h-27, 15, true, -1, w-30, rgb(0xff8a8a))
+	}
+	starFail := func(yy float64) {
+		if fail == "" {
+			s := tr.T("Échec : 1")
+			say(dst, s, x+w-44, yy, 15, true, 1, rgb(0xff8a8a))
+			star(dst, x+w-28, yy-1, 8, rgb(0xffd23f))
+		}
+	}
 	if o.Gift != "" {
-		drawGift(dst, x+26, y+h-62, 10)
-		sayFit(dst, "Cadeau : "+o.GiftText(), x+44, y+h-60, 17, true, -1, w-60, rgb(0xffe066))
+		drawGift(dst, x+26, by-62, 10)
+		sayFit(dst, win, x+44, by-60, 17, true, -1, w-60, rgb(0xffe066))
 		if fl := o.FastLeft(); fl > 0 {
-			sayFit(dst, "Livrée avant "+clock(fl)+" : "+o.GiftExpress()+" !", x+16, y+h-30, 15, true, -1, w-140, rgb(0x7ed957))
+			sayFit(dst, "Livrée avant "+clock(fl)+" : "+o.GiftExpress()+" !", x+16, by-30, 15, true, -1, w-140, rgb(0x7ed957))
 		}
-		say(dst, "Perte : 1", x+w-44, y+h-30, 15, true, 1, rgb(0xff8a8a))
-		star(dst, x+w-28, y+h-31, 8, rgb(0xffd23f))
+		starFail(by - 30)
 	} else {
-		gain := "Gain : " + money(o.Reward)
+		gain := tr.F("Réussite : {prix}", "prix", money(o.Reward))
 		if fl := o.FastLeft(); fl > 0 {
-			gain = "Gain : " + money(2*o.Reward) + " si livrée avant " + clock(fl) + " (sinon " + money(o.Reward) + ")"
+			gain = tr.F("Réussite : {prix} si livrée avant {t} (sinon {prix2})", "prix", money(2*o.Reward), "t", clock(fl), "prix2", money(o.Reward))
 		}
-		sayFit(dst, gain, x+16, y+h-38, 15, true, -1, w-140, rgb(0x7ed957))
-		say(dst, "Perte : 1", x+w-44, y+h-38, 15, true, 1, rgb(0xff8a8a))
-		star(dst, x+w-28, y+h-39, 8, rgb(0xffd23f))
+		sayFit(dst, gain, x+16, by-38, 15, true, -1, w-140, rgb(0x7ed957))
+		starFail(by - 38)
 	}
 	for i, l := range o.Lines {
 		lx := x + 40 + float64(i)*lineW
