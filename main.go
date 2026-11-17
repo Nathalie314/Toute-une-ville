@@ -66,6 +66,7 @@ type button struct {
 
 type game struct {
 	wheelAcc  float64    // crans de molette pas encore utilisés par une liste
+	windowed  bool       // PC : le joueur préfère jouer en fenêtre (gardé dans la sauvegarde)
 	lastPlace *sim.Place // le dernier lieu visité (Tab sur la carte y ramène)
 	mapHover  string     // carte : le lieu sous la main ou la souris (un chiffre en fait un favori)
 	sim       *sim.Game
@@ -161,7 +162,7 @@ func (g *game) input(dt float64) {
 	g.updateHand(dt)
 	// plein écran
 	if inpututil.IsKeyJustPressed(ebiten.KeyF11) || (inpututil.IsKeyJustPressed(ebiten.KeyEnter) && ebiten.IsKeyPressed(ebiten.KeyAlt)) {
-		ebiten.SetFullscreen(!ebiten.IsFullscreen())
+		g.toggleWindow()
 	}
 	// les caractères tapés (et non la position des touches : sur un clavier AZERTY,
 	// la touche « , ? » est à la place du M d'un clavier anglais)
@@ -324,6 +325,14 @@ func (g *game) goPlace(p *sim.Place) {
 	g.camPos = g.sim.Player.Pos
 }
 
+// toggleWindow : plein écran ou fenêtre (F11, ou le bouton de la carte) ; le choix est gardé.
+func (g *game) toggleWindow() {
+	full := !ebiten.IsFullscreen()
+	ebiten.SetFullscreen(full)
+	g.windowed = !full
+	g.save()
+}
+
 func (g *game) toggleMute() {
 	g.snd.muted = !g.snd.muted
 }
@@ -452,8 +461,10 @@ func main() {
 	ebiten.SetWindowSize(1280, 720)
 	if isWeb {
 		onPageHide(g.save) // (navigateur : on enregistre quand on quitte la page)
-	} else if *capDir == "" && !*windowed {
+	} else if *capDir == "" && !*windowed && !g.windowed {
 		ebiten.SetFullscreen(true)
+	} else if *capDir == "" {
+		ebiten.SetWindowSize(1600, 900) // (en fenêtre : le choix du joueur est gardé)
 	} else {
 		ebiten.SetWindowSize(1600, 900)
 		var w, h int // CAPWIN=1200x900 : une autre taille de fenêtre (captures : écran d'iPad…)

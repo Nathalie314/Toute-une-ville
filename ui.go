@@ -1293,11 +1293,18 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		})
 	}
 	g.soundButtons(dst, scr.VW-520, scr.VH-100)
+	if !isWeb { // plein écran ou fenêtre (F11)
+		lbl := "Fenêtre"
+		if !ebiten.IsFullscreen() {
+			lbl = "Plein écran"
+		}
+		g.btn(dst, lbl, scr.VW-1000, scr.VH-100, 230, 70, 0x6a6a8a, true, func() { g.toggleWindow() })
+	}
 	g.btn(dst, "Recommencer à zéro", 50, scr.VH-100, 330, 70, 0x8a7a6a, true, func() { g.openPanel(panelReset) })
 	g.btn(dst, "Badges", scr.VW-760, scr.VH-100, 220, 70, 0xd4a017, true, func() { g.openPanel(panelBadges) })
 	g.flagButtons(dst, scr.VW-200, 70)
 	g.btn(dst, "?", scr.VW-400, 34, 76, 70, 0x9b6bd6, true, func() { g.openPanel(panelHelp) })
-	say(dst, "Clique sur un lieu, ou vas-y avec les flèches et reste dessus.", 420, scr.VH-62, 24, true, -1, rgba(0x1e3a12, 0.85))
+	say(dst, "Clique sur un lieu, ou vas-y avec les flèches et reste dessus.", 50, scr.VH-128, 22, true, -1, rgba(0x1e3a12, 0.85)) // (au-dessus des boutons)
 	if b := g.sim.Boost; b != nil && b.Kind == "maire" { // le cadeau du maire : bien visible
 		txt := tr.F("Cadeau du maire : {quoi} ! Encore {temps}", "quoi", lowerTr(b.Text()), "temps", clock(b.Left))
 		w := textWidth(txt, 22, true) + 70

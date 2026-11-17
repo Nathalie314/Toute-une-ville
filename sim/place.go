@@ -131,6 +131,7 @@ type Agent struct {
 	Face   V
 	Moving bool
 	WalkT  float64
+	holdT  float64 // joueur : depuis combien de temps il avance sans s'arrêter
 	Carry  []Item
 	Look   int
 	Team   string // ouvrier de la ferme : sa zone
@@ -1049,11 +1050,17 @@ func (g *Game) MovePlayer(dir V, dt float64) {
 		return
 	}
 	pl.Moving = dir.Len() > 0.05
-	if pl.Moving {
-		pl.Face = dir.Norm()
-		p.moveAgent(&pl.Pos, dir, p.agentSpeed(pl)*math.Min(1, dir.Len())*dt)
-		pl.WalkT += dt
+	if !pl.Moving {
+		pl.holdT = 0
+		return
 	}
+	// il démarre doucement, puis prend toute sa vitesse : une petite pression sur une
+	// flèche ne fait qu'un petit pas (à grande vitesse, on peut se placer précisément)
+	pl.holdT += dt
+	ramp := 0.25 + 0.75*math.Min(1, pl.holdT/0.45)
+	pl.Face = dir.Norm()
+	p.moveAgent(&pl.Pos, dir, p.agentSpeed(pl)*ramp*math.Min(1, dir.Len())*dt)
+	pl.WalkT += dt
 }
 
 // walk rapproche un PNJ de sa cible, en contournant les obstacles s'il bloque.
