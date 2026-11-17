@@ -1302,3 +1302,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   « Passer le tutoriel » l'arrête ; « Revoir le tutoriel » (aide de la carte) le relance sans rien effacer.
 - L'étape est gardée dans la sauvegarde (`tuto`, absent = 0 : les parties en cours ne le voient pas).
 - Captures : `CAPTUTO=1 CAPSAVE=/inexistant` photographie les écrans du tutoriel.
+- Décidé : un dossier sans sauvegarde reprend celle d'AppData s'il y en a une (le joueur qui a lancé le jeu depuis le
+  zip puis l'a extrait retrouve sa partie) ; la bienvenue n'apparaît donc que sans aucune sauvegarde, ou après une remise à zéro.
