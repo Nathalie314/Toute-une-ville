@@ -350,13 +350,26 @@ func drawFlatDecor(dst *ebiten.Image, c *decorCache, tl, br V) {
 }
 
 // decorDrawables : arbres, sapins, buissons et rochers, triés avec le reste.
-func decorDrawables(dst *ebiten.Image, c *decorCache, ds []drawable, tl, br V) []drawable {
+func decorDrawables(dst *ebiten.Image, c *decorCache, ds []drawable, tl, br V, tropical bool) []drawable {
 	for _, d := range c.tall {
 		d := d
 		if d.x < tl.X-150 || d.x > br.X+150 || d.y < tl.Y-40 || d.y > br.Y+260 {
 			continue
 		}
 		ds = append(ds, drawable{x: d.x, y: d.y, fn: func() {
+			if tropical { // un pays chaud : palmiers, bananiers, buissons d'hibiscus
+				switch d.kind {
+				case dTree:
+					drawTropicalPalm(dst, d.x, d.y, d.z, d.seed)
+					return
+				case dPine:
+					drawBananaPlant(dst, d.x, d.y, d.z, d.seed)
+					return
+				case dBush:
+					drawHibiscus(dst, d.x, d.y, d.z, d.seed)
+					return
+				}
+			}
 			switch d.kind {
 			case dTree:
 				drawTree(dst, d.x, d.y, d.z)
@@ -482,7 +495,7 @@ func mapTrees(dst *ebiten.Image, bx, by, bw, bh float64) {
 		if x > bx-40*z && x < bx+bw+40*z && y > by && y < by+bh+90*z {
 			continue // sur les tuiles
 		}
-		if y < 200 && (math.Abs(x-scr.VW/2) < 420 || x < 520 || x > scr.VW-460) || y > scr.VH-130 {
+		if y < 200 && (math.Abs(x-scr.VW/2) < 420 || x < 520 || x > scr.VW-460) || y > scr.VH-170 {
 			continue // le titre, les boutons
 		}
 		ok := true

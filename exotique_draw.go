@@ -432,3 +432,222 @@ func fern(dst *ebiten.Image, x, y, s float64) {
 		line(dst, x, y, x+math.Cos(a)*34*s, y+math.Sin(a)*26*s, 4*s, rgb(0x3d9a3a))
 	}
 }
+
+// drawRiverDock : un quai de la ferme exotique, au bord de la rivière : un ponton de
+// bois ; un bateau à moteur y accoste, se charge, puis part vers l'aval (à droite) ;
+// le suivant arrive de l'amont (à gauche).
+func (g *game) drawRiverDock(dst *ebiten.Image, s *sim.Station) {
+	b := s.Body
+	// le ponton (planches) et ses pilotis
+	roundRect(dst, b.X, b.Y-30, b.W, b.H+30, 6, rgb(0x7a5a36))
+	for x := b.X + 6; x < b.X+b.W-6; x += 22 {
+		rect(dst, x, b.Y-28, 18, b.H+26, rgb(0xa47a4a))
+	}
+	k := 0
+	for it := sim.Item(0); it < sim.NItems; it++ {
+		for n := 0; n < s.Buf[it] && k < 24; n++ {
+			drawItem(dst, it, b.X+16+float64(k%12)*17, b.Y+14-float64(k/12)*12, 11)
+			k++
+		}
+	}
+	left := g.sim.TruckLeft(s)
+	every := g.sim.DockEvery(s)
+	e := every - left // temps depuis le dernier départ
+	x0, y0 := b.C().X, exoRiverY+exoRiverH/2
+	if e < 2.5 { // le bateau qui vient de partir descend la rivière
+		f := e / 2.5
+		drawCargoBoat(dst, x0+2600*f*f, y0, true, g.t)
+	}
+	switch {
+	case e >= 4.5:
+		drawCargoBoat(dst, x0, y0, left < 2, g.t)
+		sayOutlined(dst, "Départ dans "+itoa(int(left))+" s", x0, y0-90, 16, 0, rgb(0xffffff), rgb(0x2b2b2b))
+	case e >= 1.5: // le suivant remonte vers le quai
+		f := (e - 1.5) / 3
+		drawCargoBoat(dst, x0-2600*(1-f)*(1-f), y0, true, g.t)
+	}
+}
+
+// drawCargoBoat : un petit bateau à moteur chargé de caisses (vu de côté, sur l'eau).
+func drawCargoBoat(dst *ebiten.Image, x, y float64, busy bool, t float64) {
+	bob := 2 * math.Sin(t*3+x/90)
+	y += bob
+	ellipse(dst, x+10, y+26, 130, 12, rgba(0x1f5f80, 0.45)) // reflet
+	polygon(dst, []V{{X: x - 120, Y: y - 6}, {X: x + 130, Y: y - 6}, {X: x + 100, Y: y + 26}, {X: x - 100, Y: y + 26}}, rgb(0x1f8a5a))
+	rect(dst, x-118, y-6, 246, 8, rgb(0xfff3c4))
+	// la cabine, à l'arrière
+	roundRect(dst, x-100, y-56, 64, 50, 8, rgb(0xf3ead8))
+	rect(dst, x-92, y-48, 48, 18, rgb(0x9fd3ff))
+	polygon(dst, []V{{X: x - 106, Y: y - 56}, {X: x - 30, Y: y - 56}, {X: x - 36, Y: y - 66}, {X: x - 100, Y: y - 66}}, rgb(0xc0623a))
+	// les caisses
+	for i := 0; i < 3; i++ {
+		cx := x - 20 + float64(i)*42
+		rect(dst, cx, y-36, 36, 30, rgb(0xb5835a))
+		rect(dst, cx, y-36, 36, 6, rgb(0xd09a6a))
+		line(dst, cx, y-36, cx+36, y-6, 2, rgba(0x6e4322, 0.6))
+	}
+	say(dst, "EXOTIQUE", x+10, y+12, 14, true, 0, rgb(0xffffff))
+	if busy { // l'écume du moteur
+		for k := 0; k < 4; k++ {
+			f := math.Mod(t*2+float64(k)/4, 1)
+			circle(dst, x-125-f*40, y+12+math.Sin(float64(k))*6, 6*(1-f)+2, rgba(0xffffff, 0.8*(1-f)))
+		}
+	}
+}
+
+// ---------------------------------------------------------------- un pays chaud
+
+// drawTropicalPalm : un grand palmier (décor), tronc courbé, palmes, parfois des noix.
+func drawTropicalPalm(dst *ebiten.Image, x, y, z float64, seed int) {
+	if cam.iso {
+		upright(x, y, func() { drawTropicalPalm(dst, x, y, z, seed) })
+		return
+	}
+	dropShadow(dst, x, y, 40*z, 14*z, 120*z)
+	lean := float64(seed%7-3) * 6 * z
+	h := (150 + float64(seed%40)) * z
+	for k := 0; k < 12; k++ { // le tronc, en anneaux
+		f := float64(k) / 12
+		cx := x + lean*f*f
+		circle(dst, cx, y-f*h, 9*z, rgb(0x9a7448))
+		line(dst, cx-8*z, y-f*h, cx+8*z, y-f*h, 2, rgb(0x7a5a33))
+	}
+	top := V{X: x + lean, Y: y - h}
+	greens := []uint32{0x2f8a35, 0x3fa040, 0x4fb84a}
+	for k := 0; k < 8; k++ { // les palmes, qui retombent
+		a := float64(k)*math.Pi/4 + float64(seed%5)*0.2
+		ex, ey := top.X+math.Cos(a)*80*z, top.Y+math.Sin(a)*34*z+28*z
+		mx, my := (top.X+ex)/2, (top.Y+ey)/2-18*z
+		line(dst, top.X, top.Y, mx, my, 9*z, rgb(greens[k%3]))
+		line(dst, mx, my, ex, ey, 7*z, rgb(greens[(k+1)%3]))
+	}
+	if seed%3 == 0 { // des noix de coco
+		for k := -1; k <= 1; k++ {
+			circle(dst, top.X+float64(k)*9*z, top.Y+10*z, 6*z, rgb(0x6e4a22))
+		}
+	}
+}
+
+// drawBananaPlant : un bananier (grandes feuilles qui retombent).
+func drawBananaPlant(dst *ebiten.Image, x, y, z float64, seed int) {
+	if cam.iso {
+		upright(x, y, func() { drawBananaPlant(dst, x, y, z, seed) })
+		return
+	}
+	dropShadow(dst, x, y, 36*z, 12*z, 70*z)
+	rect(dst, x-7*z, y-70*z, 14*z, 70*z, rgb(0x7a9a3a))
+	for k := 0; k < 6; k++ {
+		a := -math.Pi/2 + (float64(k)-2.5)*0.6
+		ex, ey := x+math.Cos(a)*70*z, y-70*z+math.Sin(a)*40*z+30*z
+		polygon(dst, []V{{X: x, Y: y - 72*z}, {X: (x+ex)/2 - 10*z, Y: (y-72*z+ey)/2 - 16*z}, {X: ex, Y: ey}, {X: (x+ex)/2 + 8*z, Y: (y-72*z+ey)/2 + 4*z}}, rgb([]uint32{0x4fb84a, 0x3fa040}[k%2]))
+	}
+	if seed%2 == 0 { // un régime de bananes
+		for k := 0; k < 4; k++ {
+			ellipse(dst, x+10*z, y-50*z+float64(k)*6*z, 8*z, 4*z, rgb(0xf0d040))
+		}
+	}
+}
+
+// drawHibiscus : un buisson tropical aux grandes fleurs rouges ou roses.
+func drawHibiscus(dst *ebiten.Image, x, y, z float64, seed int) {
+	if cam.iso {
+		upright(x, y, func() { drawHibiscus(dst, x, y, z, seed) })
+		return
+	}
+	dropShadow(dst, x, y, 36*z, 10*z, 24*z)
+	circle(dst, x-16*z, y-14*z, 20*z, rgb(0x2f7a32))
+	circle(dst, x+16*z, y-14*z, 19*z, rgb(0x2a6e2e))
+	circle(dst, x, y-26*z, 24*z, rgb(0x3f9b3a))
+	col := []uint32{0xe8304a, 0xff6fa8, 0xff8a3d, 0xffd23f}[seed%4]
+	for k := 0; k < 5; k++ {
+		a := float64(k)*1.3 + float64(seed%5)
+		fx, fy := x+math.Cos(a)*18*z, y-22*z+math.Sin(a)*11*z
+		for j := 0; j < 5; j++ {
+			b := float64(j) * 2 * math.Pi / 5
+			circle(dst, fx+math.Cos(b)*4*z, fy+math.Sin(b)*4*z, 3.5*z, rgb(col))
+		}
+		circle(dst, fx, fy, 2*z, rgb(0xffe36a))
+	}
+}
+
+// exoticAnimals : la faune : des perroquets qui volent, des singes dans les arbres de
+// la forêt, un toucan, des flamants roses au bord de la rivière.
+func exoticAnimals(dst *ebiten.Image, p *sim.Place, ds []drawable, tl, br V, t float64) []drawable {
+	x0, x1 := p.MinX(), p.MaxX()
+	add := func(x, y float64, fn func()) {
+		if x > tl.X-200 && x < br.X+200 && y > tl.Y-200 && y < br.Y+200 {
+			ds = append(ds, drawable{x: x, y: y, fn: fn})
+		}
+	}
+	// les perroquets (des aras), qui traversent le ciel en bande
+	for i := 0; i < 5; i++ {
+		fi := float64(i)
+		span := x1 - x0 + 1200
+		x := x0 - 600 + math.Mod(t*(140+fi*12)+fi*900, span)
+		y := exoForestY + 220 + 70*math.Sin(t*0.7+fi*2) + fi*40
+		col := []uint32{0xe8304a, 0x2f8ae0, 0x3fb84a, 0xffd23f, 0xe8304a}[i]
+		add(x, y+400, func() { drawParrot(dst, x, y, col, t+fi) })
+	}
+	// des singes, accrochés aux arbres de la lisière
+	for i := 0; i < 4; i++ {
+		fi := float64(i)
+		x := x0 + 700 + fi*(x1-x0-1400)/3
+		y := exoForestY + 20
+		add(x, y, func() { drawMonkey(dst, x, y, t+fi*1.3) })
+	}
+	// des flamants roses, au bord de la rivière (à l'écart des quais)
+	for i := 0; i < 3; i++ {
+		fi := float64(i)
+		x := x1 - 900 + fi*130 // (loin des quais)
+		y := exoRiverY + exoRiverH + 40 + fi*14
+		add(x, y, func() { drawFlamingo(dst, x, y, t+fi) })
+	}
+	// un toucan, posé sur un rocher près de la cascade
+	tx, ty := exoFallX+exoFallW+260, exoRiverY-30
+	add(tx, ty, func() { drawToucan(dst, tx, ty, t) })
+	return ds
+}
+
+func drawParrot(dst *ebiten.Image, x, y float64, col uint32, t float64) {
+	w := 14 * math.Sin(t*10)
+	ellipse(dst, x+30, y+260, 16, 5, rgba(0x000000, 0.15)) // (son ombre, loin en dessous)
+	polygon(dst, []V{{X: x - 4, Y: y}, {X: x - 26, Y: y - 6 - w}, {X: x - 10, Y: y + 4}}, rgb(col))
+	polygon(dst, []V{{X: x + 4, Y: y}, {X: x + 26, Y: y - 6 - w}, {X: x + 10, Y: y + 4}}, rgb(col))
+	ellipse(dst, x, y, 8, 14, rgb(col))
+	line(dst, x, y+10, x-2, y+26, 4, rgb(0x2f8ae0))
+	circle(dst, x, y-12, 6, rgb(col))
+	polygon(dst, []V{{X: x + 4, Y: y - 13}, {X: x + 11, Y: y - 10}, {X: x + 4, Y: y - 8}}, rgb(0x2b2b2b))
+}
+
+func drawMonkey(dst *ebiten.Image, x, y, t float64) {
+	sw := 8 * math.Sin(t*2)
+	line(dst, x, y-120, x+sw, y-40, 3, rgb(0x2f7a2a)) // la liane
+	cx, cy := x+sw, y-40
+	circle(dst, cx, cy, 14, rgb(0x7a4e2c))
+	circle(dst, cx, cy-18, 11, rgb(0x7a4e2c))
+	ellipse(dst, cx, cy-16, 7, 6, rgb(0xd9b48a))
+	circle(dst, cx-3, cy-19, 1.8, rgb(0x2b2b2b))
+	circle(dst, cx+3, cy-19, 1.8, rgb(0x2b2b2b))
+	line(dst, cx-8, cy-8, cx-2, cy-38, 4, rgb(0x7a4e2c))                   // le bras sur la liane
+	line(dst, cx+10, cy+6, cx+20, cy+22+4*math.Sin(t*3), 3, rgb(0x7a4e2c)) // la queue
+}
+
+func drawFlamingo(dst *ebiten.Image, x, y, t float64) {
+	ellipse(dst, x+6, y+2, 14, 4, rgba(0x000000, 0.15))
+	line(dst, x, y, x, y-40, 2.5, rgb(0xe07a90))
+	line(dst, x+3, y-20, x+8, y-30, 2, rgb(0xe07a90))
+	ellipse(dst, x, y-48, 16, 10, rgb(0xff8fb0))
+	bend := 4 * math.Sin(t*0.8)
+	line(dst, x+10, y-50, x+14+bend, y-74, 3.5, rgb(0xff8fb0))
+	circle(dst, x+14+bend, y-77, 5, rgb(0xff8fb0))
+	line(dst, x+17+bend, y-77, x+22+bend, y-72, 3, rgb(0x2b2b2b))
+}
+
+func drawToucan(dst *ebiten.Image, x, y, t float64) {
+	ellipse(dst, x, y+6, 30, 10, rgb(0x857f75)) // le rocher
+	ellipse(dst, x, y-14, 12, 16, rgb(0x1b1b1b))
+	ellipse(dst, x+2, y-18, 6, 8, rgb(0xffffff))
+	circle(dst, x+2, y-30, 9, rgb(0x1b1b1b))
+	polygon(dst, []V{{X: x + 8, Y: y - 34}, {X: x + 30, Y: y - 30 + 2*math.Sin(t)}, {X: x + 8, Y: y - 25}}, rgb(0xff9a1a))
+	circle(dst, x+4, y-32, 2, rgb(0xffffff))
+}
