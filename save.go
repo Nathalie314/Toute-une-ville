@@ -25,6 +25,8 @@ type saveFile struct {
 	Langue string `json:"langue,omitempty"`
 	// Fenetre : jouer en fenêtre plutôt qu'en plein écran (PC)
 	Fenetre bool `json:"fenetre,omitempty"`
+	// Tuto : étape du tutoriel en cours (0 : pas de tutoriel)
+	Tuto int `json:"tuto,omitempty"`
 }
 
 func (g *game) save() {
@@ -34,6 +36,7 @@ func (g *game) save() {
 	}
 	f := saveFile{Jeu: g.sim.Snapshot(time.Now().Unix()), Muet: g.snd != nil && g.snd.muted, Zoom: g.zoom, Aide: g.helpSeen, Langue: tr.Lang()}
 	f.Fenetre = g.windowed
+	f.Tuto = g.tuto
 	if g.snd != nil {
 		f.SansPetits, f.SansTel, f.SansMusique = g.snd.noSmall, g.snd.noPhone, g.snd.noMusic
 	}
@@ -74,6 +77,7 @@ func (g *game) load() {
 		g.openPanel(panelLang)
 		g.langThenHelp = true
 		g.helpSeen = true
+		g.newStart()
 		return
 	}
 	if !ok {
@@ -99,6 +103,7 @@ func (g *game) load() {
 		g.zoom = f.Zoom
 	}
 	g.windowed = f.Fenetre
+	g.tuto = f.Tuto
 	g.helpSeen = true
 	g.sim.Enter(g.sim.Places[0])
 	g.camPos = g.sim.Player.Pos

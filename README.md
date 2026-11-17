@@ -12,7 +12,7 @@
 
 **Toute une Ville** est un jeu de gestion « idle » **bilingue français / anglais**, pour Windows et le navigateur. Tu construis la ville de **Clairbourg**, lieu après lieu : une ferme, un supermarché, une école, une crèmerie, une ferme exotique, une boulangerie, un glacier, un port, une ferme d'élevage, une boucherie, un domaine viticole, une pâtisserie, un parc d'attractions (avec ses manèges, ses stands et son grand huit)… Tu récoltes, tu fabriques, tu vends, tu embauches. Puis tes employés, tes drones et tes camions travaillent pour toi, même quand le jeu est fermé.
 
-*Le jeu existe en français et en anglais : la langue se choisit au premier lancement, ou avec les drapeaux de la carte de la ville. Envie de le traduire dans ta langue ? Tout est expliqué dans [langues/LISEZMOI.txt](langues/LISEZMOI.txt).*
+*Le jeu existe en français et en anglais : la langue se choisit au premier lancement, ou avec les drapeaux de la carte de la ville. Au tout début, un **tutoriel** (facultatif) te guide pas à pas : ferme, école, mairie, vestiaire. Envie de le traduire dans ta langue ? Tout est expliqué dans [langues/LISEZMOI.txt](langues/LISEZMOI.txt).*
 
 ### ⬇️ Télécharger pour Windows
 
@@ -103,7 +103,7 @@ go test ./sim
 
 **Toute une Ville** ("A Whole Town") is a **bilingual English / French** idle management game, for Windows and the browser. You build the town of **ClearTown** (*Clairbourg* in French), one place at a time: a farm, a supermarket, a school, a dairy, an exotic farm, a bakery, an ice-cream parlour, a harbour, a livestock farm, a butcher's shop, a wine estate, a pastry shop, an amusement park (with its rides, its stands and its roller coaster)… You harvest, craft, sell and hire. Then your workers, drones and trucks keep working for you, even while the game is closed.
 
-*The game is available in English and in French: choose your language at first launch, or with the flags on the town map.*
+*The game is available in English and in French: choose your language at first launch, or with the flags on the town map. At the very start, an optional **tutorial** guides you step by step: farm, school, city hall, locker room.*
 
 ### ⬇️ Download for Windows
 

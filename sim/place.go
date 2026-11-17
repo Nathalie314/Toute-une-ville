@@ -290,6 +290,7 @@ type Place struct {
 	Price       float64 // prix d'achat sur la carte
 	Scale       float64 // coefficient de tous les prix du lieu (rang sur la carte, prices.go) ; 0 : 1
 	Served      int     // clients servis ici
+	Welcomed    int     // école : élèves inscrits à l'accueil depuis le lancement (tutoriel)
 	SellMult    float64 // multiplicateur des prix de vente
 	SpawnBase   float64 // temps moyen entre deux clients (1 produit)
 	WantMax     int     // nombre maximum de produits différents par client

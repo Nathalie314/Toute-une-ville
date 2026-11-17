@@ -39,6 +39,32 @@ func newSaveShots(dir, file string) *saveShots {
 			}
 			g.sim.Events = g.sim.Events[:0]
 		}
+		if os.Getenv("CAPTUTO") != "" { // CAPTUTO=1 : les écrans du tutoriel
+			ferme, ecole := g.sim.Place("ferme"), g.sim.Place("ecole")
+			s.queue = append(s.queue,
+				func(g *game) string { g.newStart(); g.openPanel(panelStart); return "tuto_0_bienvenue" },
+				func(g *game) string { g.panel = panelNone; g.setTuto(tutoMap); return "tuto_1_carte" },
+				func(g *game) string { g.goPlace(ferme); g.zoom = 1.15; g.setTuto(tutoHarvest); return "tuto_2_recolte" },
+				func(g *game) string { g.setTuto(tutoServe); return "tuto_4_client" },
+				func(g *game) string { g.setTuto(tutoSchool); return "tuto_10_ecole" },
+				func(g *game) string { g.goPlace(ecole); g.setTuto(tutoMairie); return "tuto_12_maison" },
+				func(g *game) string {
+					g.setTuto(tutoPoints)
+					g.openPanel(panelMairie)
+					g.ptsTab, g.ptsPlace = 0, "ferme"
+					return "tuto_13_points"
+				},
+				func(g *game) string {
+					g.closePanel()
+					g.goPlace(ferme)
+					g.setTuto(tutoVest)
+					return "tuto_15_vestiaire"
+				},
+				func(g *game) string { g.setTuto(tutoWard); g.openPanel(panelWardrobe); return "tuto_16_perso" },
+				func(g *game) string { g.closePanel(); g.setTuto(tutoBravo); return "tuto_17_bravo" },
+			)
+			return ""
+		}
 		if os.Getenv("CAPMAP") != "" { // CAPMAP=1 : la carte de la ville d'abord
 			s.queue = append(s.queue, func(g *game) string {
 				g.goMap()
