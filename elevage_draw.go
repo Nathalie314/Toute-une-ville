@@ -604,6 +604,47 @@ func drawItemMeat(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 			ellipse(dst, x-r*0.15, y+r*0.1, r*0.65, r*0.5, rgb(c))
 			line(dst, x+r*0.35, y-r*0.2, x+r*0.85, y-r*0.75, r*0.18, bone)
 			circle(dst, x+r*0.9, y-r*0.8, r*0.15, bone)
+		case sim.CoteAgneau:
+			// une côtelette d'agneau : un médaillon rose de gras, épais, la noix de viande rouge
+			// découpée par des veines de gras, puis un manche qui s'affine jusqu'à l'os
+			smooth := func(sh []V, n int) []V {
+				for k := 0; k < n; k++ {
+					var sm []V
+					for i, a := range sh {
+						b := sh[(i+1)%len(sh)]
+						sm = append(sm, a.Lerp(b, 0.25), a.Lerp(b, 0.75))
+					}
+					sh = sm
+				}
+				return sh
+			}
+			at := func(sh []V, dy float64) []V {
+				var ps []V
+				for _, q := range sh {
+					ps = append(ps, V{X: x + q.X*r, Y: y + (q.Y+dy)*r})
+				}
+				return ps
+			}
+			// l'os, derrière, qui descend vers la droite
+			line(dst, x+r*0.5, y-r*0.02, x+r*0.9, y+r*0.3, r*0.14, rgb(0xe8cfa8))
+			line(dst, x+r*0.5, y-r*0.05, x+r*0.9, y+r*0.26, r*0.07, rgb(0xf6e6c8))
+			ellipse(dst, x+r*0.9, y+r*0.3, r*0.08, r*0.08, rgb(0xe8cfa8))
+			body := smooth([]V{{X: -0.92, Y: -0.12}, {X: -0.82, Y: -0.42}, {X: -0.3, Y: -0.52}, {X: 0.18, Y: -0.5},
+				{X: 0.36, Y: -0.3}, {X: 0.62, Y: -0.12}, {X: 0.62, Y: 0.04}, {X: 0.35, Y: 0.04}, {X: 0.12, Y: 0.2},
+				{X: -0.3, Y: 0.28}, {X: -0.82, Y: 0.2}}, 2)
+			polygon(dst, at(body, 0.18), rgb(0xe3a2a6)) // l'épaisseur
+			polygon(dst, at(body, 0), rgb(0xf6cccb))    // le gras du dessus
+			meat := smooth([]V{{X: -0.8, Y: -0.14}, {X: -0.7, Y: -0.38}, {X: -0.3, Y: -0.45}, {X: 0.1, Y: -0.43},
+				{X: 0.22, Y: -0.28}, {X: 0.06, Y: -0.06}, {X: -0.3, Y: 0.12}, {X: -0.72, Y: 0.1}}, 2)
+			polygon(dst, at(meat, 0), rgb(0xe8403a))
+			ellipse(dst, x-r*0.45, y-r*0.28, r*0.16, r*0.06, rgba(0xff9a80, 0.45))
+			vein := rgba(0xf8e0d0, 0.9) // les veines de gras
+			line(dst, x-r*0.2, y-r*0.44, x-r*0.12, y-r*0.2, r*0.03, vein)
+			line(dst, x-r*0.12, y-r*0.2, x+r*0.12, y-r*0.3, r*0.03, vein)
+			line(dst, x-r*0.12, y-r*0.2, x-r*0.2, y+r*0.05, r*0.03, vein)
+			line(dst, x-r*0.75, y-r*0.06, x-r*0.4, y-r*0.1, r*0.03, vein)
+			line(dst, x-r*0.4, y-r*0.1, x-r*0.2, y+r*0.05, r*0.03, vein)
+			ellipse(dst, x+r*0.05, y+r*0.14, r*0.3, r*0.04, rgba(0xffffff, 0.3)) // un reflet sur le bord
 		case sim.MorceauxVeau:
 			for i := 0; i < 3; i++ {
 				roundRect(dst, x-r*0.8+float64(i)*r*0.55, y-r*0.3+float64(i%2)*r*0.2, r*0.5, r*0.45, r*0.12, rgb(c))

@@ -1411,3 +1411,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Carcasses de mouton et d'agneau au style du bœuf (mouton plus petit, plus sombre et plus gras ; agneau petit et
   rosé) ; le porc d'après son image (pendu par les pattes arrière à une barre, ouvert au milieu : échine et côtes).
 - Poulet rôti d'après son image : couché sur le flanc, cerné de brun, aile repliée, deux cuisses aux os blancs.
+- Côtes d'agneau d'après son image : médaillon rose épais, noix de viande rouge veinée de gras, manche jusqu'à l'os.
