@@ -299,6 +299,13 @@ var boucherieSpec = workshopSpec{
 func newBoucherie(g *Game) *Place {
 	p := newWorkshop(g, boucherieSpec)
 	p.SpawnBase = 11 // les clients sont rares (mais achètent cher)
+	// le quai du supermarché au milieu de la boutique (les drones des vitrines y vont de partout
+	// moins loin) ; celui de la crêperie reste à droite
+	if q := p.Station("quai"); q != nil {
+		x := p.W/2 - 115
+		q.Body = Rect{x, 1585, 230, 50}
+		q.Zone = Rect{x - 10, 1470, 250, 110}
+	}
 	// machines et vitrines : chaque espace dans ses colonnes
 	sy := float64(workshopShY)
 	for _, r := range boucherieSpec.recipes {
