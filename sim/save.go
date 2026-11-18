@@ -126,6 +126,7 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 	migrateEpices(s)
 	migrateAbattoirs(s)
 	migrateAvocatier(s)
+	migrateRayonsAgrumes(s)
 	g.Money = s.Money
 	if s.Levels != nil {
 		g.Levels = s.Levels
@@ -481,6 +482,33 @@ func migrateAvocatier(s *Save) {
 	}
 	for id, c := range map[string][2]float64{"citronnier": {34000, 36000}, "oranger": {36000, 38000},
 		"pressoir_citron": {37000, 40000}, "pressoir_orange": {40000, 43000}} {
+		if v := ps.Paid[id]; v >= c[0]*0.99 && v < c[1] {
+			ps.Paid[id] = c[1]
+		}
+	}
+}
+
+// RayonsAgrumesKey : marque des parties où les rayons des agrumes ont leurs prix d'après l'avocatier.
+const RayonsAgrumesKey = "super.rayons_agrumes"
+
+// migrateRayonsAgrumes : le prix d'un rayon suit celui de ce qui le fabrique (fixRayonCosts) ;
+// avec l'avocatier, les rayons citrons, oranges, limonade et jus d'orange coûtent plus.
+// Un rayon payé à l'ancien prix reste payé (sinon il resterait 1 000 à 1 500 à payer).
+func migrateRayonsAgrumes(s *Save) {
+	if s.Levels == nil {
+		s.Levels = map[string]int{}
+	}
+	if s.Levels[RayonsAgrumesKey] > 0 {
+		return
+	}
+	s.Levels[RayonsAgrumesKey] = 1
+	ps := s.Places["super"]
+	if ps == nil || ps.Paid == nil {
+		return
+	}
+	for it, c := range map[Item][2]float64{Citron: {19500, 20500}, Orange: {20500, 21500},
+		Limonade: {21000, 22500}, JusOrange: {22500, 24000}} {
+		id := "r_" + itoa(int(it))
 		if v := ps.Paid[id]; v >= c[0]*0.99 && v < c[1] {
 			ps.Paid[id] = c[1]
 		}

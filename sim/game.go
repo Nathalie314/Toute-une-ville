@@ -213,6 +213,7 @@ func NewGame() *Game {
 		g.Levels["ecole.prof_"+sc.Rooms[0].ID] = 1
 	}
 	g.Levels[AvocatierKey] = 1
+	g.Levels[RayonsAgrumesKey] = 1
 	g.Levels[AbattoirsKey] = 1 // (les abattoirs de la ferme d'élevage s'achètent à part)
 	g.Player = &Agent{Kind: PlayerAgent, Face: V{0, 1}}
 	g.Enter(g.Places[0])

@@ -1431,3 +1431,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   fruits (330 000). Prix relevés derrière lui : citronnier 36 000, oranger 38 000, pressoirs 40 000 et 43 000 ;
   citrons 70, oranges 76, limonade 120, jus d'orange 130. Anciennes parties : ce qui était payé reste payé
   (migrateAvocatier, marque exotique.avocatier).
+- Correctif : avec l'avocatier, les rayons citrons, oranges, limonade et jus d'orange (prix suivant ceux de la ferme
+  exotique) coûtaient 1 000 à 1 500 de plus : déjà payés, ils semblaient « à 1 000 € ». Payés à l'ancien prix, ils
+  restent payés (migrateRayonsAgrumes, marque super.rayons_agrumes).
