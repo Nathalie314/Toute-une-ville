@@ -698,8 +698,27 @@ func (g *game) drawStation(dst *ebiten.Image, p *sim.Place, s *sim.Station) {
 			rect(dst, x-3, b.Y+52, 6, 30, rgb(0xc9a36a))
 			rect(dst, x-3, b.Y+b.H-24, 6, 26, rgb(0xc9a36a))
 		}
-		for k := 0; k < 2; k++ {
-			drawPig(dst, ex+40+float64(k)*60+math.Sin(t*0.8+float64(k)*2)*8, b.Y+110+float64(k)*14, t+float64(k))
+		if b.W < 400 { // (la petite porcherie de ma ferme)
+			for k := 0; k < 2; k++ {
+				drawPig(dst, ex+40+float64(k)*60+math.Sin(t*0.8+float64(k)*2)*8, b.Y+110+float64(k)*14, t+float64(k))
+			}
+			break
+		}
+		// la grande porcherie : une deuxième mare de boue, des truies suivies de leurs porcelets, des cochons
+		ellipse(dst, b.X+b.W-110, b.Y+150, 50, 14, rgb(0x7a5a3a))
+		w := b.W - 130
+		for k := 0; k < 3; k++ { // les truies (plus grosses) et leurs porcelets
+			sx := ex + 70 + float64(k)*w/3 + math.Sin(t*0.5+float64(k)*2)*14
+			sy := b.Y + 105 + float64(k%2)*30
+			scaled(sx, sy, 1.2, func() { drawPig(dst, sx, sy, t+float64(k)) })
+			for j := 0; j < 2+k%2; j++ {
+				px := sx - 40 - float64(j)*22 + math.Sin(t*1.3+float64(j+k))*4
+				py := sy + 14 + float64(j%2)*8
+				scaled(px, py, 0.55, func() { drawPig(dst, px, py, t*1.5+float64(j)) })
+			}
+		}
+		for k := 0; k < 2; k++ { // les cochons
+			drawPig(dst, ex+w/6+float64(k)*w/3+math.Sin(t*0.8+float64(k)*2)*10, b.Y+150-float64(k)*8, t+float64(k)+5)
 		}
 	case "mare":
 		// cabane des canards et leur mare

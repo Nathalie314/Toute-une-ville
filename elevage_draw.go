@@ -34,14 +34,16 @@ func (g *game) elevageGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	roundRect(dst, 120, 140, p.W-300, 215, 24, rgba(0xb9b3a8, 0.9))
 	say(dst, "RÉSERVE (camions de ma ferme)", 1150, 160, 18, true, 0, rgba(0x4a4a4a, 0.75))
 	roundRect(dst, 100, 1000, p.W-200, 30, 14, path)
-	// la chambre froide : le sol carrelé sous les frigos
-	roundRect(dst, 140, 1030, p.W-750, 210, 20, rgb(0xdfe9ef))
-	for x := 150.0; x < p.W-620; x += 48 {
+	// la chambre froide : le sol carrelé sous les frigos, jusqu'au bout de l'espace des porcs
+	zs := sim.TeamZones(p.ID)
+	cx1 := zs[len(zs)-1].X1
+	roundRect(dst, 140, 1030, cx1-140, 210, 20, rgb(0xdfe9ef))
+	for x := 150.0; x < cx1-10; x += 48 {
 		line(dst, x, 1034, x, 1236, 1.5, rgba(0xa9bcc8, 0.6))
 	}
-	say(dst, "CHAMBRE FROIDE", p.W-750, 1214, 16, true, 0, rgba(0x2b4a66, 0.7))
+	say(dst, "CHAMBRE FROIDE", cx1-120, 1214, 16, true, 0, rgba(0x2b4a66, 0.7))
 	// pistes des drones
-	roundRect(dst, 140, 1320, p.W-750, 140, 20, rgba(0x8a8f96, 0.35))
+	roundRect(dst, 140, 1320, cx1-140, 140, 20, rgba(0x8a8f96, 0.35))
 	road(dst, tl, br, 1640)
 	// la route du haut : les camions de ma ferme y roulent jusqu'à la réserve
 	rect(dst, tl.X-10, 10, br.X-tl.X+20, 100, rgb(0x6b6f74))
@@ -154,15 +156,18 @@ func drawMeadow(dst *ebiten.Image, s *sim.Station, t float64) {
 	}
 	rect(dst, b.X, b.Y+18, b.W, 4, fc)
 	rect(dst, b.X, b.Y+b.H-16, b.W, 4, fc)
-	// les bêtes : deux adultes, le mâle, deux petits
+	// les bêtes, réparties sur tout le pré : des adultes, le mâle, des petits
+	cols := max(3, int((b.W-180)/100))
+	n := 2 * cols
+	nBig := n - n/3
 	move := func(k int) (float64, float64) {
-		x := b.X + 150 + float64(k%3)*90 + math.Sin(t*0.4+float64(k)*1.9)*18
-		y := b.Y + 80 + float64(k/3)*60 + math.Cos(t*0.3+float64(k))*6
+		x := b.X + 150 + float64(k%cols)*(b.W-200)/float64(cols) + float64(k/cols)*40 + math.Sin(t*0.4+float64(k)*1.9)*18
+		y := b.Y + 80 + float64(k/cols)*60 + math.Cos(t*0.3+float64(k))*6
 		return x, y
 	}
-	for k := 0; k < 5; k++ {
+	for k := 0; k < n; k++ {
 		x, y := move(k)
-		big := k < 3
+		big := k < nBig
 		sc := 0.8
 		if !big {
 			sc = 0.55

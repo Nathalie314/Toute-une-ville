@@ -1416,3 +1416,7 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   os à droite, une tranche posée devant.
 - Saucisse d'après son image : une saucisse rouge courbée, nouée aux deux bouts, bord sombre, entailles et reflet.
 - Jambon d'après son image : deux tranches roses en haricot, l'une sur l'autre, couenne rouge foncé, liseré clair.
+- Boulangerie aérée : vitrines écartées (280 au lieu de 190 ; champ shelfStep des ateliers, les autres inchangés).
+- Ferme d'élevage : les prés des bovins et des ovins remplissent leur espace (630 de large, case « Stock + » au bout) ;
+  l'espace des porcs a la même taille que les autres (lieu élargi à 4150, compost déplacé), grande porcherie avec
+  truies, porcelets et cochons ; la chambre froide et la piste des drones vont jusqu'au bout de l'espace des porcs.

@@ -31,7 +31,7 @@ var elevageZones = []*ShopZone{
 	{ID: "volaille", Name: "Volaille", X0: 150, X1: 1110, RestY: 1262, Costs: []float64{3000, 9000, 24000, 55000}},
 	{ID: "bovin", Name: "Bovins", X0: 1160, X1: 2010, RestY: 1262, Costs: []float64{12000, 30000, 70000}},
 	{ID: "ovin", Name: "Ovins", X0: 2060, X1: 2910, RestY: 1262, Costs: []float64{18000, 42000, 90000}},
-	{ID: "porc", Name: "Porcs", X0: 2960, X1: 3410, RestY: 1262, Costs: []float64{24000, 55000}},
+	{ID: "porc", Name: "Porcs", X0: 2960, X1: 3810, RestY: 1262, Costs: []float64{24000, 55000}},
 }
 
 var boucherieZones = []*ShopZone{
@@ -87,7 +87,7 @@ const (
 var elevageAnimals = map[string]bool{"poulailler": true, "mare": true, "pre_bovin": true, "pre_ovin": true, "porcherie": true}
 
 func newElevage(g *Game) *Place {
-	W := 3850.0 // (bâtiments d'animaux et abattoirs espacés : leur case « Stock + » à droite)
+	W := 4150.0 // (bâtiments d'animaux et abattoirs espacés : leur case « Stock + » à droite)
 	p := &Place{ID: "elevage", Name: "La ferme d'élevage", W: W, H: 1800, g: g, rng: rand.New(rand.NewSource(53)),
 		Rep: 3, Price: elevagePrice, SellMult: 1, SpawnBase: 5, WantMax: 3, MaxCust: 0, LeaveOff: V{170, 60}, OnlyStocked: true}
 	p.SpawnL = V{350, roadY + 40}
@@ -117,7 +117,7 @@ func newElevage(g *Game) *Place {
 		return s
 	}
 	pre := func(id, name, team string, in, a, b Item, x, t float64, unl string) {
-		s := mach(id, name, team, in, a, x, rowA, 420, 180, t, unl)
+		s := mach(id, name, team, in, a, x, rowA, 630, 180, t, unl) // (le pré remplit son espace, sa case « Stock + » au bout)
 		s.Two, s.Item2 = true, b
 		s.OutZone2 = Rect{x + 280, rowA + 180 + 18, 130, 90}
 	}
@@ -150,13 +150,13 @@ func newElevage(g *Game) *Place {
 	frigo("ovin", MoutonCarcasse, 2110, "abattoir_mouton")
 	frigo("ovin", AgneauCarcasse, 2350, "abattoir_agneau")
 	// porcs : la porcherie (pommes de terre), son abattoir
-	mach("porcherie", "Porcherie", "porc", PommeDeTerre, Cochon, 3010, rowA, 260, 180, 5, "porc")
+	mach("porcherie", "Porcherie", "porc", PommeDeTerre, Cochon, 3010, rowA, 630, 180, 5, "porc") // (aussi grande que les prés)
 	mach("abattoir_porc", "Abattoir : porcs", "porc", Cochon, Porc, 3010, rowB, 260, 140, 4, "abattoir_porc")
 	frigo("porc", Porc, 3060, "abattoir_porc")
 
 	trash := &Station{ID: "poubelle", Name: "Poubelle", Kind: Trash}
-	trash.Body = Rect{3530, rowA + 50, 70, 70} // (le compost, à droite de la porcherie et de sa case « Stock + »)
-	trash.Zone = Rect{3510, rowA + 10, 110, 150}
+	trash.Body = Rect{3880, rowA + 50, 70, 70} // (le compost, à droite de l'espace des porcs)
+	trash.Zone = Rect{3860, rowA + 10, 110, 150}
 	p.Stations = append(p.Stations, trash)
 	p.dock("quai", "boucherie", 1740) // le camion frigorifique (entre les frigos des bovins et ceux des ovins)
 
