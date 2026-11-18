@@ -1420,3 +1420,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Ferme d'élevage : les prés des bovins et des ovins remplissent leur espace (630 de large, case « Stock + » au bout) ;
   l'espace des porcs a la même taille que les autres (lieu élargi à 4150, compost déplacé), grande porcherie avec
   truies, porcelets et cochons ; la chambre froide et la piste des drones vont jusqu'au bout de l'espace des porcs.
+- Ferme d'élevage plus aérée : quatre espaces de même largeur (1090) écartés de 60, bâtiments espacés (allée de
+  ~200 entre deux), prés et porcherie de 850 ; une large allée entre animaux et abattoirs (rowB 790), frigos plus bas
+  (1185) et centrés sous leur abattoir ; drones juste au-dessus du quai (PadOff 94) ; lieu élargi à 5050.

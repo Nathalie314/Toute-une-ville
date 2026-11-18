@@ -26,24 +26,24 @@ func (g *game) elevageGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		if !open {
 			a = 0.35
 		}
-		roundRect(dst, z.X0, 360, z.X1-z.X0, 700, 30, rgba(c, a))
+		roundRect(dst, z.X0, 360, z.X1-z.X0, 705, 30, rgba(c, a))
 		roundRect(dst, (z.X0+z.X1)/2-110, 366, 220, 34, 10, rgba(0x5a3a22, 0.8))
 		say(dst, strings.ToUpper(z.Name), (z.X0+z.X1)/2, 383, 18, true, 0, rgb(0xffeab0))
 	}
 	// la réserve en haut, les chemins
 	roundRect(dst, 120, 140, p.W-300, 215, 24, rgba(0xb9b3a8, 0.9))
 	say(dst, "RÉSERVE (camions de ma ferme)", 1150, 160, 18, true, 0, rgba(0x4a4a4a, 0.75))
-	roundRect(dst, 100, 1000, p.W-200, 30, 14, path)
+	roundRect(dst, 100, 1055, p.W-200, 26, 14, path)
 	// la chambre froide : le sol carrelé sous les frigos, jusqu'au bout de l'espace des porcs
 	zs := sim.TeamZones(p.ID)
 	cx1 := zs[len(zs)-1].X1
-	roundRect(dst, 140, 1030, cx1-140, 210, 20, rgb(0xdfe9ef))
+	roundRect(dst, 140, 1081, cx1-140, 240, 20, rgb(0xdfe9ef))
 	for x := 150.0; x < cx1-10; x += 48 {
-		line(dst, x, 1034, x, 1236, 1.5, rgba(0xa9bcc8, 0.6))
+		line(dst, x, 1085, x, 1317, 1.5, rgba(0xa9bcc8, 0.6))
 	}
-	say(dst, "CHAMBRE FROIDE", cx1-120, 1214, 16, true, 0, rgba(0x2b4a66, 0.7))
+	say(dst, "CHAMBRE FROIDE", cx1-120, 1300, 16, true, 0, rgba(0x2b4a66, 0.7))
 	// pistes des drones
-	roundRect(dst, 140, 1320, cx1-140, 140, 20, rgba(0x8a8f96, 0.35))
+	roundRect(dst, 140, 1335, cx1-140, 125, 20, rgba(0x8a8f96, 0.35))
 	road(dst, tl, br, 1640)
 	// la route du haut : les camions de ma ferme y roulent jusqu'à la réserve
 	rect(dst, tl.X-10, 10, br.X-tl.X+20, 100, rgb(0x6b6f74))
