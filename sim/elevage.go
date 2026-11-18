@@ -299,6 +299,13 @@ var boucherieSpec = workshopSpec{
 func newBoucherie(g *Game) *Place {
 	p := newWorkshop(g, boucherieSpec)
 	p.SpawnBase = 11 // les clients sont rares (mais achètent cher)
+	// le quai du supermarché au milieu de la boutique (les drones des vitrines y vont de partout
+	// moins loin) ; celui de la crêperie reste à droite
+	if q := p.Station("quai"); q != nil {
+		x := p.W/2 - 115
+		q.Body = Rect{x, 1585, 230, 50}
+		q.Zone = Rect{x - 10, 1470, 250, 110}
+	}
 	// machines et vitrines : chaque espace dans ses colonnes
 	sy := float64(workshopShY)
 	for _, r := range boucherieSpec.recipes {
@@ -327,6 +334,17 @@ func newBoucherie(g *Game) *Place {
 			}
 		}
 		sx := 500 + float64(first)*620 + float64(k)*200
+		if z := boucherieZones[c[2]]; z.ID == "volaille" {
+			// la volaille : ses vitrines s'étalent sur tout son espace (jeu aéré)
+			n := 0
+			for _, o := range boucherieSpec.recipes {
+				if boucherieCell[o.id][2] == c[2] {
+					n++
+				}
+			}
+			step := (z.X1 - z.X0) / float64(n)
+			sx = z.X0 + float64(k)*step + (step-150)/2
+		}
 		sh.Body = Rect{sx, sy, 150, shelfH}
 		sh.Zone = Rect{sx - 10, sy - 95, 170, 92}
 		sh.Spot = V{sx + 75, sy + shelfH + 38}

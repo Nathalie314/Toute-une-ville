@@ -369,7 +369,39 @@ func drawItemMeat(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		roundRect(dst, x-r*0.85, y-r*0.55, r*1.7, r*1.1, r*0.2, rgb(0x3a3a5a)) // terrine
 		ellipse(dst, x, y-r*0.15, r*0.6, r*0.35, rgb(0xf0c8a0))
 		ellipse(dst, x-r*0.2, y-r*0.2, r*0.2, r*0.1, rgba(0xffffff, 0.5))
-	case sim.Steak, sim.RotiBoeuf, sim.MorceauxVeau, sim.Gigot, sim.CoteAgneau, sim.Cotelette:
+	case sim.Steak:
+		// une côte de bœuf vue de dessus : le bord cuit (brun), le gras (crème), la viande
+		// rouge orangé coupée par l'os en T, la moelle au bout
+		shape := []V{{X: -0.95, Y: 0.05}, {X: -0.85, Y: -0.25}, {X: -0.55, Y: -0.36}, {X: -0.1, Y: -0.36}, {X: 0.3, Y: -0.46},
+			{X: 0.68, Y: -0.64}, {X: 0.9, Y: -0.57}, {X: 0.96, Y: -0.36}, {X: 0.9, Y: -0.05}, {X: 0.7, Y: 0.18},
+			{X: 0.4, Y: 0.32}, {X: 0, Y: 0.38}, {X: -0.5, Y: 0.4}, {X: -0.85, Y: 0.3}}
+		for it := 0; it < 3; it++ { // (des bords arrondis : on coupe les coins, trois fois)
+			var sm []V
+			for i, a := range shape {
+				b := shape[(i+1)%len(shape)]
+				sm = append(sm, a.Lerp(b, 0.25), a.Lerp(b, 0.75))
+			}
+			shape = sm
+		}
+		at := func(k, dy float64) []V {
+			var ps []V
+			for _, q := range shape {
+				ps = append(ps, V{X: x + q.X*r*k, Y: y - r*0.08 + q.Y*r*k + dy})
+			}
+			return ps
+		}
+		polygon(dst, at(1, r*0.28), rgb(0x9a4a1a)) // l'épaisseur
+		polygon(dst, at(1, 0), rgb(0xf3e3b0))      // le gras
+		polygon(dst, at(0.84, 0), rgb(0xf0642a))   // la viande
+		ellipse(dst, x-r*0.35, y-r*0.05, r*0.25, r*0.12, rgba(0xffa070, 0.45))
+		// l'os en T et la moelle
+		cream := rgb(0xf3e3b0)
+		line(dst, x-r*0.55, y-r*0.36, x+r*0.05, y-r*0.06, r*0.08, cream)
+		line(dst, x+r*0.05, y-r*0.06, x+r*0.62, y-r*0.5, r*0.08, cream)
+		line(dst, x+r*0.05, y-r*0.06, x+r*0.05, y+r*0.3, r*0.08, cream)
+		circle(dst, x+r*0.62, y-r*0.5, r*0.15, cream)
+		circle(dst, x+r*0.62, y-r*0.5, r*0.1, rgb(0xeeeeea))
+	case sim.RotiBoeuf, sim.MorceauxVeau, sim.Gigot, sim.CoteAgneau, sim.Cotelette:
 		c := map[sim.Item]uint32{sim.Steak: 0xb03030, sim.RotiBoeuf: 0xa83a30, sim.MorceauxVeau: 0xd9706a, sim.Gigot: 0xa84a38, sim.CoteAgneau: 0xd06a60, sim.Cotelette: 0xf0a0a8}[it]
 		switch it {
 		case sim.RotiBoeuf:

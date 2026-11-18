@@ -1396,3 +1396,10 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   comme la crêperie).
 - Son aide : « Chaque espace a ses éleveurs » retiré ; son conseil (écrit par elle) : améliorer les drones et les
   camions pour que les livraisons à la boucherie soient régulières.
+
+## Boucherie : vitrines de volaille écartées, nouveau steak
+- Les 6 vitrines de la volaille s'étalent sur tout son espace (de 440 à 2 300), au lieu d'être serrées à gauche.
+- Le steak (d'après son image) : une côte de bœuf vue de dessus, bord cuit brun, gras crème, viande rouge orangé,
+  l'os en T et la moelle ; bords arrondis (coins coupés trois fois).
+- Le quai du supermarché de la boucherie est au milieu de la boutique (W/2) : les drones des vitrines y vont de partout
+  sans traverser tout le lieu. Celui de la crêperie reste à droite.
