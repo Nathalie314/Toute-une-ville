@@ -1408,3 +1408,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - D'après ses images : la cuisse de poulet (haut de cuisse en biais, pilon fin et son petit bout, peau dorée et
   grains d'épices), le steak haché (palet rose épais, sillons de viande hachée en biais), le rôti de bœuf (boudin rouge
   sombre ficelé, en travers et en long, nœuds en haut).
+- Carcasses de mouton et d'agneau au style du bœuf (mouton plus petit, plus sombre et plus gras ; agneau petit et
+  rosé) ; le porc d'après son image (pendu par les pattes arrière à une barre, ouvert au milieu : échine et côtes).
+- Poulet rôti d'après son image : couché sur le flanc, cerné de brun, aile repliée, deux cuisses aux os blancs.
