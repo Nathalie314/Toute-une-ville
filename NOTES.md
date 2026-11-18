@@ -1412,3 +1412,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   rosé) ; le porc d'après son image (pendu par les pattes arrière à une barre, ouvert au milieu : échine et côtes).
 - Poulet rôti d'après son image : couché sur le flanc, cerné de brun, aile repliée, deux cuisses aux os blancs.
 - Côtes d'agneau d'après son image : médaillon rose épais, noix de viande rouge veinée de gras, manche jusqu'à l'os.
+- Gigot de mouton d'après son image : gigot rôti orangé coupé à gauche (tranche rouge, bord rose, os rond), manche et
+  os à droite, une tranche posée devant.

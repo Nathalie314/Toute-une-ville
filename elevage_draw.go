@@ -601,9 +601,51 @@ func drawItemMeat(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 				circle(dst, x-r*0.64+float64(k)*r*0.32, y-r*0.24-(1-u*u)*r*0.05, r*0.045, rgb(0xe0d0a8))
 			}
 		case sim.Gigot:
-			ellipse(dst, x-r*0.15, y+r*0.1, r*0.65, r*0.5, rgb(c))
-			line(dst, x+r*0.35, y-r*0.2, x+r*0.85, y-r*0.75, r*0.18, bone)
-			circle(dst, x+r*0.9, y-r*0.8, r*0.15, bone)
+			// un gigot rôti, doré orangé, coupé à gauche (la tranche rouge, son bord rose et l'os
+			// rond au milieu), le manche et son os à droite ; une tranche posée devant
+			crust, crustD, rim, red, pale := rgb(0xe8642a), rgb(0xc44a1a), rgb(0xf6c4bc), rgb(0xdc3e4a), rgb(0xf8dcd4)
+			knob := rgb(0xf6d6c8)
+			line(dst, x+r*0.6, y+r*0.16, x+r*0.8, y+r*0.16, r*0.11, knob) // l'os du manche
+			circle(dst, x+r*0.82, y+r*0.1, r*0.075, knob)
+			circle(dst, x+r*0.82, y+r*0.23, r*0.075, knob)
+			shape := []V{{X: -0.32, Y: -0.53}, {X: 0.05, Y: -0.56}, {X: 0.32, Y: -0.42}, {X: 0.5, Y: -0.15}, {X: 0.72, Y: 0.04},
+				{X: 0.8, Y: 0.16}, {X: 0.72, Y: 0.29}, {X: 0.45, Y: 0.33}, {X: 0.1, Y: 0.43}, {X: -0.32, Y: 0.43}}
+			for k := 0; k < 2; k++ { // (des bords arrondis)
+				var sm []V
+				for i, a := range shape {
+					b := shape[(i+1)%len(shape)]
+					sm = append(sm, a.Lerp(b, 0.25), a.Lerp(b, 0.75))
+				}
+				shape = sm
+			}
+			at := func(k, dy float64) []V {
+				var ps []V
+				for _, q := range shape {
+					ps = append(ps, V{X: x + q.X*r, Y: y + (q.Y*k+dy)*r})
+				}
+				return ps
+			}
+			polygon(dst, at(1, 0.03), crustD)
+			polygon(dst, at(0.94, -0.01), crust)
+			ellipse(dst, x+r*0.12, y-r*0.36, r*0.2, r*0.07, rgba(0xffb080, 0.6)) // un reflet
+			// la tranche du gigot
+			ellipse(dst, x-r*0.3, y-r*0.05, r*0.3, r*0.5, crustD)
+			ellipse(dst, x-r*0.31, y-r*0.05, r*0.25, r*0.45, rim)
+			ellipse(dst, x-r*0.31, y-r*0.04, r*0.2, r*0.38, red)
+			line(dst, x-r*0.31, y-r*0.4, x-r*0.28, y-r*0.06, r*0.025, rim) // les veines de gras
+			line(dst, x-r*0.28, y-r*0.06, x-r*0.46, y+r*0.2, r*0.025, rim)
+			line(dst, x-r*0.28, y-r*0.06, x-r*0.14, y+r*0.24, r*0.025, rim)
+			ellipse(dst, x-r*0.28, y-r*0.04, r*0.08, r*0.09, pale) // l'os
+			ellipse(dst, x-r*0.28, y-r*0.04, r*0.04, r*0.045, rgb(0xffffff))
+			// la tranche posée devant
+			sx, sy := x-r*0.5, y+r*0.5
+			ellipse(dst, sx, sy+r*0.07, r*0.42, r*0.19, crustD)
+			ellipse(dst, sx, sy, r*0.42, r*0.19, crust)
+			ellipse(dst, sx, sy, r*0.37, r*0.155, rim)
+			ellipse(dst, sx, sy, r*0.31, r*0.12, red)
+			line(dst, sx-r*0.28, sy-r*0.02, sx+r*0.28, sy+r*0.01, r*0.02, rim)
+			ellipse(dst, sx+r*0.02, sy, r*0.07, r*0.04, pale)
+			ellipse(dst, sx+r*0.02, sy, r*0.035, r*0.02, rgb(0xffffff))
 		case sim.CoteAgneau:
 			// une côtelette d'agneau : un médaillon rose de gras, épais, la noix de viande rouge
 			// découpée par des veines de gras, puis un manche qui s'affine jusqu'à l'os
