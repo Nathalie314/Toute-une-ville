@@ -1425,3 +1425,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   (1185) et centrés sous leur abattoir ; drones juste au-dessus du quai (PadOff 94) ; lieu élargi à 5050.
 - Élevage : la sortie des veaux (et des agneaux) est au-dessus de l'abattoir des veaux (des agneaux).
 - Élevage : l'abattoir des porcs au milieu de la porcherie, son frigo et son drone avec lui.
+- Élevage : les cases de la porcherie (pommes de terre, sortie des cochons) au milieu, au-dessus de l'abattoir.
