@@ -236,7 +236,7 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 		}
 		p.dock(id, to, dockX(i))
 	}
-	if sp.id == "boulangerie" || sp.id == "cremerie" || sp.id == "patisserie" || sp.id == "glacier" {
+	if sp.id == "boulangerie" || sp.id == "cremerie" || sp.id == "patisserie" || sp.id == "glacier" || sp.id == "creperie" {
 		// caisse des commandes (boulangerie, crèmerie, glacier : la cantine de l'école ; crèmerie, pâtisserie : des particuliers)
 		cmd := &Station{ID: "commande", Name: "Commandes", Kind: OrderBox, Built: true}
 		cmd.Body = Rect{W - 280, 1300, 180, 60}

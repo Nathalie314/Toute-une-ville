@@ -136,27 +136,30 @@ func drawStandBody(dst *ebiten.Image, s *sim.Stand, t float64) {
 		for k := 0; k < 5; k++ {
 			circle(dst, bx-28+float64(k)*14, by-20+float64(k%2)*6, 3, rgb(0xfff2c2))
 		}
-	case "canards":
-		// un bassin rond où tournent des canards, sous un chapiteau
+	case "canards": // (l'ancienne pêche aux canards : c'est maintenant le stand de crêpes)
+		// une petite cabane bretonne, un auvent rayé bleu et blanc, la crêpière qui fume
 		ellipse(dst, x+24, y+4, 110, 22, rgba(0x1d3a12, 0.25))
-		ellipse(dst, x, y-30, 100, 42, rgb(0xd9534f))
-		ellipse(dst, x, y-36, 88, 34, rgb(0x6fc3f0))
-		for k := 0; k < 8; k++ {
-			a := t*0.8 + float64(k)*math.Pi/4
-			dx, dy := x+math.Cos(a)*66, y-36+math.Sin(a)*22
-			ellipse(dst, dx, dy, 11, 7, rgb(0xffd23f))
-			circle(dst, dx+6*math.Cos(a+math.Pi/2), dy-6, 6, rgb(0xffd23f))
+		roundRect(dst, x-96, y-96, 192, 96, 10, rgb(0xf3ead8))
+		rect(dst, x-96, y-96, 20, 96, rgb(0xfff8ea))
+		rect(dst, x-96, y-14, 192, 14, rgb(0xd9ccb2))
+		roundRect(dst, x-80, y-62, 160, 30, 6, rgb(0x9aa4ad)) // le comptoir
+		ellipse(dst, x-30, y-60, 30, 11, rgb(0x2b2b2b))
+		ellipse(dst, x-30, y-61, 25, 9, rgb(0xe8b85a))
+		for k := 0; k < 3; k++ { // la vapeur
+			ph := math.Mod(t*0.6+float64(k)/3, 1)
+			circle(dst, x-30+math.Sin(ph*6+float64(k))*6, y-80-ph*40, 5+ph*6, rgba(0xffffff, 0.5*(1-ph)))
 		}
-		line(dst, x-90, y-36, x-90, y-150, 5, rgb(0xf3ead8))
-		line(dst, x+90, y-36, x+90, y-150, 5, rgb(0xf3ead8))
-		for i := 0; i < 8; i++ {
-			c := rgb(0xd9534f)
+		drawItem(dst, sim.CrepeSucre, x+40, y-66, 14)
+		for i := 0; i < 8; i++ { // l'auvent rayé
+			c := rgb(0x1f4f8a)
 			if i%2 == 1 {
 				c = rgb(0xffffff)
 			}
-			polygon(dst, []V{{X: x - 100 + float64(i)*25, Y: y - 150}, {X: x - 75 + float64(i)*25, Y: y - 150}, {X: x, Y: y - 200 - pop}}, c)
+			polygon(dst, []V{{X: x - 104 + float64(i)*26, Y: y - 96}, {X: x - 78 + float64(i)*26, Y: y - 96}, {X: x - 72 + float64(i)*24, Y: y - 128}, {X: x - 96 + float64(i)*24, Y: y - 128}}, c)
 		}
-		roundRect(dst, x-70, y+8, 140, 26, 8, rgb(0x3b2a52))
+		// une crêpe géante sur le toit
+		drawItem(dst, sim.CrepeBananeChoco, x, y-160-pop, 30)
+		roundRect(dst, x-70, y+8, 140, 26, 8, rgb(0x1f4f8a))
 		sayFit(dst, s.Kind.Name, x, y+21, 15, true, 0, 130, rgb(0xffffff))
 	case "souvenirs":
 		ellipse(dst, x+30, y+6, 120, 20, rgba(0x1d3a12, 0.25))
@@ -215,9 +218,8 @@ func drawHeld(dst *ebiten.Image, v *sim.Visitor, t float64) {
 	case "foodtruck":
 		ellipse(dst, x, y-6, 10, 6, rgb(0xe0a050))
 		rect(dst, x-10, y-3, 20, 4, rgb(0x6e3a1e))
-	case "canards":
-		ellipse(dst, x, y-6, 9, 6, rgb(0xffd23f))
-		circle(dst, x+5, y-12, 5, rgb(0xffd23f))
+	case "canards": // une crêpe pliée
+		drawItem(dst, sim.CrepeSucre, x, y-8, 9)
 	case "souvenirs":
 		roundRect(dst, x-9, y-16, 18, 18, 3, rgb(0x8a63d6))
 		line(dst, x-5, y-16, x-3, y-22, 2, rgb(0x5d3fa0))

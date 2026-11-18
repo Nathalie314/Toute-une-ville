@@ -796,6 +796,10 @@ func (p *Place) PointKinds() []PointKind {
 		}
 		ks = append(ks, k)
 	}
+	if p.Crep != nil {
+		p.crepPointKinds(add)
+		return ks
+	}
 	// primaire
 	if p.ID == "ferme" || p.ID == "exotique" || p.ID == "domaine" {
 		add("pts_agro", "ouvrier", "Agronomes", "Champs", "Les champs poussent plus vite (+1 % par point).", pctVal)

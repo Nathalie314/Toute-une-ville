@@ -322,11 +322,22 @@ func drawCrepBubble(dst *ebiten.Image, cg *sim.CrepGroup, tb *sim.CrepTable, t f
 // drawItemCrepe : les icônes des crêpes (une crêpe pliée en triangle, sa garniture).
 func drawItemCrepe(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 	crepe := func() {
-		// une crêpe dorée pliée en quatre (un quart de disque), le bord plus foncé
-		polygon(dst, []V{{X: x - r*0.85, Y: y + r*0.55}, {X: x + r*0.85, Y: y + r*0.55}, {X: x, Y: y - r*0.75}}, rgb(0xe8b85a))
-		line(dst, x-r*0.85, y+r*0.55, x+r*0.85, y+r*0.55, r*0.12, rgb(0xc98a2a))
-		circle(dst, x-r*0.2, y+r*0.1, r*0.07, rgba(0xa8681a, 0.7))
-		circle(dst, x+r*0.25, y+r*0.25, r*0.06, rgba(0xa8681a, 0.7))
+		// une crêpe pliée en quatre : un quart de disque doré, le bord arrondi plus foncé
+		cx, cy := x-r*0.7, y+r*0.6
+		pts := []V{{X: cx, Y: cy}}
+		for k := 0; k <= 12; k++ {
+			a := -math.Pi/2 + float64(k)/12*math.Pi/2
+			pts = append(pts, V{X: cx + math.Cos(a)*r*1.45, Y: cy + math.Sin(a)*r*1.3})
+		}
+		polygon(dst, pts, rgb(0xe8b85a))
+		for k := 0; k < 12; k++ {
+			a0 := -math.Pi/2 + float64(k)/12*math.Pi/2
+			a1 := -math.Pi/2 + float64(k+1)/12*math.Pi/2
+			line(dst, cx+math.Cos(a0)*r*1.4, cy+math.Sin(a0)*r*1.25, cx+math.Cos(a1)*r*1.4, cy+math.Sin(a1)*r*1.25, r*0.1, rgb(0xc98a2a))
+		}
+		circle(dst, cx+r*0.45, cy-r*0.5, r*0.07, rgba(0xa8681a, 0.7))
+		circle(dst, cx+r*0.9, cy-r*0.25, r*0.06, rgba(0xa8681a, 0.7))
+		circle(dst, cx+r*0.3, cy-r*0.95, r*0.06, rgba(0xa8681a, 0.7))
 	}
 	switch it {
 	case sim.CrepeNature:

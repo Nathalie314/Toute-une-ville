@@ -1450,6 +1450,15 @@ func (p *Place) speedOf0(s *Station) (f, rent float64) {
 		return 1 + 3*p.ptsF("pts_soin"), RentSave(g.Levels[p.key("pts_soin_rent")]) // (sélection génétique)
 	case p.ID == "ferme" && s.Kind == Machine:
 		return 1 + 3*p.ptsF("pts_mac_vit"), RentSave(g.Levels[p.key("pts_mac_rent")])
+	case p.Crep != nil && s.Kind == Machine:
+		k := "suc"
+		switch {
+		case s.Item == CrepeNature:
+			k = "nat"
+		case isSalee(s.Item):
+			k = "sal"
+		}
+		return 1 + 3*p.ptsF("pts_chef_"+k+"_vit"), RentSave(g.Levels[p.key("pts_chef_"+k+"_rent")])
 	case p.cooks() && s.Kind == Machine:
 		return 1 + 3*p.ptsF("pts_chef_vit"), RentSave(g.Levels[p.key("pts_chef_rent")])
 	}

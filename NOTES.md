@@ -1368,8 +1368,16 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   il reste sur la table (sauvegardé) et seul le joueur le ramasse. Le joueur peut tout faire en salle.
 - Quais « → crêperie » : ferme (sous les fleurs), crèmerie (crèmerie élargie à 4 000), exotique (bateau), glacier,
   port, boucherie, domaine (il existait déjà).
-- Reste à faire (étape 3) : points d'école propres (tablette, nettoyage, chefs nature/salés/sucrés, pourboires),
-  commandes de crêpes nature (école, parc), stand de crêpes au parc à la place de la pêche aux canards.
+- Étape 3 :
+  - Points d'école propres (crepPointKinds) : primaire — commis (vitesse, mains, charge), serveurs (tablette,
+    nettoyage), chef des crêpes nature, chefs des salées, chefs des sucrées (vitesse +3 %, rentabilité à part :
+    pts_chef_nat/sal/suc_vit et _rent) ; collège — réclame (tables de clients à la fois), clients fidèles ; lycée —
+    pourboires (pts_pourboire : +1 % tous les 5 points, sans maximum), comptables, logistique. Les serveurs ne
+    profitent pas des points des commis (vitesse 230, plateau de 4).
+  - Commandes : seulement des crêpes nature, livrées à la caisse des commandes (en cuisine, à gauche). La cantine :
+    une par élève du primaire, deux pour tous les autres (adultes compris). Le parc : 100 crêpes nature.
+  - Au parc, la « Pêche aux canards » devient le « Stand de crêpes » (même identifiant « canards » : sauvegardes).
+  - Icônes : la crêpe garnie est un quart de disque (pliée en quatre) : en triangle, elle ressemblait à « ⚠ ».
 
 ## Boucherie : plus de préparation des poulets, des pilons, vitrines dans l'ordre
 - La « Préparation des poulets » et le poulet cru entier disparaissent (boucherie et supermarché) ; la rôtisserie prend

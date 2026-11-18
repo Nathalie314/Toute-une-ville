@@ -99,6 +99,7 @@ func placeHelp(id string) []string {
 			"En cuisine, le chef des crêpes nature en fait sans arrêt. Les autres chefs ne cuisinent que ce qui est commandé, et attendent qu'un commis emporte leur plat au comptoir.",
 			"Pas d'étoiles ici : une table contente laisse un pourboire sur la table, et toi seul peux le ramasser.",
 			"Les ingrédients arrivent de la ferme, de la crèmerie, de la ferme exotique, du glacier, du port, de la boucherie et du domaine.",
+			"Commandes : seulement des crêpes nature, pour la cantine de l'école (une par élève du primaire, deux pour les autres) et pour le stand de crêpes du parc d'attractions.",
 		}
 	case "patisserie":
 		return []string{
@@ -112,7 +113,7 @@ func placeHelp(id string) []string {
 			"Le parc d'attractions ne consomme rien et ne livre rien : les visiteurs paient l'entrée (plus chère à chaque nouvelle attraction) et viennent pour les attractions, qui grandissent avec leur taille.",
 			"Un employé (ou toi) fait monter et descendre les visiteurs ; l'attente fait baisser leur bonheur.",
 			"Les stands (ballons, glaces, pop-corn…) n'ont besoin de personne : les visiteurs heureux qui passent devant y dépensent un peu.",
-			"Il passe des commandes à la ferme (maïs), à la ferme exotique (sucre en poudre) et au glacier (glaces) : livrées, ses gains sont multipliés ; ratées, ils sont divisés par deux pendant 5 minutes.",
+			"Il passe des commandes à la ferme (maïs), à la ferme exotique (sucre en poudre), au glacier (glaces) et à la crêperie (crêpes nature) : livrées, ses gains sont multipliés ; ratées, ils sont divisés par deux pendant 5 minutes.",
 			"Au parc, tu roules en trottinette.",
 		}
 	}

@@ -333,6 +333,11 @@ func newCreperie(g *Game) *Place {
 	wall("bas_g", Rect{CrepBX0 - 30, CrepBotY, CrepDoorX - 90 - CrepBX0 + 30, 26})
 	wall("bas_d", Rect{CrepDoorX + 90, CrepBotY, CrepBX1 + 30 - CrepDoorX - 90, 26})
 
+	// la caisse des commandes (des crêpes nature : la cantine, le parc), en cuisine à gauche
+	if cmd := p.Station("commande"); cmd != nil {
+		cmd.Body = Rect{150, -640, 140, 60}
+		cmd.Zone = Rect{145, -565, 150, 96}
+	}
 	// le compost, en cuisine (en bas à droite, près du coin des commis)
 	if tr := p.Station("poubelle"); tr != nil {
 		tr.Body = Rect{3360, -230, 70, 70}
@@ -998,7 +1003,7 @@ func (p *Place) crepWaiterRest(i int) V {
 	return V{2400 + float64(i%6)*90, CrepWallY + 200 + float64(i/6)*60}
 }
 
-func (p *Place) waiterSpeed() float64 { return 230 * (1 + p.ptsF("pts_ent_vit")) }
+func (p *Place) waiterSpeed() float64 { return 230 }
 
 // stepWaiter : le serveur choisit une tâche (commande, service, nettoyage) et la fait.
 func (p *Place) stepWaiter(w *waiter, dt float64) {
@@ -1175,7 +1180,7 @@ func (p *Place) crepAvail(it Item) (int, *Station) {
 func (p *Place) waiterPick(w *waiter) {
 	cp := p.Crep
 	a := w.A
-	cap := 4 + p.g.Levels[p.key("pts_ent_cap")]/5
+	cap := 4 // (un plateau)
 	// servir : une table qui attend quelque chose de disponible (la plus ancienne)
 	var best *CrepGroup
 	for _, cg := range cp.Groups {
@@ -1383,3 +1388,28 @@ func (cg *CrepGroup) QueueT() float64 {
 
 // TerraceOpen : la terrasse est achetée.
 func (p *Place) TerraceOpen() bool { u := p.unlock("terrasse"); return u != nil && u.Done }
+
+// crepPointKinds : les points d'école de la crêperie (ses postes, ses serveurs, ses pourboires).
+func (p *Place) crepPointKinds(add func(key, t, grp, name, desc string, val func(int) string)) {
+	// primaire : les commis, les serveurs, les chefs (crêpes nature, salées, sucrées à part)
+	add("pts_ent_vit", "ouvrier", "Commis", "Vitesse de marche", "Les commis marchent plus vite (+1 % par point).", pctVal)
+	add("pts_mains", "ouvrier", "Commis", "Mains expertes", "Les commis prennent et posent plus vite (+1 % par point).", pctVal)
+	add("pts_ent_cap", "ouvrier", "Commis", "Charge", "Les commis portent plus (+1 objet tous les 5 points).",
+		func(n int) string { return "+" + itoa(n/5) + " objet(s)" })
+	add("pts_tablette", "ouvrier", "Serveurs", "Tablette", "Les commandes se prennent plus vite (+1 % par point).", pctVal)
+	add("pts_nettoyage", "ouvrier", "Serveurs", "Nettoyage", "Les tables se nettoient plus vite (+1 % par point).", pctVal)
+	add("pts_chef_nat_vit", "ouvrier", "Chef des crêpes nature", "Vitesse", "Les crêpes nature cuisent plus vite (+3 % par point ; elles consomment autant).", func(n int) string { return pctVal(3 * n) })
+	add("pts_chef_nat_rent", "ouvrier", "Chef des crêpes nature", "Rentabilité", "Chaque crêpe nature peut être gratuite : elle ne consomme alors ni lait, ni œufs, ni beurre.", rentVal)
+	add("pts_chef_sal_vit", "ouvrier", "Chefs des crêpes salées", "Vitesse", "Les crêpes salées se préparent plus vite (+3 % par point ; elles consomment autant).", func(n int) string { return pctVal(3 * n) })
+	add("pts_chef_sal_rent", "ouvrier", "Chefs des crêpes salées", "Rentabilité", "Chaque crêpe salée peut être gratuite : elle ne consomme alors aucun ingrédient.", rentVal)
+	add("pts_chef_suc_vit", "ouvrier", "Chefs des crêpes sucrées", "Vitesse", "Les crêpes sucrées se préparent plus vite (+3 % par point ; elles consomment autant).", func(n int) string { return pctVal(3 * n) })
+	add("pts_chef_suc_rent", "ouvrier", "Chefs des crêpes sucrées", "Rentabilité", "Chaque crêpe sucrée peut être gratuite : elle ne consomme alors aucun ingrédient.", rentVal)
+	// collège : plus de clients à la fois ; les absences (comme partout)
+	add("pts_reclame", "marketing", "Réclame", "Clients", "Plus de tables de clients à la fois (+1 % par point) : attention à ne pas les faire trop attendre.", pctVal)
+	add("pts_fidele", "marketing", "Clients fidèles", "Absences", "Tes gains pendant ton absence augmentent (+1 % par point, moyenne de tes lieux).", pctVal)
+	// lycée : les pourboires (sans maximum), les gains, le temps des commandes
+	add("pts_pourboire", "comptable", "Pourboires", "Pourboires", "Une table contente laisse plus : +1 % de l'addition tous les 5 points (1 % au départ, sans maximum).",
+		func(n int) string { return itoa(1+n/5) + " %" })
+	add("pts_comptable", "comptable", "Comptables", "Gains", "Les ventes rapportent plus (+1 % par point).", pctVal)
+	add("pts_logist", "comptable", "Logistique", "Commandes", "Plus de temps pour livrer les commandes (+1 % par point).", pctVal)
+}
