@@ -14,10 +14,10 @@ import (
 // On reste une seconde dessus pour partir. Raccourcis : 1 à 9 (lieux), 0 (carte),
 // V (mairie), P (personnage). Le vestiaire ouvre aussi la page « Personnage ».
 
-var busOrder = []string{"ferme", "ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "elevage", "boucherie", "port", "domaine", "patisserie", "parc"} // (le port : touche 0 ; le domaine : sans touche au départ)
+var busOrder = []string{"ferme", "ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "elevage", "boucherie", "port", "domaine", "creperie", "patisserie", "parc"} // (le port : touche 0 ; le domaine : sans touche au départ)
 
-var busNames = map[string]string{"ferme": "Ma ferme", "ecole": "École", "super": "Supermarché", "boulangerie": "Boulangerie", "cremerie": "Crèmerie", "glacier": "Glacier", "elevage": "Élevage", "boucherie": "Boucherie", "exotique": "Exotique", "port": "Port", "domaine": "Domaine", "patisserie": "Pâtisserie", "parc": "Parc"}
-var busCols = map[string]uint32{"ferme": 0xc0623a, "ecole": 0xd4a017, "super": 0x2fa86b, "boulangerie": 0xa0522d, "cremerie": 0x7fb3d5, "glacier": 0x5aa0e0, "elevage": 0x8a5a2b, "boucherie": 0xb03a3a, "exotique": 0x1f8a5a, "port": 0x2b6cd6, "domaine": 0x7a2a4a, "patisserie": 0xe0567f, "parc": 0xff8a3d, "": 0x5b7fd6}
+var busNames = map[string]string{"ferme": "Ma ferme", "ecole": "École", "super": "Supermarché", "boulangerie": "Boulangerie", "cremerie": "Crèmerie", "glacier": "Glacier", "elevage": "Élevage", "boucherie": "Boucherie", "exotique": "Exotique", "port": "Port", "domaine": "Domaine", "creperie": "Crêperie", "patisserie": "Pâtisserie", "parc": "Parc"}
+var busCols = map[string]uint32{"ferme": 0xc0623a, "ecole": 0xd4a017, "super": 0x2fa86b, "boulangerie": 0xa0522d, "cremerie": 0x7fb3d5, "glacier": 0x5aa0e0, "elevage": 0x8a5a2b, "boucherie": 0xb03a3a, "exotique": 0x1f8a5a, "port": 0x2b6cd6, "domaine": 0x7a2a4a, "creperie": 0xd9a55a, "patisserie": 0xe0567f, "parc": 0xff8a3d, "": 0x5b7fd6}
 
 type busDest struct {
 	id   string // "" : la carte

@@ -118,7 +118,8 @@ type Stats struct {
 	Happy     int
 	Angry     int
 	Delivered int
-	Orders    int // commandes spéciales livrées
+	Orders    int     // commandes spéciales livrées
+	Tips      float64 `json:",omitempty"` // pourboires ramassés (crêperie)
 }
 
 type incomeRec struct {
@@ -185,7 +186,7 @@ func NewGame() *Game {
 	for k, v := range DefaultFav {
 		g.Fav[k] = v
 	}
-	g.Places = []*Place{newFarm(g), newSuper(g), newWorkshop(g, bakerySpec), newWorkshop(g, cremerieSpec), newWorkshop(g, iceSpec), newSchool(g), newElevage(g), newBoucherie(g), newExotic(g), newPort(g), newDomaine(g), newWorkshop(g, patisserieSpec), newParc(g)}
+	g.Places = []*Place{newFarm(g), newSuper(g), newWorkshop(g, bakerySpec), newWorkshop(g, cremerieSpec), newWorkshop(g, iceSpec), newSchool(g), newElevage(g), newBoucherie(g), newExotic(g), newPort(g), newDomaine(g), newCreperie(g), newWorkshop(g, patisserieSpec), newParc(g)}
 	g.sortPlaces()
 	for _, p := range g.Places {
 		p.applyCaps()
@@ -221,7 +222,7 @@ func NewGame() *Game {
 // MapOrder : les lieux dans l'ordre de la carte de la ville (ui.go, drawMap). Il
 // fixe l'ordre des listes (points d'école…) et le rang de chaque lieu, qui fixe
 // ses prix (PlaceScale). Un nouveau lieu se met ici, à sa place sur la carte.
-var MapOrder = []string{"ferme", "ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "port", "elevage", "boucherie", "domaine", "patisserie", "parc"}
+var MapOrder = []string{"ferme", "ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "port", "elevage", "boucherie", "domaine", "creperie", "patisserie", "parc"}
 
 // MapRank : position du lieu sur la carte (1 : ma ferme) ; 0 si inconnu.
 func MapRank(id string) int {

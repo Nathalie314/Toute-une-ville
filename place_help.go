@@ -90,6 +90,16 @@ func placeHelp(id string) []string {
 			cmd,
 			"L'alcool est dangereux pour la santé : à consommer avec modération.",
 		}
+	case "creperie":
+		return []string{
+			"La crêperie est un restaurant : en haut la cuisine, en bas la salle (puis la terrasse, dehors). Toi seul passes de l'une à l'autre.",
+			"Les clients arrivent en voiture et s'assoient seuls à une table propre ; sans table, ils attendent devant la porte, puis repartent fâchés.",
+			"Chacun commande une crêpe salée et une crêpe sucrée ; une table de 2 boit une bouteille de cidre, une table de 4 deux. Il n'y a pas de caisse : la table paie ce qu'elle a reçu en partant.",
+			"Un serveur (ou toi, arrêté près de la table) prend la commande : elle part en cuisine. Il apporte les crêpes du comptoir et le cidre du frigo, puis nettoie la table.",
+			"En cuisine, le chef des crêpes nature en fait sans arrêt. Les autres chefs ne cuisinent que ce qui est commandé, et attendent qu'un commis emporte leur plat au comptoir.",
+			"Pas d'étoiles ici : une table contente laisse un pourboire sur la table, et toi seul peux le ramasser.",
+			"Les ingrédients arrivent de la ferme, de la crèmerie, de la ferme exotique, du glacier, du port, de la boucherie et du domaine.",
+		}
 	case "patisserie":
 		return []string{
 			"La pâtisserie fait des tartes aux pommes, du riz au lait, des clafoutis, des gâteaux au chocolat, des éclairs au café et des fraisiers.",

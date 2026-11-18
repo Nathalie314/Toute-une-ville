@@ -234,6 +234,15 @@ func (p *Place) stepVehicles(dt float64) {
 			break
 		}
 	}
+	if p.Crep != nil {
+		for _, cg := range p.Crep.Groups {
+			for _, m := range cg.Members {
+				if cg.Visible() && onCross(m.Pos) {
+					crossing = true
+				}
+			}
+		}
+	}
 	if pl := p.g.Player; pl != nil && p.g.Cur == p && onCross(pl.Pos) {
 		crossing = true
 	}

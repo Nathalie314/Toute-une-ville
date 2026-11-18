@@ -436,7 +436,7 @@ type gainsView struct {
 }
 
 // gainNames : le nom d'un lieu dans le tableau des gains.
-var gainNames = map[string]string{"ferme": "Ma ferme", "super": "Supermarché", "cremerie": "Crèmerie", "exotique": "Ferme exotique",
+var gainNames = map[string]string{"creperie": "Crêperie", "ferme": "Ma ferme", "super": "Supermarché", "cremerie": "Crèmerie", "exotique": "Ferme exotique",
 	"boulangerie": "Boulangerie", "glacier": "Glacier", "port": "Port", "elevage": "Ferme d'élevage", "boucherie": "Boucherie",
 	"domaine": "Le domaine", "patisserie": "Pâtisserie", "parc": "Parc d'attractions"}
 
@@ -590,7 +590,9 @@ func (g *game) drawHUD(dst *ebiten.Image) {
 	}, func() { g.openPanel(panelMairie) })
 	g.tutoMairie = [4]float64{x + 3, 24, 70, 70}
 	// (le personnage s'ouvre au vestiaire, dans la zone du joueur, ou avec P)
-	g.repBox(dst, g.sim.Cur, 416, 18) // à droite de l'argent, pour ne pas cacher les champs
+	if g.sim.Cur.Crep == nil { // (pas de réputation au restaurant : la jauge de bonheur fait les pourboires)
+		g.repBox(dst, g.sim.Cur, 416, 18) // à droite de l'argent, pour ne pas cacher les champs
+	}
 	g.drawGoal(dst, 672, 18)
 	g.drawOrderHUD(dst, 20, 124)
 
@@ -1243,9 +1245,9 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		g.placeTile("elevage", "Ferme d'élevage", 0x8a5a2b),
 		g.placeTile("boucherie", "Boucherie", 0xb03a3a),
 		g.placeTile("domaine", "Le domaine", 0x7a2a4a),
+		g.placeTile("creperie", "Crêperie", 0xd9a55a),
 		g.placeTile("patisserie", "Pâtisserie", 0xe0567f),
 		g.placeTile("parc", "Parc d'attractions", 0xff8a3d),
-		{id: "creperie", name: "Crêperie", status: "Bientôt", col: 0xd9a55a},
 		{id: "fleuriste", name: "Fleuriste", status: "Bientôt", col: 0xff6fa8},
 		{id: "restaurant", name: "Restaurant", status: "Bientôt", col: 0xe67e22},
 		{id: "hotel", name: "Hôtel", status: "Bientôt", col: 0x8e44ad},
@@ -1415,7 +1417,7 @@ func (g *game) drawTileBody(dst *ebiten.Image, tl tile, x, y, w, h float64, farm
 	if tl.id == "ferme" {
 		stars(dst, x+24, yy+28, 13, farm.Rep)
 	}
-	if pl := g.sim.Place(tl.place); pl != nil && tl.place != "ferme" && tl.place != "ecole" && pl.Owned {
+	if pl := g.sim.Place(tl.place); pl != nil && tl.place != "ferme" && tl.place != "ecole" && pl.Owned && pl.Crep == nil { // (pas d'étoiles au restaurant)
 		stars(dst, x+24, yy+28, 13, pl.Rep)
 	}
 	if !tl.open {
@@ -1575,7 +1577,7 @@ func (g *game) drawBadges(dst *ebiten.Image) {
 	ch := 150.0
 	total := 0.0
 	type sect struct{ id, title string }
-	sects := []sect{{"ferme", "Ma ferme"}, {"super", "Le supermarché"}, {"boulangerie", "La boulangerie"}, {"cremerie", "La crèmerie"}, {"glacier", "Le glacier"}, {"exotique", "La ferme exotique"}, {"elevage", "La ferme d'élevage"}, {"boucherie", "La boucherie"}, {"port", "Le port"}, {"domaine", "Le domaine"}, {"patisserie", "La pâtisserie"}, {"parc", "Le parc d'attractions"}, {"ecole", "L'école"}, {"ville", "Clairbourg"}}
+	sects := []sect{{"ferme", "Ma ferme"}, {"super", "Le supermarché"}, {"boulangerie", "La boulangerie"}, {"cremerie", "La crèmerie"}, {"glacier", "Le glacier"}, {"exotique", "La ferme exotique"}, {"elevage", "La ferme d'élevage"}, {"boucherie", "La boucherie"}, {"port", "Le port"}, {"domaine", "Le domaine"}, {"creperie", "La crêperie"}, {"patisserie", "La pâtisserie"}, {"parc", "Le parc d'attractions"}, {"ecole", "L'école"}, {"ville", "Clairbourg"}}
 	for _, sc := range sects {
 		n := 0
 		for _, b := range sim.Badges {

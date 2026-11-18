@@ -272,6 +272,9 @@ func (p *Place) ShowLocked(u *Unlock) bool {
 	if u.Done || u.Secret || u.Requires == nil || u.Requires() {
 		return false
 	}
+	if p.ID == "creperie" {
+		return p.crepPrevDone(u) // (un poste n'est montré verrouillé qu'une fois le précédent acheté)
+	}
 	return p.ID != "boucherie" || p.firstInZone(u)
 }
 
@@ -330,8 +333,9 @@ type Place struct {
 	Boats          []*Boat // port : les bateaux de pêche
 	dredges        []*Dredge
 	boatsInit      bool
-	Vestiaire      Rect  // porte du vestiaire : on s'y arrête pour ouvrir la page « Personnage »
-	Parc           *Parc // parc d'attractions : attractions, caisses, visiteurs
+	Vestiaire      Rect      // porte du vestiaire : on s'y arrête pour ouvrir la page « Personnage »
+	Parc           *Parc     // parc d'attractions : attractions, caisses, visiteurs
+	Crep           *Creperie // crêperie : tables, clients, serveurs
 
 	spawnT   float64
 	queueSeq int
@@ -371,6 +375,9 @@ func (p *Place) Registers() []*Station {
 
 // HasCashier : au moins une caissière embauchée.
 func (p *Place) HasCashier() bool {
+	if p.Crep != nil {
+		return p.g.Levels[p.key("serveurs")] > 0 // (pas de caisse : un serveur suffit)
+	}
 	if p.Parc != nil {
 		for _, r := range p.Parc.Regs {
 			if p.g.Levels[p.key("caissiere"+itoa(r.N))] > 0 {
@@ -436,6 +443,9 @@ func (p *Place) step(dt float64, active bool) {
 		p.stepParc(dt, active)
 		return
 	}
+	if p.Crep != nil {
+		defer p.stepCreperie(dt, active) // (la cuisine comme un atelier, puis la salle)
+	}
 	// une caissière sans client s'ennuie (elle sifflote : dessin)
 	for _, r := range p.Registers() {
 		if c := r.Cashier; c != nil {
@@ -480,6 +490,9 @@ func (p *Place) step(dt float64, active bool) {
 			}
 		case Machine:
 			ok := s.Pile < s.PileMax
+			if ok && p.Crep != nil && s.Item != CrepeNature && p.crepDemand(s.Item) <= 0 {
+				ok = false // (crêperie : les crêpes garnies seulement sur commande)
+			}
 			if s.Two {
 				ok = s.Pile < s.PileMax || s.Pile2 < s.PileMax
 			}
@@ -548,7 +561,7 @@ func (p *Place) step(dt float64, active bool) {
 				p.superSpawn()
 			}
 		}
-	} else if p.spawnT <= 0 {
+	} else if p.spawnT <= 0 && p.Crep == nil {
 		p.spawnT = p.spawnInterval() * (0.6 + 0.8*p.rng.Float64())
 		n := 0
 		for _, s := range p.Stations {
@@ -880,7 +893,13 @@ func (p *Place) interact(a *Agent, dt float64) {
 				return
 			}
 			if s.Kind == Machine && s.Zone.Has(a.Pos) {
+				if p.Crep != nil && a.Kind == WorkerAgent && (a.job == nil || a.job.dst != s) {
+					break // (crêperie : le commis ne dépose qu'au poste où il va, pas en passant)
+				}
 				for _, in := range s.Inputs {
+					if p.Crep != nil && in == CrepeNature && s.Buf[in] >= min(s.BufMax, max(0, p.crepDemand(s.Item))) {
+						continue // (une crêpe nature seulement pour un plat commandé)
+					}
 					if s.Buf[in] < s.BufMax && a.count(in) > 0 {
 						a.remove(in)
 						s.Buf[in]++
@@ -962,7 +981,7 @@ func (p *Place) interact(a *Agent, dt float64) {
 
 // Visible : on ne montre que les deux prochains déblocages.
 func (p *Place) Visible(u *Unlock) bool {
-	if p.ID == "super" || p.ID == "ecole" || p.ID == "parc" {
+	if p.ID == "super" || p.ID == "ecole" || p.ID == "parc" || p.ID == "creperie" {
 		return !u.Done && (u.Requires == nil || u.Requires())
 	}
 	if p.ID == "boucherie" {
@@ -1216,6 +1235,17 @@ func (p *Place) SpotVisible(sp *Spot) bool {
 	if sp.Room != nil {
 		u := p.SpotUpgrade(sp)
 		return sp.Room.built && p.g.Levels[u.Key] < u.Max
+	}
+	if p.Crep != nil {
+		l := p.g.Levels[p.key(sp.ID)]
+		switch sp.ID {
+		case "serveurs":
+			return l < len(p.CrepTablesBuilt()) // (autant que de tables)
+		case "ouvriers":
+			return l < p.crepPostes() // (autant que de postes)
+		case "parking":
+			return p.CrepParkN(l) < len(p.CrepTablesBuilt())+5 && l < p.SpotUpgrade(sp).Max
+		}
 	}
 	if sp.Shelf != nil {
 		return p.g.Levels[p.key(sp.ID)] > 0 || p.droneUseful(sp.Shelf)

@@ -281,6 +281,8 @@ func (g *game) drawGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		g.domaineGround(dst, p, tl, br)
 	case "parc":
 		g.parcGround(dst, p, tl, br)
+	case "creperie":
+		g.crepGround(dst, p, tl, br)
 	default:
 		g.workshopGround(dst, p, tl, br)
 	}

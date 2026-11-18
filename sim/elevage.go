@@ -293,7 +293,7 @@ var boucherieSpec = workshopSpec{
 		{"pate", "Pâtés", Pate, []Item{Porc}, 6, 100000, "Avec le porc de la ferme d'élevage.", "elevage:abattoir_porc"},
 	},
 	staff: "Bouchers", cashCost: 8000, staffCosts: []float64{1}, upBase: 11000,
-	sign: "Vitrine réfrigérée", bio: "Viande d'ici", w: 5700, perRow: 8, tall: true,
+	sign: "Vitrine réfrigérée", bio: "Viande d'ici", w: 5700, perRow: 8, tall: true, docks: []string{"super", "creperie"},
 }
 
 func newBoucherie(g *Game) *Place {

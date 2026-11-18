@@ -456,6 +456,17 @@ func init() {
 	B(placeBadges("domaine", "domaine", "Bienvenue au domaine", "Grand cru", "Domaine au complet", "Domaine étoilé", 1000, IconFruit)...)
 	B(madeBadge("domaine_vin", "domaine", "Vendanges", "Faire 100 bouteilles de vin rouge.", VinRouge, 100, IconFruit),
 		madeBadge("domaine_cidre", "domaine", "Cidre bouché", "Faire 100 bouteilles de cidre.", Cidre, 100, IconFruit))
+	// la crêperie (pas d'étoiles : pas de badge de réputation)
+	crep := func(g *Game) *Place { return g.Place("creperie") }
+	B(placeBadges("creperie", "crêperie", "À table !", "Toute la carte", "Brigade au complet", "", 0, IconCake)...)
+	B(Badge{ID: "creperie_client", Place: "creperie", Name: "Premier couvert", Desc: "Servir une première table : crêperie.", Icon: IconCoin,
+		Check: func(g *Game) bool { return crep(g).Served >= 1 }},
+		Badge{ID: "creperie_clients", Place: "creperie", Name: "Bonne table", Desc: "Servir 1 000 clients : crêperie.", Icon: IconHeart,
+			Check: func(g *Game) bool { return crep(g).Served >= 1000 }},
+		Badge{ID: "creperie_pourboire", Place: "creperie", Name: "Merci pour le service", Desc: "Ramasser 100 000 € de pourboires.", Icon: IconCoin,
+			Check: func(g *Game) bool { return g.Stats.Tips >= 100000 }},
+		madeBadge("creperie_sourire", "creperie", "Crêpe qui sourit", "Faire 100 crêpes saucisse-œufs.", CrepeSaucisseOeuf, 100, IconEgg),
+		madeBadge("creperie_flambee", "creperie", "Flambée !", "Faire une crêpe au canard flambé au whisky.", CrepeCanard, 1, IconStar))
 	// la pâtisserie
 	B(placeBadges("patisserie", "pâtisserie", "Bec sucré", "Toute la vitrine", "Pâtissiers au complet", "Pâtisserie étoilée", 1000, IconCake)...)
 	B(madeBadge("patisserie_tartes", "patisserie", "Tarte aux pommes", "Faire 100 tartes aux pommes.", TartePommes, 100, IconCake),
