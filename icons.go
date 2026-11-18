@@ -332,13 +332,51 @@ func drawItem(dst *ebiten.Image, it sim.Item, x, y, r float64) {
 			}
 		}
 	case sim.Saucisse:
-		// deux saucisses attachées
-		for k := 0; k < 2; k++ {
-			cx := x - r*0.42 + float64(k)*r*0.84
-			roundRect(dst, cx-r*0.38, y-r*0.8, r*0.76, r*1.6, r*0.38, rgb(0xa0402a))
-			roundRect(dst, cx-r*0.22, y-r*0.6, r*0.18, r*0.9, r*0.09, rgba(0xffffff, 0.35))
+		// une saucisse courbée, rouge, attachée à chaque bout : plus sombre sur le bord du dessous,
+		// plus claire au milieu, trois entailles et un reflet en haut
+		A, B, C := V{X: -0.72, Y: 0.55}, V{X: 0.62, Y: 0.62}, V{X: 0.5, Y: -0.6}
+		at := func(t float64) V {
+			u := 1 - t
+			return V{X: x + (u*u*A.X+2*u*t*B.X+t*t*C.X)*r, Y: y + (u*u*A.Y+2*u*t*B.Y+t*t*C.Y)*r}
 		}
-		circle(dst, x, y-r*0.75, r*0.12, rgb(0xd9b38c))
+		nrm := func(t float64) V { // la normale (vers le haut-gauche, le dedans de la courbe)
+			d := V{X: 2*(1-t)*(B.X-A.X) + 2*t*(C.X-B.X), Y: 2*(1-t)*(B.Y-A.Y) + 2*t*(C.Y-B.Y)}
+			l := math.Hypot(d.X, d.Y)
+			return V{X: d.Y / l, Y: -d.X / l}
+		}
+		dark := rgb(0x9c1c1e)
+		knot := func(t, dir float64) { // le nœud et sa petite collerette
+			p := at(t)
+			d := V{X: 2*(1-t)*(B.X-A.X) + 2*t*(C.X-B.X), Y: 2*(1-t)*(B.Y-A.Y) + 2*t*(C.Y-B.Y)}
+			l := math.Hypot(d.X, d.Y)
+			e := V{X: p.X + dir*d.X/l*r*0.2, Y: p.Y + dir*d.Y/l*r*0.2}
+			line(dst, p.X, p.Y, e.X, e.Y, r*0.06, dark)
+			n := V{X: d.Y / l, Y: -d.X / l}
+			for _, k := range []float64{-1, 0, 1} {
+				circle(dst, e.X+n.X*k*r*0.07+dir*d.X/l*r*0.03, e.Y+n.Y*k*r*0.07+dir*d.Y/l*r*0.03, r*0.05, dark)
+			}
+		}
+		knot(0.02, -1)
+		knot(0.98, 1)
+		const steps = 40
+		width := func(t float64) float64 { return r * (0.24 + 0.03*math.Sin(t*math.Pi)) }
+		for _, layer := range []struct {
+			off, k float64
+			c      uint32
+		}{{-0.06, 1, 0x9c1c1e}, {0.0, 0.92, 0xd23434}, {0.07, 0.55, 0xe84c4c}} {
+			for i := 0; i <= steps; i++ {
+				t := 0.04 + 0.92*float64(i)/steps
+				p, n := at(t), nrm(t)
+				w := width(t)
+				circle(dst, p.X+n.X*layer.off*r, p.Y+n.Y*layer.off*r, w*layer.k, rgb(layer.c))
+			}
+		}
+		for _, t := range []float64{0.3, 0.48, 0.66} { // les entailles
+			p, n := at(t), nrm(t)
+			line(dst, p.X+n.X*r*0.16, p.Y+n.Y*r*0.16, p.X+n.X*r*0.02+r*0.03, p.Y+n.Y*r*0.02+r*0.02, r*0.025, dark)
+		}
+		p := at(0.88) // le reflet
+		ellipse(dst, p.X-r*0.04, p.Y, r*0.06, r*0.1, rgba(0xff8a8a, 0.7))
 	case sim.Fromage:
 		// une part de fromage à trous
 		polygon(dst, []V{{X: x - r*0.9, Y: y + r*0.55}, {X: x + r*0.9, Y: y + r*0.55}, {X: x + r*0.9, Y: y - r*0.1}, {X: x - r*0.6, Y: y - r*0.6}}, rgb(0xf6c945))

@@ -1414,3 +1414,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Côtes d'agneau d'après son image : médaillon rose épais, noix de viande rouge veinée de gras, manche jusqu'à l'os.
 - Gigot de mouton d'après son image : gigot rôti orangé coupé à gauche (tranche rouge, bord rose, os rond), manche et
   os à droite, une tranche posée devant.
+- Saucisse d'après son image : une saucisse rouge courbée, nouée aux deux bouts, bord sombre, entailles et reflet.
