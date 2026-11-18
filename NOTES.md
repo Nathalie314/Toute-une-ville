@@ -1426,3 +1426,8 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Élevage : la sortie des veaux (et des agneaux) est au-dessus de l'abattoir des veaux (des agneaux).
 - Élevage : l'abattoir des porcs au milieu de la porcherie, son frigo et son drone avec lui.
 - Élevage : les cases de la porcherie (pommes de terre, sortie des cochons) au milieu, au-dessus de l'abattoir.
+- Ferme exotique : l'avocatier (7e colonne, après le manguier, avant les agrumes) ; avocats (64) vendus à l'étal et
+  au rayon fruits du supermarché. Tout ce qui suit est décalé de 170 vers la droite (lieu à 6710), un 9e ouvrier
+  fruits (330 000). Prix relevés derrière lui : citronnier 36 000, oranger 38 000, pressoirs 40 000 et 43 000 ;
+  citrons 70, oranges 76, limonade 120, jus d'orange 130. Anciennes parties : ce qui était payé reste payé
+  (migrateAvocatier, marque exotique.avocatier).

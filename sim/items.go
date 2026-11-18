@@ -179,6 +179,7 @@ const (
 	CrepeCanard
 	CrepeSteakBrebis
 	PilonPoulet // (boucherie, après les cuisses)
+	Avocat      // (ferme exotique, après les mangues)
 	NItems
 )
 
@@ -288,6 +289,7 @@ var Items = [NItems]ItemInfo{
 	PouletRoti:       {"Poulet rôti", 110},
 	CuissePoulet:     {"Cuisses de poulet", 85},
 	PilonPoulet:      {"Pilons de poulet", 80},
+	Avocat:           {"Avocats", 64},
 	Aiguillettes:     {"Aiguillettes de canard", 120},
 	Magret:           {"Magret de canard", 150},
 	FoieGras:         {"Foie gras", 280},
@@ -304,10 +306,10 @@ var Items = [NItems]ItemInfo{
 	Banane:           {"Bananes", 32},
 	NoixCoco:         {"Noix de coco", 50},
 	Mangue:           {"Mangues", 58},
-	Citron:           {"Citrons", 64},
-	Orange:           {"Oranges", 70},
-	Limonade:         {"Limonade", 110},
-	JusOrange:        {"Jus d'orange", 120},
+	Citron:           {"Citrons", 70},
+	Orange:           {"Oranges", 76},
+	Limonade:         {"Limonade", 120},
+	JusOrange:        {"Jus d'orange", 130},
 	Noisette:         {"Noisettes", 80},
 	Noix:             {"Noix", 85},
 	Olive:            {"Olives", 75},
@@ -389,11 +391,11 @@ var CremerieSold = []Item{Creme, Beurre, FromageBlanc, Yaourt, Fromage, YaourtCh
 var IceSold = []Item{SorbetFraise, SorbetMangue, SorbetAnanas, GlaceVanille, GlaceCafe, GlaceCoco, GlaceChoco, GlacePoireChoco}
 
 // ExoFruits : les arbres de la ferme exotique (une colonne chacun, comme le verger).
-var ExoFruits = []Item{Ananas, Banane, NoixCoco, Mangue, Citron, Orange}
+var ExoFruits = []Item{Ananas, Banane, NoixCoco, Mangue, Avocat, Citron, Orange}
 
 // ExoticSold : ce que vendent les étals de la ferme exotique (la canne, le cacao,
 // le café vert et les feuilles de thé ne se vendent pas tels quels).
-var ExoticSold = []Item{Ananas, Banane, NoixCoco, Mangue, Citron, Orange, SucreMorceaux, SucrePoudre, Chocolat, CafeGrains, CafeMoulu, Riz, Vanille, The, Cannelle, Limonade, JusOrange}
+var ExoticSold = []Item{Ananas, Banane, NoixCoco, Mangue, Avocat, Citron, Orange, SucreMorceaux, SucrePoudre, Chocolat, CafeGrains, CafeMoulu, Riz, Vanille, The, Cannelle, Limonade, JusOrange}
 
 // EpicerieSold : le rayon « Épicerie » du supermarché (sucre, chocolat, café, riz, épices de
 // la ferme exotique ; noisettes et noix d'un futur lieu).

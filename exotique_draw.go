@@ -9,7 +9,7 @@ import (
 	"ville/sim"
 )
 
-// La ferme exotique : le sol, les arbres (ananas, bananier, cocotier, manguier, citronnier, oranger),
+// La ferme exotique : le sol, les arbres (ananas, bananier, cocotier, manguier, avocatier, citronnier, oranger),
 // les plantes des champs (riz, vanille, thé, cannelle) et les icônes des produits.
 
 func init() {
@@ -19,6 +19,7 @@ func init() {
 	cropCol[sim.Mangue] = 0xf08a24
 	cropCol[sim.Citron] = 0xf5e04a
 	cropCol[sim.Orange] = 0xf5961e
+	cropCol[sim.Avocat] = 0x8ab83a
 }
 
 // exoticGround : sable et herbe tropicale, chemins, boutique, route.
@@ -28,7 +29,7 @@ func (g *game) exoticGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	path := rgb(0xe9d7a8)
 	roundRect(dst, 380, 470, p.W-520, 110, 50, path)
 	roundRect(dst, 60, 880, p.W-120, 150, 60, path)
-	roundRect(dst, 1820, 470, 140, 560, 60, path) // (entre les fruits et le sucre)
+	roundRect(dst, 1990, 470, 140, 560, 60, path) // (entre les fruits et le sucre)
 	// les espaces : leur nom au-dessus des bâtiments
 	for _, z := range sim.TeamZones(p.ID) {
 		a := 0.85
@@ -180,6 +181,25 @@ func drawExoticTree(dst *ebiten.Image, it sim.Item, x, y, size, fr float64, ripe
 				}
 			}
 		}
+	case sim.Avocat:
+		// un avocatier : tronc haut, feuillage sombre en hauteur, avocats en poire qui pendent
+		th := 52 * size
+		ellipse(dst, x, y+2, 28*size, 8, rgba(0x000000, 0.2))
+		rect(dst, x-4*size-1, y-th, 8*size+2, th, rgb(0x6a4a2a))
+		cr := 27 * size
+		circle(dst, x, y-th-cr*0.55, cr, rgb(0x2a6a30))
+		circle(dst, x-cr*0.55, y-th-cr*0.15, cr*0.62, rgb(0x23602a))
+		circle(dst, x+cr*0.55, y-th-cr*0.2, cr*0.6, rgb(0x347a38))
+		circle(dst, x+cr*0.1, y-th-cr*1.1, cr*0.5, rgb(0x347a38))
+		if fr > 0 {
+			for k := 0; k < 4; k++ {
+				fx := x - cr*0.6 + float64(k)*cr*0.4
+				fy := y - th + cr*0.05 - float64(k%2)*cr*0.3
+				line(dst, fx, fy-fr*1.5, fx, fy-fr*0.7, 1.2, rgb(0x5a4a20))
+				ellipse(dst, fx, fy+fr*0.2, fr*0.7, fr*0.85, fc) // (en poire : large en bas)
+				ellipse(dst, fx, fy-fr*0.45, fr*0.45, fr*0.5, fc)
+			}
+		}
 	default: // manguier
 		th := 44 * size
 		ellipse(dst, x, y+2, 30*size, 8, rgba(0x000000, 0.2))
@@ -287,6 +307,18 @@ func drawItemExotic(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		ellipse(dst, x, y, r*0.65, r*0.85, rgb(0xf08a24))
 		ellipse(dst, x+r*0.15, y-r*0.3, r*0.35, r*0.4, rgb(0xe8452b))
 		line(dst, x, y-r*0.85, x+r*0.2, y-r, r*0.1, rgb(0x5a4a20))
+	case sim.Avocat:
+		// un avocat entier (peau vert sombre) et une moitié : la chair vert tendre et le noyau
+		ellipse(dst, x-r*0.32, y+r*0.2, r*0.42, r*0.55, rgb(0x3a5a1a))
+		ellipse(dst, x-r*0.32, y-r*0.3, r*0.28, r*0.32, rgb(0x3a5a1a))
+		ellipse(dst, x-r*0.42, y-r*0.2, r*0.08, r*0.18, rgba(0xffffff, 0.25))
+		ellipse(dst, x+r*0.32, y+r*0.2, r*0.45, r*0.58, rgb(0x2f4a14))
+		ellipse(dst, x+r*0.32, y-r*0.3, r*0.3, r*0.34, rgb(0x2f4a14))
+		ellipse(dst, x+r*0.32, y+r*0.2, r*0.38, r*0.5, rgb(0xd8e88a))
+		ellipse(dst, x+r*0.32, y-r*0.3, r*0.23, r*0.27, rgb(0xd8e88a))
+		ellipse(dst, x+r*0.32, y+r*0.2, r*0.3, r*0.4, rgb(0xb8d468))
+		circle(dst, x+r*0.32, y+r*0.28, r*0.2, rgb(0x8a5a2e))
+		circle(dst, x+r*0.27, y+r*0.22, r*0.06, rgba(0xffffff, 0.35))
 	case sim.Citron:
 		ellipse(dst, x, y+r*0.05, r*0.85, r*0.62, rgb(0xf5e04a))
 		circle(dst, x-r*0.85, y+r*0.05, r*0.14, rgb(0xe8c830)) // les deux bouts pointus

@@ -413,7 +413,7 @@ func drawOrchard(dst *ebiten.Image, it sim.Item, x, y, young, gr, t float64) {
 		fc = rgb(0x8fcf4a) // pas encore de la bonne couleur
 	}
 	for _, e := range sim.ExoFruits {
-		if e == it { // ferme exotique : ananas, bananier, cocotier, manguier, citronnier, oranger
+		if e == it { // ferme exotique : ananas, bananier, cocotier, manguier, avocatier, citronnier, oranger
 			drawExoticTree(dst, it, x, y, size, fr, ripe, t)
 			return
 		}

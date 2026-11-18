@@ -125,6 +125,7 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 	migrateGlaces(s)
 	migrateEpices(s)
 	migrateAbattoirs(s)
+	migrateAvocatier(s)
 	g.Money = s.Money
 	if s.Levels != nil {
 		g.Levels = s.Levels
@@ -456,6 +457,32 @@ func migrateAbattoirs(s *Save) {
 	for _, a := range abattoirOf {
 		if a.animal == "" || ps.Paid[a.animal] >= full[a.animal]*0.99 {
 			ps.Paid[a.id] = math.Max(ps.Paid[a.id], a.cost)
+		}
+	}
+}
+
+// AvocatierKey : marque des parties où l'avocatier existe (toutes les nouvelles parties).
+const AvocatierKey = "exotique.avocatier"
+
+// migrateAvocatier : avec l'avocatier (après le manguier), le citronnier, l'oranger et les
+// deux pressoirs coûtent plus. Dans une ancienne partie, ce qui était entièrement payé à
+// l'ancien prix reste payé (les montants partiels restent tels quels).
+func migrateAvocatier(s *Save) {
+	if s.Levels == nil {
+		s.Levels = map[string]int{}
+	}
+	if s.Levels[AvocatierKey] > 0 {
+		return
+	}
+	s.Levels[AvocatierKey] = 1
+	ps := s.Places["exotique"]
+	if ps == nil || ps.Paid == nil {
+		return
+	}
+	for id, c := range map[string][2]float64{"citronnier": {34000, 36000}, "oranger": {36000, 38000},
+		"pressoir_citron": {37000, 40000}, "pressoir_orange": {40000, 43000}} {
+		if v := ps.Paid[id]; v >= c[0]*0.99 && v < c[1] {
+			ps.Paid[id] = c[1]
 		}
 	}
 }
