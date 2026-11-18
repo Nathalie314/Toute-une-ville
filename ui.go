@@ -1876,7 +1876,7 @@ func placeDesc(id string) string {
 	case "ecole":
 		txt = "À l'école, tu accueilles des élèves et tu leur fais cours (puis des profs le font pour toi). Chaque élève qui s'en va te donne un point (ouvrier, marketing, comptable ou formation) à placer depuis la mairie pour améliorer tes lieux."
 	case "exotique":
-		txt = "La ferme exotique fait pousser ananas, bananes, noix de coco, mangues, canne à sucre, cacao, café, riz, vanille, thé et cannelle. Elle a ses clients et ses commandes, et livre le sucre et le chocolat à la boulangerie et au glacier. Chaque espace a ses ouvriers."
+		txt = "La ferme exotique fait pousser ananas, bananes, noix de coco, mangues, avocats, citrons, oranges, canne à sucre, cacao, café, riz, vanille, thé et cannelle. Elle a ses clients et ses commandes, et livre le sucre et le chocolat à la boulangerie et au glacier. Chaque espace a ses ouvriers."
 	case "elevage":
 		txt = "La ferme d'élevage ne reçoit pas de clients : elle élève volailles, bovins, ovins et porcs avec le maïs, le foin (grenier à foin de ta ferme) et les pommes de terre de ta ferme, puis les abat. Ses frigos partent en camion frigorifique à la boucherie. Chaque espace a ses éleveurs."
 	case "boucherie":
