@@ -121,7 +121,7 @@ func newElevage(g *Game) *Place {
 	pre := func(id, name, team string, in, a, b Item, x, t float64, unl string) {
 		s := mach(id, name, team, in, a, x, rowA, 850, 180, t, unl) // (le pré remplit son espace, sa case « Stock + » au bout)
 		s.Two, s.Item2 = true, b
-		s.OutZone2 = Rect{x + 280, rowA + 180 + 18, 130, 90}
+		s.OutZone2 = Rect{x + 655, rowA + 180 + 18, 130, 90} // (les petits sortent au-dessus de leur abattoir)
 	}
 	// (chaque abattoir s'achète à part, après le bâtiment de ses animaux ; son frigo vient avec lui,
 	// centré sous lui : x est celui de l'abattoir)
