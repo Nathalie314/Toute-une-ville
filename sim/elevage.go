@@ -121,7 +121,7 @@ func newElevage(g *Game) *Place {
 	pre := func(id, name, team string, in, a, b Item, x, t float64, unl string) {
 		s := mach(id, name, team, in, a, x, rowA, 850, 180, t, unl) // (le pré remplit son espace, sa case « Stock + » au bout)
 		s.Two, s.Item2 = true, b
-		s.OutZone2 = Rect{x + 280, rowA + 180 + 18, 130, 90}
+		s.OutZone2 = Rect{x + 655, rowA + 180 + 18, 130, 90} // (les petits sortent au-dessus de leur abattoir)
 	}
 	// (chaque abattoir s'achète à part, après le bâtiment de ses animaux ; son frigo vient avec lui,
 	// centré sous lui : x est celui de l'abattoir)
@@ -155,9 +155,10 @@ func newElevage(g *Game) *Place {
 	frigo("ovin", MoutonCarcasse, 2510, "abattoir_mouton")
 	frigo("ovin", AgneauCarcasse, 3100, "abattoir_agneau")
 	// porcs : la porcherie (pommes de terre), son abattoir
-	mach("porcherie", "Porcherie", "porc", PommeDeTerre, Cochon, 3660, rowA, 850, 180, 5, "porc") // (aussi grande que les prés)
-	mach("abattoir_porc", "Abattoir : porcs", "porc", Cochon, Porc, 3660, rowB, 260, 140, 4, "abattoir_porc")
-	frigo("porc", Porc, 3660, "abattoir_porc")
+	pc := mach("porcherie", "Porcherie", "porc", PommeDeTerre, Cochon, 3660, rowA, 850, 180, 5, "porc")       // (aussi grande que les prés)
+	pc.Zone.X, pc.OutZone.X = 3955-10, 3955+140                                                               // (ses cases au milieu, au-dessus de l'abattoir : symétrique)
+	mach("abattoir_porc", "Abattoir : porcs", "porc", Cochon, Porc, 3955, rowB, 260, 140, 4, "abattoir_porc") // (au milieu de la porcherie)
+	frigo("porc", Porc, 3955, "abattoir_porc")
 
 	trash := &Station{ID: "poubelle", Name: "Poubelle", Kind: Trash}
 	trash.Body = Rect{4760, rowA + 50, 70, 70} // (le compost, à droite de l'espace des porcs)
