@@ -75,7 +75,7 @@ var cremerieSpec = workshopSpec{
 	},
 	staff: "Crémiers", cashCost: 4500, staffCosts: []float64{6000, 15000, 38000, 90000, 220000, 500000, 1100000, 2400000, 5000000}, upBase: 7000,
 	sign: "Vitrine", bio: "Fermier",
-	w: 3400, perRow: 5, docks: []string{"super", "boulangerie", "glacier", "patisserie"}, shift2: true, tall: true, dockNear: true,
+	w: 4000, perRow: 5, docks: []string{"super", "boulangerie", "glacier", "patisserie", "creperie"}, shift2: true, tall: true, dockNear: true,
 }
 
 // patisserieSpec : la pâtisserie (12e lieu). Sa particularité : chaque recette
@@ -114,7 +114,7 @@ var iceSpec = workshopSpec{
 	},
 	staff: "Serveurs", cashCost: 6000, staffCosts: []float64{8000, 20000, 50000, 120000, 300000, 700000, 1500000, 3200000}, upBase: 9000, // (un par fabrique)
 	sign: "Parasols", bio: "Recettes maison", shift2: true, tall: true,
-	gap: 320, dockNear: true, // (fabriques larges : on circule bien entre elles)
+	gap: 320, dockNear: true, docks: []string{"super", "creperie"}, // (fabriques larges : on circule bien entre elles ; la glace vanille part aussi à la crêperie)
 }
 
 // Disposition des ateliers (jeu aéré) : chaque machine est suivie de sa case
@@ -236,7 +236,7 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 		}
 		p.dock(id, to, dockX(i))
 	}
-	if sp.id == "boulangerie" || sp.id == "cremerie" || sp.id == "patisserie" || sp.id == "glacier" {
+	if sp.id == "boulangerie" || sp.id == "cremerie" || sp.id == "patisserie" || sp.id == "glacier" || sp.id == "creperie" || sp.id == "boucherie" {
 		// caisse des commandes (boulangerie, crèmerie, glacier : la cantine de l'école ; crèmerie, pâtisserie : des particuliers)
 		cmd := &Station{ID: "commande", Name: "Commandes", Kind: OrderBox, Built: true}
 		cmd.Body = Rect{W - 280, 1300, 180, 60}
@@ -305,7 +305,7 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 func placeName(id string) string {
 	return map[string]string{"ferme": "la ferme", "super": "le supermarché", "boulangerie": "la boulangerie",
 		"cremerie": "la crèmerie", "glacier": "le glacier", "ecole": "l'école",
-		"elevage": "la ferme d'élevage", "boucherie": "la boucherie-charcuterie", "exotique": "la ferme exotique", "domaine": "le domaine", "patisserie": "la pâtisserie", "parc": "le parc d'attractions"}[id]
+		"elevage": "la ferme d'élevage", "boucherie": "la boucherie-charcuterie", "exotique": "la ferme exotique", "domaine": "le domaine", "creperie": "la crêperie", "patisserie": "la pâtisserie", "parc": "le parc d'attractions"}[id]
 }
 
 // needsMet : « lieu » (acheté) ou « lieu:station » (station construite), séparés par des virgules.
@@ -337,7 +337,11 @@ func needsText(needs string) string {
 		"elevage:ovin": "les ovins (ferme d'élevage)", "elevage:porc": "les porcs (ferme d'élevage)",
 		"elevage:abattoir_canard": "l'abattoir des canards (ferme d'élevage)", "elevage:abattoir_boeuf": "l'abattoir des bœufs (ferme d'élevage)",
 		"elevage:abattoir_veau": "l'abattoir des veaux (ferme d'élevage)", "elevage:abattoir_mouton": "l'abattoir des moutons (ferme d'élevage)",
-		"elevage:abattoir_agneau": "l'abattoir des agneaux (ferme d'élevage)", "elevage:abattoir_porc": "l'abattoir des porcs (ferme d'élevage)"}
+		"elevage:abattoir_agneau": "l'abattoir des agneaux (ferme d'élevage)", "elevage:abattoir_porc": "l'abattoir des porcs (ferme d'élevage)",
+		"boucherie:saucisse": "les saucisses (boucherie)", "boucherie:hache": "le steak haché (boucherie)", "boucherie:magret": "les magrets (boucherie)",
+		"ferme:chou": "la salade (ma ferme)", "ferme:poireau": "les poireaux (ma ferme)", "port:thon": "le thon (port)",
+		"exotique:bananier": "les bananes (ferme exotique)", "exotique:cannelle": "la cannelle (ferme exotique)",
+		"cremerie:fromage_brebis": "le fromage de brebis (crèmerie)", "glacier:glace_vanille": "la glace à la vanille (glacier)", "domaine:whisky": "le whisky (domaine)"}
 	var parts []string
 	for _, n := range strings.Split(needs, ",") {
 		t := txt[n]

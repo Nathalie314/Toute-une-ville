@@ -236,6 +236,7 @@ func newFarm(g *Game) *Place {
 	p.dock("quai_domaine", "domaine", 3600)       // au début de la serre (pommes de terre, pommes, poires)
 	p.dock("quai_glace", "glacier", 4380)         // juste à gauche des fruits du verger
 	p.dock("quai_patisserie", "patisserie", 4750) // sous les fruits du verger (pommes, cerises, fraises)
+	p.dock("quai_creperie", "creperie", 5100)     // sous les fleurs (lait, œufs, pommes, poires, salade, poireaux)
 	// la cour, à gauche de la boutique (près du portail) : caisse des commandes et hangar
 	cmd := &Station{ID: "commande", Name: "Commandes", Kind: OrderBox, Built: true}
 	cmd.Body = Rect{230, 1110, 180, 70}

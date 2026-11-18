@@ -264,7 +264,7 @@ func (p *Place) teamSpots(who string) {
 // emplacement de chaque recette de la boucherie : colonne et rangée
 // (volaille : colonnes 0 à 2, bovins : 3 et 4, ovins : 5, porc : 6 et 7).
 var boucherieCell = map[string][3]int{ // colonne, rangée, espace
-	"preparation": {0, 0, 0}, "rotisserie": {1, 0, 0}, "cuisses": {2, 0, 0},
+	"rotisserie": {0, 0, 0}, "cuisses": {1, 0, 0}, "pilons": {2, 0, 0},
 	"aiguillettes": {0, 1, 0}, "magret": {1, 1, 0}, "foie_gras": {2, 1, 0},
 	"steak": {3, 0, 1}, "hache": {4, 0, 1}, "roti_boeuf": {3, 1, 1}, "veau": {4, 1, 1},
 	"gigot": {5, 0, 2}, "cote_agneau": {5, 1, 2},
@@ -275,9 +275,9 @@ var boucherieSpec = workshopSpec{
 	id: "boucherie", name: "La boucherie-charcuterie", price: boucheriePrice, seed: 59,
 	inputs: []Item{PouletAbattu, CanardAbattu, Boeuf, VeauCarcasse, MoutonCarcasse, AgneauCarcasse, Porc},
 	recipes: []recipe{
-		{"preparation", "Préparation des poulets", PouletCru, []Item{PouletAbattu}, 3, 0, "", ""},
-		{"rotisserie", "Rôtisserie", PouletRoti, []Item{PouletCru}, 5, 12000, "Le poulet cru entier devient un poulet rôti.", ""},
+		{"rotisserie", "Rôtisserie", PouletRoti, []Item{PouletAbattu}, 5, 0, "", ""}, // (la préparation des poulets n'existe plus : la rôtisserie est offerte)
 		{"cuisses", "Cuisses de poulet", CuissePoulet, []Item{PouletAbattu}, 4, 20000, "Avec les poulets de la ferme d'élevage.", ""},
+		{"pilons", "Pilons de poulet", PilonPoulet, []Item{PouletAbattu}, 4, 25000, "Avec les poulets de la ferme d'élevage.", ""},
 		{"aiguillettes", "Aiguillettes de canard", Aiguillettes, []Item{CanardAbattu}, 4, 30000, "Avec les canards de la ferme d'élevage.", "elevage:abattoir_canard"},
 		{"magret", "Magrets de canard", Magret, []Item{CanardAbattu}, 5, 45000, "Avec les canards de la ferme d'élevage.", "elevage:abattoir_canard"},
 		{"foie_gras", "Foie gras", FoieGras, []Item{CanardAbattu}, 7, 70000, "Avec les canards de la ferme d'élevage.", "elevage:abattoir_canard"},
@@ -293,7 +293,7 @@ var boucherieSpec = workshopSpec{
 		{"pate", "Pâtés", Pate, []Item{Porc}, 6, 100000, "Avec le porc de la ferme d'élevage.", "elevage:abattoir_porc"},
 	},
 	staff: "Bouchers", cashCost: 8000, staffCosts: []float64{1}, upBase: 11000,
-	sign: "Vitrine réfrigérée", bio: "Viande d'ici", w: 5700, perRow: 8, tall: true,
+	sign: "Vitrine réfrigérée", bio: "Viande d'ici", w: 5700, perRow: 8, tall: true, docks: []string{"super", "creperie"},
 }
 
 func newBoucherie(g *Game) *Place {
@@ -313,7 +313,20 @@ func newBoucherie(g *Game) *Place {
 		s.OutZone = Rect{x + 140, y + 168, 130, 90}
 		sh := p.Station("etal_" + itoa(int(r.out)))
 		sh.Team = team
-		sx := x + float64(c[1])*200
+		// les vitrines : dans chaque espace, dans l'ordre où l'on achète les machines
+		k := 0
+		for _, o := range boucherieSpec.recipes {
+			if boucherieCell[o.id][2] == c[2] && (o.cost < r.cost || (o.cost == r.cost && o.id < r.id)) {
+				k++
+			}
+		}
+		first := 99
+		for _, o := range boucherieSpec.recipes {
+			if cc := boucherieCell[o.id]; cc[2] == c[2] {
+				first = min(first, cc[0])
+			}
+		}
+		sx := 500 + float64(first)*620 + float64(k)*200
 		sh.Body = Rect{sx, sy, 150, shelfH}
 		sh.Zone = Rect{sx - 10, sy - 95, 170, 92}
 		sh.Spot = V{sx + 75, sy + shelfH + 38}

@@ -24,7 +24,7 @@ var StandKinds = []StandKind{
 	{ID: "barbe", Name: "Barbe à papa", Cost: 600000, Share: 0.09, Slot: 7, DX: 550, Ride: "bateaux"},
 	{ID: "photo", Name: "Photo souvenir", Cost: 1300000, Share: 0.16, Slot: 1, DX: 2400, Ride: "grandhuit"},
 	{ID: "foodtruck", Name: "Food truck", Cost: 3000000, Share: 0.14, Slot: 2, DX: 2300, Ride: "splash"},
-	{ID: "canards", Name: "Pêche aux canards", Cost: 6500000, Share: 0.12, Slot: 0, DX: 2300, Ride: "vide"},
+	{ID: "canards", Name: "Stand de crêpes", Cost: 6500000, Share: 0.12, Slot: 0, DX: 2300, Ride: "vide"},
 	{ID: "souvenirs", Name: "Boutique de souvenirs", Cost: 12000000, Share: 0.2, Slot: 3, DX: 700, Ride: "vide"},
 }
 

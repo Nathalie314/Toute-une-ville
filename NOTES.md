@@ -1345,3 +1345,54 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   reste acheté. Sa partie : ferme d'élevage remise à zéro à sa demande (toujours achetée).
 - Retouche : « Boissons » vient juste après l'épicerie, limonade et jus d'orange en tête du rayon. Les magasiniers
   gardent le prix de leur ancienne place (SuperZone.rank ; les espaces suivants reprennent leur ancien rang).
+
+## La crêperie (12e lieu, après le domaine) : le premier restaurant
+- Carte : entre le domaine et la pâtisserie (les prix de la pâtisserie et du parc doublent pour ce qui n'est pas encore
+  acheté : courbe des prix). Pas de réputation (ni étoiles sur la carte ni dans l'en-tête) ; elle a ses badges.
+- Bâtiment (sim/creperie.go, creperie_draw.go) : en haut la cuisine (route des livraisons au-dessus, réserve de 18
+  palettes, 9 postes), le comptoir dans le mur, en bas la salle ; la terrasse dehors, à droite. Murs = stations « mur_ » ;
+  portes : cuisine ↔ salle (à gauche), salle ↔ zone du joueur, entrée des clients (en bas), terrasse (à droite).
+- Cuisine (un atelier, newWorkshop) : « Crêpes nature » (lait, œufs, beurre) tourne sans arrêt (pile 12, « Stock + ») ;
+  les 8 crêpes garnies (chef compris dans l'achat, dans l'ordre : sucre, saucisse-œufs, pomme-cannelle, thon-poireaux,
+  banane-chocolat, steak haché-brebis, poire-glace vanille, canard flambé au whisky) ne se font que sur commande
+  (crepDemand) et le chef attend qu'un commis emporte son plat (pile 1). Une crêpe nature ne va à un poste que pour un
+  plat commandé ; un commis ne dépose qu'au poste où il va (sinon il vidait sa crêpe au premier poste traversé).
+  Ce qu'une table attend passe avant les réserves (×6 dans pickJob).
+- Salle : 6 tables de 2, puis 6 de 4, puis la terrasse (120 000) et ses 4 + 4 tables ; chaque table s'achète, dans
+  l'ordre. Voitures de 2 (puis 2 ou 4 selon les tables), parking 5 places (+5, jusqu'à tables + 5). Autant de tables
+  de clients que de tables (plus avec la réclame). Menu choisi avant d'entrer : une salée et une sucrée chacun (le plat
+  préféré, sinon un autre et −15 % de bonheur), cidre (1 bouteille par 2). Sans table : file sur le trottoir (90 s).
+  Serveurs (autant que de tables) : servir ce qui est prêt, sinon prendre une commande (6 s, tablette), sinon nettoyer
+  (5 s). Le cidre : frigo de la salle, rempli par le camion du domaine. Pas de caisse : la table paie ce qu'elle a reçu
+  en partant (le cidre 5 fois son prix du domaine) ; crêpes garnies 5 000 à 13 000 € ; pourboire = 1 % (+1 % tous les 5 points « pts_pourboire », étape 3), avec une chance égale au bonheur ;
+  il reste sur la table (sauvegardé) et seul le joueur le ramasse. Le joueur peut tout faire en salle.
+- Quais « → crêperie » : ferme (sous les fleurs), crèmerie (crèmerie élargie à 4 000), exotique (bateau), glacier,
+  port, boucherie, domaine (il existait déjà).
+- Étape 3 :
+  - Points d'école propres (crepPointKinds) : primaire — commis (vitesse, mains, charge), serveurs (tablette,
+    nettoyage), chef des crêpes nature, chefs des salées, chefs des sucrées (vitesse +3 %, rentabilité à part :
+    pts_chef_nat/sal/suc_vit et _rent) ; collège — réclame (tables de clients à la fois), clients fidèles ; lycée —
+    pourboires (pts_pourboire : +1 % tous les 5 points, sans maximum), comptables, logistique. Les serveurs ne
+    profitent pas des points des commis (vitesse 230, plateau de 4).
+  - Commandes : seulement des crêpes nature, livrées à la caisse des commandes (dans la zone du joueur, comme partout). La cantine :
+    une par élève du primaire, deux pour tous les autres (adultes compris). Le parc : 100 crêpes nature.
+  - Au parc, la « Pêche aux canards » devient le « Stand de crêpes » (même identifiant « canards » : sauvegardes).
+  - Icônes : la crêpe garnie est un quart de disque (pliée en quatre) : en triangle, elle ressemblait à « ⚠ ».
+
+## Boucherie : plus de préparation des poulets, des pilons, vitrines dans l'ordre
+- La « Préparation des poulets » et le poulet cru entier disparaissent (boucherie et supermarché) ; la rôtisserie prend
+  directement le poulet abattu et devient la machine offerte. « Pilons de poulet » (80 €) après les cuisses (25 000).
+- Les vitrines de chaque espace sont rangées dans l'ordre d'achat de ses machines.
+- Icônes : le poulet et le canard abattus sont plumés, roses, avec leur tête (poulet : bec pointu, crête et barbillon
+  rouges ; canard : bec rond et plat, pas de crête) ; les pilons, crus, au bout de leur os.
+
+## Boucherie : des commandes de particuliers
+- Comme à la pâtisserie : des habitants commandent 2 ou 3 produits des vitrines ouvertes (shopOrder), avec leurs
+  cadeaux ; la caisse des commandes est dans la zone du joueur. La boucherie gagne donc les points « Réclame :
+  cadeaux » (collège) et « Logistique » (lycée).
+
+## Ferme d'élevage : sans réputation, un conseil
+- Plus d'étoiles à la ferme d'élevage (ni dans l'en-tête ni sur la carte) : elle n'a pas de clients (Place.NoRep,
+  comme la crêperie).
+- Son aide : « Chaque espace a ses éleveurs » retiré ; son conseil (écrit par elle) : améliorer les drones et les
+  camions pour que les livraisons à la boucherie soient régulières.

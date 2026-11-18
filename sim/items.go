@@ -168,6 +168,17 @@ const (
 	Noisette
 	Noix
 	Olive
+	// la crêperie : la crêpe nature (faite sans arrêt), puis les crêpes garnies (sur commande)
+	CrepeNature
+	CrepeSucre
+	CrepeBananeChoco
+	CrepePommeCannelle
+	CrepePoireVanille
+	CrepeSaucisseOeuf
+	CrepeThonPoireau
+	CrepeCanard
+	CrepeSteakBrebis
+	PilonPoulet // (boucherie, après les cuisses)
 	NItems
 )
 
@@ -276,6 +287,7 @@ var Items = [NItems]ItemInfo{
 	PouletCru:        {"Poulet cru entier", 70},
 	PouletRoti:       {"Poulet rôti", 110},
 	CuissePoulet:     {"Cuisses de poulet", 85},
+	PilonPoulet:      {"Pilons de poulet", 80},
 	Aiguillettes:     {"Aiguillettes de canard", 120},
 	Magret:           {"Magret de canard", 150},
 	FoieGras:         {"Foie gras", 280},
@@ -299,23 +311,34 @@ var Items = [NItems]ItemInfo{
 	Noisette:         {"Noisettes", 80},
 	Noix:             {"Noix", 85},
 	Olive:            {"Olives", 75},
-	Riz:              {"Riz (sachet)", 28},
-	Vanille:          {"Gousses de vanille", 120},
-	FeuillesThe:      {"Feuilles de thé", 20},
-	The:              {"Thé (boîte)", 95},
-	Cannelle:         {"Bâtons de cannelle", 75},
-	Sardine:          {"Sardines", 30},
-	Cabillaud:        {"Cabillaud", 50},
-	Thon:             {"Thon", 70},
-	Saumon:           {"Saumon", 90},
-	Huitre:           {"Huîtres", 110},
-	Moule:            {"Moules", 125},
-	SaintJacques:     {"Saint-Jacques", 150},
-	Gambas:           {"Gambas", 170},
-	SorbetMangue:     {"Sorbet à la mangue", 75},
-	SorbetAnanas:     {"Sorbet à l'ananas", 85},
-	GlaceCoco:        {"Glace à la noix de coco", 170},
-	GlaceCafe:        {"Glace au café", 165},
+	// (la crêperie : une table paie ses crêpes et son cidre en partant ; des plats de restaurant, chers,
+	// pour que la courbe des prix tienne : chaque lieu double à peu près les revenus)
+	CrepeNature:        {"Crêpe nature", 150},
+	CrepeSucre:         {"Crêpe au sucre", 5000},
+	CrepeBananeChoco:   {"Crêpe banane-chocolat", 7500},
+	CrepePommeCannelle: {"Crêpe pomme-cannelle", 6500},
+	CrepePoireVanille:  {"Crêpe poire-glace vanille", 9500},
+	CrepeSaucisseOeuf:  {"Crêpe saucisse-œufs", 7000},
+	CrepeThonPoireau:   {"Crêpe thon-poireaux", 8000},
+	CrepeCanard:        {"Crêpe au canard flambé au whisky", 13000},
+	CrepeSteakBrebis:   {"Crêpe steak haché-brebis", 10000},
+	Riz:                {"Riz (sachet)", 28},
+	Vanille:            {"Gousses de vanille", 120},
+	FeuillesThe:        {"Feuilles de thé", 20},
+	The:                {"Thé (boîte)", 95},
+	Cannelle:           {"Bâtons de cannelle", 75},
+	Sardine:            {"Sardines", 30},
+	Cabillaud:          {"Cabillaud", 50},
+	Thon:               {"Thon", 70},
+	Saumon:             {"Saumon", 90},
+	Huitre:             {"Huîtres", 110},
+	Moule:              {"Moules", 125},
+	SaintJacques:       {"Saint-Jacques", 150},
+	Gambas:             {"Gambas", 170},
+	SorbetMangue:       {"Sorbet à la mangue", 75},
+	SorbetAnanas:       {"Sorbet à l'ananas", 85},
+	GlaceCoco:          {"Glace à la noix de coco", 170},
+	GlaceCafe:          {"Glace au café", 165},
 	// (le domaine : des produits chers, pour que les revenus suivent la courbe des prix)
 	Houblon:     {"Houblon", 8},
 	Raisin:      {"Raisin", 60},
@@ -380,5 +403,9 @@ var EpicerieSold = []Item{SucreMorceaux, SucrePoudre, Chocolat, CafeGrains, Cafe
 var FutureSold = []Item{Noisette, Noix, Olive}
 
 // BoucherieSold : ce que vend la boucherie-charcuterie (par espace).
-var BoucherieSold = []Item{PouletCru, PouletRoti, CuissePoulet, Aiguillettes, Magret, FoieGras,
+var BoucherieSold = []Item{PouletRoti, CuissePoulet, PilonPoulet, Aiguillettes, Magret, FoieGras,
 	Steak, SteakHache, RotiBoeuf, MorceauxVeau, Gigot, CoteAgneau, Saucisse, Jambon, Cotelette, Pate}
+
+// CrepesSucrees, CrepesSalees : les crêpes garnies de la crêperie (chacun en commande une de chaque).
+var CrepesSucrees = []Item{CrepeSucre, CrepeBananeChoco, CrepePommeCannelle, CrepePoireVanille}
+var CrepesSalees = []Item{CrepeSaucisseOeuf, CrepeThonPoireau, CrepeCanard, CrepeSteakBrebis}

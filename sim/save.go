@@ -37,8 +37,9 @@ type PlaceSave struct {
 	Reputation float64
 	Achete     bool
 	Servis     int
-	Eleves     []EleveSave `json:",omitempty"`
-	Stands     int         `json:",omitempty"` // parc : ventes des stands
+	Eleves     []EleveSave        `json:",omitempty"`
+	Stands     int                `json:",omitempty"` // parc : ventes des stands
+	Pourboires map[string]float64 `json:",omitempty"` // crêperie : pourboires laissés sur les tables
 }
 
 func (g *Game) Snapshot(unix int64) *Save {
@@ -59,6 +60,16 @@ func (g *Game) Snapshot(unix int64) *Save {
 		ps.Servis = p.Served
 		if p.Parc != nil {
 			ps.Stands = p.Parc.StandSales
+		}
+		if p.Crep != nil {
+			for _, t := range p.Crep.Tables {
+				if t.Tips > 0 {
+					if ps.Pourboires == nil {
+						ps.Pourboires = map[string]float64{}
+					}
+					ps.Pourboires[t.ID] = t.Tips
+				}
+			}
 		}
 		if p.ID == "ecole" {
 			ps.Eleves = p.saveStudents()
@@ -249,6 +260,11 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 		p.Served = ps.Servis
 		if p.Parc != nil {
 			p.Parc.StandSales = ps.Stands
+		}
+		if p.Crep != nil {
+			for _, t := range p.Crep.Tables {
+				t.Tips = ps.Pourboires[t.ID]
+			}
 		}
 		if p.ID == "ferme" && p.Served == 0 {
 			p.Served = s.Stats.Served // ancienne sauvegarde

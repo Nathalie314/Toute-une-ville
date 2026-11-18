@@ -128,6 +128,16 @@ func (g *Game) orderSources() []func() *Order {
 	if c := g.Place("patisserie"); c != nil && c.Owned {
 		src = append(src, func() *Order { return g.shopOrder("patisserie") })
 	}
+	if c := g.Place("boucherie"); c != nil && c.Owned {
+		src = append(src, func() *Order { return g.shopOrder("boucherie") }) // (des particuliers)
+	}
+	// la crêperie : seulement des crêpes nature, et seulement pour la cantine de l'école (le parc,
+	// lui, en commande avec ses autres commandes)
+	if c := g.Place("creperie"); c != nil && c.Owned {
+		if sc := g.Place("ecole"); sc != nil && sc.Owned {
+			src = append(src, func() *Order { return g.schoolOrder("creperie") })
+		}
+	}
 	if c := g.Place("parc"); c != nil && c.Owned {
 		src = append(src, g.parcOrder)
 	}
@@ -328,6 +338,9 @@ const schoolTime = 600.0
 func (g *Game) schoolOrder(at string) *Order {
 	// un produit par personne : primaire, collège, lycée, université, puis les adultes
 	// (même si l'atelier ne sait pas encore le faire : la commande pousse à ouvrir la recette)
+	if at == "creperie" {
+		return g.schoolCrepes()
+	}
 	menu := map[string][]Item{
 		"boulangerie": {Pain, Brioche, Croissant, PainChoco, PainMele},
 		"cremerie":    {Lait, FromageBlanc, Yaourt, Fromage, Beurre},
@@ -388,6 +401,9 @@ func (g *Game) parcOrder() *Order {
 		}
 		cmds = append(cmds, cmd{"glacier", ls})
 	}
+	if p := g.Place("creperie"); p != nil && p.Owned {
+		cmds = append(cmds, cmd{"creperie", []OrderLine{{It: CrepeNature, N: 100}}}) // (le stand de crêpes)
+	}
 	c := cmds[g.rng.Intn(len(cmds))]
 	return &Order{Who: "le parc d'attractions", At: c.at, Lines: c.lines, Left: schoolTime, Total: schoolTime, Fast: 180}
 }
@@ -414,4 +430,37 @@ func (g *Game) finishOrder(at V) {
 	}
 	g.earnBonus(gain, at, o.Place())
 	g.emit(Event{Kind: EvLevel, Pos: at, Text: tr.F("Commande livrée ({qui}) : +{prix} !", "qui", tr.T(o.Who), "prix", moneyText(gain)) + txt})
+}
+
+// schoolCrepes : la cantine commande des crêpes nature à la crêperie : une par élève
+// du primaire, deux pour tous les autres (collège, lycée, université et adultes).
+func (g *Game) schoolCrepes() *Order {
+	sc := g.Place("ecole")
+	n := 0
+	for _, st := range sc.Students {
+		if st.Room == nil {
+			continue
+		}
+		if st.Room.Level == 0 {
+			n++
+		} else {
+			n += 2
+		}
+	}
+	for _, r := range sc.Rooms {
+		if r.built && sc.HasProf(r) {
+			n += 2 // les profs
+		}
+	}
+	n += 2 * len(sc.Workers) // les surveillants
+	if g.Levels[sc.key("secretaire")] > 0 {
+		n += 2 // la secrétaire
+	}
+	if n == 0 {
+		return nil
+	}
+	o := &Order{Who: "la cantine de l'école", At: "creperie", Left: schoolTime, Total: schoolTime, Fast: 120,
+		Lines: []OrderLine{{It: CrepeNature, N: n}}}
+	o.Reward = math.Round(Items[CrepeNature].Price*float64(n)*3/10) * 10
+	return o
 }

@@ -159,6 +159,7 @@ func newPort(g *Game) *Place {
 	trash.Zone = Rect{4020, 1290, 110, 150}
 	p.Stations = append(p.Stations, trash)
 	p.dock("quai", "super", 3560)
+	p.dock("quai_creperie", "creperie", 3910) // (le thon)
 	cmd := &Station{ID: "commande", Name: "Commandes", Kind: OrderBox, Built: true}
 	p.Stations = append(p.Stations, cmd)
 

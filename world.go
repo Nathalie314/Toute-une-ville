@@ -198,6 +198,9 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	if p.ID == "parc" {
 		ds = g.parcDrawables(dst, p, ds, tl, br)
 	}
+	if p.Crep != nil {
+		ds = g.crepDrawables(dst, p, ds)
+	}
 	ds = decorDrawables(dst, dec, ds, tl, br, p.ID == "exotique")
 	if p.ID == "exotique" {
 		ds = exoticAnimals(dst, p, ds, tl, br, t) // perroquets, singes, toucans, flamants
@@ -626,6 +629,9 @@ func (g *game) drawStation(dst *ebiten.Image, p *sim.Place, s *sim.Station) {
 	}
 	if strings.HasPrefix(s.ID, "barriere_") { // (tous les espaces du supermarché, même les nouveaux)
 		drawZoneBarrier(dst, s)
+		return
+	}
+	if p.Crep != nil && g.drawCrepStation(dst, p, s) {
 		return
 	}
 	if p.ID == "exotique" && strings.HasPrefix(s.ID, "pressoir_") {
@@ -1062,6 +1068,15 @@ func staffLook(place string, kind sim.AgentKind, n int) look {
 		lk.shirt, lk.pants = 0x7a2a4a, 0x3b3b4a
 		lk.apron = 0x8a5a33
 		lk.hat, lk.hatC = 2, 0x6e4322
+	case "creperie":
+		if n >= 4000 { // serveur : marinière et long tablier noir
+			lk.shirt, lk.pants, lk.mariniere = 0xffffff, 0x2b2b2b, true
+			lk.apron = 0x2b2b2b
+		} else { // commis : veste blanche, tablier bleu, charlotte
+			lk.shirt, lk.pants = 0xffffff, 0x4a4a4a
+			lk.apron, lk.stripe = 0x1f4f8a, 0xffffff
+			lk.hat = 6
+		}
 	case "elevage": // salopette, bottes, casquette
 		lk.shirt, lk.pants = 0x8a5a2b, 0x3b5998
 		lk.hat, lk.hatC = 2, 0x8a5a2b
@@ -1735,6 +1750,10 @@ func (g *game) backTruck(dst *ebiten.Image, p *sim.Place) {
 	}
 	e := every - best
 	truckFrom = fromID
+	ty := 60.0
+	if p.ID == "creperie" {
+		ty = sim.CrepTop + 85 // (sa route est au-dessus de la cuisine)
+	}
 	defer func() { truckFrom = "ferme" }()
 	stop := 260.0
 	if p.ID == "super" {
@@ -1743,14 +1762,14 @@ func (g *game) backTruck(dst *ebiten.Image, p *sim.Place) {
 	switch {
 	case best < 3: // il arrive par la gauche
 		f := (3 - best) / 3
-		drawTruck(dst, stop-1400*(1-f)*(1-f), 60, true)
+		drawTruck(dst, stop-1400*(1-f)*(1-f), ty, true)
 	case e < 2: // il décharge
-		drawTruck(dst, stop, 60, true)
+		drawTruck(dst, stop, ty, true)
 	case e < 4.5: // il repart vers la droite
 		f := (e - 2) / 2.5
-		drawTruck(dst, stop+3600*f*f, 60, false)
+		drawTruck(dst, stop+3600*f*f, ty, false)
 	}
-	sayOutlined(dst, "Prochaine livraison ("+strings.ToLower(from)+") : "+itoa(int(best))+" s", 420, 60, 20, -1, rgb(0xffffff), rgb(0x2b2b2b))
+	sayOutlined(dst, "Prochaine livraison ("+strings.ToLower(from)+") : "+itoa(int(best))+" s", 420, ty, 20, -1, rgb(0xffffff), rgb(0x2b2b2b))
 }
 
 // workshopGround : boulangerie et glacier (sol, réserve, vitrine).

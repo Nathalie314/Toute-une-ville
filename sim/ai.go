@@ -24,6 +24,10 @@ func (p *Place) need(s *Station, it Item) int {
 	case Machine:
 		for _, in := range s.Inputs {
 			if in == it {
+				if p.Crep != nil && it == CrepeNature {
+					// crêperie : une crêpe nature par plat commandé, pas d'avance
+					return min(s.BufMax, max(0, p.crepDemand(s.Item))) - s.Buf[it] - s.claim[it]
+				}
 				return s.BufMax - s.Buf[it] - s.claim[it]
 			}
 		}
@@ -154,6 +158,9 @@ func (p *Place) pickJob(w *Agent) *job {
 				}
 				if dst.Kind == Field {
 					score = 2.2 * float64(n) / float64(p.needMax(dst)) // replanter passe avant presque tout
+				}
+				if p.Crep != nil && ((dst.Kind == Machine && dst.Item != CrepeNature && p.crepDemand(dst.Item) > 0) || dst.Kind == Shelf) {
+					score *= 6 // crêperie : ce qu'une table attend passe avant les réserves
 				}
 				score *= 0.85 + 0.3*p.rand()
 				score /= 1 + w.Pos.Dist(src.Body.C())/2500
