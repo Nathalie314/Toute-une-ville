@@ -1411,3 +1411,15 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Carcasses de mouton et d'agneau au style du bœuf (mouton plus petit, plus sombre et plus gras ; agneau petit et
   rosé) ; le porc d'après son image (pendu par les pattes arrière à une barre, ouvert au milieu : échine et côtes).
 - Poulet rôti d'après son image : couché sur le flanc, cerné de brun, aile repliée, deux cuisses aux os blancs.
+- Côtes d'agneau d'après son image : médaillon rose épais, noix de viande rouge veinée de gras, manche jusqu'à l'os.
+- Gigot de mouton d'après son image : gigot rôti orangé coupé à gauche (tranche rouge, bord rose, os rond), manche et
+  os à droite, une tranche posée devant.
+- Saucisse d'après son image : une saucisse rouge courbée, nouée aux deux bouts, bord sombre, entailles et reflet.
+- Jambon d'après son image : deux tranches roses en haricot, l'une sur l'autre, couenne rouge foncé, liseré clair.
+- Boulangerie aérée : vitrines écartées (280 au lieu de 190 ; champ shelfStep des ateliers, les autres inchangés).
+- Ferme d'élevage : les prés des bovins et des ovins remplissent leur espace (630 de large, case « Stock + » au bout) ;
+  l'espace des porcs a la même taille que les autres (lieu élargi à 4150, compost déplacé), grande porcherie avec
+  truies, porcelets et cochons ; la chambre froide et la piste des drones vont jusqu'au bout de l'espace des porcs.
+- Ferme d'élevage plus aérée : quatre espaces de même largeur (1090) écartés de 60, bâtiments espacés (allée de
+  ~200 entre deux), prés et porcherie de 850 ; une large allée entre animaux et abattoirs (rowB 790), frigos plus bas
+  (1185) et centrés sous leur abattoir ; drones juste au-dessus du quai (PadOff 94) ; lieu élargi à 5050.

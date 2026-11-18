@@ -39,6 +39,7 @@ type workshopSpec struct {
 	gap        float64  // allée entre deux machines (machineGap par défaut)
 	dockNear   bool     // quais juste après la dernière vitrine
 	tall       bool     // file de la caisse plus courte (elle ne doit pas sortir par la vitrine)
+	shelfStep  float64  // d'une vitrine à la suivante (0 : 190)
 }
 
 var bakerySpec = workshopSpec{
@@ -55,6 +56,7 @@ var bakerySpec = workshopSpec{
 	},
 	staff: "Boulangers", cashCost: 3000, staffCosts: []float64{4000, 10000, 25000, 60000, 150000, 350000, 800000}, upBase: 5000, // (un boulanger par machine)
 	sign: "Vitrine", bio: "Fait maison", shift2: true, tall: true, dockNear: true, // (quai juste à droite des pains au chocolat)
+	shelfStep: 280, // (vitrines écartées : un lieu aéré)
 }
 
 // cremerieSpec : la crèmerie, avec les trois laits de la ferme. Le beurre se
@@ -184,6 +186,10 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 	}
 	// machines (deux rangées) et vitrines
 	row0, rowGap, sy := workshopRow0, workshopRowG, workshopShY
+	step := sp.shelfStep
+	if step == 0 {
+		step = 190
+	}
 	for i, r := range sp.recipes {
 		x := mx[i]
 		y := row0 + float64(i/per)*rowGap
@@ -198,7 +204,7 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 		s.Zone = Rect{x - 10, y + 150 + 18, mw - 130, 90}
 		s.OutZone = Rect{x + mw - 120, y + 150 + 18, 130, 90}
 		p.Stations = append(p.Stations, s)
-		sx := 450 + float64(i)*190
+		sx := 450 + float64(i)*step
 		sh := &Station{ID: "etal_" + itoa(int(r.out)), Name: "Vitrine : " + Items[r.out].Name, Kind: Shelf, Item: r.out, StockMax: 12, Unlock: unl}
 		sh.Body = Rect{sx, sy, 150, shelfH}
 		sh.Zone = Rect{sx - 10, sy - 95, 170, 92}
@@ -224,7 +230,7 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 	// les quais juste après la dernière vitrine (le premier vers le supermarché)
 	dockX := func(i int) float64 { return W - 500 - float64(i)*350 }
 	if sp.dockNear {
-		last := 450 + float64(len(sp.recipes)-1)*190 + 150
+		last := 450 + float64(len(sp.recipes)-1)*step + 150
 		dockX = func(i int) float64 { return last + 60 + float64(i)*350 }
 	}
 	p.Stations = append(p.Stations, trash)

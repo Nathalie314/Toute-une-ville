@@ -26,22 +26,24 @@ func (g *game) elevageGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		if !open {
 			a = 0.35
 		}
-		roundRect(dst, z.X0, 360, z.X1-z.X0, 700, 30, rgba(c, a))
+		roundRect(dst, z.X0, 360, z.X1-z.X0, 705, 30, rgba(c, a))
 		roundRect(dst, (z.X0+z.X1)/2-110, 366, 220, 34, 10, rgba(0x5a3a22, 0.8))
 		say(dst, strings.ToUpper(z.Name), (z.X0+z.X1)/2, 383, 18, true, 0, rgb(0xffeab0))
 	}
 	// la réserve en haut, les chemins
 	roundRect(dst, 120, 140, p.W-300, 215, 24, rgba(0xb9b3a8, 0.9))
 	say(dst, "RÉSERVE (camions de ma ferme)", 1150, 160, 18, true, 0, rgba(0x4a4a4a, 0.75))
-	roundRect(dst, 100, 1000, p.W-200, 30, 14, path)
-	// la chambre froide : le sol carrelé sous les frigos
-	roundRect(dst, 140, 1030, p.W-750, 210, 20, rgb(0xdfe9ef))
-	for x := 150.0; x < p.W-620; x += 48 {
-		line(dst, x, 1034, x, 1236, 1.5, rgba(0xa9bcc8, 0.6))
+	roundRect(dst, 100, 1055, p.W-200, 26, 14, path)
+	// la chambre froide : le sol carrelé sous les frigos, jusqu'au bout de l'espace des porcs
+	zs := sim.TeamZones(p.ID)
+	cx1 := zs[len(zs)-1].X1
+	roundRect(dst, 140, 1081, cx1-140, 240, 20, rgb(0xdfe9ef))
+	for x := 150.0; x < cx1-10; x += 48 {
+		line(dst, x, 1085, x, 1317, 1.5, rgba(0xa9bcc8, 0.6))
 	}
-	say(dst, "CHAMBRE FROIDE", p.W-750, 1214, 16, true, 0, rgba(0x2b4a66, 0.7))
+	say(dst, "CHAMBRE FROIDE", cx1-120, 1300, 16, true, 0, rgba(0x2b4a66, 0.7))
 	// pistes des drones
-	roundRect(dst, 140, 1320, p.W-750, 140, 20, rgba(0x8a8f96, 0.35))
+	roundRect(dst, 140, 1335, cx1-140, 125, 20, rgba(0x8a8f96, 0.35))
 	road(dst, tl, br, 1640)
 	// la route du haut : les camions de ma ferme y roulent jusqu'à la réserve
 	rect(dst, tl.X-10, 10, br.X-tl.X+20, 100, rgb(0x6b6f74))
@@ -154,15 +156,18 @@ func drawMeadow(dst *ebiten.Image, s *sim.Station, t float64) {
 	}
 	rect(dst, b.X, b.Y+18, b.W, 4, fc)
 	rect(dst, b.X, b.Y+b.H-16, b.W, 4, fc)
-	// les bêtes : deux adultes, le mâle, deux petits
+	// les bêtes, réparties sur tout le pré : des adultes, le mâle, des petits
+	cols := max(3, int((b.W-180)/100))
+	n := 2 * cols
+	nBig := n - n/3
 	move := func(k int) (float64, float64) {
-		x := b.X + 150 + float64(k%3)*90 + math.Sin(t*0.4+float64(k)*1.9)*18
-		y := b.Y + 80 + float64(k/3)*60 + math.Cos(t*0.3+float64(k))*6
+		x := b.X + 150 + float64(k%cols)*(b.W-200)/float64(cols) + float64(k/cols)*40 + math.Sin(t*0.4+float64(k)*1.9)*18
+		y := b.Y + 80 + float64(k/cols)*60 + math.Cos(t*0.3+float64(k))*6
 		return x, y
 	}
-	for k := 0; k < 5; k++ {
+	for k := 0; k < n; k++ {
 		x, y := move(k)
-		big := k < 3
+		big := k < nBig
 		sc := 0.8
 		if !big {
 			sc = 0.55
@@ -601,9 +606,92 @@ func drawItemMeat(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 				circle(dst, x-r*0.64+float64(k)*r*0.32, y-r*0.24-(1-u*u)*r*0.05, r*0.045, rgb(0xe0d0a8))
 			}
 		case sim.Gigot:
-			ellipse(dst, x-r*0.15, y+r*0.1, r*0.65, r*0.5, rgb(c))
-			line(dst, x+r*0.35, y-r*0.2, x+r*0.85, y-r*0.75, r*0.18, bone)
-			circle(dst, x+r*0.9, y-r*0.8, r*0.15, bone)
+			// un gigot rôti, doré orangé, coupé à gauche (la tranche rouge, son bord rose et l'os
+			// rond au milieu), le manche et son os à droite ; une tranche posée devant
+			crust, crustD, rim, red, pale := rgb(0xe8642a), rgb(0xc44a1a), rgb(0xf6c4bc), rgb(0xdc3e4a), rgb(0xf8dcd4)
+			knob := rgb(0xf6d6c8)
+			line(dst, x+r*0.6, y+r*0.16, x+r*0.8, y+r*0.16, r*0.11, knob) // l'os du manche
+			circle(dst, x+r*0.82, y+r*0.1, r*0.075, knob)
+			circle(dst, x+r*0.82, y+r*0.23, r*0.075, knob)
+			shape := []V{{X: -0.32, Y: -0.53}, {X: 0.05, Y: -0.56}, {X: 0.32, Y: -0.42}, {X: 0.5, Y: -0.15}, {X: 0.72, Y: 0.04},
+				{X: 0.8, Y: 0.16}, {X: 0.72, Y: 0.29}, {X: 0.45, Y: 0.33}, {X: 0.1, Y: 0.43}, {X: -0.32, Y: 0.43}}
+			for k := 0; k < 2; k++ { // (des bords arrondis)
+				var sm []V
+				for i, a := range shape {
+					b := shape[(i+1)%len(shape)]
+					sm = append(sm, a.Lerp(b, 0.25), a.Lerp(b, 0.75))
+				}
+				shape = sm
+			}
+			at := func(k, dy float64) []V {
+				var ps []V
+				for _, q := range shape {
+					ps = append(ps, V{X: x + q.X*r, Y: y + (q.Y*k+dy)*r})
+				}
+				return ps
+			}
+			polygon(dst, at(1, 0.03), crustD)
+			polygon(dst, at(0.94, -0.01), crust)
+			ellipse(dst, x+r*0.12, y-r*0.36, r*0.2, r*0.07, rgba(0xffb080, 0.6)) // un reflet
+			// la tranche du gigot
+			ellipse(dst, x-r*0.3, y-r*0.05, r*0.3, r*0.5, crustD)
+			ellipse(dst, x-r*0.31, y-r*0.05, r*0.25, r*0.45, rim)
+			ellipse(dst, x-r*0.31, y-r*0.04, r*0.2, r*0.38, red)
+			line(dst, x-r*0.31, y-r*0.4, x-r*0.28, y-r*0.06, r*0.025, rim) // les veines de gras
+			line(dst, x-r*0.28, y-r*0.06, x-r*0.46, y+r*0.2, r*0.025, rim)
+			line(dst, x-r*0.28, y-r*0.06, x-r*0.14, y+r*0.24, r*0.025, rim)
+			ellipse(dst, x-r*0.28, y-r*0.04, r*0.08, r*0.09, pale) // l'os
+			ellipse(dst, x-r*0.28, y-r*0.04, r*0.04, r*0.045, rgb(0xffffff))
+			// la tranche posée devant
+			sx, sy := x-r*0.5, y+r*0.5
+			ellipse(dst, sx, sy+r*0.07, r*0.42, r*0.19, crustD)
+			ellipse(dst, sx, sy, r*0.42, r*0.19, crust)
+			ellipse(dst, sx, sy, r*0.37, r*0.155, rim)
+			ellipse(dst, sx, sy, r*0.31, r*0.12, red)
+			line(dst, sx-r*0.28, sy-r*0.02, sx+r*0.28, sy+r*0.01, r*0.02, rim)
+			ellipse(dst, sx+r*0.02, sy, r*0.07, r*0.04, pale)
+			ellipse(dst, sx+r*0.02, sy, r*0.035, r*0.02, rgb(0xffffff))
+		case sim.CoteAgneau:
+			// une côtelette d'agneau : un médaillon rose de gras, épais, la noix de viande rouge
+			// découpée par des veines de gras, puis un manche qui s'affine jusqu'à l'os
+			smooth := func(sh []V, n int) []V {
+				for k := 0; k < n; k++ {
+					var sm []V
+					for i, a := range sh {
+						b := sh[(i+1)%len(sh)]
+						sm = append(sm, a.Lerp(b, 0.25), a.Lerp(b, 0.75))
+					}
+					sh = sm
+				}
+				return sh
+			}
+			at := func(sh []V, dy float64) []V {
+				var ps []V
+				for _, q := range sh {
+					ps = append(ps, V{X: x + q.X*r, Y: y + (q.Y+dy)*r})
+				}
+				return ps
+			}
+			// l'os, derrière, qui descend vers la droite
+			line(dst, x+r*0.5, y-r*0.02, x+r*0.9, y+r*0.3, r*0.14, rgb(0xe8cfa8))
+			line(dst, x+r*0.5, y-r*0.05, x+r*0.9, y+r*0.26, r*0.07, rgb(0xf6e6c8))
+			ellipse(dst, x+r*0.9, y+r*0.3, r*0.08, r*0.08, rgb(0xe8cfa8))
+			body := smooth([]V{{X: -0.92, Y: -0.12}, {X: -0.82, Y: -0.42}, {X: -0.3, Y: -0.52}, {X: 0.18, Y: -0.5},
+				{X: 0.36, Y: -0.3}, {X: 0.62, Y: -0.12}, {X: 0.62, Y: 0.04}, {X: 0.35, Y: 0.04}, {X: 0.12, Y: 0.2},
+				{X: -0.3, Y: 0.28}, {X: -0.82, Y: 0.2}}, 2)
+			polygon(dst, at(body, 0.18), rgb(0xe3a2a6)) // l'épaisseur
+			polygon(dst, at(body, 0), rgb(0xf6cccb))    // le gras du dessus
+			meat := smooth([]V{{X: -0.8, Y: -0.14}, {X: -0.7, Y: -0.38}, {X: -0.3, Y: -0.45}, {X: 0.1, Y: -0.43},
+				{X: 0.22, Y: -0.28}, {X: 0.06, Y: -0.06}, {X: -0.3, Y: 0.12}, {X: -0.72, Y: 0.1}}, 2)
+			polygon(dst, at(meat, 0), rgb(0xe8403a))
+			ellipse(dst, x-r*0.45, y-r*0.28, r*0.16, r*0.06, rgba(0xff9a80, 0.45))
+			vein := rgba(0xf8e0d0, 0.9) // les veines de gras
+			line(dst, x-r*0.2, y-r*0.44, x-r*0.12, y-r*0.2, r*0.03, vein)
+			line(dst, x-r*0.12, y-r*0.2, x+r*0.12, y-r*0.3, r*0.03, vein)
+			line(dst, x-r*0.12, y-r*0.2, x-r*0.2, y+r*0.05, r*0.03, vein)
+			line(dst, x-r*0.75, y-r*0.06, x-r*0.4, y-r*0.1, r*0.03, vein)
+			line(dst, x-r*0.4, y-r*0.1, x-r*0.2, y+r*0.05, r*0.03, vein)
+			ellipse(dst, x+r*0.05, y+r*0.14, r*0.3, r*0.04, rgba(0xffffff, 0.3)) // un reflet sur le bord
 		case sim.MorceauxVeau:
 			for i := 0; i < 3; i++ {
 				roundRect(dst, x-r*0.8+float64(i)*r*0.55, y-r*0.3+float64(i%2)*r*0.2, r*0.5, r*0.45, r*0.12, rgb(c))
@@ -650,9 +738,43 @@ func drawItemMeat(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 			circle(dst, x+q.X*r, y+q.Y*r, r*0.035, rgba(0xffffff, 0.6))
 		}
 	case sim.Jambon:
-		polygon(dst, []V{{X: x - r*0.9, Y: y + r*0.2}, {X: x - r*0.2, Y: y - r*0.75}, {X: x + r*0.6, Y: y - r*0.4}, {X: x + r*0.8, Y: y + r*0.5}, {X: x - r*0.4, Y: y + r*0.75}}, rgb(0xe88a98))
-		ellipse(dst, x-r*0.05, y, r*0.4, r*0.3, rgb(0xf4b6c0))
-		line(dst, x-r*0.9, y+r*0.2, x-r*1.05, y+r*0.35, r*0.16, bone)
+		// deux tranches de jambon posées l'une sur l'autre : roses, en forme de haricot, la couenne
+		// rouge foncé sur l'épaisseur, un liseré clair et des marbrures plus pâles dessus
+		shape := []V{{X: -0.9, Y: 0.18}, {X: -0.84, Y: -0.1}, {X: -0.6, Y: -0.28}, {X: -0.38, Y: -0.4}, {X: -0.22, Y: -0.6},
+			{X: 0.1, Y: -0.68}, {X: 0.48, Y: -0.64}, {X: 0.6, Y: -0.44}, {X: 0.48, Y: -0.24}, {X: 0.14, Y: -0.1},
+			{X: -0.06, Y: 0.18}, {X: -0.36, Y: 0.3}, {X: -0.74, Y: 0.34}}
+		for k := 0; k < 3; k++ { // (des bords arrondis)
+			var sm []V
+			for i, a := range shape {
+				b := shape[(i+1)%len(shape)]
+				sm = append(sm, a.Lerp(b, 0.25), a.Lerp(b, 0.75))
+			}
+			shape = sm
+		}
+		cx, cy := 0.0, 0.0
+		for _, q := range shape {
+			cx += q.X / float64(len(shape))
+			cy += q.Y / float64(len(shape))
+		}
+		at := func(dx, dy, k float64) []V {
+			var ps []V
+			for _, q := range shape {
+				ps = append(ps, V{X: x + (cx+(q.X-cx)*k+dx)*r, Y: y + (cy+(q.Y-cy)*k+dy)*r})
+			}
+			return ps
+		}
+		slice := func(dx, dy float64) {
+			polygon(dst, at(dx, dy+0.1, 1), rgb(0x9e1424))           // la couenne, sur l'épaisseur
+			polygon(dst, at(dx, dy+0.05, 1), rgb(0xc42a38))          // son bord
+			polygon(dst, at(dx, dy, 1), rgb(0xfbd4d8))               // le liseré clair
+			polygon(dst, at(dx+0.005, dy+0.01, 0.93), rgb(0xf4a6ae)) // la chair
+			polygon(dst, at(dx-0.02, dy-0.03, 0.62), rgb(0xf8bcc2))  // plus clair au milieu
+			ellipse(dst, x+(cx+dx-0.2)*r, y+(cy+dy-0.12)*r, r*0.22, r*0.05, rgba(0xffffff, 0.35))
+			ellipse(dst, x+(cx+dx+0.12)*r, y+(cy+dy+0.04)*r, r*0.18, r*0.04, rgba(0xffffff, 0.25))
+		}
+		slice(0.18, 0.2)                                       // la tranche du dessous
+		polygon(dst, at(-0.09, -0.02, 1), rgba(0x8a1020, 0.3)) // l'ombre de celle du dessus
+		slice(-0.17, -0.18)
 	case sim.Pate:
 		roundRect(dst, x-r*0.85, y-r*0.45, r*1.7, r*0.9, r*0.2, rgb(0xc89a6a))
 		roundRect(dst, x-r*0.85, y-r*0.45, r*1.7, r*0.25, r*0.12, rgb(0xa8743a))
