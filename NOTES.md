@@ -1403,3 +1403,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   l'os en T et la moelle ; bords arrondis (coins coupés trois fois).
 - Le quai du supermarché de la boucherie est au milieu de la boutique (W/2) : les drones des vitrines y vont de partout
   sans traverser tout le lieu. Celui de la crêperie reste à droite.
+- Carcasses de bœuf et de veau (d'après son image) : une demi-carcasse pendue par la patte arrière à son crochet,
+  bords plus foncés, intérieur plus clair, traînées de gras blanc et marbrures ; le veau plus clair que le bœuf.

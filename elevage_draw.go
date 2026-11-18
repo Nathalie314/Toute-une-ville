@@ -348,7 +348,47 @@ func drawItemMeat(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		ellipse(dst, x-r*0.15, y-r*0.15, r*0.6, r*0.5, rgb(0xe0a070))
 		line(dst, x+r*0.2, y+r*0.2, x+r*0.75, y+r*0.75, r*0.18, bone)
 		circle(dst, x+r*0.8, y+r*0.8, r*0.16, bone)
-	case sim.Boeuf, sim.VeauCarcasse, sim.MoutonCarcasse, sim.AgneauCarcasse, sim.Porc:
+	case sim.Boeuf, sim.VeauCarcasse:
+		// une demi-carcasse pendue par la patte arrière à son crochet : la viande rouge rosé,
+		// des marbrures et des traînées de gras blanc, plus foncée sur les bords (le veau, plus clair)
+		base, dark, light := uint32(0xd9504c), uint32(0xa82a2e), uint32(0xf2a59a)
+		if it == sim.VeauCarcasse {
+			base, dark, light = 0xec8a82, 0xcc5a5a, 0xf8c4bc
+		}
+		line(dst, x+r*0.03, y-r*1.25, x+r*0.03, y-r*0.98, r*0.05, rgb(0x6a6a6a)) // le crochet
+		ellipse(dst, x+r*0.08, y-r*0.98, r*0.07, r*0.05, rgb(0x6a6a6a))
+		shape := []V{{X: -0.05, Y: -0.95}, {X: 0.1, Y: -0.98}, {X: 0.16, Y: -0.85}, {X: 0.13, Y: -0.68}, {X: 0.28, Y: -0.5},
+			{X: 0.38, Y: -0.2}, {X: 0.42, Y: 0.15}, {X: 0.38, Y: 0.45}, {X: 0.3, Y: 0.68}, {X: 0.38, Y: 0.86}, {X: 0.22, Y: 0.95},
+			{X: -0.05, Y: 0.88}, {X: -0.3, Y: 0.78}, {X: -0.38, Y: 0.52}, {X: -0.35, Y: 0.2}, {X: -0.32, Y: -0.15},
+			{X: -0.25, Y: -0.45}, {X: -0.12, Y: -0.68}, {X: -0.1, Y: -0.86}}
+		for it := 0; it < 2; it++ { // (des bords arrondis)
+			var sm []V
+			for i, a := range shape {
+				b := shape[(i+1)%len(shape)]
+				sm = append(sm, a.Lerp(b, 0.25), a.Lerp(b, 0.75))
+			}
+			shape = sm
+		}
+		pts := func(k, dx float64) []V {
+			var ps []V
+			for _, q := range shape {
+				ps = append(ps, V{X: x + (q.X*k+dx)*r, Y: y + q.Y*k*r})
+			}
+			return ps
+		}
+		polygon(dst, pts(1, 0), rgb(dark))
+		polygon(dst, pts(0.9, -0.02), rgb(base))
+		polygon(dst, pts(0.55, -0.1), rgb(light)) // l'intérieur, plus clair (le gras sous la viande)
+		// des traînées de gras blanc et quelques marbrures foncées
+		fatC := rgb(0xf8ece6)
+		line(dst, x-r*0.12, y-r*0.6, x-r*0.02, y-r*0.15, r*0.06, fatC)
+		line(dst, x-r*0.02, y-r*0.15, x-r*0.14, y+r*0.3, r*0.05, fatC)
+		line(dst, x+r*0.12, y+r*0.2, x+r*0.22, y+r*0.62, r*0.05, fatC)
+		ellipse(dst, x+r*0.2, y-r*0.35, r*0.08, r*0.14, rgb(dark))
+		ellipse(dst, x-r*0.22, y+r*0.55, r*0.1, r*0.07, rgb(dark))
+		ellipse(dst, x+r*0.25, y+r*0.78, r*0.1, r*0.06, rgb(dark))
+		circle(dst, x+r*0.05, y-r*0.9, r*0.06, rgb(0xf3ead8)) // l'os de la patte
+	case sim.MoutonCarcasse, sim.AgneauCarcasse, sim.Porc:
 		// carcasse suspendue à son crochet
 		c := map[sim.Item]uint32{sim.Boeuf: 0xb03030, sim.VeauCarcasse: 0xd9706a, sim.MoutonCarcasse: 0xb84a40, sim.AgneauCarcasse: 0xe0807a, sim.Porc: 0xf0a0a8}[it]
 		line(dst, x, y-r, x, y-r*0.6, r*0.1, rgb(0x6a6a6a))
