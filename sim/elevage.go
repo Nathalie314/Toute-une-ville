@@ -327,6 +327,17 @@ func newBoucherie(g *Game) *Place {
 			}
 		}
 		sx := 500 + float64(first)*620 + float64(k)*200
+		if z := boucherieZones[c[2]]; z.ID == "volaille" {
+			// la volaille : ses vitrines s'étalent sur tout son espace (jeu aéré)
+			n := 0
+			for _, o := range boucherieSpec.recipes {
+				if boucherieCell[o.id][2] == c[2] {
+					n++
+				}
+			}
+			step := (z.X1 - z.X0) / float64(n)
+			sx = z.X0 + float64(k)*step + (step-150)/2
+		}
 		sh.Body = Rect{sx, sy, 150, shelfH}
 		sh.Zone = Rect{sx - 10, sy - 95, 170, 92}
 		sh.Spot = V{sx + 75, sy + shelfH + 38}
