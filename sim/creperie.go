@@ -333,11 +333,8 @@ func newCreperie(g *Game) *Place {
 	wall("bas_g", Rect{CrepBX0 - 30, CrepBotY, CrepDoorX - 90 - CrepBX0 + 30, 26})
 	wall("bas_d", Rect{CrepDoorX + 90, CrepBotY, CrepBX1 + 30 - CrepDoorX - 90, 26})
 
-	// la caisse des commandes (des crêpes nature : la cantine, le parc), en cuisine à gauche
-	if cmd := p.Station("commande"); cmd != nil {
-		cmd.Body = Rect{150, -640, 140, 60}
-		cmd.Zone = Rect{145, -565, 150, 96}
-	}
+	// (la caisse des commandes, des crêpes nature pour la cantine et le parc, est dans la zone du
+	// joueur, comme partout)
 	// le compost, en cuisine (en bas à droite, près du coin des commis)
 	if tr := p.Station("poubelle"); tr != nil {
 		tr.Body = Rect{3360, -230, 70, 70}

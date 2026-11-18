@@ -128,6 +128,9 @@ func (g *Game) orderSources() []func() *Order {
 	if c := g.Place("patisserie"); c != nil && c.Owned {
 		src = append(src, func() *Order { return g.shopOrder("patisserie") })
 	}
+	if c := g.Place("boucherie"); c != nil && c.Owned {
+		src = append(src, func() *Order { return g.shopOrder("boucherie") }) // (des particuliers)
+	}
 	// la crêperie : seulement des crêpes nature, et seulement pour la cantine de l'école (le parc,
 	// lui, en commande avec ses autres commandes)
 	if c := g.Place("creperie"); c != nil && c.Owned {

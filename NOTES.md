@@ -1374,7 +1374,7 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
     pts_chef_nat/sal/suc_vit et _rent) ; collège — réclame (tables de clients à la fois), clients fidèles ; lycée —
     pourboires (pts_pourboire : +1 % tous les 5 points, sans maximum), comptables, logistique. Les serveurs ne
     profitent pas des points des commis (vitesse 230, plateau de 4).
-  - Commandes : seulement des crêpes nature, livrées à la caisse des commandes (en cuisine, à gauche). La cantine :
+  - Commandes : seulement des crêpes nature, livrées à la caisse des commandes (dans la zone du joueur, comme partout). La cantine :
     une par élève du primaire, deux pour tous les autres (adultes compris). Le parc : 100 crêpes nature.
   - Au parc, la « Pêche aux canards » devient le « Stand de crêpes » (même identifiant « canards » : sauvegardes).
   - Icônes : la crêpe garnie est un quart de disque (pliée en quatre) : en triangle, elle ressemblait à « ⚠ ».
@@ -1385,3 +1385,8 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Les vitrines de chaque espace sont rangées dans l'ordre d'achat de ses machines.
 - Icônes : le poulet et le canard abattus sont plumés, roses, avec leur tête (poulet : bec pointu, crête et barbillon
   rouges ; canard : bec rond et plat, pas de crête) ; les pilons, crus, au bout de leur os.
+
+## Boucherie : des commandes de particuliers
+- Comme à la pâtisserie : des habitants commandent 2 ou 3 produits des vitrines ouvertes (shopOrder), avec leurs
+  cadeaux ; la caisse des commandes est dans la zone du joueur. La boucherie gagne donc les points « Réclame :
+  cadeaux » (collège) et « Logistique » (lycée).
