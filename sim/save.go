@@ -113,6 +113,7 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 	}
 	migrateGlaces(s)
 	migrateEpices(s)
+	migrateAbattoirs(s)
 	g.Money = s.Money
 	if s.Levels != nil {
 		g.Levels = s.Levels
@@ -397,6 +398,48 @@ func migrateEpices(s *Save) {
 	for id, c := range map[string][2]float64{"the": {95000, 105000}, "sechoir": {105000, 120000}} {
 		if v := ps.Paid[id]; v >= c[0]*0.99 && v < c[1] {
 			ps.Paid[id] = c[1]
+		}
+	}
+}
+
+// AbattoirsKey : marque des parties où les abattoirs de la ferme d'élevage s'achètent à
+// part (toutes les nouvelles parties).
+const AbattoirsKey = "elevage.abattoirs_a_part"
+
+// abattoirOf : chaque abattoir et le bâtiment de ses animaux ("" : le poulailler, offert),
+// avec son prix de base.
+var abattoirOf = []struct {
+	id, animal string
+	cost       float64
+}{
+	{"abattoir_poulet", "", 4000}, {"abattoir_canard", "mare", 10000},
+	{"abattoir_boeuf", "bovin", 25000}, {"abattoir_veau", "bovin", 30000},
+	{"abattoir_mouton", "ovin", 35000}, {"abattoir_agneau", "ovin", 40000},
+	{"abattoir_porc", "porc", 50000},
+}
+
+// migrateAbattoirs : avant, l'abattoir venait avec le bâtiment de ses animaux. Dans une
+// ancienne partie, un abattoir dont les animaux sont achetés reste acheté (rien ne se
+// perd) ; les suivants s'achètent à part.
+func migrateAbattoirs(s *Save) {
+	if s.Levels == nil {
+		s.Levels = map[string]int{}
+	}
+	if s.Levels[AbattoirsKey] > 0 {
+		return
+	}
+	s.Levels[AbattoirsKey] = 1
+	ps := s.Places["elevage"]
+	if ps == nil || !ps.Achete {
+		return
+	}
+	if ps.Paid == nil {
+		ps.Paid = map[string]float64{}
+	}
+	full := map[string]float64{"mare": 15000, "bovin": 40000, "ovin": 60000, "porc": 80000}
+	for _, a := range abattoirOf {
+		if a.animal == "" || ps.Paid[a.animal] >= full[a.animal]*0.99 {
+			ps.Paid[a.id] = math.Max(ps.Paid[a.id], a.cost)
 		}
 	}
 }

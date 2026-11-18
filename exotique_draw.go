@@ -28,7 +28,7 @@ func (g *game) exoticGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	path := rgb(0xe9d7a8)
 	roundRect(dst, 380, 470, p.W-520, 110, 50, path)
 	roundRect(dst, 60, 880, p.W-120, 150, 60, path)
-	roundRect(dst, 1520, 470, 140, 560, 60, path) // (entre les fruits et le sucre)
+	roundRect(dst, 1820, 470, 140, 560, 60, path) // (entre les fruits et le sucre)
 	// les espaces : leur nom au-dessus des bâtiments
 	for _, z := range sim.TeamZones(p.ID) {
 		a := 0.85
@@ -301,6 +301,37 @@ func drawItemExotic(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		ellipse(dst, x-r*0.25, y-r*0.2, r*0.22, r*0.14, rgba(0xffffff, 0.45))
 		circle(dst, x, y-r*0.66, r*0.1, rgb(0x5a4a20))
 		ellipse(dst, x+r*0.3, y-r*0.75, r*0.35, r*0.16, rgb(0x3f9b35))
+	case sim.Limonade:
+		// une bouteille à bouchon mécanique, limonade pâle, un citron sur l'étiquette
+		drawBottle(dst, x, y, r, 0xe8eec0, 0xfffbe0, 0x2f8a4a)
+		drawItem(dst, sim.Citron, x, y+r*0.25, r*0.24)
+	case sim.JusOrange:
+		// une brique de jus d'orange
+		roundRect(dst, x-r*0.45, y-r*0.6, r*0.9, r*1.4, r*0.08, rgb(0xffffff))
+		rect(dst, x-r*0.45, y-r*0.1, r*0.9, r*0.5, rgb(0xf5961e))
+		polygon(dst, []V{{X: x - r*0.45, Y: y - r*0.6}, {X: x, Y: y - r*0.9}, {X: x + r*0.45, Y: y - r*0.6}}, rgb(0xeeeeee))
+		drawItem(dst, sim.Orange, x, y+r*0.15, r*0.35)
+	case sim.Noisette:
+		for k := 0; k < 3; k++ {
+			cx, cy := x+float64(k-1)*r*0.45, y+float64(k%2)*r*0.2
+			circle(dst, cx, cy+r*0.1, r*0.32, rgb(0xa8662e))
+			ellipse(dst, cx, cy-r*0.2, r*0.3, r*0.12, rgb(0xd9b98a))
+		}
+	case sim.Noix:
+		circle(dst, x, y, r*0.75, rgb(0xc8a070))
+		line(dst, x, y-r*0.75, x, y+r*0.75, r*0.06, rgb(0x8a6a40))
+		for k := 0; k < 3; k++ {
+			ellipse(dst, x-r*0.35+float64(k)*r*0.35, y-r*0.2+float64(k%2)*r*0.4, r*0.12, r*0.08, rgb(0x9a7a50))
+		}
+	case sim.Olive:
+		for k := 0; k < 3; k++ {
+			c := uint32(0x6a7a2a)
+			if k == 1 {
+				c = 0x2a2a1e // une noire
+			}
+			ellipse(dst, x+float64(k-1)*r*0.45, y+float64(k%2)*r*0.25, r*0.25, r*0.34, rgb(c))
+		}
+		ellipse(dst, x+r*0.3, y-r*0.6, r*0.35, r*0.12, rgb(0x8a9a5a))
 	case sim.Riz:
 		// un sachet de riz
 		roundRect(dst, x-r*0.6, y-r*0.75, r*1.2, r*1.6, r*0.15, rgb(0xf6f0e0))
@@ -691,4 +722,32 @@ func drawToucan(dst *ebiten.Image, x, y, t float64) {
 	circle(dst, x+2, y-30, 9, rgb(0x1b1b1b))
 	polygon(dst, []V{{X: x + 8, Y: y - 34}, {X: x + 30, Y: y - 30 + 2*math.Sin(t)}, {X: x + 8, Y: y - 25}}, rgb(0xff9a1a))
 	circle(dst, x+4, y-32, 2, rgb(0xffffff))
+}
+
+// drawExoPress : un pressoir de la ferme exotique (citrons ou oranges), sous un auvent de paille.
+func drawExoPress(dst *ebiten.Image, s *sim.Station, t float64) {
+	b := s.Body
+	ellipse(dst, b.C().X, b.Y+b.H, b.W*0.55, 16, rgba(0x000000, 0.18))
+	fruit := sim.Citron
+	if s.ID == "pressoir_orange" {
+		fruit = sim.Orange
+	}
+	// l'auvent de paille sur quatre poteaux de bambou
+	for _, px := range []float64{b.X + 16, b.X + b.W - 22} {
+		rect(dst, px, b.Y+20, 6, b.H-24, rgb(0xb5a24a))
+	}
+	polygon(dst, []V{{X: b.X - 6, Y: b.Y + 34}, {X: b.C().X, Y: b.Y - 6}, {X: b.X + b.W + 6, Y: b.Y + 34}}, rgb(0xd9b45a))
+	for k := 0; k < 6; k++ {
+		x := b.X + float64(k)*b.W/5
+		line(dst, x, b.Y+34, b.C().X+(x-b.C().X)*0.2, b.Y+2, 2, rgba(0x9a7a30, 0.6))
+	}
+	// la cuve et la presse
+	roundRect(dst, b.X+40, b.Y+80, b.W-80, b.H-90, 14, rgb(0x8a5a33))
+	for k := 0; k < 4; k++ {
+		drawItem(dst, fruit, b.X+70+float64(k)*40, b.Y+90, 15)
+	}
+	py := b.Y + 40 + math.Abs(math.Sin(t*2))*10*boolF(s.Working)
+	rect(dst, b.C().X-4, b.Y+30, 8, py-b.Y-20, rgb(0x5a5a5a))
+	roundRect(dst, b.X+60, py+10, b.W-120, 14, 4, rgb(0x6e4322))
+	drawItem(dst, s.Item, b.X+b.W-46, b.Y+b.H-30, 18)
 }

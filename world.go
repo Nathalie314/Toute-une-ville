@@ -628,6 +628,11 @@ func (g *game) drawStation(dst *ebiten.Image, p *sim.Place, s *sim.Station) {
 		drawZoneBarrier(dst, s)
 		return
 	}
+	if p.ID == "exotique" && strings.HasPrefix(s.ID, "pressoir_") {
+		drawExoPress(dst, s, g.t)
+		sign(dst, s.Body.C().X, s.Body.Y-14, s.Name)
+		return
+	}
 	if p.ID == "domaine" && s.Kind == sim.Machine {
 		drawDomaineMachine(dst, s, g.t)
 		sign(dst, s.Body.C().X, s.Body.Y-14, s.Name)

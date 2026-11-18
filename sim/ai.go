@@ -578,6 +578,17 @@ func (c *Customer) walkTo(to V, speed, dt float64) bool {
 
 func (p *Place) queueSlot(r *Station, i int) V {
 	h := r.QueueHead
+	if r.QueueLane {
+		// trois rangées de six, en serpentin, sous la caisse ; au-delà, vers la droite
+		if i < 18 {
+			row, col := i/6, i%6
+			if row%2 == 1 {
+				col = 5 - col
+			}
+			return h.Add(V{58*float64(col) - 58, 54 * float64(row)})
+		}
+		return h.Add(V{58*float64(i-18) + 290, 108})
+	}
 	d := r.QueueDown
 	if i < d {
 		return h.Add(V{0, 58 * float64(i)})

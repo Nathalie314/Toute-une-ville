@@ -3,6 +3,7 @@ package sim
 import (
 	"math"
 	"math/rand"
+	"strings"
 )
 
 // ---------------------------------------------------------------- stations
@@ -81,6 +82,7 @@ type Station struct {
 
 	QueueHead V       // caisse : début de la file
 	QueueDown int     // caisse : places vers le bas avant de tourner
+	QueueLane bool    // caisse : la file serpente dans son couloir (supermarché, caisses serrées)
 	Cashier   *Agent  // caisse : caissière embauchée
 	HireKey   string  // caisse : amélioration qui embauche sa caissière
 	To        string  // quai : lieu de destination du camion
@@ -1258,7 +1260,7 @@ func (p *Place) reputation(d float64) {
 // Stockable : bâtiments dont on peut agrandir le stock (entrée et sortie).
 func (s *Station) Stockable() bool {
 	if s.place == "elevage" {
-		return elevageAnimals[s.ID] // (les bâtiments d'animaux, pas les abattoirs)
+		return elevageAnimals[s.ID] || strings.HasPrefix(s.ID, "abattoir_") // (bâtiments d'animaux et abattoirs)
 	}
 	return (s.Kind == Machine || s.Kind == Animal) && s.place != "ecole"
 }
