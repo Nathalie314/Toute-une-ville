@@ -733,9 +733,43 @@ func drawItemMeat(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 			circle(dst, x+q.X*r, y+q.Y*r, r*0.035, rgba(0xffffff, 0.6))
 		}
 	case sim.Jambon:
-		polygon(dst, []V{{X: x - r*0.9, Y: y + r*0.2}, {X: x - r*0.2, Y: y - r*0.75}, {X: x + r*0.6, Y: y - r*0.4}, {X: x + r*0.8, Y: y + r*0.5}, {X: x - r*0.4, Y: y + r*0.75}}, rgb(0xe88a98))
-		ellipse(dst, x-r*0.05, y, r*0.4, r*0.3, rgb(0xf4b6c0))
-		line(dst, x-r*0.9, y+r*0.2, x-r*1.05, y+r*0.35, r*0.16, bone)
+		// deux tranches de jambon posées l'une sur l'autre : roses, en forme de haricot, la couenne
+		// rouge foncé sur l'épaisseur, un liseré clair et des marbrures plus pâles dessus
+		shape := []V{{X: -0.9, Y: 0.18}, {X: -0.84, Y: -0.1}, {X: -0.6, Y: -0.28}, {X: -0.38, Y: -0.4}, {X: -0.22, Y: -0.6},
+			{X: 0.1, Y: -0.68}, {X: 0.48, Y: -0.64}, {X: 0.6, Y: -0.44}, {X: 0.48, Y: -0.24}, {X: 0.14, Y: -0.1},
+			{X: -0.06, Y: 0.18}, {X: -0.36, Y: 0.3}, {X: -0.74, Y: 0.34}}
+		for k := 0; k < 3; k++ { // (des bords arrondis)
+			var sm []V
+			for i, a := range shape {
+				b := shape[(i+1)%len(shape)]
+				sm = append(sm, a.Lerp(b, 0.25), a.Lerp(b, 0.75))
+			}
+			shape = sm
+		}
+		cx, cy := 0.0, 0.0
+		for _, q := range shape {
+			cx += q.X / float64(len(shape))
+			cy += q.Y / float64(len(shape))
+		}
+		at := func(dx, dy, k float64) []V {
+			var ps []V
+			for _, q := range shape {
+				ps = append(ps, V{X: x + (cx+(q.X-cx)*k+dx)*r, Y: y + (cy+(q.Y-cy)*k+dy)*r})
+			}
+			return ps
+		}
+		slice := func(dx, dy float64) {
+			polygon(dst, at(dx, dy+0.1, 1), rgb(0x9e1424))           // la couenne, sur l'épaisseur
+			polygon(dst, at(dx, dy+0.05, 1), rgb(0xc42a38))          // son bord
+			polygon(dst, at(dx, dy, 1), rgb(0xfbd4d8))               // le liseré clair
+			polygon(dst, at(dx+0.005, dy+0.01, 0.93), rgb(0xf4a6ae)) // la chair
+			polygon(dst, at(dx-0.02, dy-0.03, 0.62), rgb(0xf8bcc2))  // plus clair au milieu
+			ellipse(dst, x+(cx+dx-0.2)*r, y+(cy+dy-0.12)*r, r*0.22, r*0.05, rgba(0xffffff, 0.35))
+			ellipse(dst, x+(cx+dx+0.12)*r, y+(cy+dy+0.04)*r, r*0.18, r*0.04, rgba(0xffffff, 0.25))
+		}
+		slice(0.18, 0.2)                                       // la tranche du dessous
+		polygon(dst, at(-0.09, -0.02, 1), rgba(0x8a1020, 0.3)) // l'ombre de celle du dessus
+		slice(-0.17, -0.18)
 	case sim.Pate:
 		roundRect(dst, x-r*0.85, y-r*0.45, r*1.7, r*0.9, r*0.2, rgb(0xc89a6a))
 		roundRect(dst, x-r*0.85, y-r*0.45, r*1.7, r*0.25, r*0.12, rgb(0xa8743a))

@@ -1415,3 +1415,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Gigot de mouton d'après son image : gigot rôti orangé coupé à gauche (tranche rouge, bord rose, os rond), manche et
   os à droite, une tranche posée devant.
 - Saucisse d'après son image : une saucisse rouge courbée, nouée aux deux bouts, bord sombre, entailles et reflet.
+- Jambon d'après son image : deux tranches roses en haricot, l'une sur l'autre, couenne rouge foncé, liseré clair.
