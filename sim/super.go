@@ -22,6 +22,7 @@ type SuperZone struct {
 	Bot      float64 // bas de l'espace (et de sa barrière)
 	open     func(g *Game) bool
 	Soon     bool // pas encore dans le jeu
+	rank     int  // rang pour le prix des magasiniers (0 : sa place dans la liste)
 }
 
 var SuperZones = []*SuperZone{
@@ -33,12 +34,8 @@ var SuperZones = []*SuperZone{
 		open: func(g *Game) bool { return g.farm().Station("fraisier").Built }},
 	{ID: "cremerie", Name: "Crèmerie", Items: CremerieSold, Cols: 3, open: ownedFn("cremerie")},
 	{ID: "epicerie", Name: "Épicerie", Items: EpicerieSold, Cols: 3, open: ownedFn("exotique")},
-	{ID: "boulangerie", Name: "Boulangerie", Items: BakerySold, Cols: 3, open: ownedFn("boulangerie")},
-	{ID: "glace", Name: "Glaces", Items: IceSold, Cols: 2, open: ownedFn("glacier")},
-	{ID: "poisson", Name: "Poissonnerie", Items: PortSold, Cols: 3, open: ownedFn("port")}, // (le port s'ouvre avant la boucherie)
-	{ID: "boucherie", Name: "Boucherie-charcuterie", Items: BoucherieSold, Cols: 6, open: ownedFn("boucherie")},
-	{ID: "patisserie", Name: "Pâtisserie", Items: PatisserieSold, Cols: 2, open: ownedFn("patisserie")},
-	{ID: "alcool", Name: "Boissons", Items: append(append([]Item{}, DrinksSold...), Limonade, JusOrange), Cols: 3, // (vins, bière, cidre, alcools et jus du domaine ; limonade et jus d'orange de la ferme exotique)
+	{ID: "alcool", Name: "Boissons", rank: 10, // (juste après l'épicerie ; ses magasiniers gardent leur prix)
+		Items: append([]Item{Limonade, JusOrange}, DrinksSold...), Cols: 3, // (limonade et jus d'orange de la ferme exotique en premier ; puis jus, vins, bière, cidre, alcools du domaine)
 		open: func(g *Game) bool {
 			if q := g.Place("domaine"); q != nil && q.Owned {
 				return true
@@ -46,6 +43,11 @@ var SuperZones = []*SuperZone{
 			q := g.Place("exotique") // (les jus de la ferme exotique arrivent souvent avant le domaine)
 			return q != nil && q.Owned && (q.Station("pressoir_citron").Built || q.Station("pressoir_orange").Built)
 		}},
+	{ID: "boulangerie", Name: "Boulangerie", Items: BakerySold, Cols: 3, open: ownedFn("boulangerie")},
+	{ID: "glace", Name: "Glaces", Items: IceSold, Cols: 2, open: ownedFn("glacier")},
+	{ID: "poisson", Name: "Poissonnerie", Items: PortSold, Cols: 3, open: ownedFn("port")}, // (le port s'ouvre avant la boucherie)
+	{ID: "boucherie", Name: "Boucherie-charcuterie", Items: BoucherieSold, Cols: 6, open: ownedFn("boucherie")},
+	{ID: "patisserie", Name: "Pâtisserie", Items: PatisserieSold, Cols: 2, open: ownedFn("patisserie")},
 }
 
 func ownedFn(id string) func(g *Game) bool {
@@ -254,7 +256,13 @@ func newSuper(g *Game) *Place {
 			continue
 		}
 		z := z
-		f := math.Pow(2.2, float64(zi))
+		r := zi
+		if z.rank > 0 {
+			r = z.rank
+		} else if zi > 4 {
+			r = zi - 1 // (les espaces après les boissons gardent le prix de leur ancienne place)
+		}
+		f := math.Pow(2.2, float64(r))
 		var costs []float64
 		for l := 0; l < len(z.Items); l++ { // un magasinier par rayon
 			c := 1500 * f * math.Pow(3, math.Min(3, float64(l))) * math.Pow(1.15, math.Max(0, float64(l-3)))

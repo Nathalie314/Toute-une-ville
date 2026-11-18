@@ -1343,3 +1343,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   La boucherie attend l'abattoir correspondant (et non plus les animaux).
 - Anciennes parties (migrateAbattoirs, marque `elevage.abattoirs_a_part`) : un abattoir dont les animaux étaient achetés
   reste acheté. Sa partie : ferme d'élevage remise à zéro à sa demande (toujours achetée).
+- Retouche : « Boissons » vient juste après l'épicerie, limonade et jus d'orange en tête du rayon. Les magasiniers
+  gardent le prix de leur ancienne place (SuperZone.rank ; les espaces suivants reprennent leur ancien rang).
