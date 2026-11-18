@@ -595,6 +595,10 @@ func (p *Place) step(dt float64, active bool) {
 	p.Customers = alive
 }
 
+// NoRep : pas de réputation ici (pas de clients : la ferme d'élevage ; un restaurant,
+// où la jauge de bonheur décide des pourboires : la crêperie).
+func (p *Place) NoRep() bool { return p.Crep != nil || p.ID == "elevage" }
+
 // ShopMaxCust : dans un petit magasin, 10 clients au plus en même temps
 // (+1 tous les 10 % de marketing).
 func (p *Place) ShopMaxCust() int {

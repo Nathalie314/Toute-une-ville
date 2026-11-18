@@ -72,7 +72,7 @@ func placeHelp(id string) []string {
 			"La ferme d'élevage élève volailles, bovins, ovins et porcs, puis les abat. Elle ne reçoit pas de clients.",
 			"Elle reçoit le maïs, le foin et les pommes de terre de la ferme.",
 			"Toute sa viande part en camion frigorifique à la boucherie.",
-			"Chaque espace a ses éleveurs.",
+			"Conseil : améliorer les drones et les camions pour que les livraisons à la boucherie soient régulières.",
 		}
 	case "boucherie":
 		return []string{

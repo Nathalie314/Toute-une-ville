@@ -590,7 +590,7 @@ func (g *game) drawHUD(dst *ebiten.Image) {
 	}, func() { g.openPanel(panelMairie) })
 	g.tutoMairie = [4]float64{x + 3, 24, 70, 70}
 	// (le personnage s'ouvre au vestiaire, dans la zone du joueur, ou avec P)
-	if g.sim.Cur.Crep == nil { // (pas de réputation au restaurant : la jauge de bonheur fait les pourboires)
+	if !g.sim.Cur.NoRep() { // (pas de réputation à la ferme d'élevage ni au restaurant)
 		g.repBox(dst, g.sim.Cur, 416, 18) // à droite de l'argent, pour ne pas cacher les champs
 	}
 	g.drawGoal(dst, 672, 18)
@@ -1417,7 +1417,7 @@ func (g *game) drawTileBody(dst *ebiten.Image, tl tile, x, y, w, h float64, farm
 	if tl.id == "ferme" {
 		stars(dst, x+24, yy+28, 13, farm.Rep)
 	}
-	if pl := g.sim.Place(tl.place); pl != nil && tl.place != "ferme" && tl.place != "ecole" && pl.Owned && pl.Crep == nil { // (pas d'étoiles au restaurant)
+	if pl := g.sim.Place(tl.place); pl != nil && tl.place != "ferme" && tl.place != "ecole" && pl.Owned && !pl.NoRep() { // (pas d'étoiles sans réputation)
 		stars(dst, x+24, yy+28, 13, pl.Rep)
 	}
 	if !tl.open {

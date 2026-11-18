@@ -1390,3 +1390,9 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Comme à la pâtisserie : des habitants commandent 2 ou 3 produits des vitrines ouvertes (shopOrder), avec leurs
   cadeaux ; la caisse des commandes est dans la zone du joueur. La boucherie gagne donc les points « Réclame :
   cadeaux » (collège) et « Logistique » (lycée).
+
+## Ferme d'élevage : sans réputation, un conseil
+- Plus d'étoiles à la ferme d'élevage (ni dans l'en-tête ni sur la carte) : elle n'a pas de clients (Place.NoRep,
+  comme la crêperie).
+- Son aide : « Chaque espace a ses éleveurs » retiré ; son conseil (écrit par elle) : améliorer les drones et les
+  camions pour que les livraisons à la boucherie soient régulières.

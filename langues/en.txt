@@ -1756,3 +1756,4 @@ Plus de tables de clients à la fois (+1 % par point) : attention à ne pas les 
 Pourboires = Tips
 Une table contente laisse plus : +1 % de l'addition tous les 5 points (1 % au départ, sans maximum). = A happy table leaves more: +1% of the bill every 5 points (1% at the start, no maximum).
 Clients = Customers
+Conseil : améliorer les drones et les camions pour que les livraisons à la boucherie soient régulières. = Tip: upgrade the drones and trucks so deliveries to the butcher's shop are regular.
