@@ -6,7 +6,7 @@ import "math/rand"
 // bâtiments, des étals, des clients, des commandes de particuliers, des drones
 // et des camions (supermarché, boulangerie, glacier).
 //
-//   fruits  : ananas, bananier, cocotier, manguier (une colonne chacun, comme le verger)
+//   fruits  : ananas, bananier, cocotier, manguier, citronnier, oranger (une colonne chacun, comme le verger)
 //   sucre   : canne à sucre → raffinerie (sucre en morceaux) → moulin (sucre en poudre)
 //   cacao   : cacaoyers → chocolaterie (cacao + sucre en poudre → tablettes)
 //   café    : caféiers → torréfacteur (café en grains) → moulin à café (café moulu)
@@ -18,22 +18,22 @@ import "math/rand"
 const exoticPrice = 35000
 
 var exoticZones = []*ShopZone{
-	{ID: "fruits", Name: "Fruits", X0: 420, X1: 1150, RestY: 970, Costs: []float64{3000, 12000, 30000, 60000}},
-	{ID: "sucre", Name: "Sucre", X0: 1230, X1: 2050, RestY: 970, Costs: []float64{5000, 16000, 40000}},
-	{ID: "cacao", Name: "Cacao", X0: 2130, X1: 2550, RestY: 970, Costs: []float64{9000, 24000}},
-	{ID: "cafe", Name: "Café", X0: 2630, X1: 3450, RestY: 970, Costs: []float64{14000, 32000, 70000}},
-	{ID: "riz", Name: "Riz", X0: 3540, X1: 4420, RestY: 970, Costs: []float64{20000}},
-	{ID: "epices", Name: "Épices", X0: 4520, X1: 5600, RestY: 970, Costs: []float64{28000, 55000, 100000, 170000}},
+	{ID: "fruits", Name: "Fruits", X0: 420, X1: 1490, RestY: 970, Costs: []float64{3000, 12000, 30000, 60000, 100000, 150000}},
+	{ID: "sucre", Name: "Sucre", X0: 1570, X1: 2390, RestY: 970, Costs: []float64{5000, 16000, 40000}},
+	{ID: "cacao", Name: "Cacao", X0: 2470, X1: 2890, RestY: 970, Costs: []float64{9000, 24000}},
+	{ID: "cafe", Name: "Café", X0: 2970, X1: 3790, RestY: 970, Costs: []float64{14000, 32000, 70000}},
+	{ID: "riz", Name: "Riz", X0: 3880, X1: 4760, RestY: 970, Costs: []float64{20000}},
+	{ID: "epices", Name: "Épices", X0: 4860, X1: 5940, RestY: 970, Costs: []float64{28000, 55000, 100000, 170000}},
 }
 
 // exoColumnIDs : les colonnes d'arbres exotiques.
-var exoColumnIDs = []string{"ananas", "bananier", "cocotier", "manguier"}
+var exoColumnIDs = []string{"ananas", "bananier", "cocotier", "manguier", "citronnier", "oranger"}
 
 // ExoDecoTop : le haut du décor de la ferme exotique (forêt, cascade, rivière).
 const ExoDecoTop = -950.0
 
 func newExotic(g *Game) *Place {
-	W := 5800.0                                                                      // (aéré : on voit toutes les cases et on passe entre les champs)
+	W := 6140.0                                                                      // (aéré : on voit toutes les cases et on passe entre les champs)
 	p := &Place{ID: "exotique", Name: "La ferme exotique", W: W, H: 1800, Top: -400, // (on monte jusqu'à la rivière)
 		g: g, rng: rand.New(rand.NewSource(61)),
 		Rep: 3, Price: exoticPrice, SellMult: 1, SpawnBase: 5, WantMax: 3, MaxCust: 14, LeaveOff: V{170, 60}, RepGain: 0.012,
@@ -77,8 +77,8 @@ func newExotic(g *Game) *Place {
 		p.Stations = append(p.Stations, s)
 	}
 
-	// --- fruits : quatre colonnes d'arbres (l'ananas, lui, pousse au sol…)
-	names := []string{"Ananas", "Bananier", "Cocotier", "Manguier"}
+	// --- fruits : six colonnes d'arbres (l'ananas, lui, pousse au sol…)
+	names := []string{"Ananas", "Bananier", "Cocotier", "Manguier", "Citronnier", "Oranger"}
 	for i, it := range ExoFruits {
 		id := exoColumnIDs[i]
 		x := 440 + float64(i)*170
@@ -98,34 +98,34 @@ func newExotic(g *Game) *Place {
 		p.Station("etal_" + itoa(int(Ananas))).Unlock = ""
 	}
 	// --- sucre
-	field("canne", "Canne à sucre", "sucre", Canne, 1250, 6, 6, "canne")
-	machine("raffinerie", "Raffinerie", "sucre", SucreMorceaux, []Item{Canne}, 1250, 3, "raffinerie")
-	ms := machine("moulin_sucre", "Moulin à sucre", "sucre", SucrePoudre, []Item{SucreMorceaux}, 1650, 2.5, "moulin_sucre")
+	field("canne", "Canne à sucre", "sucre", Canne, 1590, 6, 6, "canne")
+	machine("raffinerie", "Raffinerie", "sucre", SucreMorceaux, []Item{Canne}, 1590, 3, "raffinerie")
+	ms := machine("moulin_sucre", "Moulin à sucre", "sucre", SucrePoudre, []Item{SucreMorceaux}, 1990, 2.5, "moulin_sucre")
 	ms.Shared = true // la chocolaterie (espace cacao) s'y sert aussi
-	shelf("sucre", SucreMorceaux, 1260, 220, "raffinerie", false)
-	shelf("sucre", SucrePoudre, 1660, 220, "moulin_sucre", false)
+	shelf("sucre", SucreMorceaux, 1600, 220, "raffinerie", false)
+	shelf("sucre", SucrePoudre, 2000, 220, "moulin_sucre", false)
 	// --- cacao
-	field("cacao", "Cacaoyers", "cacao", Cacao, 2150, 8, 4, "cacao")
-	machine("chocolaterie", "Chocolaterie", "cacao", Chocolat, []Item{Cacao, SucrePoudre}, 2150, 4, "chocolaterie")
-	shelf("cacao", Chocolat, 2160, 220, "chocolaterie", false)
+	field("cacao", "Cacaoyers", "cacao", Cacao, 2490, 8, 4, "cacao")
+	machine("chocolaterie", "Chocolaterie", "cacao", Chocolat, []Item{Cacao, SucrePoudre}, 2490, 4, "chocolaterie")
+	shelf("cacao", Chocolat, 2500, 220, "chocolaterie", false)
 	// --- café
-	field("cafe", "Caféiers", "cafe", CafeVert, 2650, 8, 6, "cafe")
-	machine("torrefacteur", "Torréfacteur", "cafe", CafeGrains, []Item{CafeVert}, 2650, 3.5, "torrefacteur")
-	machine("moulin_cafe", "Moulin à café", "cafe", CafeMoulu, []Item{CafeGrains}, 3050, 3, "moulin_cafe")
-	shelf("cafe", CafeGrains, 2660, 220, "torrefacteur", false)
-	shelf("cafe", CafeMoulu, 3060, 220, "moulin_cafe", false)
+	field("cafe", "Caféiers", "cafe", CafeVert, 2990, 8, 6, "cafe")
+	machine("torrefacteur", "Torréfacteur", "cafe", CafeGrains, []Item{CafeVert}, 2990, 3.5, "torrefacteur")
+	machine("moulin_cafe", "Moulin à café", "cafe", CafeMoulu, []Item{CafeGrains}, 3390, 3, "moulin_cafe")
+	shelf("cafe", CafeGrains, 3000, 220, "torrefacteur", false)
+	shelf("cafe", CafeMoulu, 3400, 220, "moulin_cafe", false)
 	// --- la rizière
-	field("riz", "Rizière", "riz", Riz, 3560, 6, 10, "riz")
-	shelf("riz", Riz, 3800, 360, "riz", false)
+	field("riz", "Rizière", "riz", Riz, 3900, 6, 10, "riz")
+	shelf("riz", Riz, 4140, 360, "riz", false)
 	// --- épices : vanille, cannelle, thé (le thé en dernier : son séchoir dessous, à
 	// droite ; l'embauche des épices au milieu, sous les cannelliers)
-	field("vanille", "Vanille", "epices", Vanille, 4540, 12, 3, "vanille")
-	field("cannelle", "Cannelliers", "epices", Cannelle, 4920, 11, 3, "cannelle")
-	field("the", "Théiers", "epices", FeuillesThe, 5300, 7, 3, "the")
-	machine("sechoir", "Séchoir à thé", "epices", The, []Item{FeuillesThe}, 5310, 3.5, "sechoir")
-	shelf("epices", Vanille, 4550, 220, "vanille", false)
-	shelf("epices", Cannelle, 4930, 220, "cannelle", false)
-	shelf("epices", The, 5310, 220, "sechoir", false)
+	field("vanille", "Vanille", "epices", Vanille, 4880, 12, 3, "vanille")
+	field("cannelle", "Cannelliers", "epices", Cannelle, 5260, 11, 3, "cannelle")
+	field("the", "Théiers", "epices", FeuillesThe, 5640, 7, 3, "the")
+	machine("sechoir", "Séchoir à thé", "epices", The, []Item{FeuillesThe}, 5650, 3.5, "sechoir")
+	shelf("epices", Vanille, 4890, 220, "vanille", false)
+	shelf("epices", Cannelle, 5270, 220, "cannelle", false)
+	shelf("epices", The, 5650, 220, "sechoir", false)
 
 	reg := &Station{ID: "caisse", Name: "Caisse", Kind: Register, HireKey: "caissiere", QueueDown: 5}
 	reg.Body = Rect{180, shelfY, 210, shelfH}
@@ -138,10 +138,10 @@ func newExotic(g *Game) *Place {
 	trash.Zone = Rect{W - 170, 880, 124, 150}
 	p.Stations = append(p.Stations, trash)
 	// les quais : au bord de la rivière, au nord (la ferme exotique est loin : tout part en bateau)
-	p.riverDock("quai", "super", 1500)
-	p.riverDock("quai_boul", "boulangerie", 1850)
-	p.riverDock("quai_glace", "glacier", 2200)
-	p.riverDock("quai_patisserie", "patisserie", 2550)
+	p.riverDock("quai", "super", 1840)
+	p.riverDock("quai_boul", "boulangerie", 2190)
+	p.riverDock("quai_glace", "glacier", 2540)
+	p.riverDock("quai_patisserie", "patisserie", 2890)
 	cmd := &Station{ID: "commande", Name: "Commandes", Kind: OrderBox, Built: true}
 	p.Stations = append(p.Stations, cmd)
 
@@ -169,6 +169,8 @@ func newExotic(g *Game) *Place {
 	unlock("cacao", "Cacaoyers", 20000, "Le cacao ne se vend pas : il part à la chocolaterie.")
 	unlock("chocolaterie", "Chocolaterie", 26000, "Cacao + sucre en poudre = des tablettes de chocolat.")
 	unlock("manguier", "Manguier", 32000, fruitHint)
+	unlock("citronnier", "Citronnier", 34000, fruitHint)
+	unlock("oranger", "Oranger", 36000, fruitHint)
 	unlock("cafe", "Caféiers", 38000, "Le café vert ne se vend pas : il part au torréfacteur.")
 	unlock("torrefacteur", "Torréfacteur", 45000, "Le café vert devient du café en grains.")
 	unlock("moulin_cafe", "Moulin à café", 55000, "Le café en grains devient du café moulu.")

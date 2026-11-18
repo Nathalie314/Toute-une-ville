@@ -1315,3 +1315,13 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   coup (10 au plus ; une longue pause n'est pas rattrapée, l'arrondi évite les saccades sur PC).
 - Mesure (Chromium logiciel, téléphone simulé, ferme) : images/s ×2 ; un compte à rebours avançait de 1 s pendant
   20 s réelles, il avance maintenant presque au rythme de l'horloge.
+
+## Ferme exotique : citronnier et oranger
+- Deux colonnes d'arbres de plus après le manguier (Citron 64 €, Orange 70 € ; produits ajoutés à la fin de la liste :
+  sauvegardes intactes). Achats : citronnier 34 000, oranger 36 000 (avant les caféiers).
+- Les autres espaces (sucre, cacao, café, riz, épices), les quais du bateau et le chemin entre fruits et sucre sont
+  décalés de 340 vers la droite (largeur 5 800 → 6 140). Le portail reste au même endroit.
+- Ouvriers des fruits : 6 (un par arbre), les deux derniers à 100 000 et 150 000.
+- Supermarché : le rayon des fruits prend citrons et oranges (5 colonnes au lieu de 4 : légumes et produits de la
+  ferme décalés vers la droite) ; l'épicerie exotique ne reprend pas les fruits (ExoticSold[len(ExoFruits):]).
+- À venir : citrons et oranges serviront dans d'autres lieux (à décider avec elle).

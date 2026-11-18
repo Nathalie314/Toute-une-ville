@@ -30,7 +30,8 @@ var SuperZones = []*SuperZone{
 	{ID: "fruits", Name: "Fruits", Items: append(append(append([]Item{}, Fruits...), ExoFruits...), Raisin), Cols: 4, // (le raisin du domaine aussi)
 		open: func(g *Game) bool { return g.farm().Station("fraisier").Built }},
 	{ID: "cremerie", Name: "Crèmerie", Items: CremerieSold, Cols: 3, open: ownedFn("cremerie")},
-	{ID: "epicerie", Name: "Épicerie exotique", Items: ExoticSold[4:], Cols: 3, open: ownedFn("exotique")},
+	{ID: "epicerie", Name: "Épicerie exotique", Items: ExoticSold[len(ExoFruits):], // (sans les fruits, qui ont leur rayon)
+		Cols: 3, open: ownedFn("exotique")},
 	{ID: "boulangerie", Name: "Boulangerie", Items: BakerySold, Cols: 3, open: ownedFn("boulangerie")},
 	{ID: "glace", Name: "Glaces", Items: IceSold, Cols: 2, open: ownedFn("glacier")},
 	{ID: "poisson", Name: "Poissonnerie", Items: PortSold, Cols: 3, open: ownedFn("port")}, // (le port s'ouvre avant la boucherie)

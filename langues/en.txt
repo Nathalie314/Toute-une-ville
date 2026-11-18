@@ -1612,3 +1612,7 @@ Retourne à la ferme. Pour cela, tu peux soit utiliser l'hélicoptère, soit pas
 Va au vestiaire. = Go to the locker room.
 Tu peux acheter des accessoires pour améliorer ton personnage. Les sandales le feront marcher plus vite, le sac porter davantage. Ferme cette page pour retourner à la ferme. = You can buy accessories to improve your character. Sandals make them walk faster, a bag lets them carry more. Close this page to go back to the farm.
 Bravo ! Tu as acquis le minimum pour jouer. Le reste, tu le découvriras tout seul. Bon jeu ! = Well done! You've learned the basics. You'll discover the rest on your own. Have fun!
+Citrons = Lemons
+Oranges = Oranges
+Citronnier = Lemon tree
+Oranger = Orange tree

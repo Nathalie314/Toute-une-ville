@@ -159,6 +159,9 @@ const (
 	Clafoutis
 	Eclair
 	Fraisier
+	// la ferme exotique : deux arbres de plus (après le manguier)
+	Citron
+	Orange
 	NItems
 )
 
@@ -283,6 +286,8 @@ var Items = [NItems]ItemInfo{
 	Banane:           {"Bananes", 32},
 	NoixCoco:         {"Noix de coco", 50},
 	Mangue:           {"Mangues", 58},
+	Citron:           {"Citrons", 64},
+	Orange:           {"Oranges", 70},
 	Riz:              {"Riz (sachet)", 28},
 	Vanille:          {"Gousses de vanille", 120},
 	FeuillesThe:      {"Feuilles de thé", 20},
@@ -350,11 +355,11 @@ var CremerieSold = []Item{Creme, Beurre, FromageBlanc, Yaourt, Fromage, YaourtCh
 var IceSold = []Item{SorbetFraise, SorbetMangue, SorbetAnanas, GlaceVanille, GlaceCafe, GlaceCoco, GlaceChoco, GlacePoireChoco}
 
 // ExoFruits : les arbres de la ferme exotique (une colonne chacun, comme le verger).
-var ExoFruits = []Item{Ananas, Banane, NoixCoco, Mangue}
+var ExoFruits = []Item{Ananas, Banane, NoixCoco, Mangue, Citron, Orange}
 
 // ExoticSold : ce que vendent les étals de la ferme exotique (la canne, le cacao,
 // le café vert et les feuilles de thé ne se vendent pas tels quels).
-var ExoticSold = []Item{Ananas, Banane, NoixCoco, Mangue, SucreMorceaux, SucrePoudre, Chocolat, CafeGrains, CafeMoulu, Riz, Vanille, The, Cannelle}
+var ExoticSold = []Item{Ananas, Banane, NoixCoco, Mangue, Citron, Orange, SucreMorceaux, SucrePoudre, Chocolat, CafeGrains, CafeMoulu, Riz, Vanille, The, Cannelle}
 
 // BoucherieSold : ce que vend la boucherie-charcuterie (par espace).
 var BoucherieSold = []Item{PouletCru, PouletRoti, CuissePoulet, Aiguillettes, Magret, FoieGras,
