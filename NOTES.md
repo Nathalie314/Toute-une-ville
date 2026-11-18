@@ -1405,3 +1405,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   sans traverser tout le lieu. Celui de la crêperie reste à droite.
 - Carcasses de bœuf et de veau (d'après son image) : une demi-carcasse pendue par la patte arrière à son crochet,
   bords plus foncés, intérieur plus clair, traînées de gras blanc et marbrures ; le veau plus clair que le bœuf.
+- D'après ses images : la cuisse de poulet (haut de cuisse en biais, pilon fin et son petit bout, peau dorée et
+  grains d'épices), le steak haché (palet rose épais, sillons de viande hachée en biais), le rôti de bœuf (boudin rouge
+  sombre ficelé, en travers et en long, nœuds en haut).

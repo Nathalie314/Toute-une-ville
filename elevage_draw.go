@@ -345,9 +345,39 @@ func drawItemMeat(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		circle(dst, x-r*0.9, y+r*0.85, r*0.14, bone)
 		circle(dst, x+r*0.9, y+r*0.85, r*0.14, bone)
 	case sim.CuissePoulet:
-		ellipse(dst, x-r*0.15, y-r*0.15, r*0.6, r*0.5, rgb(0xe0a070))
-		line(dst, x+r*0.2, y+r*0.2, x+r*0.75, y+r*0.75, r*0.18, bone)
-		circle(dst, x+r*0.8, y+r*0.8, r*0.16, bone)
+		// une cuisse dorée en équerre : le haut de cuisse (large), le genou, le pilon qui
+		// part vers la droite jusqu'à son petit bout ; peau rôtie, quelques grains d'épices
+		shape := []V{{X: -0.18, Y: -0.72}, {X: 0.05, Y: -0.62}, {X: 0.3, Y: -0.42}, {X: 0.52, Y: -0.18}, {X: 0.36, Y: -0.02},
+			{X: 0.05, Y: 0.07}, {X: -0.3, Y: 0.13}, {X: 0.05, Y: 0.3}, {X: 0.4, Y: 0.46}, {X: 0.62, Y: 0.5}, {X: 0.62, Y: 0.66},
+			{X: 0.3, Y: 0.66}, {X: -0.12, Y: 0.62}, {X: -0.45, Y: 0.5}, {X: -0.68, Y: 0.25}, {X: -0.66, Y: -0.05},
+			{X: -0.52, Y: -0.3}, {X: -0.36, Y: -0.55}}
+		{ // (des bords arrondis, une seule fois : la pointe du haut de cuisse reste nette)
+			var sm []V
+			for i, a := range shape {
+				b := shape[(i+1)%len(shape)]
+				sm = append(sm, a.Lerp(b, 0.25), a.Lerp(b, 0.75))
+			}
+			shape = sm
+		}
+		pts := func(k, dx, dy float64) []V {
+			var ps []V
+			for _, q := range shape {
+				ps = append(ps, V{X: x + (q.X*k+dx)*r, Y: y + (q.Y*k+dy)*r})
+			}
+			return ps
+		}
+		polygon(dst, pts(1, 0.02, 0.06), rgb(0xc9541e)) // le dessous, plus cuit
+		polygon(dst, pts(1, 0, 0), rgb(0xe8803a))
+		// le petit bout du pilon (deux bosses)
+		for _, q := range []V{{X: 0.68, Y: 0.52}, {X: 0.69, Y: 0.65}} {
+			circle(dst, x+q.X*r, y+q.Y*r+r*0.03, r*0.1, rgb(0xc9541e))
+			circle(dst, x+q.X*r, y+q.Y*r, r*0.1, rgb(0xe8803a))
+		}
+		polygon(dst, pts(0.62, -0.08, -0.02), rgb(0xf29a5c)) // le dessus, plus clair
+		ellipse(dst, x+r*0.05, y-r*0.38, r*0.1, r*0.05, rgba(0xffffff, 0.35))
+		for _, q := range []V{{X: -0.3, Y: -0.42}, {X: -0.05, Y: -0.5}, {X: 0.25, Y: -0.32}, {X: -0.5, Y: 0.05}, {X: -0.2, Y: 0.42}, {X: 0.15, Y: 0.48}, {X: 0.45, Y: 0.56}, {X: 0.05, Y: -0.15}} {
+			circle(dst, x+q.X*r, y+q.Y*r, r*0.04, rgb(0xc8441a))
+		}
 	case sim.Boeuf, sim.VeauCarcasse:
 		// une demi-carcasse pendue par la patte arrière à son crochet : la viande rouge rosé,
 		// des marbrures et des traînées de gras blanc, plus foncée sur les bords (le veau, plus clair)
@@ -445,9 +475,44 @@ func drawItemMeat(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		c := map[sim.Item]uint32{sim.Steak: 0xb03030, sim.RotiBoeuf: 0xa83a30, sim.MorceauxVeau: 0xd9706a, sim.Gigot: 0xa84a38, sim.CoteAgneau: 0xd06a60, sim.Cotelette: 0xf0a0a8}[it]
 		switch it {
 		case sim.RotiBoeuf:
-			roundRect(dst, x-r*0.85, y-r*0.5, r*1.7, r, r*0.45, rgb(c))
-			for i := -1; i <= 1; i++ {
-				line(dst, x+float64(i)*r*0.45, y-r*0.55, x+float64(i)*r*0.45, y+r*0.55, r*0.08, bone)
+			// un rôti ficelé : un gros boudin de viande rouge sombre, plus foncé à droite,
+			// serré par des ficelles (en travers et en long) qui le font bomber
+			roundRect(dst, x-r*0.9, y-r*0.52, r*1.8, r*1.04, r*0.4, rgb(0x8e1e2a))
+			roundRect(dst, x-r*0.9, y-r*0.52, r*1.55, r*0.98, r*0.4, rgb(0xb02434))
+			for k := 0; k < 4; k++ { // les bourrelets entre les ficelles
+				cx := x - r*0.62 + float64(k)*r*0.42
+				ellipse(dst, cx, y-r*0.08, r*0.19, r*0.42, rgb(0xbf2c3c))
+			}
+			for k := 0; k < 3; k++ { // quelques reflets
+				ellipse(dst, x-r*0.55+float64(k)*r*0.4, y-r*0.28, r*0.09, r*0.03, rgba(0xffffff, 0.18))
+			}
+			str := rgb(0xf3e6c8)
+			for k := 0; k < 5; k++ { // les ficelles en travers, qui s'arrondissent sur les bords
+				sx := x - r*0.64 + float64(k)*r*0.32
+				var prev V
+				for i := 0; i <= 10; i++ {
+					u := -1 + float64(i)/5
+					q := V{X: sx + (1-u*u)*r*0.05*(float64(k)-2)/2, Y: y + u*r*0.48}
+					if i > 0 {
+						line(dst, prev.X, prev.Y, q.X, q.Y, r*0.05, str)
+					}
+					prev = q
+				}
+			}
+			for _, yy := range []float64{-0.24, 0.26} { // les ficelles en long (un peu bombées)
+				var prev V
+				for i := 0; i <= 10; i++ {
+					u := -1 + float64(i)/5
+					q := V{X: x + u*r*0.86, Y: y + yy*r - (1-u*u)*r*0.05}
+					if i > 0 {
+						line(dst, prev.X, prev.Y, q.X, q.Y, r*0.045, str)
+					}
+					prev = q
+				}
+			}
+			for k := 0; k < 5; k++ { // les nœuds, en haut
+				u := (-0.64 + float64(k)*0.32) / 0.86
+				circle(dst, x-r*0.64+float64(k)*r*0.32, y-r*0.24-(1-u*u)*r*0.05, r*0.045, rgb(0xe0d0a8))
 			}
 		case sim.Gigot:
 			ellipse(dst, x-r*0.15, y+r*0.1, r*0.65, r*0.5, rgb(c))
@@ -465,10 +530,38 @@ func drawItemMeat(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 			}
 		}
 	case sim.SteakHache:
-		circle(dst, x, y, r*0.75, rgb(0x9a3a30))
-		for i := 0; i < 7; i++ {
-			a := float64(i) * 0.9
-			circle(dst, x+math.Cos(a)*r*0.45, y+math.Sin(a)*r*0.45, r*0.1, rgb(0xc85a4a))
+		// un steak haché cru : un palet rose, épais, des sillons de viande hachée en biais
+		ellipse(dst, x, y+r*0.18, r*0.88, r*0.58, rgb(0xb8304e)) // l'épaisseur
+		ellipse(dst, x, y, r*0.88, r*0.58, rgb(0xe0566f))
+		// les sillons : des cordes parallèles du dessus, en biais, ondulées
+		ea, eb := 0.8, 0.5  // (un peu dans le bord)
+		dx, dy := 0.6, -0.8 // la direction d'un sillon
+		nx, ny := 0.8, 0.6  // l'écart entre deux sillons
+		for k := -4; k <= 4; k++ {
+			c := float64(k) * 0.17
+			// p(t) = c·n + t·d coupe l'ellipse (x/ea)² + (y/eb)² = 1 : on résout en t
+			A := dx*dx/(ea*ea) + dy*dy/(eb*eb)
+			B := 2 * (c*nx*dx/(ea*ea) + c*ny*dy/(eb*eb))
+			C := c*c*nx*nx/(ea*ea) + c*c*ny*ny/(eb*eb) - 1
+			D := B*B - 4*A*C
+			if D <= 0 {
+				continue
+			}
+			t0, t1 := (-B-math.Sqrt(D))/(2*A), (-B+math.Sqrt(D))/(2*A)
+			var prev V
+			for i := 0; i <= 24; i++ {
+				t := t0 + (t1-t0)*float64(i)/24
+				w := math.Sin(t*8+float64(k)) * 0.02
+				q := V{X: x + (c*nx+t*dx+w*nx)*r, Y: y + (c*ny+t*dy+w*ny)*r}
+				if i > 0 {
+					line(dst, prev.X+r*0.03, prev.Y+r*0.03, q.X+r*0.03, q.Y+r*0.03, r*0.05, rgb(0xb8304e))
+					line(dst, prev.X, prev.Y, q.X, q.Y, r*0.07, rgb(0xf28aa0))
+				}
+				prev = q
+			}
+		}
+		for _, q := range []V{{X: -0.4, Y: 0.05}, {X: 0.2, Y: -0.2}, {X: 0.45, Y: 0.15}, {X: -0.1, Y: 0.25}} {
+			circle(dst, x+q.X*r, y+q.Y*r, r*0.035, rgba(0xffffff, 0.6))
 		}
 	case sim.Jambon:
 		polygon(dst, []V{{X: x - r*0.9, Y: y + r*0.2}, {X: x - r*0.2, Y: y - r*0.75}, {X: x + r*0.6, Y: y - r*0.4}, {X: x + r*0.8, Y: y + r*0.5}, {X: x - r*0.4, Y: y + r*0.75}}, rgb(0xe88a98))
