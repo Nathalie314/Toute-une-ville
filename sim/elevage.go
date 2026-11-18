@@ -29,9 +29,9 @@ func (z *ShopZone) Max() int { return len(z.Costs) }
 
 var elevageZones = []*ShopZone{
 	{ID: "volaille", Name: "Volaille", X0: 150, X1: 1110, RestY: 1262, Costs: []float64{3000, 9000, 24000, 55000}},
-	{ID: "bovin", Name: "Bovins", X0: 1160, X1: 1810, RestY: 1262, Costs: []float64{12000, 30000, 70000}},
-	{ID: "ovin", Name: "Ovins", X0: 1860, X1: 2510, RestY: 1262, Costs: []float64{18000, 42000, 90000}},
-	{ID: "porc", Name: "Porcs", X0: 2560, X1: 3010, RestY: 1262, Costs: []float64{24000, 55000}},
+	{ID: "bovin", Name: "Bovins", X0: 1160, X1: 2010, RestY: 1262, Costs: []float64{12000, 30000, 70000}},
+	{ID: "ovin", Name: "Ovins", X0: 2060, X1: 2910, RestY: 1262, Costs: []float64{18000, 42000, 90000}},
+	{ID: "porc", Name: "Porcs", X0: 2960, X1: 3410, RestY: 1262, Costs: []float64{24000, 55000}},
 }
 
 var boucherieZones = []*ShopZone{
@@ -87,7 +87,7 @@ const (
 var elevageAnimals = map[string]bool{"poulailler": true, "mare": true, "pre_bovin": true, "pre_ovin": true, "porcherie": true}
 
 func newElevage(g *Game) *Place {
-	W := 3500.0 // (bâtiments d'animaux espacés : leur case « Stock + » à droite)
+	W := 3850.0 // (bâtiments d'animaux et abattoirs espacés : leur case « Stock + » à droite)
 	p := &Place{ID: "elevage", Name: "La ferme d'élevage", W: W, H: 1800, g: g, rng: rand.New(rand.NewSource(53)),
 		Rep: 3, Price: elevagePrice, SellMult: 1, SpawnBase: 5, WantMax: 3, MaxCust: 0, LeaveOff: V{170, 60}, OnlyStocked: true}
 	p.SpawnL = V{350, roadY + 40}
@@ -101,7 +101,7 @@ func newElevage(g *Game) *Place {
 	for _, pl := range []struct {
 		it Item
 		x  float64
-	}{{Mais, 330}, {Foin, 1760}, {PommeDeTerre, 2700}} {
+	}{{Mais, 330}, {Foin, 1960}, {PommeDeTerre, 3100}} {
 		s := &Station{ID: "palette_" + itoa(int(pl.it)), Name: "Palette : " + Items[pl.it].Name, Kind: Pallet, Item: pl.it, PileMax: 40, Built: true}
 		s.Body = Rect{pl.x, 150, 160, 90}
 		s.Zone = Rect{pl.x - 5, 258, 170, 90}
@@ -121,6 +121,7 @@ func newElevage(g *Game) *Place {
 		s.Two, s.Item2 = true, b
 		s.OutZone2 = Rect{x + 280, rowA + 180 + 18, 130, 90}
 	}
+	// (chaque abattoir s'achète à part, après le bâtiment de ses animaux ; son frigo vient avec lui)
 	frigo := func(team string, it Item, x float64, unl string) {
 		s := &Station{ID: "frigo_" + itoa(int(it)), Name: "Frigo : " + Items[it].Name, Kind: Shelf, Item: it, StockMax: 30, Unlock: unl, NoSale: true, Team: team}
 		s.Body = Rect{x, shelfY, 180, shelfH}
@@ -132,32 +133,32 @@ func newElevage(g *Game) *Place {
 	// (chaque bâtiment d'animaux a sa case « Stock + » à sa droite : on laisse la place)
 	mach("poulailler", "Poulailler", "volaille", Mais, Poulet, 200, rowA, 260, 180, 4, "")
 	mach("mare", "Mare aux canards", "volaille", Mais, Canard, 680, rowA, 260, 180, 5, "mare")
-	mach("abattoir_poulet", "Abattoir : poulets", "volaille", Poulet, PouletAbattu, 200, rowB, 260, 140, 3, "")
-	mach("abattoir_canard", "Abattoir : canards", "volaille", Canard, CanardAbattu, 600, rowB, 260, 140, 3, "mare")
-	frigo("volaille", PouletAbattu, 200, "")
-	frigo("volaille", CanardAbattu, 600, "mare")
-	// bovins : un grand pré (foin → vaches et veaux), son abattoir
+	mach("abattoir_poulet", "Abattoir : poulets", "volaille", Poulet, PouletAbattu, 200, rowB, 260, 140, 3, "abattoir_poulet")
+	mach("abattoir_canard", "Abattoir : canards", "volaille", Canard, CanardAbattu, 680, rowB, 260, 140, 3, "abattoir_canard") // (sous la mare)
+	frigo("volaille", PouletAbattu, 200, "abattoir_poulet")
+	frigo("volaille", CanardAbattu, 680, "abattoir_canard")
+	// bovins : un grand pré (foin → vaches et veaux), ses deux abattoirs
 	pre("pre_bovin", "Pré des bovins", "bovin", Foin, Vache, Veau, 1210, 6, "bovin")
-	mach("abattoir_boeuf", "Abattoir : bœufs", "bovin", Vache, Boeuf, 1210, rowB, 260, 140, 4, "bovin")
-	mach("abattoir_veau", "Abattoir : veaux", "bovin", Veau, VeauCarcasse, 1530, rowB, 260, 140, 4, "bovin")
-	frigo("bovin", Boeuf, 1210, "bovin")
-	frigo("bovin", VeauCarcasse, 1450, "bovin")
-	// ovins : un grand pré (foin → moutons et agneaux), son abattoir
-	pre("pre_ovin", "Pré des ovins", "ovin", Foin, Mouton, Agneau, 1910, 5, "ovin")
-	mach("abattoir_mouton", "Abattoir : moutons", "ovin", Mouton, MoutonCarcasse, 1910, rowB, 260, 140, 4, "ovin")
-	mach("abattoir_agneau", "Abattoir : agneaux", "ovin", Agneau, AgneauCarcasse, 2230, rowB, 260, 140, 4, "ovin")
-	frigo("ovin", MoutonCarcasse, 1910, "ovin")
-	frigo("ovin", AgneauCarcasse, 2150, "ovin")
+	mach("abattoir_boeuf", "Abattoir : bœufs", "bovin", Vache, Boeuf, 1210, rowB, 260, 140, 4, "abattoir_boeuf")
+	mach("abattoir_veau", "Abattoir : veaux", "bovin", Veau, VeauCarcasse, 1600, rowB, 260, 140, 4, "abattoir_veau")
+	frigo("bovin", Boeuf, 1210, "abattoir_boeuf")
+	frigo("bovin", VeauCarcasse, 1450, "abattoir_veau")
+	// ovins : un grand pré (foin → moutons et agneaux), ses deux abattoirs
+	pre("pre_ovin", "Pré des ovins", "ovin", Foin, Mouton, Agneau, 2110, 5, "ovin")
+	mach("abattoir_mouton", "Abattoir : moutons", "ovin", Mouton, MoutonCarcasse, 2110, rowB, 260, 140, 4, "abattoir_mouton")
+	mach("abattoir_agneau", "Abattoir : agneaux", "ovin", Agneau, AgneauCarcasse, 2500, rowB, 260, 140, 4, "abattoir_agneau")
+	frigo("ovin", MoutonCarcasse, 2110, "abattoir_mouton")
+	frigo("ovin", AgneauCarcasse, 2350, "abattoir_agneau")
 	// porcs : la porcherie (pommes de terre), son abattoir
-	mach("porcherie", "Porcherie", "porc", PommeDeTerre, Cochon, 2610, rowA, 260, 180, 5, "porc")
-	mach("abattoir_porc", "Abattoir : porcs", "porc", Cochon, Porc, 2610, rowB, 260, 140, 4, "porc")
-	frigo("porc", Porc, 2660, "porc")
+	mach("porcherie", "Porcherie", "porc", PommeDeTerre, Cochon, 3010, rowA, 260, 180, 5, "porc")
+	mach("abattoir_porc", "Abattoir : porcs", "porc", Cochon, Porc, 3010, rowB, 260, 140, 4, "abattoir_porc")
+	frigo("porc", Porc, 3060, "abattoir_porc")
 
 	trash := &Station{ID: "poubelle", Name: "Poubelle", Kind: Trash}
-	trash.Body = Rect{3130, rowA + 50, 70, 70} // (le compost, à droite de la porcherie et de sa case « Stock + »)
-	trash.Zone = Rect{3110, rowA + 10, 110, 150}
+	trash.Body = Rect{3530, rowA + 50, 70, 70} // (le compost, à droite de la porcherie et de sa case « Stock + »)
+	trash.Zone = Rect{3510, rowA + 10, 110, 150}
 	p.Stations = append(p.Stations, trash)
-	p.dock("quai", "boucherie", 1680) // le camion frigorifique (entre les frigos des bovins et ceux des ovins)
+	p.dock("quai", "boucherie", 1740) // le camion frigorifique (entre les frigos des bovins et ceux des ovins)
 
 	// déblocages, espace par espace
 	unlock := func(id, name string, cost float64, hint, needs, locked string) {
@@ -176,10 +177,17 @@ func newElevage(g *Game) *Place {
 		}
 		p.Unlocks = append(p.Unlocks, u)
 	}
-	unlock("mare", "Mare aux canards", 15000, "Les canards mangent du maïs. L'abattoir a deux entrées.", "", "")
+	unlock("abattoir_poulet", "Abattoir : poulets", 4000, "Les poulets du poulailler y deviennent des poulets abattus, rangés au frigo.", "", "")
+	unlock("mare", "Mare aux canards", 15000, "Les canards mangent du maïs.", "", "")
+	unlock("abattoir_canard", "Abattoir : canards", 10000, "Les canards de la mare y deviennent des canards abattus.", "elevage:mare", "Il faut d'abord la mare aux canards")
 	unlock("bovin", "Pré des bovins", 40000, "Vaches, taureau et veaux mangent du foin.", "ferme:grenier", "Il faut le grenier à foin (ma ferme)")
+	unlock("abattoir_boeuf", "Abattoir : bœufs", 25000, "Les vaches et le taureau y deviennent du bœuf.", "elevage:bovin", "Il faut d'abord le pré des bovins")
+	unlock("abattoir_veau", "Abattoir : veaux", 30000, "Les veaux y deviennent des carcasses de veau.", "elevage:bovin", "Il faut d'abord le pré des bovins")
 	unlock("ovin", "Pré des ovins", 60000, "Brebis, moutons et agneaux mangent du foin.", "ferme:grenier", "Il faut le grenier à foin (ma ferme)")
+	unlock("abattoir_mouton", "Abattoir : moutons", 35000, "Les moutons y deviennent des carcasses de mouton.", "elevage:ovin", "Il faut d'abord le pré des ovins")
+	unlock("abattoir_agneau", "Abattoir : agneaux", 40000, "Les agneaux y deviennent des carcasses d'agneau.", "elevage:ovin", "Il faut d'abord le pré des ovins")
 	unlock("porc", "Porcherie", 80000, "Les cochons mangent des pommes de terre.", "ferme:pdt", "Il faut les pommes de terre (serre)")
+	unlock("abattoir_porc", "Abattoir : porcs", 50000, "Les cochons y deviennent du porc.", "elevage:porc", "Il faut d'abord la porcherie")
 	for _, s := range p.Stations {
 		if s.Unlock == "" {
 			s.Built = true
@@ -270,19 +278,19 @@ var boucherieSpec = workshopSpec{
 		{"preparation", "Préparation des poulets", PouletCru, []Item{PouletAbattu}, 3, 0, "", ""},
 		{"rotisserie", "Rôtisserie", PouletRoti, []Item{PouletCru}, 5, 12000, "Le poulet cru entier devient un poulet rôti.", ""},
 		{"cuisses", "Cuisses de poulet", CuissePoulet, []Item{PouletAbattu}, 4, 20000, "Avec les poulets de la ferme d'élevage.", ""},
-		{"aiguillettes", "Aiguillettes de canard", Aiguillettes, []Item{CanardAbattu}, 4, 30000, "Avec les canards de la ferme d'élevage.", "elevage:mare"},
-		{"magret", "Magrets de canard", Magret, []Item{CanardAbattu}, 5, 45000, "Avec les canards de la ferme d'élevage.", "elevage:mare"},
-		{"foie_gras", "Foie gras", FoieGras, []Item{CanardAbattu}, 7, 70000, "Avec les canards de la ferme d'élevage.", "elevage:mare"},
-		{"steak", "Steaks", Steak, []Item{Boeuf}, 4, 40000, "Le bœuf de la ferme d'élevage devient des steaks.", "elevage:bovin"},
-		{"hache", "Hachoir", SteakHache, []Item{Steak}, 3, 55000, "Les steaks deviennent des steaks hachés.", "elevage:bovin"},
-		{"roti_boeuf", "Rôtis de bœuf", RotiBoeuf, []Item{Boeuf}, 5, 75000, "Avec le bœuf de la ferme d'élevage.", "elevage:bovin"},
-		{"veau", "Morceaux de veau", MorceauxVeau, []Item{VeauCarcasse}, 5, 90000, "Avec les veaux de la ferme d'élevage.", "elevage:bovin"},
-		{"gigot", "Gigots", Gigot, []Item{MoutonCarcasse}, 5, 60000, "Avec les moutons de la ferme d'élevage.", "elevage:ovin"},
-		{"cote_agneau", "Côtes d'agneau", CoteAgneau, []Item{AgneauCarcasse}, 5, 85000, "Avec les agneaux de la ferme d'élevage.", "elevage:ovin"},
-		{"saucisse", "Saucisses", Saucisse, []Item{Porc}, 4, 50000, "Le porc de la ferme d'élevage devient des saucisses.", "elevage:porc"},
-		{"jambon", "Jambons", Jambon, []Item{Porc}, 5, 65000, "Avec le porc de la ferme d'élevage.", "elevage:porc"},
-		{"cotelette", "Côtelettes", Cotelette, []Item{Porc}, 4, 80000, "Avec le porc de la ferme d'élevage.", "elevage:porc"},
-		{"pate", "Pâtés", Pate, []Item{Porc}, 6, 100000, "Avec le porc de la ferme d'élevage.", "elevage:porc"},
+		{"aiguillettes", "Aiguillettes de canard", Aiguillettes, []Item{CanardAbattu}, 4, 30000, "Avec les canards de la ferme d'élevage.", "elevage:abattoir_canard"},
+		{"magret", "Magrets de canard", Magret, []Item{CanardAbattu}, 5, 45000, "Avec les canards de la ferme d'élevage.", "elevage:abattoir_canard"},
+		{"foie_gras", "Foie gras", FoieGras, []Item{CanardAbattu}, 7, 70000, "Avec les canards de la ferme d'élevage.", "elevage:abattoir_canard"},
+		{"steak", "Steaks", Steak, []Item{Boeuf}, 4, 40000, "Le bœuf de la ferme d'élevage devient des steaks.", "elevage:abattoir_boeuf"},
+		{"hache", "Hachoir", SteakHache, []Item{Steak}, 3, 55000, "Les steaks deviennent des steaks hachés.", "elevage:abattoir_boeuf"},
+		{"roti_boeuf", "Rôtis de bœuf", RotiBoeuf, []Item{Boeuf}, 5, 75000, "Avec le bœuf de la ferme d'élevage.", "elevage:abattoir_boeuf"},
+		{"veau", "Morceaux de veau", MorceauxVeau, []Item{VeauCarcasse}, 5, 90000, "Avec les veaux de la ferme d'élevage.", "elevage:abattoir_veau"},
+		{"gigot", "Gigots", Gigot, []Item{MoutonCarcasse}, 5, 60000, "Avec les moutons de la ferme d'élevage.", "elevage:abattoir_mouton"},
+		{"cote_agneau", "Côtes d'agneau", CoteAgneau, []Item{AgneauCarcasse}, 5, 85000, "Avec les agneaux de la ferme d'élevage.", "elevage:abattoir_agneau"},
+		{"saucisse", "Saucisses", Saucisse, []Item{Porc}, 4, 50000, "Le porc de la ferme d'élevage devient des saucisses.", "elevage:abattoir_porc"},
+		{"jambon", "Jambons", Jambon, []Item{Porc}, 5, 65000, "Avec le porc de la ferme d'élevage.", "elevage:abattoir_porc"},
+		{"cotelette", "Côtelettes", Cotelette, []Item{Porc}, 4, 80000, "Avec le porc de la ferme d'élevage.", "elevage:abattoir_porc"},
+		{"pate", "Pâtés", Pate, []Item{Porc}, 6, 100000, "Avec le porc de la ferme d'élevage.", "elevage:abattoir_porc"},
 	},
 	staff: "Bouchers", cashCost: 8000, staffCosts: []float64{1}, upBase: 11000,
 	sign: "Vitrine réfrigérée", bio: "Viande d'ici", w: 5700, perRow: 8, tall: true,

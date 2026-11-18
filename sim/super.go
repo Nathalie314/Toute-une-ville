@@ -17,9 +17,12 @@ type SuperZone struct {
 	ID, Name string
 	Items    []Item
 	Cols     int
+	Rows     int     // rangées de rayons : 3 au-dessus des caisses, 4 plus loin (plus de place en bas)
 	X, W     float64 // position dans le magasin
+	Bot      float64 // bas de l'espace (et de sa barrière)
 	open     func(g *Game) bool
 	Soon     bool // pas encore dans le jeu
+	rank     int  // rang pour le prix des magasiniers (0 : sa place dans la liste)
 }
 
 var SuperZones = []*SuperZone{
@@ -27,16 +30,24 @@ var SuperZones = []*SuperZone{
 		open: func(g *Game) bool { return true }},
 	{ID: "legumes", Name: "Légumes", Items: Legumes, Cols: 2,
 		open: func(g *Game) bool { return g.farm().Station("carotte").Built }},
-	{ID: "fruits", Name: "Fruits", Items: append(append(append([]Item{}, Fruits...), ExoFruits...), Raisin), Cols: 4, // (le raisin du domaine aussi)
+	{ID: "fruits", Name: "Fruits", Items: append(append(append([]Item{}, Fruits...), ExoFruits...), Raisin, Olive), Cols: 4, // (le raisin du domaine, puis les olives d'un futur lieu)
 		open: func(g *Game) bool { return g.farm().Station("fraisier").Built }},
 	{ID: "cremerie", Name: "Crèmerie", Items: CremerieSold, Cols: 3, open: ownedFn("cremerie")},
-	{ID: "epicerie", Name: "Épicerie exotique", Items: ExoticSold[4:], Cols: 3, open: ownedFn("exotique")},
+	{ID: "epicerie", Name: "Épicerie", Items: EpicerieSold, Cols: 3, open: ownedFn("exotique")},
+	{ID: "alcool", Name: "Boissons", rank: 10, // (juste après l'épicerie ; ses magasiniers gardent leur prix)
+		Items: append([]Item{Limonade, JusOrange}, DrinksSold...), Cols: 3, // (limonade et jus d'orange de la ferme exotique en premier ; puis jus, vins, bière, cidre, alcools du domaine)
+		open: func(g *Game) bool {
+			if q := g.Place("domaine"); q != nil && q.Owned {
+				return true
+			}
+			q := g.Place("exotique") // (les jus de la ferme exotique arrivent souvent avant le domaine)
+			return q != nil && q.Owned && (q.Station("pressoir_citron").Built || q.Station("pressoir_orange").Built)
+		}},
 	{ID: "boulangerie", Name: "Boulangerie", Items: BakerySold, Cols: 3, open: ownedFn("boulangerie")},
 	{ID: "glace", Name: "Glaces", Items: IceSold, Cols: 2, open: ownedFn("glacier")},
 	{ID: "poisson", Name: "Poissonnerie", Items: PortSold, Cols: 3, open: ownedFn("port")}, // (le port s'ouvre avant la boucherie)
 	{ID: "boucherie", Name: "Boucherie-charcuterie", Items: BoucherieSold, Cols: 6, open: ownedFn("boucherie")},
 	{ID: "patisserie", Name: "Pâtisserie", Items: PatisserieSold, Cols: 2, open: ownedFn("patisserie")},
-	{ID: "alcool", Name: "Boissons", Items: DrinksSold, Cols: 3, open: ownedFn("domaine")}, // (vins, bière, cidre, alcools et jus du domaine)
 }
 
 func ownedFn(id string) func(g *Game) bool {
@@ -84,12 +95,14 @@ const (
 	superGap     = 60.0
 	SuperRow0    = 640.0 // première rangée de rayons
 	superRowGap  = 220.0
-	SuperRegY    = 1390.0 // caisses (assez bas : on passe derrière les caissières sans entrer dans un espace fermé)
+	SuperRegY    = 1330.0 // caisses (on passe derrière les caissières sans entrer dans un espace fermé ; la file serpente dessous)
 	SuperFloorY1 = 1604.0 // bas du magasin
-	SuperBarY1   = 1170.0 // bas des espaces (et de leurs barrières)
+	SuperBarY1   = 1170.0 // bas des espaces à trois rangées (au-dessus des caisses)
+	SuperBarY4   = 1410.0 // bas des espaces à quatre rangées (plus loin que les caisses)
 	SuperRegs    = 12
-	SuperMaxPark = 300 // places et caddies au maximum
-	superStart   = 10  // au départ : 10 places et 10 caddies
+	superRegStep = 380.0 // les caisses, serrées près de l'entrée (caisse et case de la caissière)
+	SuperMaxPark = 300   // places et caddies au maximum
+	superStart   = 10    // au départ : 10 places et 10 caddies
 )
 
 // SuperMaxClients : jamais plus de clients à la fois, même avec beaucoup de
@@ -112,8 +125,17 @@ var (
 
 func init() {
 	x := SuperBX0 + 60
+	// les caisses sont serrées près de l'entrée : les espaces au-dessus d'elles gardent trois
+	// rangées ; les suivants, plus loin, descendent jusqu'à une quatrième (le magasin est moins long)
+	band := 460 + float64(SuperRegs-1)*superRegStep + 120
 	for _, z := range SuperZones {
-		z.Cols = max(z.Cols, (len(z.Items)+2)/3) // (trois rayons par colonne : tout tient dans l'espace)
+		if x-SuperBX0-60 >= band {
+			z.Rows, z.Bot = 4, SuperBarY4
+			z.Cols = max(2, (len(z.Items)+3)/4)
+		} else {
+			z.Rows, z.Bot = 3, SuperBarY1
+			z.Cols = max(z.Cols, (len(z.Items)+2)/3) // (trois rayons par colonne : tout tient dans l'espace)
+		}
 		z.X = x
 		z.W = float64(z.Cols)*superColW + 40
 		x += z.W + superGap
@@ -153,10 +175,10 @@ func newSuper(g *Game) *Place {
 				p.Stations = append(p.Stations, s)
 			}
 		}
-		// rayons : trois rangées
+		// rayons : trois ou quatre rangées
 		for i, it := range z.Items {
-			x := z.X + z.W - 270 - float64(i/3)*superColW // (les premiers rayons à droite, côté entrée ; marges égales)
-			y := SuperRow0 + float64(i%3)*superRowGap
+			x := z.X + z.W - 270 - float64(i/z.Rows)*superColW // (les premiers rayons à droite, côté entrée ; marges égales)
+			y := SuperRow0 + float64(i%z.Rows)*superRowGap
 			s := &Station{ID: "rayon_" + itoa(int(it)), Name: "Rayon : " + Items[it].Name, Kind: Shelf, Item: it, StockMax: 30, Unlock: "r_" + itoa(int(it))}
 			s.Body = Rect{x, y, 180, 66}
 			s.Zone = Rect{x - 10, y - 95, 200, 92}
@@ -165,14 +187,13 @@ func newSuper(g *Game) *Place {
 		}
 		// un espace fermé : une barrière (on ne peut pas y entrer)
 		bar := &Station{ID: "barriere_" + z.ID, Name: z.Name, Kind: Trash}
-		bar.Body = Rect{z.X - 10, 470, z.W + 20, SuperBarY1 - 470}
+		bar.Body = Rect{z.X - 10, 470, z.W + 20, z.Bot - 470}
 		bar.Zone = Rect{-1000, -1000, 0, 0}
 		p.Stations = append(p.Stations, bar)
 	}
-	// caisses : une rangée en bas, sur toute la largeur
-	step := (SuperBX1 - SuperBX0 - 400) / SuperRegs
+	// caisses : une rangée en bas, serrées près de l'entrée
 	for i := 0; i < SuperRegs; i++ {
-		x := SuperBX1 - 460 - float64(i)*step // la première près de la sortie
+		x := SuperBX1 - 460 - float64(i)*superRegStep // la première près de la sortie
 		id, key, unl := "caisse", "caissiere", ""
 		if i > 0 {
 			id, key, unl = "caisse"+itoa(i+1), "caissiere"+itoa(i+1), "caisse"+itoa(i+1)
@@ -183,6 +204,7 @@ func newSuper(g *Game) *Place {
 		r.Zone = Rect{x + 25, SuperRegY - 100, 170, 96}
 		r.QueueHead = V{x + 110, SuperRegY + 106}
 		r.QueueDown = 2
+		r.QueueLane = true
 		p.Stations = append(p.Stations, r)
 	}
 
@@ -234,7 +256,13 @@ func newSuper(g *Game) *Place {
 			continue
 		}
 		z := z
-		f := math.Pow(2.2, float64(zi))
+		r := zi
+		if z.rank > 0 {
+			r = z.rank
+		} else if zi > 4 {
+			r = zi - 1 // (les espaces après les boissons gardent le prix de leur ancienne place)
+		}
+		f := math.Pow(2.2, float64(r))
 		var costs []float64
 		for l := 0; l < len(z.Items); l++ { // un magasinier par rayon
 			c := 1500 * f * math.Pow(3, math.Min(3, float64(l))) * math.Pow(1.15, math.Max(0, float64(l-3)))
@@ -400,6 +428,11 @@ func whereLocked(it Item) string {
 	}
 	if it == Raisin {
 		return "Depuis le domaine"
+	}
+	for _, b := range FutureSold {
+		if b == it {
+			return "Bientôt : un nouveau lieu"
+		}
 	}
 	for _, b := range PatisserieSold {
 		if b == it {

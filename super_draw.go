@@ -56,7 +56,7 @@ func drawSuperGround(dst *ebiten.Image, g *game, p *sim.Place, tl, br V) {
 	for _, z := range sim.SuperZones {
 		open := z.Open(g.sim)
 		c := zoneCols[z.ID]
-		rect(dst, z.X-10, 456, z.W+20, sim.SuperBarY1-456, rgba(c, 0.85))
+		rect(dst, z.X-10, 456, z.W+20, z.Bot-456, rgba(c, 0.85))
 		rect(dst, z.X-10, 160, z.W+20, 276, rgba(c, 0.35))
 		// panneau suspendu
 		roundRect(dst, z.X+z.W/2-120, 466, 240, 40, 10, rgb(shade32(c, 0.55)))

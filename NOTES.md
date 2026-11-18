@@ -1315,3 +1315,33 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   coup (10 au plus ; une longue pause n'est pas rattrapée, l'arrondi évite les saccades sur PC).
 - Mesure (Chromium logiciel, téléphone simulé, ferme) : images/s ×2 ; un compte à rebours avançait de 1 s pendant
   20 s réelles, il avance maintenant presque au rythme de l'horloge.
+
+## Ferme exotique : citronnier et oranger
+- Deux colonnes d'arbres de plus après le manguier (Citron 64 €, Orange 70 € ; produits ajoutés à la fin de la liste :
+  sauvegardes intactes). Achats : citronnier 34 000, oranger 36 000 (avant les caféiers).
+- Les autres espaces (sucre, cacao, café, riz, épices), les quais du bateau et le chemin entre fruits et sucre sont
+  décalés de 340 vers la droite (largeur 5 800 → 6 140). Le portail reste au même endroit.
+- Ouvriers des fruits : 6 (un par arbre), les deux derniers à 100 000 et 150 000.
+- Supermarché : le rayon des fruits prend citrons et oranges (5 colonnes au lieu de 4 : légumes et produits de la
+  ferme décalés vers la droite) ; l'épicerie exotique ne reprend pas les fruits (ExoticSold[len(ExoFruits):]).
+- À venir : citrons et oranges serviront dans d'autres lieux (à décider avec elle).
+
+## Pressoirs exotiques, supermarché plus court, abattoirs à part
+- Ferme exotique : « Pressoir à citrons » (limonade, 110 €) et « Pressoir à oranges » (jus d'orange, 120 €) sous le
+  manguier et les agrumes, achetés après l'oranger (37 000 et 40 000) ; leurs étals à droite des fruits. La case
+  « Ouvrier Fruits » passe sous les trois premiers arbres (dans l'herbe, hors des chemins). Espace des fruits : 8 ouvriers
+  (6 arbres + 2 pressoirs). Les autres espaces sont encore décalés de 400 (largeur 6 540).
+- Supermarché : « Boissons » reçoit limonade et jus d'orange (le rayon s'ouvre aussi avec un pressoir exotique, avant
+  le domaine) ; « Épicerie » (ex-« Épicerie exotique ») : sucre, chocolat, café, riz, épices + noisettes et noix ;
+  « Fruits » : + olives après le raisin. Noisettes, noix et olives viendront d'un futur lieu (« Bientôt : un nouveau lieu »).
+- Supermarché : les 12 caisses sont serrées près de l'entrée (380 d'écart, un peu plus haut : 1330) ; chaque file
+  serpente sur trois rangées sous sa caisse (QueueLane). Les espaces plus loin que les caisses ont 4 rangées de rayons
+  au lieu de 3 : magasin plus court d'environ 1 300.
+- Ferme d'élevage : chaque abattoir s'achète à part, après le bâtiment de ses animaux (poulets 4 000, canards 10 000,
+  bœufs 25 000, veaux 30 000, moutons 35 000, agneaux 40 000, porcs 50 000) ; son frigo vient avec lui. Les abattoirs
+  ont leur case « Stock + ». L'abattoir des canards est sous la mare ; bovins, ovins et porcs sont décalés (largeur 3 850).
+  La boucherie attend l'abattoir correspondant (et non plus les animaux).
+- Anciennes parties (migrateAbattoirs, marque `elevage.abattoirs_a_part`) : un abattoir dont les animaux étaient achetés
+  reste acheté. Sa partie : ferme d'élevage remise à zéro à sa demande (toujours achetée).
+- Retouche : « Boissons » vient juste après l'épicerie, limonade et jus d'orange en tête du rayon. Les magasiniers
+  gardent le prix de leur ancienne place (SuperZone.rank ; les espaces suivants reprennent leur ancien rang).

@@ -334,7 +334,10 @@ func needsText(needs string) string {
 		"ferme:pommier": "le pommier (ma ferme)", "ferme:poirier": "le poirier (ma ferme)", "ferme:pdt": "les pommes de terre (ma ferme)", "ferme:silo": "le silo à blé (ma ferme)",
 		"exotique:vanille": "la vanille (ferme exotique)", "exotique:moulin_cafe": "le café moulu (ferme exotique)",
 		"elevage:mare": "les canards (ferme d'élevage)", "elevage:bovin": "les bovins (ferme d'élevage)",
-		"elevage:ovin": "les ovins (ferme d'élevage)", "elevage:porc": "les porcs (ferme d'élevage)"}
+		"elevage:ovin": "les ovins (ferme d'élevage)", "elevage:porc": "les porcs (ferme d'élevage)",
+		"elevage:abattoir_canard": "l'abattoir des canards (ferme d'élevage)", "elevage:abattoir_boeuf": "l'abattoir des bœufs (ferme d'élevage)",
+		"elevage:abattoir_veau": "l'abattoir des veaux (ferme d'élevage)", "elevage:abattoir_mouton": "l'abattoir des moutons (ferme d'élevage)",
+		"elevage:abattoir_agneau": "l'abattoir des agneaux (ferme d'élevage)", "elevage:abattoir_porc": "l'abattoir des porcs (ferme d'élevage)"}
 	var parts []string
 	for _, n := range strings.Split(needs, ",") {
 		t := txt[n]
