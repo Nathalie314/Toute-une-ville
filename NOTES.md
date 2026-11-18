@@ -1403,3 +1403,11 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   l'os en T et la moelle ; bords arrondis (coins coupés trois fois).
 - Le quai du supermarché de la boucherie est au milieu de la boutique (W/2) : les drones des vitrines y vont de partout
   sans traverser tout le lieu. Celui de la crêperie reste à droite.
+- Carcasses de bœuf et de veau (d'après son image) : une demi-carcasse pendue par la patte arrière à son crochet,
+  bords plus foncés, intérieur plus clair, traînées de gras blanc et marbrures ; le veau plus clair que le bœuf.
+- D'après ses images : la cuisse de poulet (haut de cuisse en biais, pilon fin et son petit bout, peau dorée et
+  grains d'épices), le steak haché (palet rose épais, sillons de viande hachée en biais), le rôti de bœuf (boudin rouge
+  sombre ficelé, en travers et en long, nœuds en haut).
+- Carcasses de mouton et d'agneau au style du bœuf (mouton plus petit, plus sombre et plus gras ; agneau petit et
+  rosé) ; le porc d'après son image (pendu par les pattes arrière à une barre, ouvert au milieu : échine et côtes).
+- Poulet rôti d'après son image : couché sur le flanc, cerné de brun, aile repliée, deux cuisses aux os blancs.

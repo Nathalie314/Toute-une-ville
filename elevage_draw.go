@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image/color"
 	"math"
 	"strings"
 
@@ -338,23 +339,178 @@ func drawItemMeat(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 			ellipse(dst, x+dx-r*0.14, y+dy-r*0.3, r*0.12, r*0.1, rgba(0xffffff, 0.4))
 		}
 	case sim.PouletRoti:
-		ellipse(dst, x, y, r*0.85, r*0.62, rgb(0xc8782a))
-		ellipse(dst, x-r*0.2, y-r*0.2, r*0.35, r*0.18, rgba(0xffe0a0, 0.6))
-		line(dst, x-r*0.5, y+r*0.3, x-r*0.9, y+r*0.8, r*0.24, rgb(0xb5651d))
-		line(dst, x+r*0.5, y+r*0.3, x+r*0.9, y+r*0.8, r*0.24, rgb(0xb5651d))
-		circle(dst, x-r*0.9, y+r*0.85, r*0.14, bone)
-		circle(dst, x+r*0.9, y+r*0.85, r*0.14, bone)
+		// un poulet doré couché sur le flanc, vu de côté : le croupion à gauche, l'aile repliée
+		// devant, les deux cuisses à droite avec leurs os blancs pointés vers le haut ; un trait
+		// brun autour de chaque morceau, des reflets et une ombre dessous
+		ol, gold, deep, shine := rgb(0x7a3612), rgb(0xe08a2c), rgb(0xc46c1c), rgba(0xfff0c8, 0.55)
+		oe := func(cx, cy, rx, ry float64, c color.Color) { // une ellipse cernée de brun
+			ellipse(dst, x+cx*r, y+cy*r, rx*r+r*0.04, ry*r+r*0.04, ol)
+			ellipse(dst, x+cx*r, y+cy*r, rx*r, ry*r, c)
+		}
+		os := func(x0, y0, x1, y1 float64) { // un os : la tige et ses deux nœuds
+			line(dst, x+x0*r, y+y0*r, x+x1*r, y+y1*r, r*0.13, ol)
+			circle(dst, x+(x1-0.04)*r, y+(y1-0.03)*r, r*0.09, ol)
+			circle(dst, x+(x1+0.04)*r, y+(y1+0.03)*r, r*0.09, ol)
+			line(dst, x+x0*r, y+y0*r, x+x1*r, y+y1*r, r*0.07, bone)
+			circle(dst, x+(x1-0.04)*r, y+(y1-0.03)*r, r*0.055, bone)
+			circle(dst, x+(x1+0.04)*r, y+(y1+0.03)*r, r*0.055, bone)
+		}
+		ellipse(dst, x, y+r*0.5, r*0.85, r*0.12, rgba(0x6a4a20, 0.3)) // l'ombre
+		os(0.3, -0.25, 0.45, -0.62)                                   // la cuisse du fond
+		oe(0.3, -0.18, 0.2, 0.2, deep)
+		tail := []V{{X: -0.9, Y: 0.12}, {X: -0.72, Y: -0.42}, {X: -0.62, Y: -0.12}, {X: -0.5, Y: -0.3}, {X: -0.4, Y: 0.1}}
+		var tp, ti []V
+		for _, q := range tail {
+			tp = append(tp, V{X: x + q.X*r, Y: y + q.Y*r})
+			ti = append(ti, V{X: x + (q.X*0.85-0.08)*r, Y: y + (q.Y*0.8+0.02)*r})
+		}
+		polygon(dst, tp, ol) // le croupion
+		polygon(dst, ti, deep)
+		belly := []V{{X: 0.3, Y: 0.1}, {X: 0.92, Y: 0.32}, {X: 0.55, Y: 0.48}, {X: 0.2, Y: 0.45}}
+		var bp []V
+		for _, q := range belly {
+			bp = append(bp, V{X: x + q.X*r, Y: y + q.Y*r})
+		}
+		polygon(dst, bp, ol)
+		oe(0, 0.05, 0.7, 0.42, gold) // le corps
+		ellipse(dst, x+r*0.05, y+r*0.25, r*0.6, r*0.2, deep)
+		ellipse(dst, x+r*0.02, y+r*0.12, r*0.64, r*0.24, gold)
+		ellipse(dst, x-r*0.05, y-r*0.22, r*0.18, r*0.06, shine)
+		ellipse(dst, x-r*0.3, y-r*0.14, r*0.05, r*0.04, shine)
+		oe(-0.3, 0.26, 0.34, 0.15, gold) // l'aile repliée
+		ellipse(dst, x-r*0.3, y+r*0.32, r*0.3, r*0.07, deep)
+		os(0.55, -0.02, 0.76, -0.42) // la cuisse de devant
+		oe(0.42, 0.14, 0.26, 0.26, gold)
+		ellipse(dst, x+r*0.46, y+r*0.24, r*0.18, r*0.12, deep)
+		ellipse(dst, x+r*0.38, y+r*0.02, r*0.08, r*0.05, shine)
 	case sim.CuissePoulet:
-		ellipse(dst, x-r*0.15, y-r*0.15, r*0.6, r*0.5, rgb(0xe0a070))
-		line(dst, x+r*0.2, y+r*0.2, x+r*0.75, y+r*0.75, r*0.18, bone)
-		circle(dst, x+r*0.8, y+r*0.8, r*0.16, bone)
-	case sim.Boeuf, sim.VeauCarcasse, sim.MoutonCarcasse, sim.AgneauCarcasse, sim.Porc:
-		// carcasse suspendue à son crochet
-		c := map[sim.Item]uint32{sim.Boeuf: 0xb03030, sim.VeauCarcasse: 0xd9706a, sim.MoutonCarcasse: 0xb84a40, sim.AgneauCarcasse: 0xe0807a, sim.Porc: 0xf0a0a8}[it]
-		line(dst, x, y-r, x, y-r*0.6, r*0.1, rgb(0x6a6a6a))
-		ellipse(dst, x, y, r*0.55, r*0.85, rgb(c))
-		ellipse(dst, x, y, r*0.3, r*0.65, fat)
-		ellipse(dst, x, y, r*0.18, r*0.5, rgb(c))
+		// une cuisse dorée en équerre : le haut de cuisse (large), le genou, le pilon qui
+		// part vers la droite jusqu'à son petit bout ; peau rôtie, quelques grains d'épices
+		shape := []V{{X: -0.18, Y: -0.72}, {X: 0.05, Y: -0.62}, {X: 0.3, Y: -0.42}, {X: 0.52, Y: -0.18}, {X: 0.36, Y: -0.02},
+			{X: 0.05, Y: 0.07}, {X: -0.3, Y: 0.13}, {X: 0.05, Y: 0.3}, {X: 0.4, Y: 0.46}, {X: 0.62, Y: 0.5}, {X: 0.62, Y: 0.66},
+			{X: 0.3, Y: 0.66}, {X: -0.12, Y: 0.62}, {X: -0.45, Y: 0.5}, {X: -0.68, Y: 0.25}, {X: -0.66, Y: -0.05},
+			{X: -0.52, Y: -0.3}, {X: -0.36, Y: -0.55}}
+		{ // (des bords arrondis, une seule fois : la pointe du haut de cuisse reste nette)
+			var sm []V
+			for i, a := range shape {
+				b := shape[(i+1)%len(shape)]
+				sm = append(sm, a.Lerp(b, 0.25), a.Lerp(b, 0.75))
+			}
+			shape = sm
+		}
+		pts := func(k, dx, dy float64) []V {
+			var ps []V
+			for _, q := range shape {
+				ps = append(ps, V{X: x + (q.X*k+dx)*r, Y: y + (q.Y*k+dy)*r})
+			}
+			return ps
+		}
+		polygon(dst, pts(1, 0.02, 0.06), rgb(0xc9541e)) // le dessous, plus cuit
+		polygon(dst, pts(1, 0, 0), rgb(0xe8803a))
+		// le petit bout du pilon (deux bosses)
+		for _, q := range []V{{X: 0.68, Y: 0.52}, {X: 0.69, Y: 0.65}} {
+			circle(dst, x+q.X*r, y+q.Y*r+r*0.03, r*0.1, rgb(0xc9541e))
+			circle(dst, x+q.X*r, y+q.Y*r, r*0.1, rgb(0xe8803a))
+		}
+		polygon(dst, pts(0.62, -0.08, -0.02), rgb(0xf29a5c)) // le dessus, plus clair
+		ellipse(dst, x+r*0.05, y-r*0.38, r*0.1, r*0.05, rgba(0xffffff, 0.35))
+		for _, q := range []V{{X: -0.3, Y: -0.42}, {X: -0.05, Y: -0.5}, {X: 0.25, Y: -0.32}, {X: -0.5, Y: 0.05}, {X: -0.2, Y: 0.42}, {X: 0.15, Y: 0.48}, {X: 0.45, Y: 0.56}, {X: 0.05, Y: -0.15}} {
+			circle(dst, x+q.X*r, y+q.Y*r, r*0.04, rgb(0xc8441a))
+		}
+	case sim.Boeuf, sim.VeauCarcasse, sim.MoutonCarcasse, sim.AgneauCarcasse:
+		// une demi-carcasse pendue par la patte arrière à son crochet : la viande rouge rosé,
+		// des marbrures et des traînées de gras blanc, plus foncée sur les bords (le veau, plus
+		// clair ; le mouton, plus petit, plus sombre et plus gras ; l'agneau, petit et rosé)
+		base, dark, light := uint32(0xd9504c), uint32(0xa82a2e), uint32(0xf2a59a)
+		switch it {
+		case sim.VeauCarcasse:
+			base, dark, light = 0xec8a82, 0xcc5a5a, 0xf8c4bc
+		case sim.MoutonCarcasse:
+			base, dark, light = 0xb8433c, 0x8a2a2a, 0xf3e2da
+			r *= 0.88
+		case sim.AgneauCarcasse:
+			base, dark, light = 0xe68078, 0xc4585a, 0xf8dcd6
+			r *= 0.76
+		}
+		line(dst, x+r*0.03, y-r*1.25, x+r*0.03, y-r*0.98, r*0.05, rgb(0x6a6a6a)) // le crochet
+		ellipse(dst, x+r*0.08, y-r*0.98, r*0.07, r*0.05, rgb(0x6a6a6a))
+		shape := []V{{X: -0.05, Y: -0.95}, {X: 0.1, Y: -0.98}, {X: 0.16, Y: -0.85}, {X: 0.13, Y: -0.68}, {X: 0.28, Y: -0.5},
+			{X: 0.38, Y: -0.2}, {X: 0.42, Y: 0.15}, {X: 0.38, Y: 0.45}, {X: 0.3, Y: 0.68}, {X: 0.38, Y: 0.86}, {X: 0.22, Y: 0.95},
+			{X: -0.05, Y: 0.88}, {X: -0.3, Y: 0.78}, {X: -0.38, Y: 0.52}, {X: -0.35, Y: 0.2}, {X: -0.32, Y: -0.15},
+			{X: -0.25, Y: -0.45}, {X: -0.12, Y: -0.68}, {X: -0.1, Y: -0.86}}
+		for it := 0; it < 2; it++ { // (des bords arrondis)
+			var sm []V
+			for i, a := range shape {
+				b := shape[(i+1)%len(shape)]
+				sm = append(sm, a.Lerp(b, 0.25), a.Lerp(b, 0.75))
+			}
+			shape = sm
+		}
+		pts := func(k, dx float64) []V {
+			var ps []V
+			for _, q := range shape {
+				ps = append(ps, V{X: x + (q.X*k+dx)*r, Y: y + q.Y*k*r})
+			}
+			return ps
+		}
+		polygon(dst, pts(1, 0), rgb(dark))
+		polygon(dst, pts(0.9, -0.02), rgb(base))
+		polygon(dst, pts(0.55, -0.1), rgb(light)) // l'intérieur, plus clair (le gras sous la viande)
+		// des traînées de gras blanc et quelques marbrures foncées
+		fatC := rgb(0xf8ece6)
+		line(dst, x-r*0.12, y-r*0.6, x-r*0.02, y-r*0.15, r*0.06, fatC)
+		line(dst, x-r*0.02, y-r*0.15, x-r*0.14, y+r*0.3, r*0.05, fatC)
+		line(dst, x+r*0.12, y+r*0.2, x+r*0.22, y+r*0.62, r*0.05, fatC)
+		ellipse(dst, x+r*0.2, y-r*0.35, r*0.08, r*0.14, rgb(dark))
+		ellipse(dst, x-r*0.22, y+r*0.55, r*0.1, r*0.07, rgb(dark))
+		ellipse(dst, x+r*0.25, y+r*0.78, r*0.1, r*0.06, rgb(dark))
+		circle(dst, x+r*0.05, y-r*0.9, r*0.06, rgb(0xf3ead8)) // l'os de la patte
+	case sim.Porc:
+		// un porc entier pendu par ses deux pattes arrière à une barre : rose, ouvert au milieu
+		// (l'échine rouge foncé et les côtes blanches), les pattes avant en bas
+		pink, shade2, cut := rgb(0xf2b2b8), rgb(0xd98e98), rgb(0xe8344a)
+		line(dst, x-r*0.35, y-r*1.12, x+r*0.4, y-r*0.95, r*0.08, rgb(0xb8bec4)) // la barre
+		line(dst, x+r*0.02, y-r*1.04, x+r*0.02, y-r*0.88, r*0.05, rgb(0x9aa0a6))
+		// les pattes arrière, en haut, coupées net
+		for _, lx := range []float64{-0.18, 0.12} {
+			line(dst, x+lx*r, y-r*0.9, x+(lx+0.04)*r, y-r*0.55, r*0.17, pink)
+			ellipse(dst, x+lx*r, y-r*0.92, r*0.1, r*0.07, cut)
+			circle(dst, x+lx*r, y-r*0.92, r*0.035, rgb(0xffffff))
+		}
+		// le corps
+		shape := []V{{X: -0.22, Y: -0.62}, {X: 0.18, Y: -0.66}, {X: 0.4, Y: -0.5}, {X: 0.42, Y: -0.3}, {X: 0.3, Y: -0.12},
+			{X: 0.3, Y: 0.3}, {X: 0.24, Y: 0.6}, {X: 0.12, Y: 0.7}, {X: -0.16, Y: 0.68}, {X: -0.26, Y: 0.5},
+			{X: -0.3, Y: 0.1}, {X: -0.3, Y: -0.3}}
+		for k := 0; k < 2; k++ { // (des bords arrondis)
+			var sm []V
+			for i, a := range shape {
+				b := shape[(i+1)%len(shape)]
+				sm = append(sm, a.Lerp(b, 0.25), a.Lerp(b, 0.75))
+			}
+			shape = sm
+		}
+		var ps []V
+		for _, q := range shape {
+			ps = append(ps, V{X: x + q.X*r, Y: y + q.Y*r})
+		}
+		polygon(dst, ps, pink)
+		ellipse(dst, x+r*0.24, y-r*0.38, r*0.18, r*0.2, shade2)  // le jambon
+		ellipse(dst, x+r*0.12, y+r*0.55, r*0.14, r*0.12, shade2) // l'épaule
+		// l'échine, ouverte au milieu, et les côtes
+		line(dst, x-r*0.04, y-r*0.6, x-r*0.12, y+r*0.55, r*0.1, rgb(0xa82a2e))
+		for k := 0; k < 6; k++ {
+			yy := y + r*0.05 + float64(k)*r*0.08
+			line(dst, x-r*0.12, yy, x-r*0.02, yy-r*0.04, r*0.025, rgb(0xffffff))
+		}
+		for k := 0; k < 4; k++ { // les plis de la peau sur le flanc
+			yy := y + r*0.12 + float64(k)*r*0.07
+			line(dst, x+r*0.06, yy, x+r*0.26, yy+r*0.02, r*0.015, shade2)
+		}
+		// les pattes avant, en bas
+		for _, lx := range []float64{-0.1, 0.08} {
+			line(dst, x+lx*r, y+r*0.62, x+(lx-0.05)*r, y+r*0.95, r*0.12, pink)
+			ellipse(dst, x+(lx-0.05)*r, y+r*0.97, r*0.06, r*0.03, cut)
+		}
 	case sim.Aiguillettes:
 		for i := -1; i <= 1; i++ {
 			roundRect(dst, x-r*0.8, y+float64(i)*r*0.45-r*0.15, r*1.6, r*0.3, r*0.15, rgb(0xb84a40))
@@ -405,9 +561,44 @@ func drawItemMeat(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		c := map[sim.Item]uint32{sim.Steak: 0xb03030, sim.RotiBoeuf: 0xa83a30, sim.MorceauxVeau: 0xd9706a, sim.Gigot: 0xa84a38, sim.CoteAgneau: 0xd06a60, sim.Cotelette: 0xf0a0a8}[it]
 		switch it {
 		case sim.RotiBoeuf:
-			roundRect(dst, x-r*0.85, y-r*0.5, r*1.7, r, r*0.45, rgb(c))
-			for i := -1; i <= 1; i++ {
-				line(dst, x+float64(i)*r*0.45, y-r*0.55, x+float64(i)*r*0.45, y+r*0.55, r*0.08, bone)
+			// un rôti ficelé : un gros boudin de viande rouge sombre, plus foncé à droite,
+			// serré par des ficelles (en travers et en long) qui le font bomber
+			roundRect(dst, x-r*0.9, y-r*0.52, r*1.8, r*1.04, r*0.4, rgb(0x8e1e2a))
+			roundRect(dst, x-r*0.9, y-r*0.52, r*1.55, r*0.98, r*0.4, rgb(0xb02434))
+			for k := 0; k < 4; k++ { // les bourrelets entre les ficelles
+				cx := x - r*0.62 + float64(k)*r*0.42
+				ellipse(dst, cx, y-r*0.08, r*0.19, r*0.42, rgb(0xbf2c3c))
+			}
+			for k := 0; k < 3; k++ { // quelques reflets
+				ellipse(dst, x-r*0.55+float64(k)*r*0.4, y-r*0.28, r*0.09, r*0.03, rgba(0xffffff, 0.18))
+			}
+			str := rgb(0xf3e6c8)
+			for k := 0; k < 5; k++ { // les ficelles en travers, qui s'arrondissent sur les bords
+				sx := x - r*0.64 + float64(k)*r*0.32
+				var prev V
+				for i := 0; i <= 10; i++ {
+					u := -1 + float64(i)/5
+					q := V{X: sx + (1-u*u)*r*0.05*(float64(k)-2)/2, Y: y + u*r*0.48}
+					if i > 0 {
+						line(dst, prev.X, prev.Y, q.X, q.Y, r*0.05, str)
+					}
+					prev = q
+				}
+			}
+			for _, yy := range []float64{-0.24, 0.26} { // les ficelles en long (un peu bombées)
+				var prev V
+				for i := 0; i <= 10; i++ {
+					u := -1 + float64(i)/5
+					q := V{X: x + u*r*0.86, Y: y + yy*r - (1-u*u)*r*0.05}
+					if i > 0 {
+						line(dst, prev.X, prev.Y, q.X, q.Y, r*0.045, str)
+					}
+					prev = q
+				}
+			}
+			for k := 0; k < 5; k++ { // les nœuds, en haut
+				u := (-0.64 + float64(k)*0.32) / 0.86
+				circle(dst, x-r*0.64+float64(k)*r*0.32, y-r*0.24-(1-u*u)*r*0.05, r*0.045, rgb(0xe0d0a8))
 			}
 		case sim.Gigot:
 			ellipse(dst, x-r*0.15, y+r*0.1, r*0.65, r*0.5, rgb(c))
@@ -425,10 +616,38 @@ func drawItemMeat(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 			}
 		}
 	case sim.SteakHache:
-		circle(dst, x, y, r*0.75, rgb(0x9a3a30))
-		for i := 0; i < 7; i++ {
-			a := float64(i) * 0.9
-			circle(dst, x+math.Cos(a)*r*0.45, y+math.Sin(a)*r*0.45, r*0.1, rgb(0xc85a4a))
+		// un steak haché cru : un palet rose, épais, des sillons de viande hachée en biais
+		ellipse(dst, x, y+r*0.18, r*0.88, r*0.58, rgb(0xb8304e)) // l'épaisseur
+		ellipse(dst, x, y, r*0.88, r*0.58, rgb(0xe0566f))
+		// les sillons : des cordes parallèles du dessus, en biais, ondulées
+		ea, eb := 0.8, 0.5  // (un peu dans le bord)
+		dx, dy := 0.6, -0.8 // la direction d'un sillon
+		nx, ny := 0.8, 0.6  // l'écart entre deux sillons
+		for k := -4; k <= 4; k++ {
+			c := float64(k) * 0.17
+			// p(t) = c·n + t·d coupe l'ellipse (x/ea)² + (y/eb)² = 1 : on résout en t
+			A := dx*dx/(ea*ea) + dy*dy/(eb*eb)
+			B := 2 * (c*nx*dx/(ea*ea) + c*ny*dy/(eb*eb))
+			C := c*c*nx*nx/(ea*ea) + c*c*ny*ny/(eb*eb) - 1
+			D := B*B - 4*A*C
+			if D <= 0 {
+				continue
+			}
+			t0, t1 := (-B-math.Sqrt(D))/(2*A), (-B+math.Sqrt(D))/(2*A)
+			var prev V
+			for i := 0; i <= 24; i++ {
+				t := t0 + (t1-t0)*float64(i)/24
+				w := math.Sin(t*8+float64(k)) * 0.02
+				q := V{X: x + (c*nx+t*dx+w*nx)*r, Y: y + (c*ny+t*dy+w*ny)*r}
+				if i > 0 {
+					line(dst, prev.X+r*0.03, prev.Y+r*0.03, q.X+r*0.03, q.Y+r*0.03, r*0.05, rgb(0xb8304e))
+					line(dst, prev.X, prev.Y, q.X, q.Y, r*0.07, rgb(0xf28aa0))
+				}
+				prev = q
+			}
+		}
+		for _, q := range []V{{X: -0.4, Y: 0.05}, {X: 0.2, Y: -0.2}, {X: 0.45, Y: 0.15}, {X: -0.1, Y: 0.25}} {
+			circle(dst, x+q.X*r, y+q.Y*r, r*0.035, rgba(0xffffff, 0.6))
 		}
 	case sim.Jambon:
 		polygon(dst, []V{{X: x - r*0.9, Y: y + r*0.2}, {X: x - r*0.2, Y: y - r*0.75}, {X: x + r*0.6, Y: y - r*0.4}, {X: x + r*0.8, Y: y + r*0.5}, {X: x - r*0.4, Y: y + r*0.75}}, rgb(0xe88a98))
