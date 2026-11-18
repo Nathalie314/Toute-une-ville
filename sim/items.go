@@ -178,6 +178,7 @@ const (
 	CrepeThonPoireau
 	CrepeCanard
 	CrepeSteakBrebis
+	PilonPoulet // (boucherie, après les cuisses)
 	NItems
 )
 
@@ -286,6 +287,7 @@ var Items = [NItems]ItemInfo{
 	PouletCru:        {"Poulet cru entier", 70},
 	PouletRoti:       {"Poulet rôti", 110},
 	CuissePoulet:     {"Cuisses de poulet", 85},
+	PilonPoulet:      {"Pilons de poulet", 80},
 	Aiguillettes:     {"Aiguillettes de canard", 120},
 	Magret:           {"Magret de canard", 150},
 	FoieGras:         {"Foie gras", 280},
@@ -401,7 +403,7 @@ var EpicerieSold = []Item{SucreMorceaux, SucrePoudre, Chocolat, CafeGrains, Cafe
 var FutureSold = []Item{Noisette, Noix, Olive}
 
 // BoucherieSold : ce que vend la boucherie-charcuterie (par espace).
-var BoucherieSold = []Item{PouletCru, PouletRoti, CuissePoulet, Aiguillettes, Magret, FoieGras,
+var BoucherieSold = []Item{PouletRoti, CuissePoulet, PilonPoulet, Aiguillettes, Magret, FoieGras,
 	Steak, SteakHache, RotiBoeuf, MorceauxVeau, Gigot, CoteAgneau, Saucisse, Jambon, Cotelette, Pate}
 
 // CrepesSucrees, CrepesSalees : les crêpes garnies de la crêperie (chacun en commande une de chaque).

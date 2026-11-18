@@ -293,18 +293,49 @@ func drawItemMeat(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 	case sim.Cochon:
 		scaled(x, y, k*1.1, func() { drawPig(dst, x-6, y, 0) })
 	case sim.PouletAbattu, sim.CanardAbattu, sim.PouletCru:
-		// volaille plumée
-		c := rgb(0xf6d2b4)
-		if it == sim.CanardAbattu {
-			c = rgb(0xe8b996)
+		// volaille plumée, rose, cuisses en l'air ; sa tête dit si c'est un poulet
+		// (bec pointu, crête rouge) ou un canard (bec rond et plat, pas de crête)
+		duck := it == sim.CanardAbattu
+		c, dk := rgb(0xf6c8b8), rgb(0xe8a898)
+		if duck {
+			c, dk = rgb(0xefc0a6), rgb(0xd99c86)
 		}
-		ellipse(dst, x, y, r*0.8, r*0.6, c)
-		line(dst, x-r*0.5, y+r*0.3, x-r*0.9, y+r*0.8, r*0.22, c)
-		line(dst, x+r*0.5, y+r*0.3, x+r*0.9, y+r*0.8, r*0.22, c)
-		circle(dst, x-r*0.9, y+r*0.85, r*0.14, bone)
-		circle(dst, x+r*0.9, y+r*0.85, r*0.14, bone)
-		if it == sim.PouletCru {
-			line(dst, x-r*0.6, y-r*0.75, x+r*0.6, y-r*0.75, r*0.1, rgb(0x2b6cd6)) // ficelé, prêt à vendre
+		// le cou et la tête, à gauche
+		line(dst, x-r*0.55, y-r*0.05, x-r*0.9, y-r*0.45, r*0.2, c)
+		hx, hy := x-r*0.95, y-r*0.55
+		circle(dst, hx, hy, r*0.24, c)
+		circle(dst, hx-r*0.04, hy-r*0.04, r*0.04, rgb(0x2a2a2a))
+		if duck {
+			ellipse(dst, hx-r*0.3, hy+r*0.04, r*0.2, r*0.09, rgb(0xf0a030)) // bec de canard, rond et plat
+		} else {
+			polygon(dst, []V{{X: hx - r*0.18, Y: hy - r*0.06}, {X: hx - r*0.18, Y: hy + r*0.1}, {X: hx - r*0.42, Y: hy + r*0.03}}, rgb(0xf0b030)) // bec pointu
+			for k := 0; k < 3; k++ {
+				circle(dst, hx-r*0.08+float64(k)*r*0.1, hy-r*0.24-float64(k%2)*r*0.04, r*0.08, rgb(0xd9342b)) // la crête
+			}
+			ellipse(dst, hx-r*0.12, hy+r*0.2, r*0.05, r*0.09, rgb(0xd9342b)) // le barbillon
+		}
+		// le corps, dodu
+		ellipse(dst, x, y+r*0.05, r*0.75, r*0.58, c)
+		ellipse(dst, x+r*0.1, y+r*0.25, r*0.55, r*0.32, dk)
+		ellipse(dst, x-r*0.15, y-r*0.15, r*0.35, r*0.16, rgba(0xffffff, 0.35)) // reflet
+		// une aile repliée
+		ellipse(dst, x-r*0.05, y+r*0.1, r*0.28, r*0.16, dk)
+		// les cuisses, vers le haut à droite, l'os au bout
+		ellipse(dst, x+r*0.55, y-r*0.3, r*0.3, r*0.22, c)
+		line(dst, x+r*0.7, y-r*0.4, x+r*0.92, y-r*0.6, r*0.1, rgb(0xf3ead8))
+		circle(dst, x+r*0.95, y-r*0.64, r*0.08, rgb(0xf3ead8))
+		ellipse(dst, x+r*0.45, y-r*0.1, r*0.28, r*0.2, c)
+		line(dst, x+r*0.62, y-r*0.15, x+r*0.88, y-r*0.28, r*0.1, rgb(0xf3ead8))
+		circle(dst, x+r*0.91, y-r*0.3, r*0.08, rgb(0xf3ead8))
+	case sim.PilonPoulet:
+		// deux pilons crus : une goutte charnue au bout d'un os
+		for k := 0; k < 2; k++ {
+			dx := float64(k)*r*0.45 - r*0.2
+			dy := float64(k) * r * 0.2
+			line(dst, x+dx+r*0.1, y+dy, x+dx+r*0.5, y+dy+r*0.55, r*0.12, bone)
+			circle(dst, x+dx+r*0.52, y+dy+r*0.6, r*0.11, bone)
+			ellipse(dst, x+dx-r*0.08, y+dy-r*0.2, r*0.32, r*0.38, rgb(0xf0b8a0))
+			ellipse(dst, x+dx-r*0.14, y+dy-r*0.3, r*0.12, r*0.1, rgba(0xffffff, 0.4))
 		}
 	case sim.PouletRoti:
 		ellipse(dst, x, y, r*0.85, r*0.62, rgb(0xc8782a))

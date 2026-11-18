@@ -1370,3 +1370,10 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   port, boucherie, domaine (il existait déjà).
 - Reste à faire (étape 3) : points d'école propres (tablette, nettoyage, chefs nature/salés/sucrés, pourboires),
   commandes de crêpes nature (école, parc), stand de crêpes au parc à la place de la pêche aux canards.
+
+## Boucherie : plus de préparation des poulets, des pilons, vitrines dans l'ordre
+- La « Préparation des poulets » et le poulet cru entier disparaissent (boucherie et supermarché) ; la rôtisserie prend
+  directement le poulet abattu et devient la machine offerte. « Pilons de poulet » (80 €) après les cuisses (25 000).
+- Les vitrines de chaque espace sont rangées dans l'ordre d'achat de ses machines.
+- Icônes : le poulet et le canard abattus sont plumés, roses, avec leur tête (poulet : bec pointu, crête et barbillon
+  rouges ; canard : bec rond et plat, pas de crête) ; les pilons, crus, au bout de leur os.

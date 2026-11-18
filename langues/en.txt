@@ -1730,3 +1730,4 @@ la cannelle (ferme exotique) = cinnamon (exotic farm)
 le fromage de brebis (crèmerie) = sheep cheese (dairy)
 la glace à la vanille (glacier) = vanilla ice cream (ice cream parlor)
 le whisky (domaine) = whisky (estate)
+Pilons de poulet = Chicken drumsticks
