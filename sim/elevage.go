@@ -155,9 +155,9 @@ func newElevage(g *Game) *Place {
 	frigo("ovin", MoutonCarcasse, 2510, "abattoir_mouton")
 	frigo("ovin", AgneauCarcasse, 3100, "abattoir_agneau")
 	// porcs : la porcherie (pommes de terre), son abattoir
-	mach("porcherie", "Porcherie", "porc", PommeDeTerre, Cochon, 3660, rowA, 850, 180, 5, "porc") // (aussi grande que les prés)
-	mach("abattoir_porc", "Abattoir : porcs", "porc", Cochon, Porc, 3660, rowB, 260, 140, 4, "abattoir_porc")
-	frigo("porc", Porc, 3660, "abattoir_porc")
+	mach("porcherie", "Porcherie", "porc", PommeDeTerre, Cochon, 3660, rowA, 850, 180, 5, "porc")             // (aussi grande que les prés)
+	mach("abattoir_porc", "Abattoir : porcs", "porc", Cochon, Porc, 3955, rowB, 260, 140, 4, "abattoir_porc") // (au milieu de la porcherie)
+	frigo("porc", Porc, 3955, "abattoir_porc")
 
 	trash := &Station{ID: "poubelle", Name: "Poubelle", Kind: Trash}
 	trash.Body = Rect{4760, rowA + 50, 70, 70} // (le compost, à droite de l'espace des porcs)
