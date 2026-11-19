@@ -50,7 +50,7 @@ func drawParking(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		rect(dst, ex-20, ay-4, 26, 8, rgba(0xffffff, 0.85))
 	}
 	// places
-	for _, s := range p.Parks {
+	for _, s := range p.Parks[:p.ParksBought()] {
 		if s.Bike {
 			continue
 		}

@@ -64,6 +64,14 @@ func (p *Place) ParkX() (x0, x1, gate float64) {
 		h = 580
 	}
 	c := math.Max(h+60, math.Min(p.W-h-60, p.Gate.X))
+	if n := p.ParksBought(); n < len(p.Parks) {
+		// crêperie : le parking grandit avec ses achats (de l'herbe avant), autour du portail
+		far := 80.0
+		for _, s := range p.Parks[:n] {
+			far = math.Max(far, math.Abs(s.Pos.X-p.Gate.X))
+		}
+		return p.Gate.X - far - 130, p.Gate.X + far + 130, p.Gate.X
+	}
 	return c - h, c + h, p.Gate.X
 }
 
@@ -328,4 +336,12 @@ func (p *Place) stepVehicles(dt float64) {
 		alive = append(alive, v)
 	}
 	p.Vehicles = alive
+}
+
+// ParksBought : places de parking achetées (toutes, sauf à la crêperie : son parking s'agrandit).
+func (p *Place) ParksBought() int {
+	if p.Crep != nil && p.g != nil {
+		return p.CrepParkN(p.g.Levels[p.key("parking")])
+	}
+	return len(p.Parks)
 }

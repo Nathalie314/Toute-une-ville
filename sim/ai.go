@@ -24,10 +24,6 @@ func (p *Place) need(s *Station, it Item) int {
 	case Machine:
 		for _, in := range s.Inputs {
 			if in == it {
-				if p.Crep != nil && it == CrepeNature {
-					// crêperie : une crêpe nature par plat commandé, pas d'avance
-					return min(s.BufMax, max(0, p.crepDemand(s.Item))) - s.Buf[it] - s.claim[it]
-				}
 				return s.BufMax - s.Buf[it] - s.claim[it]
 			}
 		}

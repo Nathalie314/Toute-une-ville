@@ -365,7 +365,37 @@ func drawItemDomaine(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		circle(dst, x+r*0.25, y-r*0.42, r*0.2, rgb(0xffffff))
 		roundRect(dst, x+r*0.32, y-r*0.15, r*0.3, r*0.6, r*0.12, rgb(0xd9a441))
 	case sim.Cidre:
-		drawBottle(dst, x, y, r, 0xd9a03a, 0xf3ead8, 0x6e4322)
+		// une bouteille de cidre bouché : col vert, bouchon de liège et son muselet, le cidre
+		// brun foncé dans le ventre, une étiquette orange avec une hermine
+		glass, cider, dark := rgb(0x4e6b3a), rgb(0x45361a), rgb(0x332812)
+		shape := []V{{X: -0.12, Y: -0.84}, {X: 0.12, Y: -0.84}, {X: 0.13, Y: -0.45}, {X: 0.2, Y: -0.25}, {X: 0.31, Y: 0},
+			{X: 0.33, Y: 0.2}, {X: 0.33, Y: 0.86}, {X: 0.29, Y: 0.95}, {X: -0.29, Y: 0.95}, {X: -0.33, Y: 0.86},
+			{X: -0.33, Y: 0.2}, {X: -0.31, Y: 0}, {X: -0.2, Y: -0.25}, {X: -0.13, Y: -0.45}}
+		var ps []V
+		for _, q := range shape {
+			ps = append(ps, V{X: x + q.X*r, Y: y + q.Y*r})
+		}
+		polygon(dst, ps, cider)
+		polygon(dst, []V{{X: x + r*0.12, Y: y - r*0.84}, {X: x + r*0.13, Y: y - r*0.45}, {X: x + r*0.2, Y: y - r*0.25},
+			{X: x + r*0.31, Y: y}, {X: x + r*0.33, Y: y + r*0.2}, {X: x + r*0.33, Y: y + r*0.86}, {X: x + r*0.29, Y: y + r*0.95},
+			{X: x + r*0.2, Y: y + r*0.95}, {X: x + r*0.22, Y: y + r*0.2}, {X: x + r*0.2, Y: y}, {X: x + r*0.08, Y: y - r*0.4}}, dark) // l'ombre
+		polygon(dst, []V{{X: x - r*0.12, Y: y - r*0.84}, {X: x + r*0.12, Y: y - r*0.84}, {X: x + r*0.13, Y: y - r*0.45},
+			{X: x + r*0.17, Y: y - r*0.32}, {X: x - r*0.17, Y: y - r*0.32}, {X: x - r*0.13, Y: y - r*0.45}}, glass) // le col, vert
+		roundRect(dst, x-r*0.1, y-r*0.99, r*0.2, r*0.17, r*0.03, rgb(0xc9a86a)) // le bouchon
+		rect(dst, x-r*0.14, y-r*0.84, r*0.28, r*0.05, rgb(0x3a5a2e))            // la bague
+		line(dst, x-r*0.08, y-r*0.97, x-r*0.1, y-r*0.72, r*0.02, rgb(0xd8d8d8)) // le muselet
+		line(dst, x+r*0.08, y-r*0.97, x+r*0.1, y-r*0.72, r*0.02, rgb(0xd8d8d8))
+		line(dst, x-r*0.12, y-r*0.72, x+r*0.12, y-r*0.72, r*0.02, rgb(0xd8d8d8))
+		ring(dst, x, y-r*0.78, r*0.035, r*0.015, rgb(0xd8d8d8))
+		line(dst, x-r*0.05, y-r*0.75, x-r*0.05, y-r*0.5, r*0.035, rgba(0xc8e0b0, 0.6)) // reflets
+		line(dst, x-r*0.2, y-r*0.05, x-r*0.24, y+r*0.35, r*0.045, rgba(0xb8d0a0, 0.55))
+		rect(dst, x-r*0.33, y+r*0.42, r*0.66, r*0.36, rgb(0xd98a48)) // l'étiquette
+		rect(dst, x+r*0.22, y+r*0.42, r*0.11, r*0.36, rgb(0xc07838))
+		line(dst, x-r*0.2, y+r*0.5, x+r*0.2, y+r*0.5, r*0.045, rgb(0x5a2418)) // « CIDRE »
+		hx, hy := x, y+r*0.65                                                 // l'hermine
+		line(dst, hx, hy-r*0.08, hx, hy+r*0.09, r*0.035, rgb(0x3a1a10))
+		line(dst, hx-r*0.07, hy-r*0.01, hx+r*0.07, hy-r*0.01, r*0.035, rgb(0x3a1a10))
+		polygon(dst, []V{{X: hx - r*0.05, Y: hy + r*0.11}, {X: hx + r*0.05, Y: hy + r*0.11}, {X: hx, Y: hy + r*0.03}}, rgb(0x3a1a10))
 	case sim.AlcoolPoire:
 		drawBottle(dst, x, y, r, 0xdff0f4, 0xf3ead8, 0x2b2b2b)
 		ellipse(dst, x, y+r*0.25, r*0.16, r*0.22, rgb(0xc9d24a)) // la poire dans la bouteille

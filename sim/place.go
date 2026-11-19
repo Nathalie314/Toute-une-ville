@@ -901,9 +901,6 @@ func (p *Place) interact(a *Agent, dt float64) {
 					break // (crêperie : le commis ne dépose qu'au poste où il va, pas en passant)
 				}
 				for _, in := range s.Inputs {
-					if p.Crep != nil && in == CrepeNature && s.Buf[in] >= min(s.BufMax, max(0, p.crepDemand(s.Item))) {
-						continue // (une crêpe nature seulement pour un plat commandé)
-					}
 					if s.Buf[in] < s.BufMax && a.count(in) > 0 {
 						a.remove(in)
 						s.Buf[in]++
@@ -1322,6 +1319,9 @@ func (p *Place) applyCaps() {
 			l := g.Levels[p.key(s.ID+"_stock")]
 			s.BufMax = s.baseBuf + 5*l
 			s.PileMax = s.basePile + 6*l
+			if p.Crep != nil && s.Kind == Machine && s.Item != CrepeNature {
+				s.PileMax = 1 // (crêperie : un plat à la fois ; « Stock + » n'agrandit que ses ingrédients)
+			}
 		}
 		if s.Kind == Shelf {
 			s.StockMax = s.baseStock + 4*g.Levels[p.key("etals")]

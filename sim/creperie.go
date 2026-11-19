@@ -1000,7 +1000,7 @@ func (p *Place) crepWaiterRest(i int) V {
 	return V{2400 + float64(i%6)*90, CrepWallY + 200 + float64(i/6)*60}
 }
 
-func (p *Place) waiterSpeed() float64 { return 230 }
+func (p *Place) waiterSpeed() float64 { return 230 * (1 + p.ptsF("pts_serv_vit")) }
 
 // stepWaiter : le serveur choisit une tâche (commande, service, nettoyage) et la fait.
 func (p *Place) stepWaiter(w *waiter, dt float64) {
@@ -1393,6 +1393,7 @@ func (p *Place) crepPointKinds(add func(key, t, grp, name, desc string, val func
 	add("pts_mains", "ouvrier", "Commis", "Mains expertes", "Les commis prennent et posent plus vite (+1 % par point).", pctVal)
 	add("pts_ent_cap", "ouvrier", "Commis", "Charge", "Les commis portent plus (+1 objet tous les 5 points).",
 		func(n int) string { return "+" + itoa(n/5) + " objet(s)" })
+	add("pts_serv_vit", "ouvrier", "Serveurs", "Vitesse", "Les serveurs marchent plus vite (+1 % par point).", pctVal)
 	add("pts_tablette", "ouvrier", "Serveurs", "Tablette", "Les commandes se prennent plus vite (+1 % par point).", pctVal)
 	add("pts_nettoyage", "ouvrier", "Serveurs", "Nettoyage", "Les tables se nettoient plus vite (+1 % par point).", pctVal)
 	add("pts_chef_nat_vit", "ouvrier", "Chef des crêpes nature", "Vitesse", "Les crêpes nature cuisent plus vite (+3 % par point ; elles consomment autant).", func(n int) string { return pctVal(3 * n) })
