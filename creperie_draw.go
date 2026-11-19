@@ -136,7 +136,7 @@ func (g *game) drawCrepStation(dst *ebiten.Image, p *sim.Place, s *sim.Station) 
 		if s.Pile > 0 && s.Item != sim.CrepeNature {
 			say(dst, "Prêt !", b.X+b.W-46, b.Y+50, 16, true, 0, rgb(0x2fa86b)) // (le chef attend qu'on l'emporte)
 		}
-		sign(dst, b.C().X, b.Y-14, s.Name)
+		sign(dst, b.C().X, b.Y+b.H-4, s.Name) // (en bas du plan de travail : plus sur la tête du chef)
 		return true
 	case s.Kind == sim.Shelf:
 		// le comptoir (passe-plat) : une tablette d'inox dans le mur, les assiettes posées dessus
