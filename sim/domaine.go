@@ -13,7 +13,8 @@ import "math/rand"
 //   jus de pomme), chaque fabrique en face de sa palette ; la réserve contre la
 //   route des camions, verticale, au bord droit (particularité du lieu)
 //   au centre : la caisse et les étals (vins, bière, cidre, alcools) ; les jus ne
-//   se vendent pas sur place (réserves sans clients, drones vers les quais)
+//   se vendent pas sur place : leurs réserves (sans clients) sont à côté du quai du
+//   supermarché, avec leur drone ; le houblon est plus bas que la vigne
 //
 // Rien n'est offert : même le premier pied de vigne s'achète. Ordre : vigne,
 // jus de raisin, vin blanc, vin rouge, houblon, bière, pommes, jus de pomme,
@@ -29,6 +30,9 @@ const (
 	DomTop      = -430.0 // on monte jusqu'aux champs
 	DomFieldY   = -170.0 // haut des champs (300 de haut)
 	DomStoreY   = 250.0  // stockage du raisin, jus de raisin
+	DomHopY     = 190.0  // haut du champ de houblon (plus bas que la vigne)
+	DomJusX     = 3660.0 // les réserves de jus, à gauche du quai du supermarché
+	DomJusY     = -300.0
 	DomPathY    = 520.0  // le chemin (60 de haut)
 	DomRowY     = 640.0  // les fabriques (vins, bière)
 	DomColX     = 3650.0 // la distillerie (colonne)
@@ -57,9 +61,9 @@ func newDomaine(g *Game) *Place {
 	p.Inside = V{1250, 1390}
 	p.RestSpot = V{3000, 1440}
 
-	field := func(id, name, team string, it Item, x, t float64, cols int) {
+	field := func(id, name, team string, it Item, x, y, t float64, cols int) {
 		s := &Station{ID: id, Name: name, Kind: Field, Item: it, Time: t, Unlock: id, Team: team}
-		s.Body = Rect{x, DomFieldY, 40 + 80*float64(cols), fieldH}
+		s.Body = Rect{x, y, 40 + 80*float64(cols), fieldH}
 		s.Zone = s.Body
 		for k, r := range []int{2, 1, 0} {
 			for i := 0; i < cols; i++ {
@@ -67,7 +71,7 @@ func newDomaine(g *Game) *Place {
 				if k%2 == 1 {
 					c = cols - 1 - i
 				}
-				s.Slots = append(s.Slots, V{x + 60 + float64(c)*80, DomFieldY + 60 + float64(r)*90})
+				s.Slots = append(s.Slots, V{x + 60 + float64(c)*80, y + 60 + float64(r)*90})
 			}
 		}
 		s.Plants = []Plant{{P: s.Slots[0], G: 1}}
@@ -108,8 +112,8 @@ func newDomaine(g *Game) *Place {
 	}
 
 	// --- au nord : le houblon et la vigne
-	field("houblon", "Houblon", "houblon", Houblon, 380, 8, 8)
-	field("vigne", "Vigne", "vigne", Raisin, 1330, 9, 12)
+	field("houblon", "Houblon", "houblon", Houblon, 380, DomHopY, 8, 8) // (plus bas : juste au-dessus du chemin et de la brasserie)
+	field("vigne", "Vigne", "vigne", Raisin, 1330, DomFieldY, 9, 12)
 	// le stockage du raisin (sous la vigne : on y dépose depuis le haut) et la machine à jus
 	rs := store("stock_raisin", "Stockage du raisin", "vigne", Raisin, 1360, DomStoreY+40, true, "vigne")
 	rs.PadOff = 40
@@ -147,8 +151,15 @@ func newDomaine(g *Game) *Place {
 		s.Spot = V{x + 85, shelfY + shelfH + 38}
 		p.Stations = append(p.Stations, s)
 	}
-	store("stock_jus_raisin", "Réserve : jus de raisin", "vigne", JusRaisin, 2250, shelfY, true, "jus_raisin")
-	store("stock_jus_pomme", "Réserve : jus de pomme", "distillerie", JusPomme, 2640, shelfY, true, "jus_pomme")
+	// les jus ne se vendent pas ici : leurs réserves sont à côté du quai du supermarché
+	// (on y dépose par le haut ; le drone, dessous, n'a que quelques pas jusqu'au quai)
+	for i, j := range []struct {
+		id, name, team, unl string
+		it                  Item
+	}{{"stock_jus_raisin", "Réserve : jus de raisin", "vigne", "jus_raisin", JusRaisin}, {"stock_jus_pomme", "Réserve : jus de pomme", "distillerie", "jus_pomme", JusPomme}} {
+		s := store(j.id, j.name, j.team, j.it, DomJusX+float64(i)*260, DomJusY, true, j.unl)
+		s.PadOff = 40
+	}
 	reg := &Station{ID: "caisse", Name: "Caisse", Kind: Register, HireKey: "caissiere", QueueDown: 5}
 	reg.Body = Rect{180, shelfY, 210, shelfH}
 	reg.Spot = V{285, shelfY - 40}

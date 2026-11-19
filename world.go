@@ -930,10 +930,15 @@ func (g *game) drawShelf(dst *ebiten.Image, s *sim.Station) {
 		roundRect(dst, b.X+b.W-30, b.Y+30, 40, 22, 7, rgba(0x2b2140, 0.85))
 		say(dst, itoa(s.Stock), b.X+b.W-10, b.Y+41, 15, true, 0, rgb(0xffffff))
 	}
-	// étiquette de prix
-	price := money(sim.Items[s.Item].Price * g.sim.PriceMult())
-	roundRect(dst, b.C().X-40, b.Y+34, 80, 26, 6, rgb(0xfff8e6))
-	say(dst, price, b.C().X, b.Y+47, 17, true, 0, rgb(0x4a3a20))
+	// étiquette de prix (une réserve sans clients : pas de prix, son remplissage)
+	if s.NoSale {
+		roundRect(dst, b.C().X-40, b.Y+34, 80, 26, 6, rgba(0x2b2140, 0.85))
+		say(dst, itoa(s.Stock)+"/"+itoa(s.StockMax), b.C().X, b.Y+47, 16, true, 0, rgb(0xffffff))
+	} else {
+		price := money(sim.Items[s.Item].Price * g.sim.PriceMult())
+		roundRect(dst, b.C().X-40, b.Y+34, 80, 26, 6, rgb(0xfff8e6))
+		say(dst, price, b.C().X, b.Y+47, 17, true, 0, rgb(0x4a3a20))
+	}
 	if s.Stock == 0 && math.Mod(g.t, 1) < 0.6 {
 		roundRect(dst, b.C().X-34, b.Y-30, 68, 26, 6, rgb(0xe74c3c))
 		say(dst, "VIDE", b.C().X, b.Y-17, 17, true, 0, rgb(0xffffff))
