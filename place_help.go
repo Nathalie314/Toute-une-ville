@@ -103,7 +103,7 @@ func placeHelp(id string) []string {
 		}
 	case "patisserie":
 		return []string{
-			"La pâtisserie fait des tartes aux pommes, du riz au lait, des clafoutis, des gâteaux au chocolat, des éclairs au café et des fraisiers.",
+			"La pâtisserie fait des tartes aux pommes, du riz au lait, des clafoutis, des gâteaux au chocolat, des éclairs au café, des tartes au citron meringuées et des fraisiers.",
 			"Elle reçoit les pommes, les cerises, les fraises, la farine de blé, le lait et les œufs de la ferme, le beurre de la crèmerie, le riz, la vanille, le chocolat et le café de la ferme exotique.",
 			"Tous ses produits partent au supermarché.",
 			cmd,

@@ -52,6 +52,8 @@ func (g *game) domaineGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	say(dst, "RÉSERVE (camions de ma ferme)", sim.DomPalX+140, sim.DomColY0-18, 16, true, 0, rgba(0x4a4a4a, 0.85))
 	// les quais, au nord de la réserve
 	roundRect(dst, sim.DomPalX-30, sim.DomDockY0-60, 340, 3*sim.DomDockStep+20, 20, rgba(0xb9b3a8, 0.6))
+	// les réserves de jus, à gauche du quai du supermarché (une dalle qui le rejoint)
+	roundRect(dst, sim.DomJusX-40, sim.DomJusY-120, sim.DomPalX-sim.DomJusX+60, 340, 20, rgba(0xb9b3a8, 0.6))
 	// --- la route du bas, puis la route verticale des camions (elle la rejoint)
 	road(dst, tl, br, 1640)
 	x0 := sim.DomRoadX

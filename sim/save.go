@@ -153,7 +153,7 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 		k := "ferme." + teamKey(id)
 		if n := g.Levels[k]; n > 0 {
 			to := "ferme." + teamKey("serre")
-			if i >= 6 {
+			if i >= NSerre {
 				to = "ferme." + teamKey("verger")
 			}
 			g.Levels[to] += n

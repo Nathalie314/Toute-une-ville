@@ -180,6 +180,8 @@ const (
 	CrepeSteakBrebis
 	PilonPoulet // (boucherie, après les cuisses)
 	Avocat      // (ferme exotique, après les mangues)
+	TarteCitron // (pâtisserie, entre les éclairs et les fraisiers)
+	Concombre   // (serre de ma ferme, 7e colonne)
 	NItems
 )
 
@@ -290,6 +292,8 @@ var Items = [NItems]ItemInfo{
 	CuissePoulet:     {"Cuisses de poulet", 85},
 	PilonPoulet:      {"Pilons de poulet", 80},
 	Avocat:           {"Avocats", 64},
+	TarteCitron:      {"Tarte au citron meringuée", 1900},
+	Concombre:        {"Concombres", 40},
 	Aiguillettes:     {"Aiguillettes de canard", 120},
 	Magret:           {"Magret de canard", 150},
 	FoieGras:         {"Foie gras", 280},
@@ -368,7 +372,7 @@ var DomaineSold = []Item{VinBlanc, VinRouge, Biere, Cidre, AlcoolPoire, Vodka, W
 var DrinksSold = []Item{JusRaisin, JusPomme, VinBlanc, VinRouge, Biere, Cidre, AlcoolPoire, Vodka, Whisky}
 
 // Legumes, Fruits : la serre et le verger (une colonne chacun), et leurs graines.
-var Legumes = []Item{Carotte, Tomate, Courgette, Poireau, Chou, PommeDeTerre}
+var Legumes = []Item{Carotte, Tomate, Courgette, Poireau, Chou, PommeDeTerre, Concombre}
 var Fruits = []Item{Fraise, Pomme, Poire, Cerise, Abricot, Figue}
 var SeedOf = map[Item]Item{Carotte: GrainesCarotte, Tomate: GrainesTomate, Courgette: GrainesCourgette, Poireau: GrainesPoireau, Chou: GrainesChou, PommeDeTerre: PlantsPdt}
 
@@ -384,7 +388,7 @@ var FarmSold = append(append(append([]Item{Mais, FarineMais, Oeuf, Farine, Lait,
 // (pains et viennoiseries), la crèmerie et le glacier. Les gâteaux, tartes et
 // pains d'épices iront à la future pâtisserie.
 // PatisserieSold : ce que fabrique la pâtisserie (chaque recette : au moins 3 ingrédients).
-var PatisserieSold = []Item{TartePommes, RizLait, Clafoutis, Gateau, Eclair, Fraisier}
+var PatisserieSold = []Item{TartePommes, RizLait, Clafoutis, Gateau, Eclair, TarteCitron, Fraisier}
 
 var BakerySold = []Item{Pain, PainMie, BaguetteMais, PainMele, Brioche, Croissant, PainChoco}
 var CremerieSold = []Item{Creme, Beurre, FromageBlanc, Yaourt, Fromage, YaourtChevre, FromageChevre, YaourtBrebis, FromageBrebis}

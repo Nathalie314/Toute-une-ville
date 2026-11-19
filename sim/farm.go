@@ -24,14 +24,18 @@ const (
 	ColumnW   = 150.0
 	ColumnMax = 8
 	SerreX    = 2980.0
-	VergerX   = SerreX + 6*ColumnW + 100
+	NSerre    = 7 // colonnes de la serre (le concombre, 7e, est venu après)
+	VergerX   = SerreX + NSerre*ColumnW + 100
 	FleursX   = VergerX + 6*ColumnW + 100
 	FarmW     = FleursX + 910 // (champ de fleurs doublé : 6 colonnes)
 	FarmTop   = -420.0
 )
 
 // ColumnIDs : les colonnes de la serre puis du verger (= ID du champ et de son équipe).
-var ColumnIDs = []string{"carotte", "tomate", "courgette", "poireau", "chou", "pdt", "fraisier", "pommier", "poirier", "cerisier", "abricotier", "figuier"}
+var ColumnIDs = []string{"carotte", "tomate", "courgette", "poireau", "chou", "pdt", "concombre", "fraisier", "pommier", "poirier", "cerisier", "abricotier", "figuier"}
+
+// SerreIDs, VergerIDs : les colonnes de la serre, puis celles du verger.
+var SerreIDs, VergerIDs = ColumnIDs[:NSerre], ColumnIDs[NSerre:]
 
 type columnBuy struct {
 	id, name string
@@ -53,6 +57,7 @@ var ColumnOrder = []columnBuy{
 	{"pdt", "Pommes de terre", 30000, false},
 	{"abricotier", "Abricotier", 35000, true},
 	{"figuier", "Figuier", 42000, true},
+	{"concombre", "Concombres", 48000, false},
 }
 
 func newFarm(g *Game) *Place {
@@ -128,13 +133,13 @@ func newFarm(g *Game) *Place {
 		m.Spot = V{x + 75, shelfY + shelfH + 38}
 		p.Stations = append(p.Stations, m)
 	}
-	vegNames := []string{"Carottes", "Tomates", "Courgettes", "Poireaux", "Salades", "Pommes de terre"}
+	vegNames := []string{"Carottes", "Tomates", "Courgettes", "Poireaux", "Salades", "Pommes de terre", "Concombres"}
 	fruitNames := []string{"Fraisiers", "Pommier", "Poirier", "Cerisier", "Abricotier", "Figuier"}
 	for i, it := range Legumes {
 		column(ColumnIDs[i], vegNames[i], it, SerreX+float64(i)*ColumnW, 9+float64(i), true)
 	}
 	for i, it := range Fruits {
-		column(ColumnIDs[6+i], fruitNames[i], it, VergerX+float64(i)*ColumnW, 8+float64(i), false)
+		column(VergerIDs[i], fruitNames[i], it, VergerX+float64(i)*ColumnW, 8+float64(i), false)
 	}
 	field("fleurs", "Champ de fleurs", Fleur, FleursX, 14, "fleurs", 16000, 6) // (doublé : 6 colonnes)
 	// réserve de fleurs, à droite du champ : elle garde le surplus pour le
@@ -225,8 +230,8 @@ func newFarm(g *Game) *Place {
 	reg.QueueHead = V{285, shelfY + shelfH + 40}
 	trash := &Station{ID: "poubelle", Name: "Compost", Kind: Trash}
 	// à côté de l'étal du miel (un peu à droite, pas collé)
-	trash.Body = Rect{5290, shelfY - 10, 84, 76} // (avant le décalage de la ferme)
-	trash.Zone = Rect{5270, shelfY - 100, 124, 180}
+	trash.Body = Rect{5440, shelfY - 10, 84, 76} // (avant le décalage de la ferme ; +150 : le concombre)
+	trash.Zone = Rect{5420, shelfY - 100, 124, 180}
 	// quais d'expédition : un par destination (servent une fois le lieu acheté)
 	// (les quais ne sont pas décalés avec la ferme : x définitifs ; chacun près de ce qu'il emporte)
 	p.dock("quai", "super", 1700)
@@ -234,9 +239,9 @@ func newFarm(g *Game) *Place {
 	p.dock("quai_creme", "cremerie", 2892)        // sous l'étal du lait de chèvre (au milieu des laits)
 	p.dock("quai_elevage", "elevage", 3250)       // sous le lait de brebis, près du maïs et de la serre
 	p.dock("quai_domaine", "domaine", 3600)       // au début de la serre (pommes de terre, pommes, poires)
-	p.dock("quai_glace", "glacier", 4380)         // juste à gauche des fruits du verger
-	p.dock("quai_patisserie", "patisserie", 4750) // sous les fruits du verger (pommes, cerises, fraises)
-	p.dock("quai_creperie", "creperie", 5100)     // sous les fleurs (lait, œufs, pommes, poires, salade, poireaux)
+	p.dock("quai_glace", "glacier", 4530)         // juste à gauche des fruits du verger (+150 : le concombre)
+	p.dock("quai_patisserie", "patisserie", 4900) // sous les fruits du verger (pommes, cerises, fraises)
+	p.dock("quai_creperie", "creperie", 5250)     // sous les fleurs (lait, œufs, pommes, poires, salade, poireaux)
 	// la cour, à gauche de la boutique (près du portail) : caisse des commandes et hangar
 	cmd := &Station{ID: "commande", Name: "Commandes", Kind: OrderBox, Built: true}
 	cmd.Body = Rect{230, 1110, 180, 70}
@@ -266,7 +271,7 @@ func newFarm(g *Game) *Place {
 			// serre et verger : une grande case au milieu, sous les six colonnes, dans
 			// l'herbe entre les deux chemins (580 à 880) : les ouvriers sont pour
 			// toute la serre, tout le verger
-			cx := SerreX + 3*ColumnW
+			cx := SerreX + NSerre*ColumnW/2
 			if t.ID == "verger" {
 				cx = VergerX + 3*ColumnW
 			}
@@ -431,14 +436,14 @@ var FarmTeams = func() []*Team {
 	}
 	// la serre et le verger : une équipe chacun (un ouvrier n'est pas attaché à un
 	// légume ou à un fruit : il va où il y a du travail), autant d'ouvriers que de colonnes
-	ts = append(ts, &Team{ID: "serre", Name: "de la serre", Max: 7, Items: append([]Item{}, Legumes...), Field: "la serre"},
+	ts = append(ts, &Team{ID: "serre", Name: "de la serre", Max: NSerre + 1, Items: append([]Item{}, Legumes...), Field: "la serre"},
 		&Team{ID: "verger", Name: "du verger", Max: 6, Items: append([]Item{}, Fruits...), Field: "le verger"})
 	return append(ts, &Team{ID: "fleurs", Name: "des fleurs", Max: 2, Items: []Item{Fleur, Miel}, Field: "le champ de fleurs"})
 }()
 
 // HireOrder : ordre conseillé des embauches ; il fixe les prix (le 1er le moins cher).
 var HireOrder = []string{"mais", "ble", "mais", "ble", "serre", "ble", "serre", "verger", "ble", "serre", "verger", "ble",
-	"serre", "verger", "serre", "verger", "mais", "serre", "verger", "verger", "fleurs", "fleurs", "mais", "serre"}
+	"serre", "verger", "serre", "verger", "mais", "serre", "verger", "verger", "fleurs", "fleurs", "mais", "serre", "serre"}
 
 // teamAnchor : le champ d'une équipe (serre : la colonne des carottes ; verger : les fraisiers).
 func teamAnchor(id string) string {
@@ -456,7 +461,11 @@ func teamAnchor(id string) string {
 // 7e ouvrier).
 func (p *Place) columnHires(team string) int {
 	n := p.columnsBuiltOf(team)
-	if n >= 6 {
+	all := len(VergerIDs)
+	if team == "serre" {
+		all = len(SerreIDs)
+	}
+	if n >= all {
 		for _, t := range FarmTeams {
 			if t.ID == team {
 				return t.Max
@@ -468,9 +477,9 @@ func (p *Place) columnHires(team string) int {
 
 // columnsBuiltOf : colonnes ouvertes de la serre (ou du verger).
 func (p *Place) columnsBuiltOf(team string) int {
-	ids := ColumnIDs[:6]
+	ids := SerreIDs
 	if team == "verger" {
-		ids = ColumnIDs[6:]
+		ids = VergerIDs
 	}
 	n := 0
 	for _, id := range ids {
@@ -482,7 +491,7 @@ func (p *Place) columnsBuiltOf(team string) int {
 }
 
 var HireCosts = []float64{250, 1000, 3500, 6000, 7000, 8000, 9000, 10000, 12000, 13000, 14000, 16000,
-	18000, 20000, 23000, 26000, 30000, 34000, 40000, 48000, 60000, 75000, 95000, 120000}
+	18000, 20000, 23000, 26000, 30000, 34000, 40000, 48000, 60000, 75000, 95000, 120000, 150000}
 
 func teamOf(it Item) string {
 	for _, t := range FarmTeams {

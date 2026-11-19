@@ -42,6 +42,21 @@ func drawItemPatisserie(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		roundRect(dst, x-r*0.95, y-r*0.15, r*1.9, r*0.6, r*0.3, rgb(0xd9a55a))
 		roundRect(dst, x-r*0.9, y-r*0.22, r*1.8, r*0.32, r*0.16, rgb(0x8a5c3a))
 		line(dst, x-r*0.6, y-r*0.12, x+r*0.5, y-r*0.12, r*0.06, rgba(0xffffff, 0.4))
+	case sim.TarteCitron:
+		// une tarte ronde : la pâte dorée, la crème au citron jaune, des pointes de
+		// meringue blanche dorées au bout, une rondelle de citron
+		ellipse(dst, x, y+r*0.25, r*0.95, r*0.55, rgb(0xc98a3d))
+		ellipse(dst, x, y+r*0.15, r*0.82, r*0.44, rgb(0xf5d84a))
+		for k := 0; k < 7; k++ {
+			a := float64(k)*0.9 + 0.3
+			mx, my := x+r*0.5*math.Cos(a), y+r*0.12+r*0.24*math.Sin(a)
+			circle(dst, mx, my, r*0.17, rgb(0xfffaf0))
+			polygon(dst, []V{{X: mx - r*0.12, Y: my - r*0.05}, {X: mx + r*0.12, Y: my - r*0.05}, {X: mx, Y: my - r*0.3}}, rgb(0xfffaf0))
+			circle(dst, mx, my-r*0.27, r*0.05, rgb(0xd9a04a))
+		}
+		circle(dst, x, y+r*0.05, r*0.2, rgb(0xfffaf0))
+		circle(dst, x, y-r*0.05, r*0.14, rgb(0xf5e04a))
+		circle(dst, x, y-r*0.05, r*0.09, rgb(0xfff6b0))
 	case sim.Fraisier:
 		// une part de fraisier : génoise, crème, fraises coupées, dessus rose
 		polygon(dst, []V{{X: x - r*0.9, Y: y + r*0.6}, {X: x + r*0.9, Y: y + r*0.6}, {X: x + r*0.9, Y: y - r*0.5}, {X: x - r*0.9, Y: y - r*0.5}}, rgb(0xfff4e6))
