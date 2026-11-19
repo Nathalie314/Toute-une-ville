@@ -857,7 +857,7 @@ func (p *Place) stepCrepGroup(cg *CrepGroup, dt float64) {
 			calm = 60
 		}
 		if cg.T > calm {
-			cg.Happy = math.Max(0, cg.Happy-dt*0.004)
+			cg.Happy = math.Max(0, cg.Happy-dt*0.004*math.Max(0, 1-p.ptsF("pts_bonheur")/2))
 		}
 		if cg.State == cgWaitFood && len(cg.Wants) == 0 {
 			cg.State, cg.T = cgEat, 0
@@ -1404,10 +1404,80 @@ func (p *Place) crepPointKinds(add func(key, t, grp, name, desc string, val func
 	add("pts_chef_suc_rent", "ouvrier", "Chefs des crêpes sucrées", "Rentabilité", "Chaque crêpe sucrée peut être gratuite : elle ne consomme alors aucun ingrédient.", rentVal)
 	// collège : plus de clients à la fois ; les absences (comme partout)
 	add("pts_reclame", "marketing", "Réclame", "Clients", "Plus de tables de clients à la fois (+1 % par point) : attention à ne pas les faire trop attendre.", pctVal)
-	add("pts_fidele", "marketing", "Clients fidèles", "Absences", "Tes gains pendant ton absence augmentent (+1 % par point, moyenne de tes lieux).", pctVal)
+	// (la crêperie n'est ouverte que quand on joue : pas de « Clients fidèles », mais des clients plus patients)
+	add("pts_bonheur", "marketing", "Clients heureux", "Bonheur", "La jauge de bonheur des clients baisse moins vite (-0,5 % par point).",
+		func(n int) string { return "-" + itoa(n/2) + " %" })
 	// lycée : les pourboires (sans maximum), les gains, le temps des commandes
 	add("pts_pourboire", "comptable", "Pourboires", "Pourboires", "Une table contente laisse plus : +1 % de l'addition tous les 5 points (1 % au départ, sans maximum).",
 		func(n int) string { return itoa(1+n/5) + " %" })
 	add("pts_comptable", "comptable", "Comptables", "Gains", "Les ventes rapportent plus (+1 % par point).", pctVal)
 	add("pts_logist", "comptable", "Logistique", "Commandes", "Plus de temps pour livrer les commandes (+1 % par point).", pctVal)
+}
+
+// ---------------------------------------------------------------- sauvegarde
+
+// CrepGroupSave : une table de clients assis (le restaurant fermé, ils sont « en pause »).
+type CrepGroupSave struct {
+	Table              string
+	N, State, Look     int
+	T, Wait, Happy, OT float64
+	Angry              bool
+	Order, Wants, Got  []Item
+}
+
+// saveSeated : les clients attablés (ceux qui ne sont pas encore assis repartent).
+func (p *Place) saveSeated() []CrepGroupSave {
+	var out []CrepGroupSave
+	for _, cg := range p.Crep.Groups {
+		if cg.Table == nil || cg.State < cgSeated || cg.State > cgEat {
+			continue
+		}
+		look := 0
+		if len(cg.Members) > 0 {
+			look = cg.Members[0].Look
+		}
+		out = append(out, CrepGroupSave{Table: cg.Table.ID, N: cg.N, State: cg.State, Look: look, T: cg.T, Wait: cg.wait,
+			Happy: cg.Happy, OT: cg.orderT, Angry: cg.Angry, Order: cg.Order, Wants: cg.Wants, Got: cg.Got})
+	}
+	return out
+}
+
+// restoreSeated : à ton retour, les clients reprennent là où ils en étaient (à leur
+// table, leur voiture garée au parking).
+func (p *Place) restoreSeated(gs []CrepGroupSave) {
+	for _, s := range gs {
+		var t *CrepTable
+		for _, x := range p.Crep.Tables {
+			if x.ID == s.Table && x.St.Built && x.Group == nil && !x.Dirty && x.Seats >= s.N {
+				t = x
+			}
+		}
+		if t == nil || s.State < cgSeated || s.State > cgEat {
+			continue
+		}
+		cg := &CrepGroup{N: s.N, State: s.State, T: s.T, wait: s.Wait, Happy: s.Happy, orderT: s.OT, Angry: s.Angry,
+			Order: s.Order, Wants: s.Wants, Got: s.Got, Table: t}
+		for i := 0; i < s.N; i++ {
+			face := V{1, 0}
+			if i%2 == 1 {
+				face = V{-1, 0}
+			}
+			cg.Members = append(cg.Members, &Diner{Pos: t.Seat(i), Face: face, Look: s.Look + i*7919})
+		}
+		// leur voiture, garée
+		for i, sp := range p.Parks {
+			if i >= p.CrepParkN(p.g.Levels[p.key("parking")]) {
+				break
+			}
+			if !sp.used {
+				sp.used = true
+				v := &Vehicle{Kind: VCar, Look: s.Look, State: 1, Pos: sp.Pos, Dir: V{0, 1}, spot: sp, speed: 300}
+				p.Vehicles = append(p.Vehicles, v)
+				cg.veh = v
+				break
+			}
+		}
+		t.Group = cg
+		p.Crep.Groups = append(p.Crep.Groups, cg)
+	}
 }

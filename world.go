@@ -509,7 +509,11 @@ func (g *game) drawZones(dst *ebiten.Image, p *sim.Place, s *sim.Station) {
 		}
 	case sim.Shelf:
 		zoneBox(dst, s.Zone, in(s.Zone), g.t, 0xfff3c4)
-		drawItem(dst, s.Item, s.Zone.C().X, s.Zone.C().Y, 18)
+		if p.Crep != nil {
+			drawItem(dst, s.Item, s.Zone.C().X, s.Zone.C().Y, 34) // (le comptoir de la crêperie : une seule crêpe, en grand)
+		} else {
+			drawItem(dst, s.Item, s.Zone.C().X, s.Zone.C().Y, 18)
+		}
 		// la commande en cours demande ce produit : la case où le joueur peut le reprendre
 		if g.sim.Cur == p && s.Stock > 0 && p.PickWanted(s) {
 			r := s.PickZone()

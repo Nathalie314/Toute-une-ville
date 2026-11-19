@@ -98,6 +98,7 @@ func placeHelp(id string) []string {
 			"Un serveur (ou toi, arrêté près de la table) prend la commande : elle part en cuisine. Il apporte les crêpes du comptoir et le cidre du frigo, puis nettoie la table.",
 			"En cuisine, le chef des crêpes nature en fait sans arrêt. Les autres chefs ne cuisinent que ce qui est commandé, et attendent qu'un commis emporte leur plat au comptoir.",
 			"Pas d'étoiles ici : une table contente laisse un pourboire sur la table, et toi seul peux le ramasser.",
+			"La crêperie n'est ouverte que quand tu joues : en ton absence, elle ne rapporte rien, et ses clients attablés t'attendent.",
 			"Les ingrédients arrivent de la ferme, de la crèmerie, de la ferme exotique, du glacier, du port, de la boucherie et du domaine.",
 			"Commandes : seulement des crêpes nature, pour la cantine de l'école (une par élève du primaire, deux pour les autres) et pour le stand de crêpes du parc d'attractions.",
 		}

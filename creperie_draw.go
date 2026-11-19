@@ -148,7 +148,6 @@ func (g *game) drawCrepStation(dst *ebiten.Image, p *sim.Place, s *sim.Station) 
 			ellipse(dst, x, y, 24, 11, rgb(0xffffff))
 			drawItem(dst, s.Item, x, y-4, 11)
 		}
-		drawItem(dst, s.Item, b.C().X, b.Y-30, 16)
 		return true
 	case s.Kind == sim.Pallet && s.Item == sim.Cidre:
 		// le frigo du cidre : vitré, des bouteilles dedans
