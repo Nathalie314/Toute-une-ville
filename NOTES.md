@@ -1434,3 +1434,12 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Correctif : avec l'avocatier, les rayons citrons, oranges, limonade et jus d'orange (prix suivant ceux de la ferme
   exotique) coûtaient 1 000 à 1 500 de plus : déjà payés, ils semblaient « à 1 000 € ». Payés à l'ancien prix, ils
   restent payés (migrateRayonsAgrumes, marque super.rayons_agrumes).
+- Domaine : les jus (raisin, pomme) ne se vendent pas sur place ; leurs réserves sont à côté du quai du supermarché,
+  avec leur drone (dalle grise) ; elles et le stockage du raisin ont l'air d'étagères de stockage (montants en métal,
+  deux planches, remplissage « n/30 », pas de prix : drawStorageRack pour tout étal NoSale dessiné par drawShelf).
+  Le champ de houblon est descendu juste au-dessus du chemin et de la brasserie (DomHopY).
+- Pâtisserie : tarte au citron meringuée (œufs, citrons, farine, beurre ; 50 000), entre les éclairs et les
+  fraisiers ; un 7e pâtissier ; les citrons arrivent de la ferme exotique.
+- Ferme : concombres, 7e colonne de la serre (NSerre ; achat après le figuier, 48 000) ; verger, fleurs, ruches,
+  compost et les quais glacier / pâtisserie / crêperie décalés de 150 ; un 8e ouvrier de la serre (150 000) ;
+  SerreIDs / VergerIDs remplacent ColumnIDs[:6] / [6:] ; badge « Main verte » : les 7 colonnes.

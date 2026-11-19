@@ -916,6 +916,10 @@ func (g *game) drawStation(dst *ebiten.Image, p *sim.Place, s *sim.Station) {
 }
 
 func (g *game) drawShelf(dst *ebiten.Image, s *sim.Station) {
+	if s.NoSale {
+		drawStorageRack(dst, s, g.t)
+		return
+	}
 	b := s.Body
 	ellipse(dst, b.C().X, b.Y+b.H, b.W*0.55, 12, rgba(0x000000, 0.18))
 	roundRect(dst, b.X, b.Y, b.W, b.H, 8, rgb(0x9a6b3e))
@@ -930,15 +934,10 @@ func (g *game) drawShelf(dst *ebiten.Image, s *sim.Station) {
 		roundRect(dst, b.X+b.W-30, b.Y+30, 40, 22, 7, rgba(0x2b2140, 0.85))
 		say(dst, itoa(s.Stock), b.X+b.W-10, b.Y+41, 15, true, 0, rgb(0xffffff))
 	}
-	// étiquette de prix (une réserve sans clients : pas de prix, son remplissage)
-	if s.NoSale {
-		roundRect(dst, b.C().X-40, b.Y+34, 80, 26, 6, rgba(0x2b2140, 0.85))
-		say(dst, itoa(s.Stock)+"/"+itoa(s.StockMax), b.C().X, b.Y+47, 16, true, 0, rgb(0xffffff))
-	} else {
-		price := money(sim.Items[s.Item].Price * g.sim.PriceMult())
-		roundRect(dst, b.C().X-40, b.Y+34, 80, 26, 6, rgb(0xfff8e6))
-		say(dst, price, b.C().X, b.Y+47, 17, true, 0, rgb(0x4a3a20))
-	}
+	// étiquette de prix
+	price := money(sim.Items[s.Item].Price * g.sim.PriceMult())
+	roundRect(dst, b.C().X-40, b.Y+34, 80, 26, 6, rgb(0xfff8e6))
+	say(dst, price, b.C().X, b.Y+47, 17, true, 0, rgb(0x4a3a20))
 	if s.Stock == 0 && math.Mod(g.t, 1) < 0.6 {
 		roundRect(dst, b.C().X-34, b.Y-30, 68, 26, 6, rgb(0xe74c3c))
 		say(dst, "VIDE", b.C().X, b.Y-17, 17, true, 0, rgb(0xffffff))
@@ -2139,4 +2138,35 @@ func pricePill(dst *ebiten.Image, txt string, cx, cy, maxW float64) {
 	roundRect(dst, cx-w/2, cy-h/2+3, w, h, h/2, rgba(0x000000, 0.35))
 	roundRect(dst, cx-w/2, cy-h/2, w, h, h/2, rgb(0x2b2140))
 	say(dst, txt, cx, cy, size, true, 0, rgb(0xffe066))
+}
+
+// drawStorageRack : une réserve sans clients (raisin, jus du domaine) : une étagère de
+// stockage en métal, deux planches chargées, son remplissage (pas de prix : rien ne s'y vend).
+func drawStorageRack(dst *ebiten.Image, s *sim.Station, t float64) {
+	b := s.Body
+	top := b.Y - 46
+	ellipse(dst, b.C().X, b.Y+b.H, b.W*0.55, 12, rgba(0x000000, 0.18))
+	metal, dark := rgb(0x8c96a0), rgb(0x5f6870)
+	rect(dst, b.X, top, b.W, b.Y+b.H-top, rgba(0x3a4148, 0.25)) // le fond
+	for _, x := range []float64{b.X, b.X + b.W/2 - 3, b.X + b.W - 6} {
+		rect(dst, x, top, 6, b.Y+b.H-top, dark) // les montants
+	}
+	planks := []float64{top + 40, b.Y + b.H - 8}
+	for _, y := range planks {
+		rect(dst, b.X-4, y, b.W+8, 8, metal)
+	}
+	// la marchandise : rangée sur les deux planches (d'abord celle du bas)
+	per := int((b.W - 20) / 22)
+	for i := 0; i < min(s.Stock, 2*per); i++ {
+		row := i / per
+		x := b.X + 16 + float64(i%per)*22
+		drawItem(dst, s.Item, x, planks[1-row]-12, 11)
+	}
+	// le remplissage, sur une plaque
+	roundRect(dst, b.C().X-40, b.Y+b.H+4, 80, 24, 6, rgba(0x2b2140, 0.85))
+	say(dst, itoa(s.Stock)+"/"+itoa(s.StockMax), b.C().X, b.Y+b.H+16, 15, true, 0, rgb(0xffffff))
+	if s.Stock == 0 && math.Mod(t, 1) < 0.6 {
+		roundRect(dst, b.C().X-34, top-30, 68, 26, 6, rgb(0xe74c3c))
+		say(dst, "VIDE", b.C().X, top-17, 17, true, 0, rgb(0xffffff))
+	}
 }

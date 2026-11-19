@@ -12,13 +12,13 @@ import (
 // par arbre), les caisses de graines, les petits marchés et l'étang.
 
 var cropCol = map[sim.Item]uint32{
-	sim.Carotte: 0xf08a24, sim.Tomate: 0xe23b2e, sim.Courgette: 0x3f8f3a, sim.Poireau: 0xdfe8c8, sim.Chou: 0x9fe07a, sim.PommeDeTerre: 0xc9a46a,
+	sim.Carotte: 0xf08a24, sim.Tomate: 0xe23b2e, sim.Courgette: 0x3f8f3a, sim.Poireau: 0xdfe8c8, sim.Chou: 0x9fe07a, sim.PommeDeTerre: 0xc9a46a, sim.Concombre: 0x2f7a32,
 	sim.Fraise: 0xe8333f, sim.Pomme: 0xd9342b, sim.Poire: 0xc9d24a, sim.Cerise: 0x9e1530, sim.Abricot: 0xf5a03a, sim.Figue: 0x6b3a6e,
 }
 
-// serreRect : la serre couvre ses six colonnes (vide tant qu'on ne l'a pas achetée).
+// serreRect : la serre couvre ses colonnes (vide tant qu'on ne l'a pas achetée).
 func serreRect(p *sim.Place) (sim.Rect, bool) {
-	a, b := p.Station("carotte"), p.Station("pdt")
+	a, b := p.Station(sim.SerreIDs[0]), p.Station(sim.SerreIDs[len(sim.SerreIDs)-1])
 	if a == nil || b == nil {
 		return sim.Rect{}, false
 	}
@@ -56,9 +56,9 @@ func drawSerreRoof(dst *ebiten.Image, p *sim.Place) {
 	line(dst, r.X+r.W/2, r.Y-70, r.X+r.W+14, r.Y, 6, frame)
 	rect(dst, r.X-14, r.Y-4, r.W+28, 8, frame)
 	// montants verticaux, entre les colonnes
-	for k := 0; k <= 6; k++ {
+	for k := 0; k <= sim.NSerre; k++ {
 		x := r.X + 10 + float64(k)*sim.ColumnW
-		if k == 6 {
+		if k == sim.NSerre {
 			x = r.X + r.W - 10
 		}
 		rect(dst, x-3, r.Y, 6, r.H, rgba(0x7f8a8e, 0.75))
@@ -300,6 +300,20 @@ func drawCrop(dst *ebiten.Image, it sim.Item, x, y, gr, t float64, i int) {
 			roundRect(dst, x-26, y-6, 26, 9, 4, fc)
 			roundRect(dst, x+4, y-2, 24, 9, 4, shade(cropCol[it], 0.85))
 		}
+	case sim.Concombre:
+		// une plante grimpante sur sa ficelle : des feuilles, des fleurs jaunes, des concombres pendus
+		line(dst, x+12, y, x+12, y-h-14, 2, rgb(0xd9c08f)) // la ficelle
+		line(dst, x, y, x+10+sway*0.5, y-h, 3, dark)
+		for k := 0; k < 3; k++ {
+			ellipse(dst, x+2+float64(k%2)*14+sway*0.3, y-h*0.25-float64(k)*h*0.28, 10*math.Max(0.4, gr), 7*math.Max(0.4, gr), green)
+		}
+		if gr > 0.5 && !ripe {
+			circle(dst, x+16, y-h*0.6, 3.5, rgb(0xffd23f))
+		}
+		if ripe {
+			roundRect(dst, x-6, y-h*0.55, 7, 22, 3.5, fc)
+			roundRect(dst, x+6, y-h*0.85, 7, 20, 3.5, shade(cropCol[it], 0.85))
+		}
 	case sim.Poireau:
 		rect(dst, x-4, y-h*0.5, 8, h*0.5, rgb(0xf3f3e6))
 		for k := -1; k <= 1; k++ {
@@ -490,6 +504,14 @@ func drawItemNew(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		polygon(dst, []V{{X: x - r*0.9, Y: y + r*0.35}, {X: x - r*0.7, Y: y + r*0.6}, {X: x + r*0.9, Y: y - r*0.35}, {X: x + r*0.7, Y: y - r*0.6}}, fc)
 		line(dst, x-r*0.6, y+r*0.3, x+r*0.6, y-r*0.35, r*0.08, rgb(0x6fb04a))
 		circle(dst, x+r*0.85, y-r*0.55, r*0.12, rgb(0x8a6a3a))
+	case sim.Concombre:
+		// un concombre en biais, vert foncé, de petites bosses claires, un bout de tige
+		roundRect(dst, x-r*0.25, y-r*0.85, r*0.5, r*1.7, r*0.25, fc)
+		for k := 0; k < 5; k++ {
+			circle(dst, x-r*0.08+float64(k%2)*r*0.16, y-r*0.55+float64(k)*r*0.27, r*0.04, rgb(0x7ab85a))
+		}
+		line(dst, x-r*0.12, y-r*0.6, x-r*0.12, y+r*0.5, r*0.07, rgba(0xffffff, 0.25))
+		line(dst, x, y-r*0.85, x+r*0.08, y-r*1, r*0.08, rgb(0x6b5a2a))
 	case sim.Poireau:
 		rect(dst, x-r*0.18, y-r*0.1, r*0.36, r*1.05, rgb(0xf3f3e6))
 		for k := -1; k <= 1; k++ {

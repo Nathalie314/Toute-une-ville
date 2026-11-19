@@ -181,6 +181,7 @@ const (
 	PilonPoulet // (boucherie, après les cuisses)
 	Avocat      // (ferme exotique, après les mangues)
 	TarteCitron // (pâtisserie, entre les éclairs et les fraisiers)
+	Concombre   // (serre de ma ferme, 7e colonne)
 	NItems
 )
 
@@ -292,6 +293,7 @@ var Items = [NItems]ItemInfo{
 	PilonPoulet:      {"Pilons de poulet", 80},
 	Avocat:           {"Avocats", 64},
 	TarteCitron:      {"Tarte au citron meringuée", 1900},
+	Concombre:        {"Concombres", 40},
 	Aiguillettes:     {"Aiguillettes de canard", 120},
 	Magret:           {"Magret de canard", 150},
 	FoieGras:         {"Foie gras", 280},
@@ -370,7 +372,7 @@ var DomaineSold = []Item{VinBlanc, VinRouge, Biere, Cidre, AlcoolPoire, Vodka, W
 var DrinksSold = []Item{JusRaisin, JusPomme, VinBlanc, VinRouge, Biere, Cidre, AlcoolPoire, Vodka, Whisky}
 
 // Legumes, Fruits : la serre et le verger (une colonne chacun), et leurs graines.
-var Legumes = []Item{Carotte, Tomate, Courgette, Poireau, Chou, PommeDeTerre}
+var Legumes = []Item{Carotte, Tomate, Courgette, Poireau, Chou, PommeDeTerre, Concombre}
 var Fruits = []Item{Fraise, Pomme, Poire, Cerise, Abricot, Figue}
 var SeedOf = map[Item]Item{Carotte: GrainesCarotte, Tomate: GrainesTomate, Courgette: GrainesCourgette, Poireau: GrainesPoireau, Chou: GrainesChou, PommeDeTerre: PlantsPdt}
 
