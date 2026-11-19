@@ -1451,3 +1451,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Boucherie : le quai de la crêperie juste à droite de celui du supermarché.
 - Cidre d'après son image : bouteille bouchée (col vert, liège et muselet), cidre brun, étiquette orange à l'hermine.
 - Crêperie : le plat prêt d'un chef (une seule place) se voit en grand dans sa case de sortie.
+- Correctif : des ronds sombres apparaissaient sous l'objectif : des messages vides (une commande prise à la
+  crêperie envoie un événement sans texte, pour ses étincelles et son son). Un message vide ne s'affiche plus.

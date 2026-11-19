@@ -31,6 +31,9 @@ type toastMsg struct {
 }
 
 func (g *game) toast(text, sub string) {
+	if strings.TrimSpace(text) == "" && sub == "" {
+		return // (un événement sans message : la commande prise à la crêperie n'a que ses étincelles)
+	}
 	g.toasts = append(g.toasts, toastMsg{text: text, sub: sub})
 }
 
