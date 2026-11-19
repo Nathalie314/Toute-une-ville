@@ -180,6 +180,7 @@ const (
 	CrepeSteakBrebis
 	PilonPoulet // (boucherie, après les cuisses)
 	Avocat      // (ferme exotique, après les mangues)
+	TarteCitron // (pâtisserie, entre les éclairs et les fraisiers)
 	NItems
 )
 
@@ -290,6 +291,7 @@ var Items = [NItems]ItemInfo{
 	CuissePoulet:     {"Cuisses de poulet", 85},
 	PilonPoulet:      {"Pilons de poulet", 80},
 	Avocat:           {"Avocats", 64},
+	TarteCitron:      {"Tarte au citron meringuée", 1900},
 	Aiguillettes:     {"Aiguillettes de canard", 120},
 	Magret:           {"Magret de canard", 150},
 	FoieGras:         {"Foie gras", 280},
@@ -384,7 +386,7 @@ var FarmSold = append(append(append([]Item{Mais, FarineMais, Oeuf, Farine, Lait,
 // (pains et viennoiseries), la crèmerie et le glacier. Les gâteaux, tartes et
 // pains d'épices iront à la future pâtisserie.
 // PatisserieSold : ce que fabrique la pâtisserie (chaque recette : au moins 3 ingrédients).
-var PatisserieSold = []Item{TartePommes, RizLait, Clafoutis, Gateau, Eclair, Fraisier}
+var PatisserieSold = []Item{TartePommes, RizLait, Clafoutis, Gateau, Eclair, TarteCitron, Fraisier}
 
 var BakerySold = []Item{Pain, PainMie, BaguetteMais, PainMele, Brioche, Croissant, PainChoco}
 var CremerieSold = []Item{Creme, Beurre, FromageBlanc, Yaourt, Fromage, YaourtChevre, FromageChevre, YaourtBrebis, FromageBrebis}

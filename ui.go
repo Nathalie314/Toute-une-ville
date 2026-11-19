@@ -1882,7 +1882,7 @@ func placeDesc(id string) string {
 	case "boucherie":
 		txt = "La boucherie-charcuterie découpe la viande de la ferme d'élevage : poulets, canards, bœuf, veau, mouton, agneau, porc. Ses clients sont rares mais achètent cher, et elle remplit l'espace boucherie du supermarché. Chaque espace a ses bouchers."
 	case "patisserie":
-		txt = "La pâtisserie : tartes aux pommes, riz au lait, clafoutis, gâteaux au chocolat, éclairs au café et fraisiers. Chaque recette demande au moins 3 ingrédients, qui viennent de ta ferme, de la crèmerie et de la ferme exotique. Rien n'est offert : même la première machine s'achète."
+		txt = "La pâtisserie : tartes aux pommes, riz au lait, clafoutis, gâteaux au chocolat, éclairs au café, tartes au citron meringuées et fraisiers. Chaque recette demande au moins 3 ingrédients, qui viennent de ta ferme, de la crèmerie et de la ferme exotique. Rien n'est offert : même la première machine s'achète."
 	case "domaine":
 		txt = "Le domaine : la vigne, le houblon et une distillerie. Le raisin et les jus partent en camion au supermarché ; on vend sur place les vins, la bière, le cidre et les alcools (avec les pommes, poires, pommes de terre et le blé de ta ferme). Chaque espace a ses ouvriers. L'alcool est dangereux pour la santé : à consommer avec modération."
 	case "parc":

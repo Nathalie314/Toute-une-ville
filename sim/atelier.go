@@ -86,16 +86,17 @@ var cremerieSpec = workshopSpec{
 // vanille, chocolat, café moulu). Rien n'est offert : même la tarte s'achète.
 var patisserieSpec = workshopSpec{
 	id: "patisserie", name: "La pâtisserie", price: 64000000, seed: 83,
-	inputs: []Item{Pomme, Beurre, Farine, Riz, Lait, Vanille, Cerise, Oeuf, Chocolat, CafeMoulu, Fraise},
+	inputs: []Item{Pomme, Beurre, Farine, Riz, Lait, Vanille, Cerise, Oeuf, Chocolat, CafeMoulu, Citron, Fraise},
 	recipes: []recipe{
 		{"tarte_pommes", "Tartes aux pommes", TartePommes, []Item{Pomme, Beurre, Farine}, 5, 5000, "Pommes, beurre et farine.", "cremerie:beurre,ferme:pommier"},
 		{"riz_lait", "Riz au lait", RizLait, []Item{Riz, Lait, Vanille}, 5, 9000, "Riz, lait et vanille.", "exotique:riz,exotique:vanille"},
 		{"clafoutis", "Clafoutis aux cerises", Clafoutis, []Item{Cerise, Farine, Oeuf, Lait}, 6, 15000, "Cerises, farine, œufs et lait.", "ferme:cerisier"},
 		{"gateau", "Gâteaux au chocolat", Gateau, []Item{Chocolat, Beurre, Farine, Oeuf}, 6, 25000, "Chocolat, beurre, farine et œufs.", "exotique:chocolaterie,cremerie:beurre"},
 		{"eclair", "Éclairs au café", Eclair, []Item{Farine, Oeuf, Lait, Beurre, CafeMoulu}, 7, 40000, "Farine, œufs, lait, beurre et café moulu.", "exotique:moulin_cafe,cremerie:beurre"},
+		{"tarte_citron", "Tartes au citron meringuées", TarteCitron, []Item{Oeuf, Citron, Farine, Beurre}, 7, 50000, "Œufs, citrons, farine et beurre.", "exotique:citronnier,cremerie:beurre"},
 		{"fraisier", "Fraisiers", Fraisier, []Item{Farine, Oeuf, Lait, Beurre, Fraise}, 7, 60000, "Farine, œufs, lait, beurre et fraises.", "ferme:fraisier,cremerie:beurre"},
 	},
-	staff: "Pâtissiers", cashCost: 9000, staffCosts: []float64{10000, 25000, 60000, 150000, 350000, 800000}, upBase: 12000, // (un par machine)
+	staff: "Pâtissiers", cashCost: 9000, staffCosts: []float64{10000, 25000, 60000, 150000, 350000, 800000, 1800000}, upBase: 12000, // (un par machine)
 	sign: "Vitrine", bio: "Fait maison", shift2: true, tall: true, dockNear: true, gap: 260,
 }
 
