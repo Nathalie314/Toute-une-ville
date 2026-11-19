@@ -1450,3 +1450,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Crêperie : points d'école « Serveurs : vitesse » (+1 % de marche par point, pts_serv_vit).
 - Boucherie : le quai de la crêperie juste à droite de celui du supermarché.
 - Cidre d'après son image : bouteille bouchée (col vert, liège et muselet), cidre brun, étiquette orange à l'hermine.
+- Crêperie : le plat prêt d'un chef (une seule place) se voit en grand dans sa case de sortie.

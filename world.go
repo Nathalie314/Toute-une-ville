@@ -491,7 +491,11 @@ func (g *game) drawZones(dst *ebiten.Image, p *sim.Place, s *sim.Station) {
 		zoneBox(dst, s.Zone, in(s.Zone), g.t, 0x9fd3ff)
 		zoneBox(dst, s.OutZone, in(s.OutZone), g.t, 0xffffff)
 		// (les entrées, icône + quantité, sont dessinées par-dessus les personnages : machineInputs)
-		pileGrid(dst, s.Item, s.Pile, s.OutZone)
+		if s.PileMax == 1 && s.Pile > 0 {
+			drawItem(dst, s.Item, s.OutZone.C().X, s.OutZone.C().Y, 34) // (un plat à la fois : on le voit en grand)
+		} else {
+			pileGrid(dst, s.Item, s.Pile, s.OutZone)
+		}
 		if s.Pile == 0 {
 			say(dst, "SORTIE", s.OutZone.C().X, s.OutZone.C().Y, 15, true, 0, rgba(0x6b5a40, 0.7))
 		}
