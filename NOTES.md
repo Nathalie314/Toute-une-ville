@@ -1451,3 +1451,11 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Boucherie : le quai de la crêperie juste à droite de celui du supermarché.
 - Cidre d'après son image : bouteille bouchée (col vert, liège et muselet), cidre brun, étiquette orange à l'hermine.
 - Crêperie : le plat prêt d'un chef (une seule place) se voit en grand dans sa case de sortie.
+- Correctif : des ronds sombres apparaissaient sous l'objectif : des messages vides (une commande prise à la
+  crêperie envoie un événement sans texte, pour ses étincelles et son son). Un message vide ne s'affiche plus.
+- Crêperie ouverte seulement quand on joue (comme l'école) : les clients attablés sont sauvegardés (PlaceSave.Attables :
+  table, commande, ce qui reste à servir, jauge…) et reprennent à ton retour, leur voiture garée ; ceux qui ne sont pas
+  encore assis repartent. Gain hors ligne nul pour elle : son revenu est retiré du taux sauvegardé (RateOffline).
+  « Clients fidèles » y devient « Clients heureux » (pts_bonheur : la jauge de bonheur baisse moins vite, -0,5 % par
+  point) ; les points déjà placés passent de l'un à l'autre. Une ligne de plus dans son aide.
+- Crêperie : sur les zones de dépôt du comptoir, une seule crêpe, plus grosse.

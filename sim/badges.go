@@ -306,7 +306,7 @@ var Badges = []Badge{
 	{ID: "g_pub", Place: "ville", Name: "Star de la pub", Desc: "100 points de collégiens placés en tout.", Icon: IconSign, Check: func(g *Game) bool {
 		n := 0
 		for _, p := range g.Places {
-			for _, k := range []string{"pts_marketing", "pts_patience", "pts_panier", "pts_fidele", "pts_reclame"} {
+			for _, k := range []string{"pts_marketing", "pts_patience", "pts_panier", "pts_fidele", "pts_reclame", "pts_bonheur"} {
 				n += g.Levels[p.key(k)]
 			}
 		}

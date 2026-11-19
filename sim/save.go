@@ -40,11 +40,12 @@ type PlaceSave struct {
 	Eleves     []EleveSave        `json:",omitempty"`
 	Stands     int                `json:",omitempty"` // parc : ventes des stands
 	Pourboires map[string]float64 `json:",omitempty"` // crêperie : pourboires laissés sur les tables
+	Attables   []CrepGroupSave    `json:",omitempty"` // crêperie : les clients attablés (en pause)
 }
 
 func (g *Game) Snapshot(unix int64) *Save {
 	s := &Save{Version: SaveVersion, Money: g.Money, Levels: g.Levels, Outfit: g.Outfit, Owned: g.Owned, Stats: g.Stats,
-		Rate: g.RateLong(), Unix: unix, Places: map[string]*PlaceSave{}, Badges: g.Badges, Commande: g.Order, Cadeau: g.Boost, Favoris: g.Fav}
+		Rate: g.RateOffline(), Unix: unix, Places: map[string]*PlaceSave{}, Badges: g.Badges, Commande: g.Order, Cadeau: g.Boost, Favoris: g.Fav}
 	for _, p := range g.Places {
 		ps := &PlaceSave{Paid: map[string]float64{}, Stock: map[string]int{}, Pile: map[string]int{}, Buf: map[string][]int{}, Pousses: map[string]int{}, PoussePaye: map[string]float64{}, NiveauPaye: map[string]float64{}, StockPaye: map[string]float64{}, CasePaye: map[string]float64{}}
 		// les montants payés sont écrits sans le coefficient du lieu (prices.go) :
@@ -70,6 +71,7 @@ func (g *Game) Snapshot(unix int64) *Save {
 					ps.Pourboires[t.ID] = t.Tips
 				}
 			}
+			ps.Attables = p.saveSeated()
 		}
 		if p.ID == "ecole" {
 			ps.Eleves = p.saveStudents()
@@ -127,6 +129,11 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 	migrateAbattoirs(s)
 	migrateAvocatier(s)
 	migrateRayonsAgrumes(s)
+	// crêperie : « Clients fidèles » (absences) est devenu « Clients heureux » (elle n'ouvre que quand on joue)
+	if n := s.Levels["creperie.pts_fidele"]; n > 0 {
+		s.Levels["creperie.pts_bonheur"] += n
+		delete(s.Levels, "creperie.pts_fidele")
+	}
 	g.Money = s.Money
 	if s.Levels != nil {
 		g.Levels = s.Levels
@@ -319,6 +326,12 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 			p.restoreStudents(ps.Eleves)
 		}
 	}
+	// la crêperie : ses clients attablés reprennent où ils en étaient
+	for _, p := range g.Places {
+		if p.Crep != nil && s.Places[p.ID] != nil {
+			p.restoreSeated(s.Places[p.ID].Attables)
+		}
+	}
 	g.checkBadges(false) // badges mérités avant leur invention : sans fanfare
 	g.Events = nil
 	// gains pendant l'absence
@@ -328,6 +341,7 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 		secs = math.Min(secs, maxS)
 		// sans personne pour encaisser, rien ne rentre
 		// 4 % du revenu, +1 % par ouvrier (jusqu'à 8 %) : l'absence aide, sans remplacer le jeu
+		// (la crêperie n'en fait pas partie : son revenu est retiré de s.Rate, RateOffline)
 		f := 0.0
 		for _, p := range g.Places {
 			if p.Owned && p.HasCashier() && p.ID != "ecole" {
@@ -340,7 +354,7 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 		// clients fidèles (points du collège) : moyenne de tes lieux qui vendent
 		fid, nf := 0.0, 0
 		for _, p := range g.Places {
-			if p.Owned && p.sells() {
+			if p.Owned && p.sells() && p.Crep == nil { // (la crêperie ne gagne rien en ton absence)
 				fid += p.ptsF("pts_fidele")
 				nf++
 			}

@@ -1764,3 +1764,7 @@ Tartes au citron meringuées = Lemon meringue pies
 Ouvrir les 7 colonnes de la serre. = Open all 7 greenhouse rows.
 Concombres = Cucumbers
 Les serveurs marchent plus vite (+1 % par point). = Waiters walk faster (+1% per point).
+Clients heureux = Happy customers
+Bonheur = Happiness
+La jauge de bonheur des clients baisse moins vite (-0,5 % par point). = The customers' happiness gauge drops more slowly (-0.5% per point).
+La crêperie n'est ouverte que quand tu joues : en ton absence, elle ne rapporte rien, et ses clients attablés t'attendent. = The crêperie is only open while you play: while you're away, it earns nothing, and its seated customers wait for you.
