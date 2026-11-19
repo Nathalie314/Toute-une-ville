@@ -1462,3 +1462,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Crêperie : le nom de chaque poste en bas de son plan de travail (au-dessus des zones), plus sur la tête du chef.
 - Des femmes parmi les gens (clients, employés) : la moitié ; cheveux jusqu'aux épaules et mèches de chaque côté du
   visage, joues roses, lèvres, cils ; deux sur trois en jupe ou en robe (look.woman, look.skirt ; le joueur ne change pas).
+- Femmes : les cheveux ne passent plus sous le menton (on aurait dit une barbe) : de face, ils tombent de chaque côté.

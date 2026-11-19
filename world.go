@@ -1285,7 +1285,14 @@ func drawPerson(dst *ebiten.Image, pos, face V, walkT float64, moving bool, lk l
 	// tête
 	hy := y - 74 - bob
 	if lk.woman && lk.hat == 0 {
-		roundRect(dst, x-19, hy-10, 38, 42, 14, rgb(lk.hair)) // des cheveux jusqu'aux épaules
+		// des cheveux jusqu'aux épaules : derrière la tête et de chaque côté, jamais sous le menton
+		if face.Y < -0.5 {
+			roundRect(dst, x-19, hy-10, 38, 42, 14, rgb(lk.hair)) // (de dos : ils couvrent la nuque)
+		} else {
+			roundRect(dst, x-19, hy-10, 38, 26, 13, rgb(lk.hair))
+			roundRect(dst, x-19, hy, 10, 30, 5, rgb(lk.hair))
+			roundRect(dst, x+9, hy, 10, 30, 5, rgb(lk.hair))
+		}
 	} else if lk.long {
 		roundRect(dst, x-16, hy-8, 32, 34, 12, rgb(lk.hair))
 	}
