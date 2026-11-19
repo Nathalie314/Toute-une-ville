@@ -1459,3 +1459,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   « Clients fidèles » y devient « Clients heureux » (pts_bonheur : la jauge de bonheur baisse moins vite, -0,5 % par
   point) ; les points déjà placés passent de l'un à l'autre. Une ligne de plus dans son aide.
 - Crêperie : sur les zones de dépôt du comptoir, une seule crêpe, plus grosse.
+- Crêperie : le nom de chaque poste en bas de son plan de travail (au-dessus des zones), plus sur la tête du chef.
