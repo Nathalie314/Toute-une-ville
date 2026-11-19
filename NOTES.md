@@ -1443,3 +1443,10 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Ferme : concombres, 7e colonne de la serre (NSerre ; achat après le figuier, 48 000) ; verger, fleurs, ruches,
   compost et les quais glacier / pâtisserie / crêperie décalés de 150 ; un 8e ouvrier de la serre (150 000) ;
   SerreIDs / VergerIDs remplacent ColumnIDs[:6] / [6:] ; badge « Main verte » : les 7 colonnes.
+- Crêperie : les commis remplissent les postes en crêpes nature même sans commande (plus de limite à la demande ;
+  ce qu'une table attend reste prioritaire, ×6). Un chef fait un plat à la fois : une seule place en sortie, même avec
+  « Stock + » (qui n'agrandit que ses ingrédients) ; il attend qu'un commis emporte son plat.
+- Crêperie : le parking grandit avec ses achats (de l'herbe avant) : ParkX suit les places achetées (ParksBought).
+- Crêperie : points d'école « Serveurs : vitesse » (+1 % de marche par point, pts_serv_vit).
+- Boucherie : le quai de la crêperie juste à droite de celui du supermarché.
+- Cidre d'après son image : bouteille bouchée (col vert, liège et muselet), cidre brun, étiquette orange à l'hermine.

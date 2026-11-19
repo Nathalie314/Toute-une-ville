@@ -1763,3 +1763,4 @@ Tartes au citron meringuées = Lemon meringue pies
 Œufs, citrons, farine et beurre. = Eggs, lemons, flour and butter.
 Ouvrir les 7 colonnes de la serre. = Open all 7 greenhouse rows.
 Concombres = Cucumbers
+Les serveurs marchent plus vite (+1 % par point). = Waiters walk faster (+1% per point).
