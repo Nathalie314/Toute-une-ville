@@ -1024,6 +1024,8 @@ type look struct {
 	hat                      int // 0 rien, 1 chapeau de paille, 2 casquette, 3 toque, 4 masque de héros
 	hatC                     uint32
 	long                     bool
+	woman                    bool   // une femme : cheveux longs jusqu'aux épaules, joues roses, lèvres
+	skirt                    uint32 // jupe ou robe (0 : un pantalon)
 	// ennui
 	sit    bool // assis sur une botte de foin
 	shut   bool // yeux fermés
@@ -1143,6 +1145,13 @@ func lookFrom(n int) look {
 		shirt: shirts[(n/43)%len(shirts)],
 		pants: []uint32{0x34495e, 0x5d4037, 0x2c3e50, 0x7f8c8d}[(n/389)%4],
 		long:  (n/1013)%2 == 0,
+		woman: (n/1013)%2 == 0, // (la moitié des gens : des femmes)
+		skirt: func() uint32 {
+			if (n/1013)%2 == 0 && (n/3001)%3 != 0 { // deux femmes sur trois en jupe ou en robe
+				return []uint32{0xc0392b, 0x8e44ad, 0x2e86c1, 0x16a085, 0xd35400, 0x34495e, 0xe84393}[(n/577)%7]
+			}
+			return 0
+		}(),
 	}
 }
 
@@ -1180,6 +1189,10 @@ func drawPerson(dst *ebiten.Image, pos, face V, walkT float64, moving bool, lk l
 		rect(dst, x+2, y-22, 9, 14, rgb(lk.pants))
 		roundRect(dst, x-13, y-10, 12, 7, 3, rgb(0x3a2a1a))
 		roundRect(dst, x+1, y-10, 12, 7, 3, rgb(0x3a2a1a))
+		if lk.skirt != 0 {
+			roundRect(dst, x-17, y-34, 34, 20, 6, rgb(lk.skirt)) // la jupe sur les genoux
+			rect(dst, x-17, y-17, 34, 2.5, shade(lk.skirt, 0.75))
+		}
 		y += 6 // le haut du corps descend un peu
 	} else {
 		ellipse(dst, x, y, 22, 8, rgba(0x000000, 0.22))
@@ -1188,6 +1201,10 @@ func drawPerson(dst *ebiten.Image, pos, face V, walkT float64, moving bool, lk l
 		rect(dst, x+2, y-24, 9, 22-sw*3, rgb(lk.pants))
 		roundRect(dst, x-13, y-5+sw*3, 12, 7, 3, rgb(0x3a2a1a))
 		roundRect(dst, x+1, y-5-sw*3, 12, 7, 3, rgb(0x3a2a1a))
+		if lk.skirt != 0 && lk.boots == 0 { // une jupe évasée
+			polygon(dst, []V{{X: x - 15, Y: y - 30 - bob}, {X: x + 15, Y: y - 30 - bob}, {X: x + 21, Y: y - 7}, {X: x - 21, Y: y - 7}}, rgb(lk.skirt))
+			line(dst, x-21, y-8, x+21, y-8, 2.5, shade(lk.skirt, 0.75))
+		}
 	}
 	if lk.boots != 0 && !lk.sit { // bottes en caoutchouc
 		rect(dst, x-12, y-16, 11, 14+sw*3, rgb(lk.boots))
@@ -1267,7 +1284,9 @@ func drawPerson(dst *ebiten.Image, pos, face V, walkT float64, moving bool, lk l
 	}
 	// tête
 	hy := y - 74 - bob
-	if lk.long {
+	if lk.woman && lk.hat == 0 {
+		roundRect(dst, x-19, hy-10, 38, 42, 14, rgb(lk.hair)) // des cheveux jusqu'aux épaules
+	} else if lk.long {
 		roundRect(dst, x-16, hy-8, 32, 34, 12, rgb(lk.hair))
 	}
 	circle(dst, x, hy, 16, rgb(lk.skin))
@@ -1289,6 +1308,19 @@ func drawPerson(dst *ebiten.Image, pos, face V, walkT float64, moving bool, lk l
 			ellipse(dst, x+ex, hy+10, 5, 4, rgb(0x6b1f1f))
 		case 2:
 			circle(dst, x+ex+2, hy+9, 2.6, rgb(0x6b1f1f))
+		}
+		if lk.woman {
+			if lk.hat == 0 { // les mèches de chaque côté du visage
+				roundRect(dst, x-18, hy-8, 7, 26, 3, rgb(lk.hair))
+				roundRect(dst, x+11, hy-8, 7, 26, 3, rgb(lk.hair))
+			}
+			circle(dst, x-9+ex, hy+7, 3, rgba(0xff7f7f, 0.35)) // joues roses
+			circle(dst, x+9+ex, hy+7, 3, rgba(0xff7f7f, 0.35))
+			if lk.mouth == 0 {
+				ellipse(dst, x+ex, hy+10, 3.2, 1.6, rgb(0xc0392b)) // les lèvres
+			}
+			line(dst, x-9+ex, hy-1, x-7+ex, hy-2, 1.2, rgb(0x2a2a2a)) // les cils
+			line(dst, x+9+ex, hy-1, x+7+ex, hy-2, 1.2, rgb(0x2a2a2a))
 		}
 	}
 	switch lk.hat {

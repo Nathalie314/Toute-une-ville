@@ -1460,3 +1460,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   point) ; les points déjà placés passent de l'un à l'autre. Une ligne de plus dans son aide.
 - Crêperie : sur les zones de dépôt du comptoir, une seule crêpe, plus grosse.
 - Crêperie : le nom de chaque poste en bas de son plan de travail (au-dessus des zones), plus sur la tête du chef.
+- Des femmes parmi les gens (clients, employés) : la moitié ; cheveux jusqu'aux épaules et mèches de chaque côté du
+  visage, joues roses, lèvres, cils ; deux sur trois en jupe ou en robe (look.woman, look.skirt ; le joueur ne change pas).
