@@ -1500,3 +1500,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   (lieu à 6 260) ; dans chaque espace, la culture, la presse et les réserves sont centrées sur l'axe de l'espace (trois
   colonnes d'arbres symétriques ; deux réserves de part et d'autre de l'axe) ; les quais de part et d'autre du milieu
   du lieu ; le portail dans l'allée entre les deux premiers espaces ; le sol de chaque espace descend sous ses réserves.
+- Parc, tour volante : le mât traverse la couronne en son centre (au-dessus du centre, il passe devant la moitié du
+  fond ; un collier sombre marque la traversée) : avant, la couronne le cachait entièrement et la 3D était faussée.
