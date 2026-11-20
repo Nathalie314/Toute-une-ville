@@ -1517,3 +1517,16 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   dépassant en haut (drawPaperBag) ; avant, ils portaient leurs produits à bout de bras.
 - Crêperie : tables de 4 plus grandes (260 × 132 au lieu de 180 × 100 ; chaises écartées) : les assiettes, salades et
   bouteilles de quatre personnes tiennent sur la nappe (5 par rangée).
+- Sacs kraft : ils ne se voyaient pas, car le client vidait ses achats (Carry) au moment de payer. Il les garde
+  maintenant jusqu'à sa sortie : sac en papier à la main, ou sacs dans le caddie.
+- Ferme : les étals se vidaient à chaque ouverture du jeu. Tous les drones (33 dans sa partie) décollaient au même
+  moment et emportaient près de 600 produits en 2 secondes (686 → 100 sur les étals). Désormais, à la ferme, les
+  drones laissent toujours un quart de l'étal aux clients (StockMax/4). Mesuré avec sa sauvegarde : plus aucun étal
+  vide à l'ouverture (minimum 207 produits), puis ~450 à 600 comme avant.
+- Domaine : étals écartés (tous les 370 au lieu de 230) sur toute la largeur de la boutique, jusqu'au compost.
+- Sons : le bouton « pièce » coupe maintenant tous les sons sauf le téléphone, qui garde son propre bouton. Avant, il
+  ne coupait que les petits sons ; les élèves qui réussissent, les clients qui partent, les achats… restaient.
+- Supermarché : l'espace « Huiles » passe à la fin, après la pâtisserie (rang des magasiniers 13 conservé ; les
+  espaces après les boissons reprennent la règle zi-1).
+- Glacier : vitrines écartées comme à la crèmerie (shelfStep 280) ; ses deux quais tiennent largement (lieu de 4 370).
+- Crêperie, pourboires : ils s'additionnent sur la table (t.Tips +=) jusqu'à ce que le joueur passe les ramasser.

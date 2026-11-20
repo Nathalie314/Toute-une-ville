@@ -646,7 +646,7 @@ func (g *game) drawTempWarn(dst *ebiten.Image) {
 	g.btn(dst, "Compris !", x+w/2-150, y+h-190, 300, 76, 0x2fa86b, true, func() { g.closePanel() })
 }
 
-// soundButtons : trois boutons : couper les petits sons (pièces, ramassage),
+// soundButtons : trois boutons : couper tous les sons sauf le téléphone,
 // la sonnerie du téléphone (commandes), la musique (pour plus tard).
 func (g *game) soundButtons(dst *ebiten.Image, x, y float64) {
 	if g.snd == nil {
@@ -669,7 +669,7 @@ func (g *game) soundButtons(dst *ebiten.Image, x, y float64) {
 			line(dst, bx+12, y+14, bx+52, y+56, 5, rgb(0xff6b6b))
 		}
 	}
-	// petits sons : une pièce
+	// tous les sons (sauf le téléphone) : une pièce
 	one(x, &sb.noSmall, func(cx, cy float64, c colorRGBA) {
 		circle(dst, cx, cy, 15, rgb(0xffd23f))
 		circle(dst, cx, cy, 10, rgb(0xf0b020))

@@ -122,6 +122,7 @@ var iceSpec = workshopSpec{
 	staff: "Serveurs", cashCost: 6000, staffCosts: []float64{8000, 20000, 50000, 120000, 300000, 700000, 1500000, 3200000}, upBase: 9000, // (un par fabrique)
 	sign: "Parasols", bio: "Recettes maison", shift2: true, tall: true,
 	gap: 320, dockNear: true, docks: []string{"super", "creperie"}, // (fabriques larges : on circule bien entre elles ; la glace vanille part aussi à la crêperie)
+	shelfStep: 280, // (vitrines écartées comme à la crèmerie)
 }
 
 // Disposition des ateliers (jeu aéré) : chaque machine est suivie de sa case

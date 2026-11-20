@@ -181,6 +181,11 @@ func (p *Place) stepDrone(s *Station, d *Drone, pad V, capa int, speed, dt float
 				}
 			}
 			avail := s.Stock - s.booked - pledged
+			if p.ID == "ferme" && !s.NoSale {
+				// les drones laissent toujours un quart de l'étal aux clients (sinon, à l'ouverture
+				// du jeu, tous les drones décollent ensemble et vident les étals d'un coup)
+				avail -= s.StockMax / 4
+			}
 			if avail <= 0 {
 				return
 			}
