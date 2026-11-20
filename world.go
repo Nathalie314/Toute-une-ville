@@ -1470,6 +1470,16 @@ func drawCustomer(dst *ebiten.Image, p *sim.Place, c *sim.Customer, t float64) {
 		if !behind {
 			drawCart(dst, c.Pos, c.Face, c.Carry, c.Paid > 0)
 		}
+	} else if c.Paid > 0 && len(c.Carry) > 0 {
+		// achats payés : il repart avec un sac en papier kraft à la main (ses achats dedans)
+		back := c.Face.Y < -0.5
+		if back {
+			drawPaperBag(dst, c.Pos, c.Face, c.Carry, c.WalkT, c.Moving, lk.skin)
+		}
+		drawPerson(dst, c.Pos, c.Face, c.WalkT, c.Moving, lk, nil)
+		if !back {
+			drawPaperBag(dst, c.Pos, c.Face, c.Carry, c.WalkT, c.Moving, lk.skin)
+		}
 	} else {
 		drawPerson(dst, c.Pos, c.Face, c.WalkT, c.Moving, lk, c.Carry)
 	}
@@ -2239,4 +2249,31 @@ func drawStorageRack(dst *ebiten.Image, s *sim.Station, t float64) {
 		roundRect(dst, b.C().X-34, top-30, 68, 26, 6, rgb(0xe74c3c))
 		say(dst, "VIDE", b.C().X, top-17, 17, true, 0, rgb(0xffffff))
 	}
+}
+
+// drawPaperBag : un sac en papier kraft porté à la main (côté de la marche), ce qu'on a
+// acheté dépasse en haut.
+func drawPaperBag(dst *ebiten.Image, pos, face V, items []sim.Item, walkT float64, moving bool, skin uint32) {
+	if cam.iso { // (debout : seul son pied est projeté)
+		upright(pos.X, pos.Y, func() { drawPaperBag(dst, pos, face, items, walkT, moving, skin) })
+		return
+	}
+	side := 1.0
+	if face.X < -0.3 {
+		side = -1
+	}
+	sw := 0.0
+	if moving {
+		sw = math.Sin(walkT*12) * 2
+	}
+	x, y := pos.X+side*22, pos.Y-30+sw // (la main)
+	// ce qui dépasse du sac
+	for k := 0; k < min(len(items), 2); k++ {
+		drawItem(dst, items[k], x-5+float64(k)*10, y+2, 8)
+	}
+	polygon(dst, []V{{X: x - 12, Y: y + 6}, {X: x + 12, Y: y + 6}, {X: x + 13, Y: y + 27}, {X: x - 13, Y: y + 27}}, rgb(0xc69a6a))
+	rect(dst, x-12, y+6, 24, 4, rgb(0xb0855a))                // le bord replié
+	line(dst, x-6, y+12, x-7, y+25, 1.2, rgba(0x8a6a44, 0.5)) // les plis
+	line(dst, x+6, y+12, x+7, y+25, 1.2, rgba(0x8a6a44, 0.5))
+	circle(dst, x, y+4, 5, rgb(skin)) // la main qui le tient
 }

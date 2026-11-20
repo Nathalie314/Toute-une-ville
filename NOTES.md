@@ -1513,3 +1513,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Crèmerie agrandie vers le haut (lift 150 : réserve, machines, vitrines, caisse et achats montent ; route du haut et
   camions de livraison aussi ; Place.Lift) : ses cinq quais sont sous les vitrines, le premier juste à droite de la
   porte des clients (dockX0 1340, puis tous les 350) ; le lieu ne s'allonge plus vers la droite pour eux (w 3300).
+- Clients : après avoir payé (sans caddie), ils repartent avec un sac en papier kraft à la main, leurs achats
+  dépassant en haut (drawPaperBag) ; avant, ils portaient leurs produits à bout de bras.
