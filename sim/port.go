@@ -35,7 +35,27 @@ const (
 	PortParcY   = PortJettyY1 + 40 // haut des parcs
 	PortCell    = 115.0            // une case de parc
 	PortBoatMax = 4                // bateaux par poisson
+	// le marais salant, au nord de la criée : 2 rangées de 3 bassins, sur une terre de digues
+	PortSalTop  = -830.0 // haut de la terre du marais
+	PortSalX0   = 2755.0 // bord ouest du premier bassin (centré sur la criée)
+	PortSalY0   = -700.0 // haut de la rangée du haut
+	PortSalW    = 400.0  // un bassin
+	PortSalH    = 220.0
+	PortSalGapX = 70.0 // les digues entre les bassins
+	PortSalGapY = 50.0
+	PortSalMax  = 6
 )
+
+// PortSalPivot : le pied du râteau mécanique (sous les bassins, au milieu) ; le tas de sel est juste dessous.
+var PortSalPivot = V{(PortCrieeX0 + PortCrieeX1) / 2, -150}
+
+// PortSalBasin : le bassin n° k, dans l'ordre d'achat (le plus proche du râteau d'abord :
+// en bas au milieu, en bas à gauche, en bas à droite, puis la rangée du haut).
+func PortSalBasin(k int) Rect {
+	col := []int{1, 0, 2, 1, 0, 2}[k]
+	row := 1 - k/3
+	return Rect{PortSalX0 + float64(col)*(PortSalW+PortSalGapX), PortSalY0 + float64(row)*(PortSalH+PortSalGapY), PortSalW, PortSalH}
+}
 
 // PortFish, PortShell : les poissons (bateaux) et les coquillages (parcs), du
 // plus proche au plus loin de la criée, dans l'ordre de déblocage.
@@ -95,12 +115,16 @@ func newPort(g *Game) *Place {
 	p.RestSpot = V{4000, 1250}
 	// l'eau : tout ce qui est à l'ouest de la criée, sauf la jetée (on n'y marche pas)
 	p.Water = []Rect{
-		{-3000, -4000, PortCrieeX0 + 3000, PortJettyY0 + 4000},                         // au nord de la jetée
-		{-3000, PortJettyY1, PortCrieeX0 + 3000, roadY - 12 - PortJettyY1},             // au sud (jusqu'au pont de la route)
-		{-3000, PortJettyY0, PortJettyX0 + 3000, PortJettyY1 - PortJettyY0},            // au-delà du bout de la jetée
-		{-3000, roadY + 162, PortCrieeX0 - 120 + 3000, 2000},                           // sous le pont
-		{PortCrieeX0, -4000, PortCrieeX1 + 600 - PortCrieeX0, PortCrieeY0 + 4000 - 20}, // au nord de la criée : la mer aussi
+		{-3000, -4000, PortCrieeX0 + 3000, PortJettyY0 + 4000},                   // au nord de la jetée
+		{-3000, PortJettyY1, PortCrieeX0 + 3000, roadY - 12 - PortJettyY1},       // au sud (jusqu'au pont de la route)
+		{-3000, PortJettyY0, PortJettyX0 + 3000, PortJettyY1 - PortJettyY0},      // au-delà du bout de la jetée
+		{-3000, roadY + 162, PortCrieeX0 - 120 + 3000, 2000},                     // sous le pont
+		{PortCrieeX0, -4000, PortCrieeX1 + 600 - PortCrieeX0, 4000 + PortSalTop}, // au nord du marais salant : la mer
+		{PortCrieeX1, PortSalTop, 600, PortCrieeY0 - 20 - PortSalTop},            // à droite du marais : la mer aussi
 	}
+	// les bassins et leurs digues : personne n'y va (le joueur achète les bassins depuis le bord)
+	p.Water = append(p.Water, Rect{PortSalX0 - 10, PortSalY0 - 10, 3*PortSalW + 2*PortSalGapX + 20, 2*PortSalH + PortSalGapY + 20})
+	p.Top = PortSalTop
 
 	// --- les sections : un panier par produit, les bateaux, les parcs et leur drague
 	for i := 0; i < 4; i++ {
@@ -131,6 +155,21 @@ func newPort(g *Game) *Place {
 		p.dredges = append(p.dredges, &Dredge{Base: V{sx + 440, PortJettyY1 - 40}, Tip: V{sx + 440, PortJettyY1 - 40}, Target: -1})
 	}
 
+	// --- le marais salant (après les gambas) : six bassins (un au départ, « Bassin +1 » ensuite) ;
+	// l'eau s'évapore (bleu → blanc), le râteau mécanique ramasse le sel et le met en tas
+	mar := &Station{ID: "marais", Name: "Marais salant", Kind: Field, Item: Sel, Time: 24, Unlock: "marais", Dredged: true}
+	mar.Body = Rect{PortSalX0 - 10, PortSalY0 - 10, 3*PortSalW + 2*PortSalGapX + 20, 2*PortSalH + PortSalGapY + 20}
+	mar.Zone = Rect{-1000, -1000, 0, 0}
+	for k := 0; k < PortSalMax; k++ {
+		mar.Slots = append(mar.Slots, PortSalBasin(k).C())
+	}
+	mar.Plants = []Plant{{P: mar.Slots[0]}}
+	tas := &Station{ID: "tas_sel", Name: "Tas de sel", Kind: Pallet, Item: Sel, PileMax: 40, Unlock: "marais"}
+	tas.Body = Rect{PortSalPivot.X - 65, PortSalPivot.Y + 50, 130, 64}
+	tas.Zone = Rect{PortSalPivot.X - 75, PortSalPivot.Y + 124, 150, 90}
+	p.Stations = append(p.Stations, mar, tas)
+	p.salt = &Dredge{Base: PortSalPivot, Tip: PortSalPivot, Target: -1}
+
 	// --- la criée : deux rangées d'étals (poissons en haut, coquillages en bas), la caisse au milieu
 	shelf := func(it Item, x, y float64, unl string) {
 		s := &Station{ID: "etal_" + itoa(int(it)), Name: "Étal : " + Items[it].Name, Kind: Shelf, Item: it, StockMax: 12, Unlock: unl}
@@ -147,6 +186,11 @@ func newPort(g *Game) *Place {
 		}
 		shelf(PortFish[i], x, 330, unlF)
 		shelf(PortShell[i], x, 1020, portShellID[i])
+	}
+	// le sel : à gauche de la caisse (sa base de drone à sa gauche : dessous, il y a les coquillages)
+	shelf(Sel, 2990, 770, "marais")
+	if st := p.Station("etal_" + itoa(int(Sel))); st != nil {
+		st.Pad = Rect{2810, 752, 120, 104}
 	}
 	reg := &Station{ID: "caisse", Name: "Caisse", Kind: Register, HireKey: "caissiere", QueueDown: 1}
 	reg.Body = Rect{3290, 770, 210, 66}
@@ -178,6 +222,8 @@ func newPort(g *Game) *Place {
 		}
 		p.Unlocks = append(p.Unlocks, &Unlock{ID: id, Name: name, Cost: portUnlockCost[i], Zone: Rect{sx + 170, y, 200, 130}, Hint: hint})
 	}
+	p.Unlocks = append(p.Unlocks, &Unlock{ID: "marais", Name: "Marais salant", Cost: 330000, Zone: Rect{PortSalPivot.X + 140, PortSalPivot.Y - 10, 200, 130},
+		Hint: "Six bassins d'eau de mer : l'eau s'évapore, le râteau mécanique ramasse le sel. Achète les bassins depuis le marais."})
 	for _, s := range p.Stations {
 		if s.Unlock == "" {
 			s.Built = true
@@ -192,7 +238,7 @@ func newPort(g *Game) *Place {
 		{Key: k("entrepot"), Name: "Paniers plus grands", Max: 12, Base: 6000, Mult: 1.6, Desc: func(l int) string {
 			return "Chaque panier de la jetée contient " + itoa(PalletMax(p.ID, l)) + " produits."
 		}},
-		{Key: k("ouvriers"), Name: "Ouvrier du port", Max: 8, Now: true, Costs: []float64{4000, 8000, 15000, 25000, 40000, 60000, 90000, 130000},
+		{Key: k("ouvriers"), Name: "Ouvrier du port", Max: 9, Now: true, Costs: []float64{4000, 8000, 15000, 25000, 40000, 60000, 90000, 130000, 180000}, // (le 9e : pour le marais salant)
 			Desc: func(l int) string {
 				return "Il porte les paniers de la jetée jusqu'aux étals de la criée. Embauchés : " + itoa(l) + "."
 			}},
@@ -209,8 +255,14 @@ func newPort(g *Game) *Place {
 					return "Une case de plus dans le parc (la drague y ramasse les coquillages). Cases : " + itoa(l+1) + " / 16."
 				}})
 	}
+	p.ups = append(p.ups, &Upgrade{Key: k("cases_marais"), Name: "Bassin : Marais salant", Max: PortSalMax - 1, Now: true, Base: 9000, Mult: 1.35,
+		Desc: func(l int) string {
+			return "Un bassin de plus (le râteau y ramasse le sel). Bassins : " + itoa(l+1) + " / " + itoa(PortSalMax) + "."
+		}})
 	p.ups = append(p.ups, p.droneUpgrades(2)...)
 	p.Spots = append(p.Spots,
+		&Spot{ID: "cases_marais", Label: "Bassin +1", Zone: Rect{PortSalPivot.X + 140, PortSalPivot.Y - 10, 130, 120}, NeedsBuilt: "marais",
+			Done: func(l int) string { return "Marais salant : un bassin de plus !" }},
 		&Spot{ID: "caissiere", Label: "Caissière", Zone: Rect{3560, 650, 145, 116}, Done: func(int) string { return "Caissière embauchée !" }},
 		&Spot{ID: "etals", Label: "Étals +", Zone: Rect{3720, 650, 130, 116}, Done: func(l int) string { return "Étals agrandis : niveau " + itoa(l) + " !" }},
 		&Spot{ID: "entrepot", Label: "Paniers +", Zone: Rect{3870, 650, 130, 116}, Done: func(l int) string {
@@ -281,7 +333,76 @@ func (p *Place) syncPort() {
 			}
 		}
 	}
+	if mar := p.Station("marais"); mar != nil && mar.Built {
+		n := 1 + min(PortSalMax-1, g.Levels[p.key("cases_marais")])
+		for len(mar.Plants) < n {
+			mar.Plants = append(mar.Plants, Plant{P: mar.Slots[len(mar.Plants)]})
+		}
+	}
 	p.boatsInit = true
+}
+
+// SaltSpeed : vitesse du râteau du marais ; SaltCap : sel ramassé par bassin.
+func SaltSpeed(pts int) float64 { return 300 * (1 + 0.03*float64(pts)) }
+func SaltCap(pts int) int       { return 3 + pts/3 }
+
+// Salt : le râteau mécanique du marais salant (dessin).
+func (p *Place) Salt() *Dredge { return p.salt }
+
+// stepSalt : le râteau va au bassin blanc le plus proche, racle le sel (le bassin se remplit
+// d'eau de mer et redevient bleu) et le rapporte sur le tas.
+func (p *Place) stepSalt(dt float64) {
+	g := p.g
+	mar, tas, d := p.Station("marais"), p.Station("tas_sel"), p.salt
+	if mar == nil || !mar.Built || d == nil {
+		return
+	}
+	v := SaltSpeed(g.Levels[p.key("pts_sel_vit")])
+	switch d.Phase {
+	case 0:
+		d.Tip = d.Base
+		d.T -= dt
+		if d.T > 0 || tas.Pile >= tas.PileMax {
+			return
+		}
+		best, bd := -1, 1e9
+		for k, pl := range mar.Plants {
+			if pl.G >= 1 {
+				if dd := pl.P.Dist(d.Base); dd < bd {
+					best, bd = k, dd
+				}
+			}
+		}
+		if best >= 0 {
+			d.Target, d.Phase = best, 1
+		}
+	case 1:
+		if d.moveTip(mar.Plants[d.Target].P, v*dt) {
+			d.Phase, d.T = 2, 1.2
+		}
+	case 2:
+		d.T -= dt
+		if d.T <= 0 {
+			pl := &mar.Plants[d.Target]
+			if pl.G >= 1 {
+				d.N = SaltCap(g.Levels[p.key("pts_sel_cap")])
+				pl.G = 0
+				g.Stats.Harvested += d.N
+				g.emit(Event{Kind: EvHarvest, Pos: pl.P, It: Sel})
+			}
+			d.Phase = 3
+		}
+	case 3:
+		if d.moveTip(d.Base, v*dt) {
+			for d.N > 0 && tas.Pile < tas.PileMax {
+				d.N--
+				tas.Pile++
+				g.made(Sel)
+			}
+			d.N = 0
+			d.Phase, d.T = 0, 0.3
+		}
+	}
 }
 
 // stepPort : les bateaux et les dragues.
@@ -331,6 +452,7 @@ func (p *Place) stepPort(dt float64) {
 		}
 		b.Pos.X = berth.X
 	}
+	p.stepSalt(dt)
 	// dragues
 	for i, d := range p.dredges {
 		parc := p.Station("parc_" + portShellID[i])

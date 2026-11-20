@@ -25,6 +25,18 @@ func (g *game) portGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	}
 	// au nord de la criée aussi
 	rect(dst, sim.PortCrieeX0-10, tl.Y-20, br.X-sim.PortCrieeX0+30, math.Max(0, sim.PortCrieeY0-20-tl.Y+20), rgb(0x3f93c9))
+	// la terre du marais salant, au nord de la criée (bord de pierre côté mer)
+	if tl.Y < sim.PortCrieeY0 {
+		mx0, mx1 := sim.PortCrieeX0, sim.PortCrieeX1
+		rect(dst, mx0-16, sim.PortSalTop-16, mx1-mx0+32, sim.PortCrieeY0-sim.PortSalTop+16, rgb(0x8d8a82))
+		rect(dst, mx0, sim.PortSalTop, mx1-mx0, sim.PortCrieeY0-sim.PortSalTop, rgb(0xcbb88f))
+		for k := 0; k < 60; k++ { // quelques touffes de salicorne
+			fk := float64(k)
+			x := mx0 + 20 + math.Mod(fk*233.7, mx1-mx0-40)
+			y := sim.PortSalTop + 14 + math.Mod(fk*97.3, sim.PortCrieeY0-sim.PortSalTop-30)
+			circle(dst, x, y, 4, rgba(0x6f8f3a, 0.55))
+		}
+	}
 	// des vaguelettes
 	for i := 0; i < 420; i++ {
 		fi := float64(i)
@@ -34,6 +46,9 @@ func (g *game) portGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 			continue
 		}
 		onWater := x < sim.PortCrieeX0-10 || y < sim.PortCrieeY0-30
+		if x > sim.PortCrieeX0-30 && x < sim.PortCrieeX1+20 && y > sim.PortSalTop-30 {
+			onWater = false // (la terre du marais salant)
+		}
 		if !onWater || (x > sim.PortJettyX0-20 && y > sim.PortJettyY0-10 && y < sim.PortJettyY1+10) {
 			continue
 		}
@@ -129,6 +144,9 @@ func (g *game) drawPortSea(dst *ebiten.Image, p *sim.Place) {
 		}
 		drawDredge(dst, d, i == 3, t)
 	}
+	if m := p.Station("marais"); m != nil && m.Built && p.Salt() != nil {
+		drawSaltRake(dst, p.Salt(), t)
+	}
 }
 
 // drawBoat : un bateau de pêche automatique, la proue vers le nord (centre x, y).
@@ -207,6 +225,108 @@ func drawDredge(dst *ebiten.Image, d *sim.Dredge, net bool, t float64) {
 	}
 	if d.N > 0 && d.Phase == 3 {
 		say(dst, "×"+itoa(d.N), tip.X+28, tip.Y-14, 16, true, 0, rgb(0xffffff))
+	}
+}
+
+// drawMarais : le marais salant (six bassins entre des digues d'argile ; l'eau
+// s'évapore : du bleu au blanc, des cristaux apparaissent, puis un petit tas de sel).
+func (g *game) drawMarais(dst *ebiten.Image, s *sim.Station) {
+	for k := 0; k < sim.PortSalMax; k++ {
+		b := sim.PortSalBasin(k)
+		roundRect(dst, b.X-10, b.Y-10, b.W+20, b.H+20, 14, rgb(0x9c8460)) // la digue
+		if !s.Built || k >= len(s.Plants) {
+			roundRect(dst, b.X, b.Y, b.W, b.H, 8, rgb(0xb7a27a)) // pas encore en eau : de l'argile sèche
+			for j := 0; j < 5; j++ {
+				line(dst, b.X+30+float64(j)*80, b.Y+40+float64(j%2)*90, b.X+70+float64(j)*80, b.Y+90+float64(j%3)*40, 2, rgba(0x8a7550, 0.6))
+			}
+			dashedRect(dst, b.X+6, b.Y+6, b.W-12, b.H-12, 3, 14, 0, rgba(0xffffff, 0.45))
+			continue
+		}
+		gr := math.Max(0, math.Min(1, s.Plants[k].G))
+		roundRect(dst, b.X, b.Y, b.W, b.H, 8, lerpCol(0x3f93c9, 0xeef2f5, gr))
+		// des reflets sur l'eau qui reste
+		if gr < 0.85 {
+			a := 0.35 * (1 - gr)
+			for j := 0; j < 4; j++ {
+				wx := b.X + 40 + math.Mod(float64(j)*97+g.t*10, b.W-100)
+				wy := b.Y + 30 + float64(j)*45
+				line(dst, wx, wy, wx+30, wy-4, 2, rgba(0xd8f1fb, a))
+			}
+		}
+		// les cristaux de sel
+		if gr > 0.3 {
+			n := int((gr - 0.3) / 0.7 * 40)
+			for j := 0; j < n; j++ {
+				hx := math.Abs(math.Sin(float64(j)*12.9898+float64(k)*4.1) * 43758.5453)
+				hy := math.Abs(math.Sin(float64(j)*78.233+float64(k)*2.7) * 24634.6345)
+				cx := b.X + 14 + (hx-math.Floor(hx))*(b.W-28)
+				cy := b.Y + 12 + (hy-math.Floor(hy))*(b.H-24)
+				rect(dst, cx, cy, 5, 5, rgb(0xffffff))
+				rect(dst, cx+1, cy+1, 3, 3, rgb(0xdfe7ee))
+			}
+		}
+		if gr >= 1 { // prêt : un petit tas (mulon) au milieu, qui scintille
+			c := b.C()
+			ellipse(dst, c.X+6, c.Y+24, 56, 10, rgba(0x5a6a7a, 0.3)) // son ombre
+			polygon(dst, []V{{X: c.X - 52, Y: c.Y + 24}, {X: c.X, Y: c.Y - 34}, {X: c.X + 52, Y: c.Y + 24}}, rgb(0xa9b6c2))
+			polygon(dst, []V{{X: c.X - 48, Y: c.Y + 22}, {X: c.X, Y: c.Y - 30}, {X: c.X + 48, Y: c.Y + 22}}, rgb(0xffffff))
+			polygon(dst, []V{{X: c.X, Y: c.Y - 30}, {X: c.X + 48, Y: c.Y + 22}, {X: c.X + 10, Y: c.Y + 22}}, rgb(0xc9d3dd))
+			a := 0.5 + 0.4*math.Sin(g.t*4+float64(k))
+			circle(dst, b.X+b.W-20, b.Y+18, 6, rgba(0xffffff, a))
+		}
+	}
+	a := 0.9
+	if !s.Built {
+		a = 0.45
+	}
+	roundRect(dst, sim.PortSalPivot.X-160, sim.PortSalY0-62, 320, 42, 10, rgba(0x2b5a8a, a))
+	say(dst, "Marais salant", sim.PortSalPivot.X, sim.PortSalY0-41, 20, true, 0, rgba(0xffffff, a))
+}
+
+// drawSaltRake : le râteau mécanique du marais (une grue jaune et un large râteau de bois).
+func drawSaltRake(dst *ebiten.Image, d *sim.Dredge, t float64) {
+	b := d.Base
+	ellipse(dst, b.X+4, b.Y+30, 62, 12, rgba(0x000000, 0.2))
+	roundRect(dst, b.X-56, b.Y-36, 112, 66, 10, rgb(0xe8b52a))
+	rect(dst, b.X-56, b.Y+18, 112, 14, rgb(0x3b3b3b)) // les chenilles
+	for k := 0; k < 7; k++ {
+		rect(dst, b.X-52+float64(k)*16, b.Y+21, 8, 8, rgb(0x5a5a5a))
+	}
+	roundRect(dst, b.X-26, b.Y-30, 52, 26, 6, rgb(0x7fc4ea)) // la vitre de la cabine (automatique : personne)
+	circle(dst, b.X, b.Y-6, 15, rgb(0xb8861a))
+	tip := d.Tip
+	line(dst, b.X, b.Y-6, tip.X, tip.Y, 9, rgb(0xd9a520))
+	line(dst, b.X, b.Y-6, tip.X, tip.Y, 3, rgb(0x8a6a10))
+	if tip.Dist(b) < 2 {
+		return
+	}
+	sw := 0.0
+	if d.Phase == 2 {
+		sw = math.Sin(t*10) * 14 // il racle d'un côté à l'autre
+	}
+	x, y := tip.X+sw, tip.Y
+	rect(dst, x-46, y-6, 92, 10, rgb(0x9a6b3e)) // la barre du râteau
+	for k := 0; k < 9; k++ {
+		line(dst, x-42+float64(k)*10.5, y+4, x-42+float64(k)*10.5, y+14, 3, rgb(0x6e4a26))
+	}
+	if d.N > 0 {
+		polygon(dst, []V{{X: x - 30, Y: y - 6}, {X: x, Y: y - 26}, {X: x + 30, Y: y - 6}}, rgb(0xffffff))
+		say(dst, "×"+itoa(d.N), x+48, y-18, 16, true, 0, rgb(0xffffff))
+	}
+}
+
+// drawSaltHeap : le tas de sel au pied du râteau (il grossit avec le stock).
+func drawSaltHeap(dst *ebiten.Image, s *sim.Station) {
+	b := s.Body
+	ellipse(dst, b.C().X, b.Y+b.H, b.W*0.55, 12, rgba(0x000000, 0.18))
+	roundRect(dst, b.X, b.Y+b.H-14, b.W, 14, 4, rgb(0x8a6236)) // une palette de bois
+	f := math.Min(1, float64(s.Pile)/math.Max(1, float64(s.PileMax)))
+	if s.Pile > 0 {
+		h := 12 + 50*f
+		w := b.W*0.3 + b.W*0.65*f
+		cx, by := b.C().X, b.Y+b.H-12
+		polygon(dst, []V{{X: cx - w/2, Y: by}, {X: cx, Y: by - h}, {X: cx + w/2, Y: by}}, rgb(0xf6f8fa))
+		polygon(dst, []V{{X: cx, Y: by - h}, {X: cx + w/2, Y: by}, {X: cx + w*0.1, Y: by}}, rgb(0xd5dde5))
 	}
 }
 
@@ -302,6 +422,13 @@ func drawItemPort(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		polygon(dst, []V{{X: x, Y: y + r*0.7}, {X: x - r*0.9, Y: y - r*0.2}, {X: x - r*0.5, Y: y - r*0.75}, {X: x + r*0.5, Y: y - r*0.75}, {X: x + r*0.9, Y: y - r*0.2}}, rgb(0xf2c49a))
 		for k := -2; k <= 2; k++ {
 			line(dst, x, y+r*0.65, x+float64(k)*r*0.35, y-r*0.7, r*0.07, rgb(0xd08a5a))
+		}
+	case sim.Sel:
+		// un petit tas de sel blanc (gros cristaux)
+		polygon(dst, []V{{X: x - r*0.9, Y: y + r*0.6}, {X: x - r*0.35, Y: y - r*0.35}, {X: x, Y: y - r*0.7}, {X: x + r*0.4, Y: y - r*0.3}, {X: x + r*0.9, Y: y + r*0.6}}, rgb(0xf4f6f8))
+		polygon(dst, []V{{X: x, Y: y - r*0.7}, {X: x + r*0.4, Y: y - r*0.3}, {X: x + r*0.9, Y: y + r*0.6}, {X: x + r*0.15, Y: y + r*0.6}}, rgb(0xd5dde5))
+		for k := 0; k < 5; k++ {
+			circle(dst, x-r*0.5+float64(k)*r*0.25, y+r*0.3-float64(k%2)*r*0.3, r*0.07, rgb(0xb8c4cf))
 		}
 	case sim.Gambas:
 		for k := 0; k < 5; k++ {

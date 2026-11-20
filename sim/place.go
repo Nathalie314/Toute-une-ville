@@ -88,6 +88,7 @@ type Station struct {
 	To        string  // quai : lieu de destination du camion
 	place     string  // lieu où se trouve la station
 	scale     float64 // coefficient des prix du lieu (pousses) ; 0 : 1
+	Pad       Rect    // (si W > 0) la base du drone, ailleurs que sous l'étal
 	PadOff    float64 // étal : distance entre l'étal et la base de son drone (0 : 140)
 	yard      bool    // ferme : dans la cour à gauche (ne se décale pas)
 	UpMult    float64 // multiplicateur du prix des niveaux (0 : normal)
@@ -333,6 +334,7 @@ type Place struct {
 	navC           *navGrid
 	Boats          []*Boat // port : les bateaux de pêche
 	dredges        []*Dredge
+	salt           *Dredge // le râteau du marais salant (port)
 	boatsInit      bool
 	Vestiaire      Rect      // porte du vestiaire : on s'y arrête pour ouvrir la page « Personnage »
 	Parc           *Parc     // parc d'attractions : attractions, caisses, visiteurs
@@ -673,7 +675,7 @@ func (p *Place) interact(a *Agent, dt float64) {
 	// (on ne paie que si l'on s'arrête sur la zone : traverser ne coûte rien)
 	if a.Kind == PlayerAgent && !a.Moving && g.Money >= 1 {
 		for _, s := range p.Stations {
-			if !s.Built || s.Kind != Field || len(s.Plants) >= len(s.Slots) || !s.PlantZone().Has(a.Pos) {
+			if !s.Built || s.Kind != Field || s.Dredged || len(s.Plants) >= len(s.Slots) || !s.PlantZone().Has(a.Pos) {
 				continue
 			}
 			cost := s.PlantCost()

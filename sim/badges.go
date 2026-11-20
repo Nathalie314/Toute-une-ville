@@ -439,7 +439,8 @@ func init() {
 	B(placeBadges("exotique", "ferme exotique", "Sous les tropiques", "Paradis tropical", "Toute la jungle", "Perle des tropiques", 1000, IconFruit)...)
 	B(madeBadge("exotique_sucre", "exotique", "Doux comme le sucre", "Faire 100 sachets de sucre en poudre.", SucrePoudre, 100, IconCane),
 		madeBadge("exotique_choco", "exotique", "Chocolatier", "Faire une tablette de chocolat.", Chocolat, 1, IconChoco),
-		madeBadge("exotique_cafe", "exotique", "Petit noir", "Faire 100 paquets de café moulu.", CafeMoulu, 100, IconStar))
+		madeBadge("exotique_cafe", "exotique", "Petit noir", "Faire 100 paquets de café moulu.", CafeMoulu, 100, IconStar),
+		madeBadge("exotique_poivre", "exotique", "Poivre et piment", "Récolter 200 grains de poivre.", Poivre, 200, IconStar))
 	// la ferme d'élevage (pas de clients)
 	B(placeBadges("elevage", "ferme d'élevage", "Les pieds dans le foin", "Tout le troupeau", "Éleveurs au complet", "", 0, IconFarm)...)
 	B(madeBadge("elevage_poulets", "elevage", "Basse-cour", "Élever 100 poulets.", Poulet, 100, IconEgg),
@@ -451,7 +452,8 @@ func init() {
 	// le port
 	B(placeBadges("port", "port", "Moussaillon", "Toute la criée", "Équipage au complet", "Port étoilé", 1000, IconTruck)...)
 	B(madeBadge("port_sardines", "port", "Serrés comme des sardines", "Pêcher 100 sardines.", Sardine, 100, IconStar),
-		madeBadge("port_huitres", "port", "Perle rare", "Récolter 100 huîtres.", Huitre, 100, IconStar))
+		madeBadge("port_huitres", "port", "Perle rare", "Récolter 100 huîtres.", Huitre, 100, IconStar),
+		madeBadge("port_sel", "port", "Fleur de sel", "Récolter 500 sel au marais salant.", Sel, 500, IconStar))
 	// le domaine
 	B(placeBadges("domaine", "domaine", "Bienvenue au domaine", "Grand cru", "Domaine au complet", "Domaine étoilé", 1000, IconFruit)...)
 	B(madeBadge("domaine_vin", "domaine", "Vendanges", "Faire 100 bouteilles de vin rouge.", VinRouge, 100, IconFruit),
