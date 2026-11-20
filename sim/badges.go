@@ -471,6 +471,22 @@ func init() {
 	B(placeBadges("patisserie", "pâtisserie", "Bec sucré", "Toute la vitrine", "Pâtissiers au complet", "Pâtisserie étoilée", 1000, IconCake)...)
 	B(madeBadge("patisserie_tartes", "patisserie", "Tarte aux pommes", "Faire 100 tartes aux pommes.", TartePommes, 100, IconCake),
 		madeBadge("patisserie_fraisier", "patisserie", "Cerise sur le gâteau", "Faire un fraisier.", Fraisier, 1, IconCake))
+	// l'huilerie
+	B(placeBadges("huilerie", "huilerie", "Tout baigne", "Toutes les huiles", "Huiliers au complet", "", 0, IconFruit)...)
+	B(madeBadge("huilerie_olive", "huilerie", "Huile vierge", "Faire 100 bouteilles d'huile d'olive.", HuileOlive, 100, IconFruit),
+		madeBadge("huilerie_tournesol", "huilerie", "Plein soleil", "Faire 500 bouteilles d'huile de tournesol.", HuileTournesol, 500, IconFlower),
+		Badge{ID: "huilerie_vergers", Place: "huilerie", Name: "Bosquet", Desc: "Planter les neuf colonnes d'arbres de l'huilerie.", Icon: IconFruit,
+			Check: func(g *Game) bool {
+				q := g.Place("huilerie")
+				for _, c := range HuilCultures {
+					for _, id := range []string{c.ID, c.ID + "_2", c.ID + "_3"} {
+						if s := q.Station(id); c.Tree && (s == nil || !s.Built) {
+							return false
+						}
+					}
+				}
+				return q.Owned
+			}})
 	// le parc d'attractions
 	parc := func(g *Game) *Place { return g.Place("parc") }
 	B(placeBadges("parc", "parc d'attractions", "Ticket d'entrée", "Tout le parc", "Équipe au complet", "Parc étoilé", 1000, IconHeart)...)

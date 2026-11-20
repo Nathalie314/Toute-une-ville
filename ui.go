@@ -1251,6 +1251,8 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		g.placeTile("creperie", "Crêperie", 0xd9a55a),
 		g.placeTile("patisserie", "Pâtisserie", 0xe0567f),
 		g.placeTile("parc", "Parc d'attractions", 0xff8a3d),
+		g.placeTile("huilerie", "L'huilerie", 0x8a8a2a),
+		{id: "pizzeria", name: "Pizzeria", status: "Bientôt", col: 0xc0392b},
 		{id: "fleuriste", name: "Fleuriste", status: "Bientôt", col: 0xff6fa8},
 		{id: "restaurant", name: "Restaurant", status: "Bientôt", col: 0xe67e22},
 		{id: "hotel", name: "Hôtel", status: "Bientôt", col: 0x8e44ad},
@@ -1580,7 +1582,7 @@ func (g *game) drawBadges(dst *ebiten.Image) {
 	ch := 150.0
 	total := 0.0
 	type sect struct{ id, title string }
-	sects := []sect{{"ferme", "Ma ferme"}, {"super", "Le supermarché"}, {"boulangerie", "La boulangerie"}, {"cremerie", "La crèmerie"}, {"glacier", "Le glacier"}, {"exotique", "La ferme exotique"}, {"elevage", "La ferme d'élevage"}, {"boucherie", "La boucherie"}, {"port", "Le port"}, {"domaine", "Le domaine"}, {"creperie", "La crêperie"}, {"patisserie", "La pâtisserie"}, {"parc", "Le parc d'attractions"}, {"ecole", "L'école"}, {"ville", "Clairbourg"}}
+	sects := []sect{{"ferme", "Ma ferme"}, {"super", "Le supermarché"}, {"boulangerie", "La boulangerie"}, {"cremerie", "La crèmerie"}, {"glacier", "Le glacier"}, {"exotique", "La ferme exotique"}, {"elevage", "La ferme d'élevage"}, {"boucherie", "La boucherie"}, {"port", "Le port"}, {"domaine", "Le domaine"}, {"creperie", "La crêperie"}, {"patisserie", "La pâtisserie"}, {"parc", "Le parc d'attractions"}, {"huilerie", "L'huilerie"}, {"ecole", "L'école"}, {"ville", "Clairbourg"}}
 	for _, sc := range sects {
 		n := 0
 		for _, b := range sim.Badges {
@@ -1888,6 +1890,8 @@ func placeDesc(id string) string {
 		txt = "La pâtisserie : tartes aux pommes, riz au lait, clafoutis, gâteaux au chocolat, éclairs au café, tartes au citron meringuées et fraisiers. Chaque recette demande au moins 3 ingrédients, qui viennent de ta ferme, de la crèmerie et de la ferme exotique. Rien n'est offert : même la première machine s'achète."
 	case "domaine":
 		txt = "Le domaine : la vigne, le houblon et une distillerie. Le raisin et les jus partent en camion au supermarché ; on vend sur place les vins, la bière, le cidre et les alcools (avec les pommes, poires, pommes de terre et le blé de ta ferme). Chaque espace a ses ouvriers. L'alcool est dangereux pour la santé : à consommer avec modération."
+	case "huilerie":
+		txt = "L'huilerie ne reçoit pas de clients et ne prend pas de commandes : tournesol, colza, lin, oliviers, noisetiers et noyers, chacun avec sa presse. Les huiles partent en camion au supermarché (espace « Huiles »), les olives au rayon Fruits, les noisettes et les noix à l'Épicerie. Chaque culture a ses ouvriers. Rien n'est offert : même le premier champ s'achète."
 	case "parc":
 		txt = "Le parc d'attractions ne consomme rien et ne livre rien : les visiteurs paient l'entrée (plus chère à chaque nouvelle attraction) et viennent pour les attractions, qui grandissent avec leur taille. Un employé (ou toi) fait monter et descendre les visiteurs ; l'attente fait baisser leur bonheur. Les stands (ballons, glaces, pop-corn…) n'ont besoin de personne : les visiteurs heureux qui passent devant y dépensent un peu. Au parc, tu roules en trottinette."
 	case "glacier":

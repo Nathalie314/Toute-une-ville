@@ -871,22 +871,34 @@ func drawSwingTower(dst *ebiten.Image, p *sim.Place, r *sim.Ride, level int, t f
 	for i := 0; i < n; i++ {
 		seat(i, false)
 	}
-	// le mât (rouge et blanc, des lumières)
+	// le mât (rouge et blanc, des lumières), dessiné jusqu'à maxY (plus bas : caché)
 	w := 30 + 2.5*f
-	for y := 0.0; y < h; y += 60 {
-		col := uint32(0xd9534f)
-		if int(y/60)%2 == 1 {
-			col = 0xf2f2f2
+	mast := func(maxY float64) {
+		for y := 0.0; y < h; y += 60 {
+			col := uint32(0xd9534f)
+			if int(y/60)%2 == 1 {
+				col = 0xf2f2f2
+			}
+			top, bot := base.Y-y-60, math.Min(base.Y-y, maxY)
+			if bot <= top {
+				continue
+			}
+			rect(dst, base.X-w/2, top, w, bot-top, rgb(col))
+			rect(dst, base.X-w/2, top, w*0.3, bot-top, shade(col, 1.12))
 		}
-		rect(dst, base.X-w/2, base.Y-y-60, w, 60, rgb(col))
-		rect(dst, base.X-w/2, base.Y-y-60, w*0.3, 60, shade(col, 1.12))
 	}
-	roundRect(dst, base.X-w, base.Y-h-50, 2*w, 50, 14, rgb(0x2b2b3a))
-	circle(dst, base.X, base.Y-h-62, 13, rgba(0xffd23f, 0.6+0.4*math.Sin(t*4)))
+	mast(base.Y) // tout le mât (le bas se voit sous la couronne)
 	// la couronne
 	ellipse(dst, base.X, cy+8, cr+14, (cr+14)*0.38, shade(0xffd23f, 0.75))
 	ellipse(dst, base.X, cy, cr+14, (cr+14)*0.38, rgb(0xffd23f))
 	ellipse(dst, base.X, cy, cr-10, (cr-10)*0.38, rgb(0xd9534f))
+	// le mât traverse la couronne en son centre : au-dessus de ce point, il passe devant
+	// la moitié du fond ; un collier marque la traversée
+	mast(cy)
+	ellipse(dst, base.X, cy, w*0.9, w*0.32, rgb(0x2b2b3a))
+	ellipse(dst, base.X, cy-3, w*0.75, w*0.24, rgb(0x4a4a5a))
+	roundRect(dst, base.X-w, base.Y-h-50, 2*w, 50, 14, rgb(0x2b2b3a))
+	circle(dst, base.X, base.Y-h-62, 13, rgba(0xffd23f, 0.6+0.4*math.Sin(t*4)))
 	for i := 0; i < n; i++ {
 		seat(i, true)
 	}

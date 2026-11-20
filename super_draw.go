@@ -13,12 +13,12 @@ import (
 
 var zoneCols = map[string]uint32{
 	"ferme": 0xf3e3c4, "legumes": 0xdff0d2, "fruits": 0xfbe0dc, "cremerie": 0xe3eefa, "boulangerie": 0xf6e6cf,
-	"glace": 0xdff3f8, "epicerie": 0xe2f4e4, "boucherie": 0xf5d9d9, "poisson": 0xdcecf7, "patisserie": 0xf9e1ee, "alcool": 0xe9e0f2,
+	"glace": 0xdff3f8, "epicerie": 0xe2f4e4, "boucherie": 0xf5d9d9, "poisson": 0xdcecf7, "patisserie": 0xf9e1ee, "alcool": 0xe9e0f2, "huiles": 0xf6f0c8,
 }
 
 // superTruckStop : où s'arrête le camion d'un lieu (derrière son espace).
 func superTruckStop(from string) float64 {
-	id := map[string]string{"ferme": "ferme", "cremerie": "cremerie", "boulangerie": "boulangerie", "glacier": "glace", "boucherie": "boucherie", "exotique": "epicerie", "port": "poisson", "domaine": "alcool", "patisserie": "patisserie"}[from]
+	id := map[string]string{"ferme": "ferme", "cremerie": "cremerie", "boulangerie": "boulangerie", "glacier": "glace", "boucherie": "boucherie", "exotique": "epicerie", "port": "poisson", "domaine": "alcool", "patisserie": "patisserie", "huilerie": "huiles"}[from]
 	for _, z := range sim.SuperZones {
 		if z.ID == id {
 			return z.X + z.W/2
@@ -208,7 +208,7 @@ func drawZoneBarrier(dst *ebiten.Image, s *sim.Station) {
 	for _, z := range sim.SuperZones {
 		if "barriere_"+z.ID == s.ID && !z.Soon {
 			txt = map[string]string{"legumes": "Il faut la serre (ma ferme)", "fruits": "Il faut le verger (ma ferme)",
-				"cremerie": "Il faut la crèmerie", "boulangerie": "Il faut la boulangerie", "glace": "Il faut le glacier", "boucherie": "Il faut la boucherie", "epicerie": "Il faut la ferme exotique", "alcool": "Il faut le domaine", "patisserie": "Il faut la pâtisserie"}[z.ID]
+				"cremerie": "Il faut la crèmerie", "boulangerie": "Il faut la boulangerie", "glace": "Il faut le glacier", "boucherie": "Il faut la boucherie", "epicerie": "Il faut la ferme exotique", "alcool": "Il faut le domaine", "patisserie": "Il faut la pâtisserie", "huiles": "Il faut l'huilerie"}[z.ID]
 		}
 	}
 	roundRect(dst, b.C().X-170, b.C().Y-34, 340, 68, 12, rgba(0x2b2140, 0.85))

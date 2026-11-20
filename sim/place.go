@@ -597,7 +597,7 @@ func (p *Place) step(dt float64, active bool) {
 
 // NoRep : pas de réputation ici (pas de clients : la ferme d'élevage ; un restaurant,
 // où la jauge de bonheur décide des pourboires : la crêperie).
-func (p *Place) NoRep() bool { return p.Crep != nil || p.ID == "elevage" }
+func (p *Place) NoRep() bool { return p.Crep != nil || p.ID == "elevage" || p.ID == "huilerie" }
 
 // ShopMaxCust : dans un petit magasin, 10 clients au plus en même temps
 // (+1 tous les 10 % de marketing).
@@ -633,7 +633,7 @@ func (p *Place) carryCap(a *Agent) int {
 	}
 	// (4.1 : plus de brouettes ni de plateaux : seulement l'entraînement de l'école)
 	c := 4 + g.Levels[p.key("capacite")] + g.Levels[p.key("pts_ent_cap")]/5
-	if (p.ID == "ferme" && isColumnTeam(a.Team)) || (p.ID == "exotique" && a.Team == "fruits") {
+	if (p.ID == "ferme" && isColumnTeam(a.Team)) || (p.ID == "exotique" && a.Team == "fruits") || (p.ID == "huilerie" && huilTreeTeam(a.Team)) {
 		c = max(c, ColumnMax) // serre et verger : une cagette, pour emporter toute la colonne
 		if p.ID == "ferme" {
 			c = max(c, 2*ColumnMax) // (récolte double : la cagette en tient deux fois plus)
@@ -1454,6 +1454,8 @@ func (p *Place) speedOf(s *Station) (f, rent float64) {
 func (p *Place) speedOf0(s *Station) (f, rent float64) {
 	g := p.g
 	switch {
+	case s.Kind == Field && p.ID == "huilerie" && s.Column:
+		return 1 + p.ptsF("pts_arbres"), 0 // (l'huilerie : les arbres ont leurs propres points)
 	case s.Kind == Field:
 		return 1 + p.ptsF("pts_agro"), 0
 	// (plus de niveaux : +3 % par point de soigneur, de mécanicien ou de chef)
@@ -1461,7 +1463,7 @@ func (p *Place) speedOf0(s *Station) (f, rent float64) {
 		return 1 + 3*p.ptsF("pts_soin"), RentSave(g.Levels[p.key("pts_soin_rent")])
 	case p.ID == "elevage" && s.Kind == Machine:
 		return 1 + 3*p.ptsF("pts_mac_vit"), RentSave(g.Levels[p.key("pts_mac_rent")])
-	case (p.ID == "exotique" || p.ID == "domaine") && s.Kind == Machine:
+	case (p.ID == "exotique" || p.ID == "domaine" || p.ID == "huilerie") && s.Kind == Machine:
 		return 1 + 3*p.ptsF("pts_mac_vit"), RentSave(g.Levels[p.key("pts_mac_rent")])
 	case p.ID == "ferme" && animalIDs[s.ID]:
 		return 1 + 3*p.ptsF("pts_soin"), RentSave(g.Levels[p.key("pts_soin_rent")]) // (sélection génétique)

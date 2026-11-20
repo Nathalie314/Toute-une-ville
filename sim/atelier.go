@@ -285,6 +285,9 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 			return "Chaque palette de la réserve contient " + itoa(PalletMax(p.ID, l)) + " produits."
 		}},
 	}
+	if sp.id == "cremerie" {
+		shelvesTo100(p.ups[2]) // (les vitrines de la crèmerie montent jusqu'à 100 produits, comme les étals de la ferme)
+	}
 	scale := map[string]float64{"boulangerie": 2, "cremerie": 2.5, "glacier": 3, "boucherie": 4, "patisserie": 4}[sp.id]
 	p.ups = append(p.ups, p.droneUpgrades(scale)...)
 	spot := func(id, label string, z Rect, needs string, done func(int) string) {
@@ -312,7 +315,7 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 func placeName(id string) string {
 	return map[string]string{"ferme": "la ferme", "super": "le supermarché", "boulangerie": "la boulangerie",
 		"cremerie": "la crèmerie", "glacier": "le glacier", "ecole": "l'école",
-		"elevage": "la ferme d'élevage", "boucherie": "la boucherie-charcuterie", "exotique": "la ferme exotique", "domaine": "le domaine", "creperie": "la crêperie", "patisserie": "la pâtisserie", "parc": "le parc d'attractions"}[id]
+		"elevage": "la ferme d'élevage", "boucherie": "la boucherie-charcuterie", "exotique": "la ferme exotique", "domaine": "le domaine", "creperie": "la crêperie", "patisserie": "la pâtisserie", "parc": "le parc d'attractions", "huilerie": "l'huilerie"}[id]
 }
 
 // needsMet : « lieu » (acheté) ou « lieu:station » (station construite), séparés par des virgules.
