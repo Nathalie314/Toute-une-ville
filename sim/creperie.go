@@ -459,7 +459,8 @@ func newCreperie(g *Game) *Place {
 			Desc: func(l int) string { return itoa(p.CrepParkN(l)) + " places de parking." }},
 	)
 	p.Spots = append(p.Spots,
-		&Spot{ID: "serveurs", Label: "Serveur +1", Zone: Rect{180, 1250, 140, 124}, Done: func(l int) string { return "Nouveau serveur : +1 !" }},
+		// (au-dessus de la porte de gauche : on entre dans la salle sans marcher sur un achat)
+		&Spot{ID: "serveurs", Label: "Serveur +1", Zone: Rect{180, 920, 140, 124}, Done: func(l int) string { return "Nouveau serveur : +1 !" }},
 		&Spot{ID: "parking", Label: "Parking +5", Zone: Rect{180, 1080, 140, 124}, Done: func(l int) string { return itoa(p.CrepParkN(l)) + " places de parking !" }},
 	)
 	if sp := p.spot("ouvriers"); sp != nil {
