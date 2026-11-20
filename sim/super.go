@@ -34,7 +34,6 @@ var SuperZones = []*SuperZone{
 		open: func(g *Game) bool { return g.farm().Station("fraisier").Built }},
 	{ID: "cremerie", Name: "Crèmerie", Items: CremerieSold, Cols: 3, open: ownedFn("cremerie")},
 	{ID: "epicerie", Name: "Épicerie", Items: EpicerieSold, Cols: 3, open: ownedFn("exotique")},
-	{ID: "huiles", Name: "Huiles", rank: 13, Items: HuilesSold, Cols: 2, open: ownedFn("huilerie")}, // (les six huiles de l'huilerie ; ses magasiniers : après la pâtisserie)
 	{ID: "alcool", Name: "Boissons", rank: 10, // (juste après l'épicerie ; ses magasiniers gardent leur prix)
 		Items: append([]Item{Limonade, JusOrange}, DrinksSold...), Cols: 3, // (limonade et jus d'orange de la ferme exotique en premier ; puis jus, vins, bière, cidre, alcools du domaine)
 		open: func(g *Game) bool {
@@ -49,6 +48,7 @@ var SuperZones = []*SuperZone{
 	{ID: "poisson", Name: "Poissonnerie", Items: PortSold, Cols: 3, open: ownedFn("port")}, // (le port s'ouvre avant la boucherie)
 	{ID: "boucherie", Name: "Boucherie-charcuterie", Items: BoucherieSold, Cols: 6, open: ownedFn("boucherie")},
 	{ID: "patisserie", Name: "Pâtisserie", Items: PatisserieSold, Cols: 2, open: ownedFn("patisserie")},
+	{ID: "huiles", Name: "Huiles", rank: 13, Items: HuilesSold, Cols: 2, open: ownedFn("huilerie")}, // (les six huiles de l'huilerie, après la pâtisserie)
 }
 
 func ownedFn(id string) func(g *Game) bool {
@@ -261,7 +261,7 @@ func newSuper(g *Game) *Place {
 		if z.rank > 0 {
 			r = z.rank
 		} else if zi > 5 {
-			r = zi - 2 // (les espaces après les huiles et les boissons gardent le prix de leur ancienne place)
+			r = zi - 1 // (les espaces après les boissons gardent le prix de leur ancienne place)
 		}
 		f := math.Pow(2.2, float64(r))
 		var costs []float64

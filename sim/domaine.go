@@ -144,7 +144,7 @@ func newDomaine(g *Game) *Place {
 	shelfTeam := map[Item]string{VinBlanc: "vigne", VinRouge: "vigne", Biere: "houblon", Cidre: "distillerie", AlcoolPoire: "distillerie", Vodka: "distillerie", Whisky: "distillerie"}
 	shelfUnl := map[Item]string{VinBlanc: "vin_blanc", VinRouge: "vin_rouge", Biere: "biere", Cidre: "cidre", AlcoolPoire: "alcool_poire", Vodka: "vodka", Whisky: "whisky"}
 	for i, it := range DomaineSold {
-		x := 450 + float64(i)*230
+		x := 450 + float64(i)*370 // (étals écartés sur toute la boutique : un lieu aéré)
 		s := &Station{ID: "etal_" + itoa(int(it)), Name: "Étal : " + Items[it].Name, Kind: Shelf, Item: it, StockMax: 12, Unlock: shelfUnl[it], Team: shelfTeam[it]}
 		s.Body = Rect{x, shelfY, 170, shelfH}
 		s.Zone = Rect{x - 10, shelfY - 95, 190, 92}

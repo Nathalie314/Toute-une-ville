@@ -1517,3 +1517,20 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   dépassant en haut (drawPaperBag) ; avant, ils portaient leurs produits à bout de bras.
 - Crêperie : tables de 4 plus grandes (260 × 132 au lieu de 180 × 100 ; chaises écartées) : les assiettes, salades et
   bouteilles de quatre personnes tiennent sur la nappe (5 par rangée).
+- Sacs kraft : ils ne se voyaient pas, car le client vidait ses achats (Carry) au moment de payer. Il les garde
+  maintenant jusqu'à sa sortie : sac en papier à la main, ou sacs dans le caddie.
+- Étals vides à chaque ouverture du jeu : vrai bug de sauvegarde. Au chargement, les palettes des réserves étaient
+  coupées à leur taille de départ (300 au supermarché, 40 ailleurs) avant que la taille de l'entrepôt soit appliquée
+  (syncPallets, au premier pas de jeu). Dans sa partie : ~8 000 produits perdus à chaque lancement (6 477 au
+  supermarché, 504 au glacier, 375 à la boulangerie…). Les palettes ayant soudain de la place, les quais acceptaient
+  tout, et les 33 drones de la ferme décollaient ensemble (600 produits pris aux étals en 2 s). Corrigé dans Restore
+  (PalletMax appliqué avant de remettre les piles) ; vérifié : sauvegarder puis recharger ne perd plus rien.
+- Les drones en vol vers un quai ne perdent plus leur chargement en quittant le jeu : il est posé sur le quai dans la
+  sauvegarde. (Une première rustine, « les drones laissent un quart de l'étal », a été retirée : elle cachait le bug.)
+- Domaine : étals écartés (tous les 370 au lieu de 230) sur toute la largeur de la boutique, jusqu'au compost.
+- Sons : le bouton « pièce » coupe maintenant tous les sons sauf le téléphone, qui garde son propre bouton. Avant, il
+  ne coupait que les petits sons ; les élèves qui réussissent, les clients qui partent, les achats… restaient.
+- Supermarché : l'espace « Huiles » passe à la fin, après la pâtisserie (rang des magasiniers 13 conservé ; les
+  espaces après les boissons reprennent la règle zi-1).
+- Glacier : vitrines écartées comme à la crèmerie (shelfStep 280) ; ses deux quais tiennent largement (lieu de 4 370).
+- Crêperie, pourboires : ils s'additionnent sur la table (t.Tips +=) jusqu'à ce que le joueur passe les ramasser.

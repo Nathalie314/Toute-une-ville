@@ -782,8 +782,7 @@ func (p *Place) customerStep(c *Customer, dt float64) {
 				default:
 					p.reputation(-0.02)
 				}
-				c.Paid = total
-				c.Carry = nil
+				c.Paid = total // il garde ses achats (Carry) : on les dessine dans son sac ou son caddie
 				c.State = cLeave
 				c.path = p.leavePath(c)
 				return

@@ -187,7 +187,8 @@ func (sb *soundBank) play(s sfx) {
 	if sb == nil || sb.muted {
 		return
 	}
-	if (petit(s) || s == sSeed) && sb.noSmall || s == sPhone && sb.noPhone {
+	// le bouton « pièce » coupe tous les sons sauf le téléphone, qui a son propre bouton
+	if s == sPhone && sb.noPhone || s != sPhone && sb.noSmall {
 		return
 	}
 	now := time.Now()
