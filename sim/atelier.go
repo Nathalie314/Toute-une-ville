@@ -285,6 +285,9 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 			return "Chaque palette de la réserve contient " + itoa(PalletMax(p.ID, l)) + " produits."
 		}},
 	}
+	if sp.id == "cremerie" {
+		shelvesTo100(p.ups[2]) // (les vitrines de la crèmerie montent jusqu'à 100 produits, comme les étals de la ferme)
+	}
 	scale := map[string]float64{"boulangerie": 2, "cremerie": 2.5, "glacier": 3, "boucherie": 4, "patisserie": 4}[sp.id]
 	p.ups = append(p.ups, p.droneUpgrades(scale)...)
 	spot := func(id, label string, z Rect, needs string, done func(int) string) {

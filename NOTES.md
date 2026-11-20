@@ -1502,3 +1502,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   du lieu ; le portail dans l'allée entre les deux premiers espaces ; le sol de chaque espace descend sous ses réserves.
 - Parc, tour volante : le mât traverse la couronne en son centre (au-dessus du centre, il passe devant la moitié du
   fond ; un collier sombre marque la traversée) : avant, la couronne le cachait entièrement et la 3D était faussée.
+- Crèmerie : les vitrines montent jusqu'à 100 produits, comme les étals de la ferme (shelvesTo100 : 22 niveaux de +4,
+  les 6 premiers à leur prix d'avant, puis ×1,6 ; crèmerie : 4 200 … 270 000 au 6e … 499 M au dernier).
