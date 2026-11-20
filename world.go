@@ -949,7 +949,11 @@ func (g *game) drawShelf(dst *ebiten.Image, s *sim.Station) {
 		say(dst, itoa(s.Stock), b.X+b.W-10, b.Y+41, 15, true, 0, rgb(0xffffff))
 	}
 	// étiquette de prix
-	price := money(sim.Items[s.Item].Price * g.sim.PriceMult())
+	mult := g.sim.PriceMult()
+	if q := g.sim.Place(s.PlaceID()); q != nil {
+		mult = g.sim.PriceMultOf(q) // (le prix de CE lieu : ses comptables à lui, pas ceux de la ferme)
+	}
+	price := money(sim.Items[s.Item].Price * mult)
 	roundRect(dst, b.C().X-40, b.Y+34, 80, 26, 6, rgb(0xfff8e6))
 	say(dst, price, b.C().X, b.Y+47, 17, true, 0, rgb(0x4a3a20))
 	if s.Stock == 0 && math.Mod(g.t, 1) < 0.6 {

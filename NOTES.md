@@ -1478,3 +1478,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Ferme : récolte double dans la serre et le verger (chaque case mûre donne 2 produits ; la cagette des ouvriers en
   tient 16). Mesuré sur sa partie (10 min) : étals des légumes et des fruits à ~29/36 en moyenne (avant ~25 ;
   pommes de terre 28 au lieu de 19) ; les ouvriers étaient le goulot, pas la pousse (agronomes à 516 %).
+- Correctif : le prix écrit sous un étal ou une vitrine utilisait les comptables de la ferme dans tous les lieux
+  (tarte aux pommes : « 2 923 € » affiché, 1 100 € payés) ; il utilise maintenant ceux du lieu. Les petits marchés de
+  la serre et du verger se remplissent aussi entièrement (part occupée).
