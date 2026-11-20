@@ -77,7 +77,8 @@ var cremerieSpec = workshopSpec{
 	},
 	staff: "Crémiers", cashCost: 4500, staffCosts: []float64{6000, 15000, 38000, 90000, 220000, 500000, 1100000, 2400000, 5000000}, upBase: 7000,
 	sign: "Vitrine", bio: "Fermier",
-	w: 4000, perRow: 5, docks: []string{"super", "boulangerie", "glacier", "patisserie", "creperie"}, shift2: true, tall: true, dockNear: true,
+	w: 4750, perRow: 5, docks: []string{"super", "boulangerie", "glacier", "patisserie", "creperie"}, shift2: true, tall: true, dockNear: true,
+	shelfStep: 280, // (vitrines écartées comme à la boulangerie ; le lieu s'allonge pour ses cinq quais)
 }
 
 // patisserieSpec : la pâtisserie (12e lieu). Sa particularité : chaque recette
