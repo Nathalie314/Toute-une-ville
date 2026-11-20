@@ -36,7 +36,7 @@ func placeHelp(id string) []string {
 		}
 	case "exotique":
 		return []string{
-			"La ferme exotique fait pousser ananas, bananes, noix de coco, mangues, avocats, citrons, oranges, canne à sucre, cacao, café, riz, vanille, thé, cannelle et poivre, et en fait du sucre, du chocolat et du café.",
+			"La ferme exotique fait pousser ananas, bananes, noix de coco, mangues, avocats, citrons, oranges, canne à sucre, cacao, café, riz, vanille, thé, cannelle et poivre, et en fait du sucre, du chocolat, du café, du thé et du poivre séché.",
 			"Tous ses produits partent au supermarché.",
 			"Son sucre en poudre et son chocolat partent à la boulangerie.",
 			"Ses mangues, ses ananas, ses noix de coco, sa vanille, son café moulu et son chocolat partent chez le glacier.",

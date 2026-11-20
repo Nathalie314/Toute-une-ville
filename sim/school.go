@@ -861,7 +861,7 @@ func (p *Place) PointKinds() []PointKind {
 			func(n int) string { return itoa(SaltCap(n)) + " par bassin" })
 	}
 	if p.ID == "exotique" {
-		add("pts_mac_vit", "ouvrier", "Mécaniciens", "Machines : vitesse", "Raffinerie, moulins, chocolaterie, torréfacteur, séchoir vont plus vite (+3 % par point).", func(n int) string { return pctVal(3 * n) })
+		add("pts_mac_vit", "ouvrier", "Mécaniciens", "Machines : vitesse", "Raffinerie, moulins, chocolaterie, torréfacteur, séchoirs vont plus vite (+3 % par point).", func(n int) string { return pctVal(3 * n) })
 		add("pts_mac_rent", "ouvrier", "Mécaniciens", "Machines : rentabilité", "Chaque fabrication peut être gratuite : elle ne consomme alors aucun ingrédient.", rentVal)
 	}
 	if p.ID == "huilerie" {

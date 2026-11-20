@@ -263,7 +263,7 @@ func drawExoticPlant(dst *ebiten.Image, it sim.Item, x, y, gr, t float64) bool {
 				circle(dst, x-r*0.6+float64(k)*r*0.4, y-r*1.4, 3, rgb(0x8fdc5a)) // jeunes pousses à cueillir
 			}
 		}
-	case sim.Poivre:
+	case sim.BaiesPoivre:
 		// un poivrier : une liane qui grimpe sur un tuteur ; des grappes vertes qui rougissent
 		line(dst, x, y, x, y-h-16, 3, rgb(0x8a6236))
 		for k := 0; k < 5; k++ {
@@ -402,6 +402,17 @@ func drawItemExotic(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		roundRect(dst, x-r*0.6, y-r*0.7, r*1.2, r*1.5, r*0.15, rgb(0x2f7a35))
 		rect(dst, x-r*0.6, y-r*0.7, r*1.2, r*0.3, rgb(0xd4a017))
 		ellipse(dst, x, y+r*0.15, r*0.25, r*0.4, rgb(0x8fdc5a))
+	case sim.BaiesPoivre:
+		// une grappe de baies fraîches (vertes et rouges) sur sa tige
+		line(dst, x, y-r*0.9, x, y+r*0.8, r*0.08, rgb(0x5a7a2a))
+		for k := 0; k < 9; k++ {
+			c := uint32(0x6fb03a)
+			if k%3 == 1 {
+				c = 0xd8342b
+			}
+			circle(dst, x+float64(k%2*2-1)*r*0.22, y-r*0.7+float64(k)*r*0.18, r*0.2, rgb(c))
+		}
+		ellipse(dst, x-r*0.5, y-r*0.6, r*0.3, r*0.15, rgb(0x2f8a3a))
 	case sim.Poivre:
 		// des grains de poivre noir (et quelques rouges) dans une coupelle
 		ellipse(dst, x, y+r*0.45, r*0.85, r*0.3, rgb(0x8a6a4a))

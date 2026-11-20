@@ -192,8 +192,9 @@ const (
 	HuileLin
 	HuileNoisette
 	HuileNoix
-	Poivre // (ferme exotique, espace épices)
-	Sel    // (port : le marais salant)
+	Poivre      // (ferme exotique, espace épices)
+	Sel         // (port : le marais salant)
+	BaiesPoivre // (ferme exotique : récoltées, elles partent au séchoir à poivre)
 	NItems
 )
 
@@ -317,6 +318,7 @@ var Items = [NItems]ItemInfo{
 	HuileNoix:        {"Huile de noix", 900},
 	Poivre:           {"Poivre", 110},
 	Sel:              {"Sel", 180},
+	BaiesPoivre:      {"Baies de poivre", 30},
 	Aiguillettes:     {"Aiguillettes de canard", 120},
 	Magret:           {"Magret de canard", 150},
 	FoieGras:         {"Foie gras", 280},

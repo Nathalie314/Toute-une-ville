@@ -1551,3 +1551,7 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Les « pousses +1 » des champs ne concernent plus les parcs et le marais (Dredged) : la flèche d'aide montrait un
   bassin, impossible à atteindre.
 - Station.Pad : base de drone placée ailleurs que sous l'étal (si W > 0).
+- Poivre séché : les poivriers donnent des « Baies de poivre » (non vendues), le « Séchoir à poivre » (sous les
+  poivriers, 160 000 €, après eux) en fait du poivre, vendu à son étal et à l'Épicerie du supermarché. Épices :
+  6 ressources → 6 ouvriers (le 6e : 420 000 €) ; la case d'embauche est centrée sous la vanille et la cannelle
+  (elle était à moitié sous le séchoir à thé) ; lieu élargi à 7 240 pour aérer le séchoir et le compost.
