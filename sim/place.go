@@ -287,6 +287,7 @@ type Place struct {
 	W, H        float64
 	Stations    []*Station
 	Unlocks     []*Unlock
+	Lift        float64 // atelier agrandi vers le haut (crèmerie) : son intérieur est monté d'autant
 	Workers     []*Agent
 	Customers   []*Customer
 	Spots       []*Spot // améliorations achetées au sol (personnel, ventes)

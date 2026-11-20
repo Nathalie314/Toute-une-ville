@@ -1508,3 +1508,8 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   on ne marche plus dessus.
 - Parc : le point « Mécaniciens : Caisses » dit ce qu'il fait là-bas : « Les caisses de l'entrée encaissent les
   visiteurs plus vite » (il accélérait déjà l'encaissement des entrées ; le texte parlait d'articles).
+- Crèmerie : vitrines écartées comme à la boulangerie (shelfStep 280) ; le lieu passe à 4 750 pour garder ses cinq
+  quais à l'intérieur (juste après la dernière vitrine).
+- Crèmerie agrandie vers le haut (lift 150 : réserve, machines, vitrines, caisse et achats montent ; route du haut et
+  camions de livraison aussi ; Place.Lift) : ses cinq quais sont sous les vitrines, le premier juste à droite de la
+  porte des clients (dockX0 1340, puis tous les 350) ; le lieu ne s'allonge plus vers la droite pour eux (w 3300).

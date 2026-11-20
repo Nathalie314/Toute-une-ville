@@ -1840,7 +1840,7 @@ func (g *game) backTruck(dst *ebiten.Image, p *sim.Place) {
 	}
 	e := every - best
 	truckFrom = fromID
-	ty := 60.0
+	ty := 60.0 - p.Lift // (crèmerie : la route du haut est montée avec le bâtiment)
 	if p.ID == "creperie" {
 		ty = sim.CrepTop + 85 // (sa route est au-dessus de la cuisine)
 	}
@@ -1876,23 +1876,24 @@ func (g *game) workshopGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	case "patisserie":
 		floor, tile, title, sc = 0xfff5f8, 0xf9dbe6, "PÂTISSERIE", 0xe0567f
 	}
-	rect(dst, tl.X-10, 10, br.X-tl.X+20, 100, rgb(0x6b6f74))
+	L := p.Lift // (crèmerie : le bâtiment monte plus haut, son intérieur aussi)
+	rect(dst, tl.X-10, 10-L, br.X-tl.X+20, 100, rgb(0x6b6f74))
 	road(dst, tl, br, 1640)
 	// (le bâtiment commence à x = 20 : les cases de la caissière, des vitrines et de la caisse sont dedans)
-	slab(dst, 20, 130, p.W-100, 1400, 6, 16, 0x8a8478)
-	rect(dst, 36, 146, p.W-132, 270, rgb(0xb9b3a8)) // réserve
-	rect(dst, 36, 426, p.W-132, 1088, rgb(floor))
+	slab(dst, 20, 130-L, p.W-100, 1400+L, 6, 16, 0x8a8478)
+	rect(dst, 36, 146-L, p.W-132, 270, rgb(0xb9b3a8)) // réserve
+	rect(dst, 36, 426-L, p.W-132, 1088+L, rgb(floor))
 	for x := 36.0; x < p.W-96; x += 70 {
-		for y := 426.0; y < 1514; y += 70 {
+		for y := 426.0 - L; y < 1514; y += 70 {
 			if int(x/70+y/70)%2 == 0 {
 				// (les derniers carreaux sont coupés au bord du sol : rien ne déborde sur l'herbe)
 				rect(dst, x, y, math.Min(70, p.W-96-x), math.Min(70, 1514-y), rgb(tile))
 			}
 		}
 	}
-	rect(dst, 36, 416, 680, 14, rgb(0x6f6a62))
-	rect(dst, 900, 416, p.W-1016, 14, rgb(0x6f6a62))
-	say(dst, "RÉSERVE", 800, 160, 20, true, 0, rgba(0x4a4a4a, 0.7))
+	rect(dst, 36, 416-L, 680, 14, rgb(0x6f6a62))
+	rect(dst, 900, 416-L, p.W-1016, 14, rgb(0x6f6a62))
+	say(dst, "RÉSERVE", 800, 160-L, 20, true, 0, rgba(0x4a4a4a, 0.7))
 	if p.ID == "boucherie" {
 		g.boucherieGround(dst, p)
 	}
