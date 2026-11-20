@@ -64,8 +64,8 @@ type CrepTable struct {
 
 // Body : le plateau de la table.
 func (t *CrepTable) Body() Rect {
-	if t.Seats == 4 {
-		return Rect{t.Pos.X - 90, t.Pos.Y - 50, 180, 100}
+	if t.Seats == 4 { // (grande : les assiettes, les salades et le cidre de quatre personnes y tiennent)
+		return Rect{t.Pos.X - 130, t.Pos.Y - 66, 260, 132}
 	}
 	return Rect{t.Pos.X - 60, t.Pos.Y - 42, 120, 84}
 }
@@ -88,7 +88,7 @@ func (t *CrepTable) Seat(i int) V {
 	}
 	x := t.Pos.X + side*(b.W/2+34)
 	if t.Seats == 4 {
-		return V{x, t.Pos.Y - 24 + float64(i/2)*48}
+		return V{x, t.Pos.Y - 32 + float64(i/2)*64}
 	}
 	return V{x, t.Pos.Y + 4}
 }
