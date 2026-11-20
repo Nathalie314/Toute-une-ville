@@ -40,6 +40,8 @@ type workshopSpec struct {
 	dockNear   bool     // quais juste après la dernière vitrine
 	tall       bool     // file de la caisse plus courte (elle ne doit pas sortir par la vitrine)
 	shelfStep  float64  // d'une vitrine à la suivante (0 : 190)
+	lift       float64  // le bâtiment grandit vers le haut d'autant (tout l'intérieur monte) : les quais passent sous les vitrines
+	dockX0     float64  // (avec lift) x du premier quai, à droite de la porte des clients
 }
 
 var bakerySpec = workshopSpec{
@@ -77,8 +79,9 @@ var cremerieSpec = workshopSpec{
 	},
 	staff: "Crémiers", cashCost: 4500, staffCosts: []float64{6000, 15000, 38000, 90000, 220000, 500000, 1100000, 2400000, 5000000}, upBase: 7000,
 	sign: "Vitrine", bio: "Fermier",
-	w: 4750, perRow: 5, docks: []string{"super", "boulangerie", "glacier", "patisserie", "creperie"}, shift2: true, tall: true, dockNear: true,
-	shelfStep: 280, // (vitrines écartées comme à la boulangerie ; le lieu s'allonge pour ses cinq quais)
+	w: 3300, perRow: 5, docks: []string{"super", "boulangerie", "glacier", "patisserie", "creperie"}, shift2: true, tall: true, dockNear: true,
+	shelfStep: 280,               // (vitrines écartées comme à la boulangerie ; le lieu s'allonge pour ses cinq quais)
+	lift:      150, dockX0: 1340, // (le bâtiment monte : ses quais sous les vitrines, le premier à droite de la porte)
 }
 
 // patisserieSpec : la pâtisserie (12e lieu). Sa particularité : chaque recette
@@ -235,6 +238,9 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 		last := 450 + float64(len(sp.recipes)-1)*step + 150
 		dockX = func(i int) float64 { return last + 60 + float64(i)*350 }
 	}
+	if sp.dockX0 > 0 {
+		dockX = func(i int) float64 { return sp.dockX0 + float64(i)*350 }
+	}
 	p.Stations = append(p.Stations, trash)
 	// quais : un par destination (le premier vers le supermarché)
 	for i, to := range sp.docks {
@@ -307,6 +313,9 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 	// (l'entrepôt s'agrandit à gauche de la réserve, côté zone du joueur)
 	spot("entrepot", "Entrepôt", Rect{45, 170, 130, 124}, "", func(l int) string { return "Entrepôt agrandi : " + itoa(PalletMax(p.ID, l)) + " par palette !" })
 	spot("ouvriers", sp.staff, Rect{W - 710, 1290, 130, 124}, "", func(l int) string { return "Nouvel employé : +1 !" })
+	if sp.lift > 0 {
+		p.liftInterior(sp.lift)
+	}
 	p.setupYard(-620)
 	p.spawnT = 1
 	return p
@@ -377,4 +386,38 @@ func (p *Place) builtOrUnlocked(id string) bool {
 		}
 	}
 	return false
+}
+
+// liftInterior : le bâtiment grandit vers le haut : tout l'intérieur (réserve, machines,
+// vitrines, caisse, cases au sol, achats) monte de dy ; les quais (au bord de la route) et
+// le parking ne bougent pas. (Crèmerie : ses quais passent sous ses vitrines.)
+func (p *Place) liftInterior(dy float64) {
+	p.Top = -dy
+	p.Lift = dy
+	mv := func(r *Rect) {
+		if r.W > 0 || r.H > 0 {
+			r.Y -= dy
+		}
+	}
+	for _, s := range p.Stations {
+		if s.Kind == Dock || s.yard {
+			continue
+		}
+		mv(&s.Body)
+		mv(&s.Zone)
+		mv(&s.OutZone)
+		mv(&s.OutZone2)
+		if s.Spot != (V{}) {
+			s.Spot.Y -= dy
+		}
+		if s.QueueHead != (V{}) {
+			s.QueueHead.Y -= dy
+		}
+	}
+	for _, sp := range p.Spots {
+		mv(&sp.Zone)
+	}
+	for _, u := range p.Unlocks {
+		mv(&u.Zone)
+	}
 }
