@@ -29,7 +29,7 @@ func (g *game) huilerieGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		if !p.ZoneOpen(z.ID) {
 			a = 0.3
 		}
-		roundRect(dst, z.X0, -380, z.X1-z.X0, 1440, 30, rgba(huilZoneFloor[z.ID], a))
+		roundRect(dst, z.X0, -380, z.X1-z.X0, 1600, 30, rgba(huilZoneFloor[z.ID], a)) // (jusque sous les réserves)
 		roundRect(dst, (z.X0+z.X1)/2-110, 1000, 220, 34, 10, rgba(0x5a5a22, 0.85))
 		say(dst, strings.ToUpper(z.Name), (z.X0+z.X1)/2, 1017, 18, true, 0, rgb(0xfff3c4))
 	}
@@ -39,9 +39,10 @@ func (g *game) huilerieGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	// pistes des drones, jusqu'au quai
 	roundRect(dst, 380, 1320, p.W-760, 140, 20, rgba(0x8a8f96, 0.35))
 	road(dst, tl, br, 1640)
-	rect(dst, 1180, 1500, 140, 140, path)
-	roundRect(dst, 1110, 1475, 280, 46, 8, rgb(0x6a6a22))
-	say(dst, "L'HUILERIE", 1250, 1498, 24, true, 0, rgb(0xfff3c4))
+	gx := p.Gate.X
+	rect(dst, gx-70, 1500, 140, 140, path)
+	roundRect(dst, gx-140, 1475, 280, 46, 8, rgb(0x6a6a22))
+	say(dst, "L'HUILERIE", gx, 1498, 24, true, 0, rgb(0xfff3c4))
 }
 
 // drawHuilPlant : le tournesol, le colza et le lin (faux si ce n'en est pas un).

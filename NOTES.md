@@ -1496,3 +1496,7 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Pas d'étoiles (NoRep), pas dans le tableau des gains (sells() faux) ; badges : placeBadges + « Huile vierge »,
   « Plein soleil », « Bosquet » ; aide, achat, anglais, README. Carte : « L'huilerie », puis « Pizzeria » (bientôt).
 - Fichiers : sim/huilerie.go (HuilCultures), huilerie_draw.go (sol, plantes, arbres, presses, bouteilles).
+- L'huilerie recentrée (elle aime le symétrique, le centré, l'aéré) : espaces de 840 avec une allée de 120 entre eux
+  (lieu à 6 260) ; dans chaque espace, la culture, la presse et les réserves sont centrées sur l'axe de l'espace (trois
+  colonnes d'arbres symétriques ; deux réserves de part et d'autre de l'axe) ; les quais de part et d'autre du milieu
+  du lieu ; le portail dans l'allée entre les deux premiers espaces ; le sol de chaque espace descend sous ses réserves.

@@ -15,11 +15,11 @@ import "math/rand"
 
 // Géométrie de l'huilerie.
 const (
-	HuilW      = 5420.0
+	HuilW      = 6260.0
 	HuilTop    = -420.0 // (les arbres montent haut)
 	HuilZoneX0 = 420.0  // bord gauche du premier espace
-	HuilZoneW  = 760.0  // largeur d'un espace
-	HuilZoneDX = 800.0  // d'un espace au suivant
+	HuilZoneW  = 840.0  // largeur d'un espace (tout y est centré : culture, presse, réserves)
+	HuilZoneDX = 960.0  // d'un espace au suivant (une large allée entre deux espaces)
 )
 
 // HuilCulture : une culture de l'huilerie (son espace, sa matière, son huile).
@@ -77,8 +77,9 @@ func newHuilerie(g *Game) *Place {
 		Rep: 3, Price: 1, SellMult: 1, SpawnBase: 5, WantMax: 3, MaxCust: 0, LeaveOff: V{170, 60}, OnlyStocked: true}
 	p.SpawnL = V{350, roadY + 40}
 	p.SpawnR = V{W - 550, roadY + 40}
-	p.Gate = V{1250, roadY + 40}
-	p.Inside = V{1250, 1390}
+	gx := HuilZoneX0 + HuilZoneW + (HuilZoneDX-HuilZoneW)/2 // (le portail : dans l'allée entre les deux premiers espaces)
+	p.Gate = V{gx, roadY + 40}
+	p.Inside = V{gx, 1390}
 	p.H = ParkH // (pas de parking : pas de clients)
 	p.RestSpot = V{W - 400, 1440}
 
@@ -92,6 +93,7 @@ func newHuilerie(g *Game) *Place {
 	}
 	for i, c := range HuilCultures {
 		x0 := HuilZoneX0 + float64(i)*HuilZoneDX
+		cx := x0 + HuilZoneW/2 // l'axe de l'espace : tout y est centré
 		if c.Tree {
 			// trois colonnes d'arbres (une case au départ, les autres s'achètent vers le haut)
 			for k := 0; k < 3; k++ {
@@ -99,7 +101,7 @@ func newHuilerie(g *Game) *Place {
 				if k > 0 {
 					id = c.ID + "_" + itoa(k+1)
 				}
-				x := x0 + 30 + float64(k)*(ColumnW+40)
+				x := cx - 75 + float64(k-1)*(ColumnW+70) // (trois colonnes, symétriques autour de l'axe)
 				s := &Station{ID: id, Name: c.Name, Kind: Field, Item: c.Raw, Time: 10 + float64(i), Unlock: id, Column: true, Team: c.ID}
 				bottom := fieldY + 60 + 2*90
 				s.Body = Rect{x + 10, bottom - float64(ColumnMax-1)*90 - 60, 130, float64(ColumnMax-1)*90 + 120}
@@ -114,7 +116,9 @@ func newHuilerie(g *Game) *Place {
 			// un champ de graines (huit colonnes, trois rangées)
 			cols := 8
 			s := &Station{ID: c.ID, Name: c.Name, Kind: Field, Item: c.Raw, Time: 6 + float64(i), Unlock: c.ID, Team: c.ID}
-			s.Body = Rect{x0 + 40, fieldY, 40 + 80*float64(cols), fieldH}
+			fw := 40 + 80*float64(cols)
+			fx := cx - fw/2
+			s.Body = Rect{fx, fieldY, fw, fieldH}
 			s.Zone = s.Body
 			for k, r := range []int{2, 1, 0} {
 				for j := 0; j < cols; j++ {
@@ -122,7 +126,7 @@ func newHuilerie(g *Game) *Place {
 					if k%2 == 1 {
 						cc = cols - 1 - j
 					}
-					s.Slots = append(s.Slots, V{x0 + 100 + float64(cc)*80, fieldY + 60 + float64(r)*90})
+					s.Slots = append(s.Slots, V{fx + 60 + float64(cc)*80, fieldY + 60 + float64(r)*90})
 				}
 			}
 			s.Plants = []Plant{{P: s.Slots[0], G: 1}}
@@ -131,24 +135,28 @@ func newHuilerie(g *Game) *Place {
 		// l'extracteur, sous la culture
 		m := &Station{ID: c.Press, Name: c.PressName, Kind: Machine, Item: c.Oil, Inputs: []Item{c.Raw}, Time: 4 + float64(i)*0.5,
 			PileMax: 12, BufMax: 10, Unlock: c.Press, Team: c.ID}
-		mx := x0 + 60
+		mx := cx - 130 // (la presse centrée ; sa case « Stock + » à droite)
 		m.Body = Rect{mx, bldY, 260, bldH}
 		m.Zone = Rect{mx - 10, bldY + bldH + 18, 130, 90}
 		m.OutZone = Rect{mx + 140, bldY + bldH + 18, 130, 90}
 		p.Stations = append(p.Stations, m)
 		// les réserves : l'huile ; pour les arbres, aussi le fruit tel quel (supermarché)
-		rack("stock_"+itoa(int(c.Oil)), "Réserve : "+Items[c.Oil].Name, c.ID, c.Oil, x0+40, c.Press)
-		if c.Tree {
-			rack("stock_"+itoa(int(c.Raw)), "Réserve : "+Items[c.Raw].Name, c.ID, c.Raw, x0+300, c.ID)
+		if c.Tree { // deux réserves, de part et d'autre de l'axe : le fruit, l'huile
+			rack("stock_"+itoa(int(c.Raw)), "Réserve : "+Items[c.Raw].Name, c.ID, c.Raw, cx-260, c.ID)
+			rack("stock_"+itoa(int(c.Oil)), "Réserve : "+Items[c.Oil].Name, c.ID, c.Oil, cx+40, c.Press)
+		} else {
+			rack("stock_"+itoa(int(c.Oil)), "Réserve : "+Items[c.Oil].Name, c.ID, c.Oil, cx-110, c.Press)
 		}
 	}
 	trash := &Station{ID: "poubelle", Name: "Compost", Kind: Trash}
 	trash.Body = Rect{W - 250, shelfY - 10, 84, 76}
 	trash.Zone = Rect{W - 270, shelfY - 100, 124, 180}
 	p.Stations = append(p.Stations, trash)
-	// les quais (au bord de la route) : le supermarché, et la pizzeria (pas encore là : son quai reste invisible)
-	p.dock("quai", "super", 2620)
-	p.dock("quai_pizzeria", "pizzeria", 2970)
+	// les quais (au bord de la route), de part et d'autre du milieu du lieu : le supermarché, et la
+	// pizzeria (pas encore là : son quai reste invisible)
+	mid := HuilZoneX0 + (float64(len(HuilCultures)-1)*HuilZoneDX+HuilZoneW)/2
+	p.dock("quai", "super", mid-265)
+	p.dock("quai_pizzeria", "pizzeria", mid+35)
 
 	// --- déblocages, dans l'ordre (rien n'est offert)
 	unlock := func(id, name string, cost float64, hint string) {
@@ -160,7 +168,7 @@ func newHuilerie(g *Game) *Place {
 				case s.Column:
 					at = Rect{s.Body.X, 290, 130, 130} // (sur la case du bas, près du chemin)
 				case s.Kind == Field:
-					at = Rect{s.Body.X + 30, s.Body.Y + s.Body.H - 140, 180, 130}
+					at = Rect{c.X - 90, s.Body.Y + s.Body.H - 140, 180, 130} // (au milieu du champ, en bas)
 				default:
 					at = Rect{c.X - 90, c.Y - 65, 180, 130}
 				}
