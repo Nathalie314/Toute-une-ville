@@ -109,6 +109,14 @@ func placeHelp(id string) []string {
 			"Tous ses produits partent au supermarché.",
 			cmd,
 		}
+	case "huilerie":
+		return []string{
+			"L'huilerie ne reçoit pas de clients et ne prend pas de commandes : tout part en camion.",
+			"Six cultures, chacune dans son espace avec ses ouvriers : tournesol, colza et lin (des champs), oliviers, noisetiers et noyers (trois colonnes d'arbres chacun).",
+			"Sous chaque culture, sa presse (le moulin pour les olives) fait l'huile ; les graines ne se vendent pas.",
+			"Les six huiles partent au supermarché (espace « Huiles »), les olives au rayon Fruits, les noisettes et les noix à l'Épicerie. L'huile d'olive ira aussi à la future pizzeria.",
+			"Rien n'est offert : même le premier champ s'achète.",
+		}
 	case "parc":
 		return []string{
 			"Le parc d'attractions ne consomme rien et ne livre rien : les visiteurs paient l'entrée (plus chère à chaque nouvelle attraction) et viennent pour les attractions, qui grandissent avec leur taille.",

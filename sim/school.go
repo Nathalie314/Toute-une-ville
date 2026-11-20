@@ -774,10 +774,10 @@ func (p *Place) cooks() bool {
 }
 
 // sells : lieux qui reçoivent des clients.
-func (p *Place) sells() bool { return p.ID != "ecole" && p.ID != "elevage" }
+func (p *Place) sells() bool { return p.ID != "ecole" && p.ID != "elevage" && p.ID != "huilerie" }
 
-// EarnsMoney : le lieu gagne-t-il de l'argent (des clients) ? L'école et la ferme
-// d'élevage, non : elles n'apparaissent pas dans le tableau des gains.
+// EarnsMoney : le lieu gagne-t-il de l'argent (des clients) ? L'école, la ferme
+// d'élevage et l'huilerie, non : elles n'apparaissent pas dans le tableau des gains.
 func (p *Place) EarnsMoney() bool { return p.sells() }
 
 // hasStaff : lieux qui ont des employés (marche, charge).
@@ -801,8 +801,11 @@ func (p *Place) PointKinds() []PointKind {
 		return ks
 	}
 	// primaire
-	if p.ID == "ferme" || p.ID == "exotique" || p.ID == "domaine" {
+	if p.ID == "ferme" || p.ID == "exotique" || p.ID == "domaine" || p.ID == "huilerie" {
 		add("pts_agro", "ouvrier", "Agronomes", "Champs", "Les champs poussent plus vite (+1 % par point).", pctVal)
+	}
+	if p.ID == "huilerie" { // (les arbres à part : oliviers, noisetiers, noyers)
+		add("pts_arbres", "ouvrier", "Arboriculteurs", "Arbres", "Les oliviers, noisetiers et noyers poussent plus vite (+1 % par point).", pctVal)
 	}
 	if p.ID == "elevage" {
 		add("pts_soin", "ouvrier", "Soigneurs", "Animaux", "Poulailler, mare, prés, porcherie vont plus vite (+3 % par point).", func(n int) string { return pctVal(3 * n) })
@@ -852,6 +855,10 @@ func (p *Place) PointKinds() []PointKind {
 	}
 	if p.ID == "exotique" {
 		add("pts_mac_vit", "ouvrier", "Mécaniciens", "Machines : vitesse", "Raffinerie, moulins, chocolaterie, torréfacteur, séchoir vont plus vite (+3 % par point).", func(n int) string { return pctVal(3 * n) })
+		add("pts_mac_rent", "ouvrier", "Mécaniciens", "Machines : rentabilité", "Chaque fabrication peut être gratuite : elle ne consomme alors aucun ingrédient.", rentVal)
+	}
+	if p.ID == "huilerie" {
+		add("pts_mac_vit", "ouvrier", "Mécaniciens", "Machines : vitesse", "Les presses et le moulin à huile vont plus vite (+3 % par point ; ils consomment autant).", func(n int) string { return pctVal(3 * n) })
 		add("pts_mac_rent", "ouvrier", "Mécaniciens", "Machines : rentabilité", "Chaque fabrication peut être gratuite : elle ne consomme alors aucun ingrédient.", rentVal)
 	}
 	if p.ID == "domaine" {

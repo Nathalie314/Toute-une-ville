@@ -346,7 +346,7 @@ func (g *game) drawField(dst *ebiten.Image, s *sim.Station) {
 }
 
 func drawPlant(dst *ebiten.Image, it sim.Item, x, y, gr, t float64, i int) {
-	if drawExoticPlant(dst, it, x, y, gr, t) || drawDomainePlant(dst, it, x, y, gr, t) {
+	if drawExoticPlant(dst, it, x, y, gr, t) || drawDomainePlant(dst, it, x, y, gr, t) || drawHuilPlant(dst, it, x, y, gr, t) {
 		return
 	}
 	sway := 0.0
@@ -644,6 +644,11 @@ func (g *game) drawStation(dst *ebiten.Image, p *sim.Place, s *sim.Station) {
 	}
 	if p.ID == "exotique" && strings.HasPrefix(s.ID, "pressoir_") {
 		drawExoPress(dst, s, g.t)
+		sign(dst, s.Body.C().X, s.Body.Y-14, s.Name)
+		return
+	}
+	if p.ID == "huilerie" && s.Kind == sim.Machine {
+		drawHuilMachine(dst, s, g.t)
 		sign(dst, s.Body.C().X, s.Body.Y-14, s.Name)
 		return
 	}
@@ -1076,6 +1081,8 @@ func staffLook(place string, kind sim.AgentKind, n int) look {
 			lk.shirt, lk.mariniere, lk.apron = 0xffffff, true, 0x1f5fa8
 		case "domaine":
 			lk.shirt, lk.apron = 0x7a2a4a, 0x8a5a33
+		case "huilerie":
+			lk.shirt, lk.apron = 0x6a6a22, 0xf0e6cc
 		case "patisserie":
 			lk.shirt, lk.apron = 0xe0567f, 0xffffff
 			lk.hat = 6
@@ -1107,6 +1114,9 @@ func staffLook(place string, kind sim.AgentKind, n int) look {
 		lk.shirt, lk.pants = 0xffffff, 0x4a4a4a
 		lk.apron, lk.stripe = 0xffc2d4, 0xffffff
 		lk.hat = 6
+	case "huilerie": // chemise vert olive, chapeau de paille
+		lk.shirt, lk.pants = 0x6a6a22, 0x5a4a3a
+		lk.hat, lk.hatC = 1, 0xe8c86a
 	case "domaine": // vigneron : chemise bordeaux, tablier de cuir, chapeau
 		lk.shirt, lk.pants = 0x7a2a4a, 0x3b3b4a
 		lk.apron = 0x8a5a33
@@ -1906,7 +1916,7 @@ func drawTruck(dst *ebiten.Image, cx, cy float64, busy bool) {
 	}
 	ellipse(dst, cx, cy+38, 120, 10, rgba(0x000000, 0.25))
 	roundRect(dst, cx-120, cy-42, 160, 74, 8, rgb(0xf3ead8))
-	label := map[string]string{"ferme": "MA FERME", "boulangerie": "BOULANGERIE", "cremerie": "CRÈMERIE", "glacier": "GLACIER", "boucherie": "BOUCHERIE", "exotique": "EXOTIQUE", "port": "LE PORT", "elevage": "ÉLEVAGE", "domaine": "LE DOMAINE", "patisserie": "PÂTISSERIE"}[truckFrom]
+	label := map[string]string{"ferme": "MA FERME", "boulangerie": "BOULANGERIE", "cremerie": "CRÈMERIE", "glacier": "GLACIER", "boucherie": "BOUCHERIE", "exotique": "EXOTIQUE", "port": "LE PORT", "elevage": "ÉLEVAGE", "domaine": "LE DOMAINE", "patisserie": "PÂTISSERIE", "huilerie": "L'HUILERIE"}[truckFrom]
 	if label == "" {
 		label = "MA FERME"
 	}
@@ -2079,6 +2089,8 @@ func placeShort(id string) string {
 		return "domaine"
 	case "patisserie":
 		return "pâtisserie"
+	case "huilerie":
+		return "huilerie"
 	}
 	return id
 }

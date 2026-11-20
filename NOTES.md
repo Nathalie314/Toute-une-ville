@@ -1481,3 +1481,18 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Correctif : le prix écrit sous un étal ou une vitrine utilisait les comptables de la ferme dans tous les lieux
   (tarte aux pommes : « 2 923 € » affiché, 1 100 € payés) ; il utilise maintenant ceux du lieu. Les petits marchés de
   la serre et du verger se remplissent aussi entièrement (part occupée).
+
+## L'huilerie (15e lieu, après le parc) — 20 novembre
+- Choix de la conceptrice : nom « L'huilerie » ; aucune vente sur place, aucune commande ; six cultures, un espace
+  chacune (ses ouvriers : champ + presse = 2 ; arbres : 3 colonnes + presse = 4) ; tournesol, colza, lin en champs
+  (graines non vendables) ; oliviers, noisetiers, noyers en trois colonnes d'arbres chacun ; une presse par culture
+  (moulin pour les olives). Huiles → supermarché, nouvel espace « Huiles » (après l'Épicerie ; magasiniers au rang 13,
+  les espaces suivants gardent leurs prix) ; olives → rayon Fruits, noisettes et noix → Épicerie (rayons déjà prévus) ;
+  l'huile d'olive ira à la pizzeria (quai « quai_pizzeria » déjà là, invisible tant que la pizzeria n'existe pas).
+- Rien n'est offert ; ordre : tournesol, presse, colza, presse, oliviers, moulin, 2e et 3e colonnes, lin, presse,
+  noisetiers…, noyers… (prix de base 5 000 → 170 000, puis ×coefficient de la carte : le lieu coûte 512 M).
+- Points d'école : Agronomes « Champs » (tournesol, colza, lin) et Arboriculteurs « Arbres » (pts_arbres : oliviers,
+  noisetiers, noyers) à part ; Mécaniciens « Machines » pour toutes les presses ; entraînement, drones, camions.
+- Pas d'étoiles (NoRep), pas dans le tableau des gains (sells() faux) ; badges : placeBadges + « Huile vierge »,
+  « Plein soleil », « Bosquet » ; aide, achat, anglais, README. Carte : « L'huilerie », puis « Pizzeria » (bientôt).
+- Fichiers : sim/huilerie.go (HuilCultures), huilerie_draw.go (sol, plantes, arbres, presses, bouteilles).

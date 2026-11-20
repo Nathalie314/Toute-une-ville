@@ -182,6 +182,16 @@ const (
 	Avocat      // (ferme exotique, après les mangues)
 	TarteCitron // (pâtisserie, entre les éclairs et les fraisiers)
 	Concombre   // (serre de ma ferme, 7e colonne)
+	// l'huilerie : trois graines (non vendables) et six huiles
+	Tournesol
+	Colza
+	Lin
+	HuileTournesol
+	HuileColza
+	HuileOlive
+	HuileLin
+	HuileNoisette
+	HuileNoix
 	NItems
 )
 
@@ -294,6 +304,15 @@ var Items = [NItems]ItemInfo{
 	Avocat:           {"Avocats", 64},
 	TarteCitron:      {"Tarte au citron meringuée", 1900},
 	Concombre:        {"Concombres", 40},
+	Tournesol:        {"Graines de tournesol", 12},
+	Colza:            {"Graines de colza", 12},
+	Lin:              {"Graines de lin", 14},
+	HuileTournesol:   {"Huile de tournesol", 400},
+	HuileColza:       {"Huile de colza", 450},
+	HuileOlive:       {"Huile d'olive", 700},
+	HuileLin:         {"Huile de lin", 550},
+	HuileNoisette:    {"Huile de noisette", 850},
+	HuileNoix:        {"Huile de noix", 900},
 	Aiguillettes:     {"Aiguillettes de canard", 120},
 	Magret:           {"Magret de canard", 150},
 	FoieGras:         {"Foie gras", 280},
@@ -402,11 +421,16 @@ var ExoFruits = []Item{Ananas, Banane, NoixCoco, Mangue, Avocat, Citron, Orange}
 var ExoticSold = []Item{Ananas, Banane, NoixCoco, Mangue, Avocat, Citron, Orange, SucreMorceaux, SucrePoudre, Chocolat, CafeGrains, CafeMoulu, Riz, Vanille, The, Cannelle, Limonade, JusOrange}
 
 // EpicerieSold : le rayon « Épicerie » du supermarché (sucre, chocolat, café, riz, épices de
-// la ferme exotique ; noisettes et noix d'un futur lieu).
+// la ferme exotique ; noisettes et noix de l'huilerie).
 var EpicerieSold = []Item{SucreMorceaux, SucrePoudre, Chocolat, CafeGrains, CafeMoulu, Riz, Vanille, The, Cannelle, Noisette, Noix}
 
 // FutureSold : produits d'un lieu qui n'existe pas encore (leur rayon attend).
-var FutureSold = []Item{Noisette, Noix, Olive}
+var FutureSold = []Item{}
+
+// HuilesSold : l'espace « Huiles » du supermarché (dans l'ordre d'achat à l'huilerie) ;
+// HuilerieRaw : ce que l'huilerie envoie tel quel (olives aux fruits, noisettes et noix à l'épicerie).
+var HuilesSold = []Item{HuileTournesol, HuileColza, HuileOlive, HuileLin, HuileNoisette, HuileNoix}
+var HuilerieRaw = []Item{Olive, Noisette, Noix}
 
 // BoucherieSold : ce que vend la boucherie-charcuterie (par espace).
 var BoucherieSold = []Item{PouletRoti, CuissePoulet, PilonPoulet, Aiguillettes, Magret, FoieGras,

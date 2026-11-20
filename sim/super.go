@@ -34,6 +34,7 @@ var SuperZones = []*SuperZone{
 		open: func(g *Game) bool { return g.farm().Station("fraisier").Built }},
 	{ID: "cremerie", Name: "Crèmerie", Items: CremerieSold, Cols: 3, open: ownedFn("cremerie")},
 	{ID: "epicerie", Name: "Épicerie", Items: EpicerieSold, Cols: 3, open: ownedFn("exotique")},
+	{ID: "huiles", Name: "Huiles", rank: 13, Items: HuilesSold, Cols: 2, open: ownedFn("huilerie")}, // (les six huiles de l'huilerie ; ses magasiniers : après la pâtisserie)
 	{ID: "alcool", Name: "Boissons", rank: 10, // (juste après l'épicerie ; ses magasiniers gardent leur prix)
 		Items: append([]Item{Limonade, JusOrange}, DrinksSold...), Cols: 3, // (limonade et jus d'orange de la ferme exotique en premier ; puis jus, vins, bière, cidre, alcools du domaine)
 		open: func(g *Game) bool {
@@ -259,8 +260,8 @@ func newSuper(g *Game) *Place {
 		r := zi
 		if z.rank > 0 {
 			r = z.rank
-		} else if zi > 4 {
-			r = zi - 1 // (les espaces après les boissons gardent le prix de leur ancienne place)
+		} else if zi > 5 {
+			r = zi - 2 // (les espaces après les huiles et les boissons gardent le prix de leur ancienne place)
 		}
 		f := math.Pow(2.2, float64(r))
 		var costs []float64
@@ -376,12 +377,12 @@ func (g *Game) produced(it Item) bool {
 	if g.farm().shelfFor(it) != nil {
 		return true
 	}
-	for _, id := range []string{"exotique", "port", "domaine"} { // (ce qu'on y vend tel quel ; domaine : le raisin, les jus)
+	for _, id := range []string{"exotique", "port", "domaine", "huilerie"} { // (ce qu'on y vend tel quel ; domaine : le raisin, les jus ; huilerie : olives, noisettes, noix)
 		if q := g.Place(id); q != nil && q.Owned && q.shelfFor(it) != nil {
 			return true
 		}
 	}
-	for _, id := range []string{"boulangerie", "cremerie", "glacier", "boucherie", "domaine", "patisserie"} {
+	for _, id := range []string{"boulangerie", "cremerie", "glacier", "boucherie", "domaine", "patisserie", "huilerie"} {
 		p := g.Place(id)
 		if p == nil || !p.Owned {
 			continue
@@ -428,6 +429,11 @@ func whereLocked(it Item) string {
 	}
 	if it == Raisin {
 		return "Depuis le domaine"
+	}
+	for _, b := range append(append([]Item{}, HuilesSold...), HuilerieRaw...) {
+		if b == it {
+			return "Depuis l'huilerie"
+		}
 	}
 	for _, b := range FutureSold {
 		if b == it {
@@ -496,6 +502,8 @@ func (g *Game) fixRayonCosts() {
 				u.Cost = 9000 + 0.5*c
 			case "patisserie":
 				u.Cost = 10000 + 0.5*c
+			case "huilerie":
+				u.Cost = 11000 + 0.5*c
 			}
 			u.Cost = math.Round(u.Cost/50) * 50
 		}

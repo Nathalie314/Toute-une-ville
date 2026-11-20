@@ -39,7 +39,7 @@ func (s *Station) DronePad() Rect {
 
 // hasDrones : lieux où les vitrines ont des drones.
 func (p *Place) hasDrones() bool {
-	return p.ID == "ferme" || p.ID == "exotique" || p.ID == "boulangerie" || p.ID == "cremerie" || p.ID == "glacier" || p.ID == "elevage" || p.ID == "boucherie" || p.ID == "port" || p.ID == "domaine" || p.ID == "patisserie"
+	return p.ID == "ferme" || p.ID == "exotique" || p.ID == "boulangerie" || p.ID == "cremerie" || p.ID == "glacier" || p.ID == "elevage" || p.ID == "boucherie" || p.ID == "port" || p.ID == "domaine" || p.ID == "patisserie" || p.ID == "huilerie"
 }
 
 // droneDest : un camion part-il de ce lieu ? (ferme : vers un lieu acheté ;
@@ -326,7 +326,7 @@ func (p *Place) DroneLock(sp *Spot) string {
 }
 
 // dronePrice : prix d'un drone, le même pour tous les étals d'un lieu.
-var dronePrice = map[string]float64{"ferme": 800, "boulangerie": 2500, "cremerie": 3200, "glacier": 4000, "elevage": 5000, "boucherie": 6000, "exotique": 2500, "port": 5000, "domaine": 6000, "patisserie": 7000}
+var dronePrice = map[string]float64{"ferme": 800, "boulangerie": 2500, "cremerie": 3200, "glacier": 4000, "elevage": 5000, "boucherie": 6000, "exotique": 2500, "port": 5000, "domaine": 6000, "patisserie": 7000, "huilerie": 7000}
 
 // StorePad : base (prévue) du drone d'une réserve, sous sa zone de dépôt.
 func (s *Station) StorePad() Rect {

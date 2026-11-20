@@ -436,6 +436,9 @@ func drawOrchard(dst *ebiten.Image, it sim.Item, x, y, young, gr, t float64) {
 			return
 		}
 	}
+	if drawHuilTree(dst, it, x, y, size, fr, ripe, t) { // l'huilerie : olivier, noisetier, noyer
+		return
+	}
 	if it == sim.Fraise {
 		// un fraisier : un arbuste bas
 		r := 18 * size
