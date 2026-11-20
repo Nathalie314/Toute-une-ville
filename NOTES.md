@@ -1475,3 +1475,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   prix (200 à 12 873), les suivants ×1,6 (20 600 … 23,8 M pour le dernier).
 - Étals : la marchandise s'étale sur toute la largeur de l'étal ; plein, il est rempli d'un bout à l'autre (on montre
   la part occupée : avant, au plus 18 objets dessinés, sur la moitié des grands étals de la ferme).
+- Ferme : récolte double dans la serre et le verger (chaque case mûre donne 2 produits ; la cagette des ouvriers en
+  tient 16). Mesuré sur sa partie (10 min) : étals des légumes et des fruits à ~29/36 en moyenne (avant ~25 ;
+  pommes de terre 28 au lieu de 19) ; les ouvriers étaient le goulot, pas la pousse (agronomes à 516 %).

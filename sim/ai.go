@@ -79,7 +79,7 @@ func (p *Place) available(s *Station) int {
 				n++
 			}
 		}
-		return n*FieldYield(p.Level(s)) - s.claim[s.Item]
+		return n*p.fieldYield(s) - s.claim[s.Item]
 	case Animal, Machine, Pallet:
 		return s.Pile - s.claim[s.Item]
 	}
@@ -129,7 +129,7 @@ func (p *Place) pickJob(w *Agent) *job {
 					av = src.Pile2 - src.claim[it]
 				}
 				if src.Kind == Field && av > 0 && av < capa-w.load() {
-					av += p.soonCount(src) * FieldYield(p.Level(src)) // il attendra celles qui vont mûrir
+					av += p.soonCount(src) * p.fieldYield(src) // il attendra celles qui vont mûrir
 				}
 				if src.Kind == Field && src.Column && av < min(3, len(src.Plants)) {
 					continue // (pas tout en haut de la colonne pour un seul légume : il ira ailleurs ou attendra)
@@ -187,7 +187,7 @@ func (p *Place) chainJob(w *Agent) *job {
 		if p.ID == "ferme" && teamOf(src.Item) != w.Team {
 			continue
 		}
-		av := p.available(src) + p.soonCount(src)*FieldYield(p.Level(src))
+		av := p.available(src) + p.soonCount(src)*p.fieldYield(src)
 		if av < min(2, room) {
 			continue
 		}
@@ -355,7 +355,7 @@ func (p *Place) workerAI(w *Agent, dt float64) {
 		// pour replanter chaque case dès qu'il l'a cueillie
 		if src.Kind == Field && src.Replant && !j.seeded {
 			crate := p.Station("graines_" + src.ID)
-			y := max(1, FieldYield(p.Level(src)))
+			y := max(1, p.fieldYield(src))
 			need := (j.want+y-1)/y - w.count(src.Seed)
 			if need <= 0 || crate == nil || !crate.Built {
 				j.seeded = true
