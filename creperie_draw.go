@@ -227,8 +227,12 @@ func drawCrepTable(dst *ebiten.Image, tb *sim.CrepTable, t float64) {
 		// ce qui est déjà servi (les assiettes devant chacun, le cidre au milieu)
 		k := 0
 		for _, it := range cg.Got {
-			x := b.X + 30 + float64(k%4)*((b.W-60)/3)
-			y := b.Y + 26 + float64(k/4)*30
+			per := 4 // (assiettes par rangée : 5 sur une table de 4)
+			if tb.Seats == 4 {
+				per = 5
+			}
+			x := b.X + 30 + float64(k%per)*((b.W-60)/float64(per-1))
+			y := b.Y + 26 + float64(k/per)*30
 			if it != sim.Cidre {
 				ellipse(dst, x, y, 18, 9, rgb(0xffffff))
 			}

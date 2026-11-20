@@ -1515,3 +1515,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   porte des clients (dockX0 1340, puis tous les 350) ; le lieu ne s'allonge plus vers la droite pour eux (w 3300).
 - Clients : après avoir payé (sans caddie), ils repartent avec un sac en papier kraft à la main, leurs achats
   dépassant en haut (drawPaperBag) ; avant, ils portaient leurs produits à bout de bras.
+- Crêperie : tables de 4 plus grandes (260 × 132 au lieu de 180 × 100 ; chaises écartées) : les assiettes, salades et
+  bouteilles de quatre personnes tiennent sur la nappe (5 par rangée).
