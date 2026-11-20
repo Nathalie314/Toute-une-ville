@@ -1562,3 +1562,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   (PlacePrice) n'étaient pas touchés. Corrigé : la référence est figée (refContent = 15 881 319, sa valeur
   d'avant) ; ajouter du contenu à la crèmerie ne change plus les prix des autres lieux. Les sommes déjà versées en
   partie sont sauvegardées sans coefficient : elles gardent leur proportion.
+- Supermarché, Épicerie : le poivre et le sel passent avant les noisettes et les noix.
