@@ -737,7 +737,7 @@ func (p *Place) stepVisitor(v *Visitor, dt float64) {
 		}
 	case vQueue:
 		r := v.ride
-		v.Joy = math.Max(0, v.Joy-parcJoyWait*dt/60)
+		v.Joy = math.Max(0, v.Joy-parcJoyWait*dt/60*math.Max(0, 1-p.ptsF("pts_bonheur")/2))
 		for i, o := range r.Queue {
 			if o == v {
 				v.path = []V{r.QueuePos(i)}
@@ -1007,3 +1007,68 @@ func VRidingState() int { return vRiding }
 func VGoneState() int   { return vGone }
 func VQueueState() int  { return vQueue }
 func VRegQState() int   { return vRegQ }
+
+// ---------------------------------------------------------------- sauvegarde
+
+// ParcVisitorSave : un visiteur déjà entré (le parc fermé, il est « en pause »).
+type ParcVisitorSave struct {
+	Car           int // sa voiture (les visiteurs d'une même voiture repartent ensemble)
+	Look, Holding int
+	Joy, HoldT    float64
+	Done, Shopped uint32
+	Trott         bool
+	Pos           V
+}
+
+// saveVisitors : les visiteurs déjà entrés (ceux qui arrivent ou repartent ne sont pas gardés).
+func (p *Place) saveVisitors() []ParcVisitorSave {
+	cars := map[*Vehicle]int{}
+	var out []ParcVisitorSave
+	for _, v := range p.Parc.Visitors {
+		if v.State != vToRide && v.State != vQueue && v.State != vRiding {
+			continue
+		}
+		c, ok := cars[v.veh]
+		if !ok {
+			c = len(cars)
+			cars[v.veh] = c
+		}
+		out = append(out, ParcVisitorSave{Car: c, Look: v.Look, Holding: v.Holding, Joy: v.Joy, HoldT: v.HoldT,
+			Done: v.done, Shopped: v.shopped, Trott: v.Trott, Pos: v.Pos})
+	}
+	return out
+}
+
+// restoreVisitors : à ton retour, les visiteurs reprennent leur visite (leur voiture garée).
+func (p *Place) restoreVisitors(vs []ParcVisitorSave) {
+	pc := p.Parc
+	cars := map[int]*Vehicle{}
+	for _, s := range vs {
+		veh, ok := cars[s.Car]
+		if !ok {
+			for _, sp := range p.Parks[:p.ParcParkTotal()] {
+				if !sp.used {
+					sp.used = true
+					veh = &Vehicle{Kind: VCar, Look: s.Look, State: 1, Pos: sp.Pos, Dir: V{0, 1}, spot: sp, speed: 320}
+					p.Vehicles = append(p.Vehicles, veh)
+					break
+				}
+			}
+			cars[s.Car] = veh
+		}
+		if veh != nil {
+			pc.cars[veh]++
+		}
+		v := &Visitor{Pos: s.Pos, Look: s.Look, Joy: s.Joy, done: s.Done, shopped: s.Shopped, Trott: s.Trott,
+			Holding: s.Holding, HoldT: s.HoldT, veh: veh}
+		if v.Trott {
+			pc.trottOut++
+		}
+		pc.Visitors = append(pc.Visitors, v)
+		var after *Ride
+		if v.done != 0 {
+			after = &Ride{} // (déjà une attraction faite : la suite selon sa jauge, comme d'habitude)
+		}
+		p.parcNext(v, v.Pos, after)
+	}
+}

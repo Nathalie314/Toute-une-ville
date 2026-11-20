@@ -878,7 +878,12 @@ func (p *Place) PointKinds() []PointKind {
 		} else {
 			add("pts_panier", "marketing", "Panier moyen", "Panier", "Chaque client achète plus de produits (+1 % par point : à 100, un produit de plus par article).", pctVal)
 		}
-		add("pts_fidele", "marketing", "Clients fidèles", "Absences", "Tes gains pendant ton absence augmentent (+1 % par point, moyenne de tes lieux).", pctVal)
+		if p.ID == "parc" { // (le parc n'ouvre que quand on joue : des visiteurs plus patients)
+			add("pts_bonheur", "marketing", "Visiteurs heureux", "Bonheur", "La jauge de bonheur des visiteurs baisse moins vite dans les files (-0,5 % par point).",
+				func(n int) string { return "-" + itoa(n/2) + " %" })
+		} else {
+			add("pts_fidele", "marketing", "Clients fidèles", "Absences", "Tes gains pendant ton absence augmentent (+1 % par point, moyenne de tes lieux).", pctVal)
+		}
 	}
 	if p.ID == "parc" {
 		add("pts_reclame", "marketing", "Réclame", "Visiteurs", "Plus de visiteurs dans le parc (+1 % par point).", pctVal)

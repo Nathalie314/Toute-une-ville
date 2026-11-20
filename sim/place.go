@@ -635,6 +635,9 @@ func (p *Place) carryCap(a *Agent) int {
 	c := 4 + g.Levels[p.key("capacite")] + g.Levels[p.key("pts_ent_cap")]/5
 	if (p.ID == "ferme" && isColumnTeam(a.Team)) || (p.ID == "exotique" && a.Team == "fruits") {
 		c = max(c, ColumnMax) // serre et verger : une cagette, pour emporter toute la colonne
+		if p.ID == "ferme" {
+			c = max(c, 2*ColumnMax) // (récolte double : la cagette en tient deux fois plus)
+		}
 	}
 	return c
 }
@@ -848,7 +851,7 @@ func (p *Place) interact(a *Agent, dt float64) {
 				if s.Replant {
 					s.Plants[best].G = -1 // il faudra replanter
 				}
-				n := min(FieldYield(p.Level(s)), capa-a.load())
+				n := min(p.fieldYield(s), capa-a.load())
 				if a.job != nil {
 					n = max(1, min(n, a.job.want-a.job.got)) // un ouvrier ne prend que ce qu'il lui faut
 				}
@@ -1373,6 +1376,16 @@ func (s *Station) GrowTime() float64 {
 }
 
 // FieldYield : récoltes par pousse mûre selon le niveau du champ.
+// fieldYield : ce que donne une case mûre de ce champ (serre et verger de ma ferme : récolte
+// double, pour que les ouvriers suivent la pousse rapide des agronomes).
+func (p *Place) fieldYield(s *Station) int {
+	y := FieldYield(p.Level(s))
+	if p.ID == "ferme" && s.Column {
+		y *= 2
+	}
+	return y
+}
+
 func FieldYield(level int) int {
 	switch {
 	case level >= 9:

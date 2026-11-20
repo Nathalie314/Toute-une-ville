@@ -1463,3 +1463,21 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Des femmes parmi les gens (clients, employés) : la moitié ; cheveux jusqu'aux épaules et mèches de chaque côté du
   visage, joues roses, lèvres, cils ; deux sur trois en jupe ou en robe (look.woman, look.skirt ; le joueur ne change pas).
 - Femmes : les cheveux ne passent plus sous le menton (on aurait dit une barbe) : de face, ils tombent de chaque côté.
+- Crêperie : la salade n'est plus un ingrédient des crêpes ; elle a son frigo en salle (à gauche de celui du cidre) et
+  chaque client en reçoit une, apportée par les serveurs (×3 son prix de la ferme, CrepSaladMult). Les camions de la
+  ferme la livrent au frigo (crepFridge).
+- Crêperie : le joueur arrive dans sa zone (plus sur l'embauche des serveurs) ; pourboires visibles à côté de la
+  table : trois pièces qui tournent, des étincelles, le montant dessous.
+- Parc : comme la crêperie, ouvert seulement quand on joue : les visiteurs entrés sont sauvegardés et reprennent leur
+  visite (leur voiture garée) ; rien hors ligne (RateOffline) ; « Clients fidèles » y devient « Visiteurs heureux »
+  (pts_bonheur : la jauge baisse moins vite dans les files) ; une ligne de plus dans son aide.
+- Ferme : les étals montent jusqu'à 100 produits (22 niveaux de +4 au lieu de 6) ; les 6 premiers niveaux gardent leurs
+  prix (200 à 12 873), les suivants ×1,6 (20 600 … 23,8 M pour le dernier).
+- Étals : la marchandise s'étale sur toute la largeur de l'étal ; plein, il est rempli d'un bout à l'autre (on montre
+  la part occupée : avant, au plus 18 objets dessinés, sur la moitié des grands étals de la ferme).
+- Ferme : récolte double dans la serre et le verger (chaque case mûre donne 2 produits ; la cagette des ouvriers en
+  tient 16). Mesuré sur sa partie (10 min) : étals des légumes et des fruits à ~29/36 en moyenne (avant ~25 ;
+  pommes de terre 28 au lieu de 19) ; les ouvriers étaient le goulot, pas la pousse (agronomes à 516 %).
+- Correctif : le prix écrit sous un étal ou une vitrine utilisait les comptables de la ferme dans tous les lieux
+  (tarte aux pommes : « 2 923 € » affiché, 1 100 € payés) ; il utilise maintenant ceux du lieu. Les petits marchés de
+  la serre et du verger se remplissent aussi entièrement (part occupée).

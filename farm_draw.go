@@ -170,7 +170,11 @@ func (g *game) drawMarketStall(dst *ebiten.Image, s *sim.Station) {
 	// table et cagettes
 	roundRect(dst, b.X, b.Y, b.W, b.H, 6, rgb(0x9a6b3e))
 	roundRect(dst, b.X+6, b.Y+4, b.W-12, 24, 5, rgb(0xc9935a))
-	for i := 0; i < min(s.Stock, 15); i++ {
+	show := min(s.Stock, 15) // (plein, l'étal est rempli : on montre la part occupée)
+	if s.StockMax > 15 {
+		show = int(math.Ceil(float64(s.Stock) / float64(s.StockMax) * 15))
+	}
+	for i := 0; i < show; i++ {
 		c := i % 5
 		l := i / 5
 		drawItem(dst, s.Item, b.X+18+float64(c)*22, b.Y+14-float64(l)*11, 11)

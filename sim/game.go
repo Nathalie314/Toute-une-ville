@@ -304,13 +304,13 @@ func (g *Game) Rate() float64 { return g.rateOver(300) }
 // pour qu'un pic juste avant de quitter ne compte pas trop).
 func (g *Game) RateLong() float64 { return g.rateOver(900) }
 
-// RateOffline : le revenu qui continue en ton absence (sans la crêperie : elle n'ouvre
-// que quand tu joues, comme l'école).
+// RateOffline : le revenu qui continue en ton absence (sans la crêperie ni le parc :
+// ils n'ouvrent que quand tu joues, comme l'école).
 func (g *Game) RateOffline() float64 {
 	r := g.rateOver(900)
 	crep := 0.0
 	for _, x := range g.income {
-		if x.place == "creperie" && x.t >= g.T-900 {
+		if (x.place == "creperie" || x.place == "parc") && x.t >= g.T-900 {
 			crep += x.a
 		}
 	}
@@ -527,6 +527,17 @@ func (p *Place) PlaceUpgrades() []*Upgrade {
 			Desc: func(l int) string { return "Chaque étal contient " + itoa(12+4*l) + " produits." }},
 	}
 	if p.ID == "ferme" {
+		// les étals de la ferme montent jusqu'à 100 produits (22 niveaux de +4) : les 6 premiers
+		// niveaux gardent leurs prix, les suivants augmentent plus doucement (×1,6)
+		et := ups[1]
+		et.Max = (100 - 12) / 4
+		for l := 0; l < et.Max; l++ {
+			if l < 6 {
+				et.Costs = append(et.Costs, math.Round(et.Base*math.Pow(et.Mult, float64(l))))
+			} else {
+				et.Costs = append(et.Costs, niceRound(et.Costs[l-1]*1.6))
+			}
+		}
 		ups = append(ups, p.droneUpgrades(1)...)
 		for _, t := range FarmTeams {
 			t := t
