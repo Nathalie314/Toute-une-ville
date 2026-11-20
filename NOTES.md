@@ -1555,3 +1555,10 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   poivriers, 160 000 €, après eux) en fait du poivre, vendu à son étal et à l'Épicerie du supermarché. Épices :
   6 ressources → 6 ouvriers (le 6e : 420 000 €) ; la case d'embauche est centrée sous la vanille et la cannelle
   (elle était à moitié sous le séchoir à thé) ; lieu élargi à 7 240 pour aérer le séchoir et le compost.
+- BUG des prix (20/11) : la courbe des prix prend comme référence le prix total du contenu de la crèmerie (rang 4).
+  En passant ses vitrines à 100 produits (22 niveaux, jusqu'à 499 M), ce total est passé de 15,9 M à 1,35 G (×85) :
+  tout ce qu'on achète dans les lieux, à partir de la ferme exotique, coûtait 85 fois trop cher (ferme exotique :
+  coefficient 642 au lieu de 7,6 ; 6e ouvrier des épices 2,7 × 10⁸ au lieu de 3,2 M). Les prix d'achat des lieux
+  (PlacePrice) n'étaient pas touchés. Corrigé : la référence est figée (refContent = 15 881 319, sa valeur
+  d'avant) ; ajouter du contenu à la crèmerie ne change plus les prix des autres lieux. Les sommes déjà versées en
+  partie sont sauvegardées sans coefficient : elles gardent leur proportion.
