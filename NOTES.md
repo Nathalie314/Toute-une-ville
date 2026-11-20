@@ -1463,3 +1463,11 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Des femmes parmi les gens (clients, employés) : la moitié ; cheveux jusqu'aux épaules et mèches de chaque côté du
   visage, joues roses, lèvres, cils ; deux sur trois en jupe ou en robe (look.woman, look.skirt ; le joueur ne change pas).
 - Femmes : les cheveux ne passent plus sous le menton (on aurait dit une barbe) : de face, ils tombent de chaque côté.
+- Crêperie : la salade n'est plus un ingrédient des crêpes ; elle a son frigo en salle (à gauche de celui du cidre) et
+  chaque client en reçoit une, apportée par les serveurs (×3 son prix de la ferme, CrepSaladMult). Les camions de la
+  ferme la livrent au frigo (crepFridge).
+- Crêperie : le joueur arrive dans sa zone (plus sur l'embauche des serveurs) ; pourboires visibles à côté de la
+  table : trois pièces qui tournent, des étincelles, le montant dessous.
+- Parc : comme la crêperie, ouvert seulement quand on joue : les visiteurs entrés sont sauvegardés et reprennent leur
+  visite (leur voiture garée) ; rien hors ligne (RateOffline) ; « Clients fidèles » y devient « Visiteurs heureux »
+  (pts_bonheur : la jauge baisse moins vite dans les files) ; une ligne de plus dans son aide.

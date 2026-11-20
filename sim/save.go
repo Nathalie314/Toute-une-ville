@@ -41,6 +41,7 @@ type PlaceSave struct {
 	Stands     int                `json:",omitempty"` // parc : ventes des stands
 	Pourboires map[string]float64 `json:",omitempty"` // crêperie : pourboires laissés sur les tables
 	Attables   []CrepGroupSave    `json:",omitempty"` // crêperie : les clients attablés (en pause)
+	Visiteurs  []ParcVisitorSave  `json:",omitempty"` // parc : les visiteurs entrés (en pause)
 }
 
 func (g *Game) Snapshot(unix int64) *Save {
@@ -61,6 +62,7 @@ func (g *Game) Snapshot(unix int64) *Save {
 		ps.Servis = p.Served
 		if p.Parc != nil {
 			ps.Stands = p.Parc.StandSales
+			ps.Visiteurs = p.saveVisitors()
 		}
 		if p.Crep != nil {
 			for _, t := range p.Crep.Tables {
@@ -130,9 +132,12 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 	migrateAvocatier(s)
 	migrateRayonsAgrumes(s)
 	// crêperie : « Clients fidèles » (absences) est devenu « Clients heureux » (elle n'ouvre que quand on joue)
-	if n := s.Levels["creperie.pts_fidele"]; n > 0 {
-		s.Levels["creperie.pts_bonheur"] += n
-		delete(s.Levels, "creperie.pts_fidele")
+	// (de même au parc : « Visiteurs heureux »)
+	for _, id := range []string{"creperie", "parc"} {
+		if n := s.Levels[id+".pts_fidele"]; n > 0 {
+			s.Levels[id+".pts_bonheur"] += n
+			delete(s.Levels, id+".pts_fidele")
+		}
 	}
 	g.Money = s.Money
 	if s.Levels != nil {
@@ -331,6 +336,9 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 		if p.Crep != nil && s.Places[p.ID] != nil {
 			p.restoreSeated(s.Places[p.ID].Attables)
 		}
+		if p.Parc != nil && s.Places[p.ID] != nil && p.Owned {
+			p.restoreVisitors(s.Places[p.ID].Visiteurs) // (le parc aussi : ses visiteurs reprennent leur visite)
+		}
 	}
 	g.checkBadges(false) // badges mérités avant leur invention : sans fanfare
 	g.Events = nil
@@ -354,7 +362,7 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 		// clients fidèles (points du collège) : moyenne de tes lieux qui vendent
 		fid, nf := 0.0, 0
 		for _, p := range g.Places {
-			if p.Owned && p.sells() && p.Crep == nil { // (la crêperie ne gagne rien en ton absence)
+			if p.Owned && p.sells() && p.Crep == nil && p.Parc == nil { // (la crêperie et le parc ne gagnent rien en ton absence)
 				fid += p.ptsF("pts_fidele")
 				nf++
 			}

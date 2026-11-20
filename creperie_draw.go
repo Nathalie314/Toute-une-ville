@@ -149,13 +149,13 @@ func (g *game) drawCrepStation(dst *ebiten.Image, p *sim.Place, s *sim.Station) 
 			drawItem(dst, s.Item, x, y-4, 11)
 		}
 		return true
-	case s.Kind == sim.Pallet && s.Item == sim.Cidre:
-		// le frigo du cidre : vitré, des bouteilles dedans
+	case s.Kind == sim.Pallet && (s.Item == sim.Cidre || s.Item == sim.Chou):
+		// le frigo du cidre (ou des salades) : vitré, des bouteilles (des salades) dedans
 		roundRect(dst, b.X, b.Y, b.W, b.H, 8, rgb(0xeef3f7))
 		roundRect(dst, b.X+10, b.Y+10, b.W-20, b.H-20, 6, rgb(0xbfe3f2))
 		n := min(14, s.Pile)
 		for k := 0; k < n; k++ {
-			drawItem(dst, sim.Cidre, b.X+24+float64(k%7)*24, b.Y+30+float64(k/7)*28, 10)
+			drawItem(dst, s.Item, b.X+24+float64(k%7)*24, b.Y+30+float64(k/7)*28, 10)
 		}
 		sayOutlined(dst, itoa(s.Pile), b.X+b.W-20, b.Y+b.H-14, 16, 0, rgb(0xffffff), rgb(0x2b2b2b))
 		sign(dst, b.C().X, b.Y-16, s.Name)
@@ -249,11 +249,30 @@ func drawCrepTable(dst *ebiten.Image, tb *sim.CrepTable, t float64) {
 		}
 	}
 	if tb.Tips > 0 {
-		// les pourboires : quelques pièces sur la table (seul le joueur les ramasse)
+		// les pourboires, à côté de la table : trois pièces qui tournent et scintillent
+		// (seul le joueur les ramasse, en passant près de la table)
+		cx, cy := b.X+b.W+22, b.Y+b.H+18
+		ellipse(dst, cx, cy+16, 30, 7, rgba(0x000000, 0.18))
 		for k := 0; k < 3; k++ {
-			coin(dst, b.X+b.W-30-float64(k)*9, b.Y+b.H-26-float64(k)*5, 9)
+			x := cx - 16 + float64(k)*16
+			y := cy - float64(k%2)*10 + math.Sin(t*2.5+float64(k))*2
+			sx := math.Abs(math.Cos(t*3 + float64(k)*1.3)) // la pièce tourne : elle s'affine puis s'élargit
+			r := 13.0
+			ellipse(dst, x, y+1.5, math.Max(1.5, r*sx), r, rgb(0xb8860b))
+			ellipse(dst, x, y, math.Max(1.5, r*sx), r, rgb(0xffcc33))
+			if sx > 0.35 {
+				ellipse(dst, x, y, r*0.7*sx, r*0.7, rgb(0xffdd66))
+			}
 		}
-		sayOutlined(dst, money(tb.Tips), b.X+b.W-20, b.Y+b.H+20, 16, 0, rgb(0xffe066), rgb(0x3b2a10))
+		for k := 0; k < 3; k++ { // les étincelles
+			ph := math.Mod(t*1.3+float64(k)*0.37, 1)
+			a := math.Sin(ph * math.Pi)
+			sx, sy := cx-22+float64(k)*22, cy-22+float64((k*7)%3)*8
+			s := 3 + 6*a
+			line(dst, sx-s, sy, sx+s, sy, 2, rgba(0xffffff, a))
+			line(dst, sx, sy-s, sx, sy+s, 2, rgba(0xffffff, a))
+		}
+		sayOutlined(dst, money(tb.Tips), cx, cy+36, 18, 0, rgb(0xffe066), rgb(0x3b2a10))
 	}
 }
 

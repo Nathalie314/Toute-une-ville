@@ -63,8 +63,8 @@ func (g *Game) dockAccepts(dock *Station, it Item) bool {
 	if to.ID == "super" {
 		return to.shelfFor(it) != nil
 	}
-	if to.Crep != nil && it == Cidre {
-		return true // (le frigo du cidre de la crêperie : les serveurs s'y servent)
+	if to.Crep != nil && crepFridge(it) {
+		return true // (les frigos du cidre et des salades de la crêperie : les serveurs s'y servent)
 	}
 	return to.usesInput(it)
 }

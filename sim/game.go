@@ -304,13 +304,13 @@ func (g *Game) Rate() float64 { return g.rateOver(300) }
 // pour qu'un pic juste avant de quitter ne compte pas trop).
 func (g *Game) RateLong() float64 { return g.rateOver(900) }
 
-// RateOffline : le revenu qui continue en ton absence (sans la crêperie : elle n'ouvre
-// que quand tu joues, comme l'école).
+// RateOffline : le revenu qui continue en ton absence (sans la crêperie ni le parc :
+// ils n'ouvrent que quand tu joues, comme l'école).
 func (g *Game) RateOffline() float64 {
 	r := g.rateOver(900)
 	crep := 0.0
 	for _, x := range g.income {
-		if x.place == "creperie" && x.t >= g.T-900 {
+		if (x.place == "creperie" || x.place == "parc") && x.t >= g.T-900 {
 			crep += x.a
 		}
 	}

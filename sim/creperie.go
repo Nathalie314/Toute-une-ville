@@ -193,16 +193,17 @@ type Creperie struct {
 var crepRecipes = []recipe{
 	{"crepe_nature", "Crêpes nature", CrepeNature, []Item{Lait, Oeuf, Beurre}, 3, 20000, "Le chef fait des crêpes nature sans arrêt (lait, œufs, beurre) : toutes les crêpes garnies en ont besoin.", "cremerie:beurre"},
 	{"crepe_sucre", "Crêpes au sucre", CrepeSucre, []Item{CrepeNature, SucrePoudre}, 4, 30000, "Une crêpe et du sucre en poudre (ferme exotique).", "exotique:moulin_sucre"},
-	{"crepe_saucisse", "Crêpes saucisse-œufs", CrepeSaucisseOeuf, []Item{CrepeNature, Chou, Saucisse, Oeuf}, 6, 45000, "Une crêpe, de la salade, une saucisse et deux œufs (un sourire !).", "boucherie:saucisse,ferme:chou"},
+	{"crepe_saucisse", "Crêpes saucisse-œufs", CrepeSaucisseOeuf, []Item{CrepeNature, Saucisse, Oeuf}, 6, 45000, "Une crêpe, une saucisse et deux œufs (un sourire !).", "boucherie:saucisse"},
 	{"crepe_pomme", "Crêpes pomme-cannelle", CrepePommeCannelle, []Item{CrepeNature, Pomme, Cannelle}, 5, 60000, "Une crêpe, des pommes et de la cannelle.", "ferme:pommier,exotique:cannelle"},
-	{"crepe_thon", "Crêpes thon-poireaux", CrepeThonPoireau, []Item{CrepeNature, Chou, Thon, Poireau}, 6, 80000, "Une crêpe, de la salade, du thon (port) et des poireaux.", "port:thon,ferme:poireau,ferme:chou"},
+	{"crepe_thon", "Crêpes thon-poireaux", CrepeThonPoireau, []Item{CrepeNature, Thon, Poireau}, 6, 80000, "Une crêpe, du thon (port) et des poireaux.", "port:thon,ferme:poireau"},
 	{"crepe_banane", "Crêpes banane-chocolat", CrepeBananeChoco, []Item{CrepeNature, Banane, Chocolat}, 5, 100000, "Une crêpe, des bananes et du chocolat.", "exotique:bananier,exotique:chocolaterie"},
-	{"crepe_steak", "Crêpes steak haché-brebis", CrepeSteakBrebis, []Item{CrepeNature, Chou, SteakHache, FromageBrebis}, 7, 130000, "Une crêpe, de la salade, un steak haché et du fromage de brebis.", "boucherie:hache,cremerie:fromage_brebis,ferme:chou"},
+	{"crepe_steak", "Crêpes steak haché-brebis", CrepeSteakBrebis, []Item{CrepeNature, SteakHache, FromageBrebis}, 7, 130000, "Une crêpe, un steak haché et du fromage de brebis.", "boucherie:hache,cremerie:fromage_brebis"},
 	{"crepe_poire", "Crêpes poire-glace vanille", CrepePoireVanille, []Item{CrepeNature, Poire, GlaceVanille}, 6, 170000, "Une crêpe, des poires et de la glace à la vanille (glacier).", "ferme:poirier,glacier:glace_vanille"},
-	{"crepe_canard", "Crêpes au canard flambé", CrepeCanard, []Item{CrepeNature, Chou, Magret, Whisky}, 8, 220000, "Une crêpe, de la salade, un magret flambé au whisky.", "boucherie:magret,domaine:whisky,ferme:chou"},
+	{"crepe_canard", "Crêpes au canard flambé", CrepeCanard, []Item{CrepeNature, Magret, Whisky}, 8, 220000, "Une crêpe, un magret flambé au whisky.", "boucherie:magret,domaine:whisky"},
 }
 
-// CrepInputs : la réserve (une palette par ingrédient) ; le cidre a son frigo en salle.
+// CrepInputs : la réserve (une palette par ingrédient) ; le cidre et la salade ont leur frigo
+// en salle (les serveurs s'y servent : une salade par client).
 var CrepInputs = []Item{Lait, Oeuf, Beurre, SucrePoudre, Chou, Saucisse, Pomme, Cannelle, Thon, Poireau, Banane, Chocolat, SteakHache, FromageBrebis, Poire, GlaceVanille, Magret, Whisky}
 
 var crepSpec = workshopSpec{
@@ -220,6 +221,12 @@ const crepTerraceCost = 120000
 
 // CrepCiderMult : le prix d'une bouteille de cidre au restaurant (× son prix au domaine).
 const CrepCiderMult = 5.0
+
+// CrepSaladMult : le prix d'une salade au restaurant (× son prix à la ferme).
+const CrepSaladMult = 3.0
+
+// crepFridge : ce que les serveurs prennent au frigo de la salle (pas au comptoir).
+func crepFridge(it Item) bool { return it == Cidre || it == Chou }
 
 func newCreperie(g *Game) *Place {
 	p := newWorkshop(g, crepSpec)
@@ -254,7 +261,7 @@ func newCreperie(g *Game) *Place {
 	// la réserve : en haut de la cuisine
 	i := 0
 	for _, s := range p.Stations {
-		if s.Kind == Pallet {
+		if s.Kind == Pallet && s.Item != Chou {
 			x := 320 + float64(i)*172
 			s.Body = Rect{x, CrepPalY, 150, 90}
 			s.Zone = Rect{x - 5, CrepPalY + 110, 160, 90}
@@ -345,6 +352,12 @@ func newCreperie(g *Game) *Place {
 	fr.Body = Rect{3050, CrepWallY + CrepWallH, 200, 80}
 	fr.Zone = Rect{3040, CrepWallY + CrepWallH + 90, 220, 90}
 	p.Stations = append(p.Stations, fr)
+	// le frigo des salades, à sa gauche (une salade par client, apportée par les serveurs)
+	if sa := p.pallet(Chou); sa != nil {
+		sa.Name = "Frigo : salades"
+		sa.Body = Rect{2790, CrepWallY + CrepWallH, 200, 80}
+		sa.Zone = Rect{2780, CrepWallY + CrepWallH + 90, 220, 90}
+	}
 
 	// les tables
 	cp := p.Crep
@@ -460,7 +473,7 @@ func newCreperie(g *Game) *Place {
 	p.Gate = V{CrepDoorX, roadY + 40}
 	p.Inside = V{3100, -60} // (les commis attendent en cuisine)
 	p.RestSpot = V{3100, -60}
-	p.Start = V{300, 1330}
+	// (le joueur arrive dans sa zone, à gauche, comme partout : pas sur l'embauche des serveurs)
 	p.Parks = nil
 	p.parkHalf = 760
 	x0, x1, gx := p.ParkX()
@@ -712,6 +725,11 @@ func (p *Place) crepSpawn() {
 	} else {
 		cg.Happy -= 0.15 // (pas de cidre à la carte)
 	}
+	if g.needsMet("ferme:chou") { // une salade pour chacun (du frigo, les serveurs l'apportent)
+		for i := 0; i < n; i++ {
+			cg.Order = append(cg.Order, Chou)
+		}
+	}
 	cg.Happy = math.Max(0, cg.Happy)
 	cp.Groups = append(cp.Groups, cg)
 }
@@ -928,6 +946,9 @@ func (p *Place) crepPay(cg *CrepGroup) {
 		pr := Items[it].Price
 		if it == Cidre {
 			pr *= CrepCiderMult // (au restaurant, la bouteille est bien plus chère qu'au domaine)
+		}
+		if it == Chou {
+			pr *= CrepSaladMult // (la salade, assaisonnée, au restaurant)
 		}
 		total += pr
 	}
@@ -1158,8 +1179,8 @@ func (p *Place) takeFrom(s *Station, it Item) bool {
 
 // crepAvail : combien de ce produit un serveur peut encore prendre (comptoir ou frigo).
 func (p *Place) crepAvail(it Item) (int, *Station) {
-	if it == Cidre {
-		pal := p.pallet(Cidre)
+	if crepFridge(it) {
+		pal := p.pallet(it)
 		if pal == nil {
 			return 0, nil
 		}
@@ -1299,7 +1320,7 @@ func (p *Place) crepPlayer(pl *Agent, dt float64) {
 		switch {
 		case s.Kind == Shelf:
 			zone = Rect{s.Spot.X - 90, s.Spot.Y - 60, 180, 110}
-		case s.Kind == Pallet && s.Item == Cidre:
+		case s.Kind == Pallet && crepFridge(s.Item):
 			zone = s.Zone
 		default:
 			continue
