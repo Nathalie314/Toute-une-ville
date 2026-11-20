@@ -430,6 +430,9 @@ func whereLocked(it Item) string {
 	if it == Raisin {
 		return "Depuis le domaine"
 	}
+	if it == Sel {
+		return "Depuis le port"
+	}
 	for _, b := range append(append([]Item{}, HuilesSold...), HuilerieRaw...) {
 		if b == it {
 			return "Depuis l'huilerie"

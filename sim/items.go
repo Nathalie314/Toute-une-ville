@@ -192,6 +192,9 @@ const (
 	HuileLin
 	HuileNoisette
 	HuileNoix
+	Poivre      // (ferme exotique, espace épices)
+	Sel         // (port : le marais salant)
+	BaiesPoivre // (ferme exotique : récoltées, elles partent au séchoir à poivre)
 	NItems
 )
 
@@ -313,6 +316,9 @@ var Items = [NItems]ItemInfo{
 	HuileLin:         {"Huile de lin", 550},
 	HuileNoisette:    {"Huile de noisette", 850},
 	HuileNoix:        {"Huile de noix", 900},
+	Poivre:           {"Poivre", 110},
+	Sel:              {"Sel", 180},
+	BaiesPoivre:      {"Baies de poivre", 30},
 	Aiguillettes:     {"Aiguillettes de canard", 120},
 	Magret:           {"Magret de canard", 150},
 	FoieGras:         {"Foie gras", 280},
@@ -418,11 +424,11 @@ var ExoFruits = []Item{Ananas, Banane, NoixCoco, Mangue, Avocat, Citron, Orange}
 
 // ExoticSold : ce que vendent les étals de la ferme exotique (la canne, le cacao,
 // le café vert et les feuilles de thé ne se vendent pas tels quels).
-var ExoticSold = []Item{Ananas, Banane, NoixCoco, Mangue, Avocat, Citron, Orange, SucreMorceaux, SucrePoudre, Chocolat, CafeGrains, CafeMoulu, Riz, Vanille, The, Cannelle, Limonade, JusOrange}
+var ExoticSold = []Item{Ananas, Banane, NoixCoco, Mangue, Avocat, Citron, Orange, SucreMorceaux, SucrePoudre, Chocolat, CafeGrains, CafeMoulu, Riz, Vanille, The, Cannelle, Poivre, Limonade, JusOrange}
 
 // EpicerieSold : le rayon « Épicerie » du supermarché (sucre, chocolat, café, riz, épices de
 // la ferme exotique ; noisettes et noix de l'huilerie).
-var EpicerieSold = []Item{SucreMorceaux, SucrePoudre, Chocolat, CafeGrains, CafeMoulu, Riz, Vanille, The, Cannelle, Noisette, Noix}
+var EpicerieSold = []Item{SucreMorceaux, SucrePoudre, Chocolat, CafeGrains, CafeMoulu, Riz, Vanille, The, Cannelle, Noisette, Noix, Poivre, Sel} // (le poivre de la ferme exotique, le sel du port)
 
 // FutureSold : produits d'un lieu qui n'existe pas encore (leur rayon attend).
 var FutureSold = []Item{}

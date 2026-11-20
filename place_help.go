@@ -36,7 +36,7 @@ func placeHelp(id string) []string {
 		}
 	case "exotique":
 		return []string{
-			"La ferme exotique fait pousser ananas, bananes, noix de coco, mangues, avocats, citrons, oranges, canne à sucre, cacao, café, riz, vanille, thé et cannelle, et en fait du sucre, du chocolat et du café.",
+			"La ferme exotique fait pousser ananas, bananes, noix de coco, mangues, avocats, citrons, oranges, canne à sucre, cacao, café, riz, vanille, thé, cannelle et poivre, et en fait du sucre, du chocolat, du café, du thé et du poivre séché.",
 			"Tous ses produits partent au supermarché.",
 			"Son sucre en poudre et son chocolat partent à la boulangerie.",
 			"Ses mangues, ses ananas, ses noix de coco, sa vanille, son café moulu et son chocolat partent chez le glacier.",
@@ -63,6 +63,7 @@ func placeHelp(id string) []string {
 	case "port":
 		return []string{
 			"Le port pêche des poissons (sardines, cabillaud, thon, saumon) avec ses bateaux, et ramasse des coquillages et des crustacés (huîtres, moules, saint-jacques, gambas) avec ses dragues.",
+			"Au nord de la criée, le marais salant : dans ses bassins, l'eau de mer s'évapore jusqu'à ce qu'ils soient tout blancs ; le râteau mécanique ramasse le sel. On achète les bassins depuis le bord.",
 			"Tous ses produits partent au supermarché.",
 			cmd,
 			"Conseil : impossible d'aller pêcher soi-même, alors mieux vaut augmenter la capacité de pêche des bateaux et des dragues !",

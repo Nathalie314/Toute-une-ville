@@ -11,7 +11,7 @@ import "math/rand"
 //   cacao   : cacaoyers → chocolaterie (cacao + sucre en poudre → tablettes)
 //   café    : caféiers → torréfacteur (café en grains) → moulin à café (café moulu)
 //   riz     : une grande rizière (le riz se vend en sachets)
-//   épices  : vanille, théiers → séchoir (boîtes de thé), cannelle
+//   épices  : vanille, cannelle, théiers → séchoir (boîtes de thé), poivriers → séchoir à poivre
 //
 // Chaque espace a ses ouvriers (comme à la ferme d'élevage).
 
@@ -23,7 +23,7 @@ var exoticZones = []*ShopZone{
 	{ID: "cacao", Name: "Cacao", X0: 3040, X1: 3460, RestY: 970, Costs: []float64{9000, 24000}},
 	{ID: "cafe", Name: "Café", X0: 3540, X1: 4360, RestY: 970, Costs: []float64{14000, 32000, 70000}},
 	{ID: "riz", Name: "Riz", X0: 4450, X1: 5330, RestY: 970, Costs: []float64{20000}},
-	{ID: "epices", Name: "Épices", X0: 5430, X1: 6510, RestY: 970, Costs: []float64{28000, 55000, 100000, 170000}},
+	{ID: "epices", Name: "Épices", X0: 5430, X1: 6890, RestY: 970, Costs: []float64{28000, 55000, 100000, 170000, 280000, 420000}}, // (6 ressources avec les poivriers et leur séchoir)
 }
 
 // exoColumnIDs : les colonnes d'arbres exotiques.
@@ -33,7 +33,7 @@ var exoColumnIDs = []string{"ananas", "bananier", "cocotier", "manguier", "avoca
 const ExoDecoTop = -950.0
 
 func newExotic(g *Game) *Place {
-	W := 6710.0                                                                      // (aéré : on voit toutes les cases et on passe entre les champs)
+	W := 7240.0                                                                      // (aéré : on voit toutes les cases et on passe entre les champs)
 	p := &Place{ID: "exotique", Name: "La ferme exotique", W: W, H: 1800, Top: -400, // (on monte jusqu'à la rivière)
 		g: g, rng: rand.New(rand.NewSource(61)),
 		Rep: 3, Price: exoticPrice, SellMult: 1, SpawnBase: 5, WantMax: 3, MaxCust: 14, LeaveOff: V{170, 60}, RepGain: 0.012,
@@ -128,10 +128,13 @@ func newExotic(g *Game) *Place {
 	field("vanille", "Vanille", "epices", Vanille, 5450, 12, 3, "vanille")
 	field("cannelle", "Cannelliers", "epices", Cannelle, 5830, 11, 3, "cannelle")
 	field("the", "Théiers", "epices", FeuillesThe, 6210, 7, 3, "the")
+	field("poivre", "Poivriers", "epices", BaiesPoivre, 6590, 10, 3, "poivre") // (lianes sur tuteurs, grappes vertes puis rouges)
 	machine("sechoir", "Séchoir à thé", "epices", The, []Item{FeuillesThe}, 6220, 3.5, "sechoir")
+	machine("sechoir_poivre", "Séchoir à poivre", "epices", Poivre, []Item{BaiesPoivre}, 6600, 3.5, "sechoir_poivre") // (les baies séchées deviennent du poivre)
 	shelf("epices", Vanille, 5460, 220, "vanille", false)
 	shelf("epices", Cannelle, 5840, 220, "cannelle", false)
 	shelf("epices", The, 6220, 220, "sechoir", false)
+	shelf("epices", Poivre, 6600, 220, "sechoir_poivre", false)
 
 	reg := &Station{ID: "caisse", Name: "Caisse", Kind: Register, HireKey: "caissiere", QueueDown: 5}
 	reg.Body = Rect{180, shelfY, 210, shelfH}
@@ -191,6 +194,8 @@ func newExotic(g *Game) *Place {
 	unlock("cannelle", "Cannelliers", 95000, "Des bâtons de cannelle (la future pâtisserie en voudra).")
 	unlock("the", "Théiers", 105000, "Les feuilles de thé partent au séchoir.")
 	unlock("sechoir", "Séchoir à thé", 120000, "Les feuilles séchées deviennent des boîtes de thé.")
+	unlock("poivre", "Poivriers", 140000, "Les baies de poivre partent au séchoir.")
+	unlock("sechoir_poivre", "Séchoir à poivre", 160000, "Les baies séchées deviennent du poivre (le supermarché le vend à l'Épicerie).")
 	for _, s := range p.Stations {
 		if s.Unlock == "" {
 			s.Built = true
@@ -222,10 +227,10 @@ func newExotic(g *Game) *Place {
 		b := p.Station(first[z.ID]).Body
 		zr := Rect{b.X + b.W/2 - 56, b.Y + b.H + 14, 112, 92}
 		if z.ID == "epices" {
-			// une grande case au milieu de l'espace (sous les cannelliers), dans l'herbe : l'ouvrier
-			// est pour toutes les épices (vanille, cannelle, thé, séchoir), pas seulement la vanille
-			t := p.Station("cannelle").Body
-			zr = Rect{t.X + t.W/2 - 150, 684, 300, 92}
+			// une grande case sous la vanille et la cannelle (centrée sur elles), dans l'herbe : l'ouvrier
+			// est pour toutes les épices (vanille, cannelle, thé et son séchoir, poivre et son séchoir)
+			v, c := p.Station("vanille").Body, p.Station("cannelle").Body
+			zr = Rect{(v.X+c.X+c.W)/2 - 150, 684, 300, 92}
 		}
 		if z.ID == "fruits" {
 			// une grande case sous les trois premiers arbres, dans l'herbe entre les deux

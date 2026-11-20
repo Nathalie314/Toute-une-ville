@@ -274,6 +274,10 @@ var trees = func() []tree {
 // ---------------------------------------------------------------- champs
 
 func (g *game) drawField(dst *ebiten.Image, s *sim.Station) {
+	if s.ID == "marais" {
+		g.drawMarais(dst, s)
+		return
+	}
 	if s.Dredged {
 		g.drawParc(dst, s)
 		return
@@ -912,7 +916,9 @@ func (g *game) drawStation(dst *ebiten.Image, p *sim.Place, s *sim.Station) {
 				g.drawShelf(dst, s)
 			}
 		case sim.Pallet:
-			if p.ID == "port" {
+			if s.ID == "tas_sel" {
+				drawSaltHeap(dst, s)
+			} else if p.ID == "port" {
 				drawBasket(dst, s)
 			} else {
 				drawPallet(dst, s)

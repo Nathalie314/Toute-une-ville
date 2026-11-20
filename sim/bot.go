@@ -74,7 +74,7 @@ func (b *Bot) Step(g *Game, dt float64) {
 			if s.Kind == Field && len(s.Plants) >= 30 && unlockLeft && !b.Human {
 				continue // grand champ : les bâtiments d'abord (comme un joueur raisonnable)
 			}
-			if s.Kind == Field && s.Built && len(s.Plants) < len(s.Slots) && g.Money >= s.PlantCost() && s.PlantCost() < best {
+			if s.Kind == Field && !s.Dredged && s.Built && len(s.Plants) < len(s.Slots) && g.Money >= s.PlantCost() && s.PlantCost() < best {
 				best, b.goal, b.plant = s.PlantCost(), nil, s
 			}
 		}
@@ -230,7 +230,7 @@ func (b *Bot) shopRemote(g *Game, s *Place) bool {
 				if st.Built && st.Stockable() {
 					ups = append(ups, s.StockUpgrade(st))
 				}
-				if st.Kind == Field && st.Built && len(st.Plants) < len(st.Slots) && st.PlantCost() < bc {
+				if st.Kind == Field && !st.Dredged && st.Built && len(st.Plants) < len(st.Slots) && st.PlantCost() < bc {
 					bc, bestU, bestUp, bestF = st.PlantCost(), nil, nil, st
 				}
 			}
@@ -378,7 +378,7 @@ func (b *Bot) ready(g *Game) bool {
 			}
 		}
 		for _, st := range p.Stations {
-			if st.Kind == Field && st.Built && len(st.Plants) < len(st.Slots) && st.PlantCost() < lim/3 {
+			if st.Kind == Field && !st.Dredged && st.Built && len(st.Plants) < len(st.Slots) && st.PlantCost() < lim/3 {
 				return false
 			}
 		}

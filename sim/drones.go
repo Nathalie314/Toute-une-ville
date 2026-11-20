@@ -30,6 +30,9 @@ func DroneCap(pts int) int { return 1 + pts/2 }
 
 // DronePad : base du drone, sous son étal.
 func (s *Station) DronePad() Rect {
+	if s.Pad.W > 0 {
+		return s.Pad
+	}
 	off := 140.0
 	if s.PadOff > 0 {
 		off = s.PadOff

@@ -24,6 +24,11 @@ const (
 	scaleFrom   = 5      // premier rang dont les prix suivent la courbe (la ferme exotique)
 	priceFrom   = 500000 // prix d'achat du lieu de rang scaleFrom
 	scaleFactor = 2.0    // d'un lieu au suivant
+	// refContent : le prix total du contenu de la crèmerie (lieu de rang scaleFrom-1) quand la
+	// courbe a été équilibrée. Il est figé : ajouter quelque chose à la crèmerie (ses vitrines à
+	// 100 produits avaient multiplié ce total par 85, et tous les prix à partir de la ferme
+	// exotique avec lui) ne doit plus changer les prix des autres lieux.
+	refContent = 15881319.0
 )
 
 // PlacePrice : prix d'achat d'un lieu de ce rang (0 : on garde son prix).
@@ -124,12 +129,7 @@ func (p *Place) contentCost() float64 {
 // chaque lieu selon son rang sur la carte (après fixRayonCosts : les rayons du
 // supermarché, 3e lieu, gardent leurs prix).
 func (g *Game) applyMapPrices() {
-	ref := 0.0
-	for _, p := range g.Places {
-		if MapRank(p.ID) == scaleFrom-1 {
-			ref = p.contentCost()
-		}
-	}
+	ref := refContent
 	for _, p := range g.Places {
 		r := MapRank(p.ID)
 		if r < scaleFrom || ref <= 0 {

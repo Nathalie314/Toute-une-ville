@@ -1534,3 +1534,31 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   espaces après les boissons reprennent la règle zi-1).
 - Glacier : vitrines écartées comme à la crèmerie (shelfStep 280) ; ses deux quais tiennent largement (lieu de 4 370).
 - Crêperie, pourboires : ils s'additionnent sur la table (t.Tips +=) jusqu'à ce que le joueur passe les ramasser.
+- POIVRE (ferme exotique) : 4e champ de l'espace Épices, à droite des théiers (« Poivriers », 3 colonnes, 10 s ;
+  lianes sur tuteurs, grappes vertes qui rougissent). Déblocage après le séchoir (140 000 €). L'espace s'élargit
+  (X1 6 890, lieu à 7 090) ; 5 ressources → 5 ouvriers (le 5e : 280 000 €) ; la case de l'ouvrier est au milieu
+  de l'espace. Étal à la ferme exotique, rayon à l'Épicerie du supermarché. Prix 110. Badge « Poivre et piment ».
+- MARAIS SALANT (port, après les gambas, 330 000 €) : au nord de la criée, une terre de digues (PortSalTop -830)
+  avec 2 rangées de 3 bassins (400 × 220). Un bassin à l'achat, « Bassin +1 » ensuite (5 de plus, 9 000 € puis
+  ×1,35), dans l'ordre : en bas au milieu, à gauche, à droite, puis la rangée du haut. Station Field « marais »
+  (Dredged, 24 s) : le bassin passe du bleu au blanc, des cristaux apparaissent, puis un petit tas (prêt).
+  Le râteau mécanique (jaune, sur chenilles, au pied des bassins) va au bassin blanc le plus proche, racle, et
+  rapporte le sel sur le « tas de sel » (Pallet, 40 + entrepôt) ; le bassin redevient bleu. Points Mécaniciens
+  « Râteau à sel : vitesse » (+3 %) et « quantité » (3 + pts/3 par bassin). Les ouvriers du port (9 au plus
+  maintenant) portent le sel à son étal, à gauche de la caisse de la criée (sa base de drone à sa gauche) ; le
+  drone le porte au quai du supermarché (rayon Épicerie). Prix 180. Badge « Fleur de sel ».
+  Personne ne va sur le marais : bassins et digues sont de l'eau (Place.Water) ; on achète depuis le bord.
+- Les « pousses +1 » des champs ne concernent plus les parcs et le marais (Dredged) : la flèche d'aide montrait un
+  bassin, impossible à atteindre.
+- Station.Pad : base de drone placée ailleurs que sous l'étal (si W > 0).
+- Poivre séché : les poivriers donnent des « Baies de poivre » (non vendues), le « Séchoir à poivre » (sous les
+  poivriers, 160 000 €, après eux) en fait du poivre, vendu à son étal et à l'Épicerie du supermarché. Épices :
+  6 ressources → 6 ouvriers (le 6e : 420 000 €) ; la case d'embauche est centrée sous la vanille et la cannelle
+  (elle était à moitié sous le séchoir à thé) ; lieu élargi à 7 240 pour aérer le séchoir et le compost.
+- BUG des prix (20/11) : la courbe des prix prend comme référence le prix total du contenu de la crèmerie (rang 4).
+  En passant ses vitrines à 100 produits (22 niveaux, jusqu'à 499 M), ce total est passé de 15,9 M à 1,35 G (×85) :
+  tout ce qu'on achète dans les lieux, à partir de la ferme exotique, coûtait 85 fois trop cher (ferme exotique :
+  coefficient 642 au lieu de 7,6 ; 6e ouvrier des épices 2,7 × 10⁸ au lieu de 3,2 M). Les prix d'achat des lieux
+  (PlacePrice) n'étaient pas touchés. Corrigé : la référence est figée (refContent = 15 881 319, sa valeur
+  d'avant) ; ajouter du contenu à la crèmerie ne change plus les prix des autres lieux. Les sommes déjà versées en
+  partie sont sauvegardées sans coefficient : elles gardent leur proportion.

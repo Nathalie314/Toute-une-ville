@@ -856,9 +856,12 @@ func (p *Place) PointKinds() []PointKind {
 		add("pts_drag_vit", "ouvrier", "Mécaniciens", "Dragues : vitesse", "Les bras des dragues vont plus vite (+3 % par point).", func(n int) string { return pctVal(3 * n) })
 		add("pts_drag_cap", "ouvrier", "Mécaniciens", "Dragues : quantité", "+1 coquillage par passage tous les 4 points (1 au départ).",
 			func(n int) string { return itoa(DredgeCap(n)) + " par passage" })
+		add("pts_sel_vit", "ouvrier", "Mécaniciens", "Râteau à sel : vitesse", "Le râteau du marais salant va plus vite (+3 % par point).", func(n int) string { return pctVal(3 * n) })
+		add("pts_sel_cap", "ouvrier", "Mécaniciens", "Râteau à sel : quantité", "+1 sel par bassin tous les 3 points (3 au départ).",
+			func(n int) string { return itoa(SaltCap(n)) + " par bassin" })
 	}
 	if p.ID == "exotique" {
-		add("pts_mac_vit", "ouvrier", "Mécaniciens", "Machines : vitesse", "Raffinerie, moulins, chocolaterie, torréfacteur, séchoir vont plus vite (+3 % par point).", func(n int) string { return pctVal(3 * n) })
+		add("pts_mac_vit", "ouvrier", "Mécaniciens", "Machines : vitesse", "Raffinerie, moulins, chocolaterie, torréfacteur, séchoirs vont plus vite (+3 % par point).", func(n int) string { return pctVal(3 * n) })
 		add("pts_mac_rent", "ouvrier", "Mécaniciens", "Machines : rentabilité", "Chaque fabrication peut être gratuite : elle ne consomme alors aucun ingrédient.", rentVal)
 	}
 	if p.ID == "huilerie" {
