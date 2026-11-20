@@ -108,6 +108,16 @@ func (g *Game) Snapshot(unix int64) *Save {
 				ps.Buf[st.ID] = b
 			}
 		}
+		// les drones en vol vers un quai : leur chargement est posé sur ce quai (il ne se perd plus)
+		for _, st := range p.Stations {
+			for _, d := range st.Drones {
+				if d.Phase == 2 && d.N > 0 && d.dock != nil {
+					if b, ok := ps.Buf[d.dock.ID]; ok {
+						b[d.It] += d.N
+					}
+				}
+			}
+		}
 		s.Places[p.ID] = ps
 	}
 	return s
@@ -319,6 +329,11 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 			st.LvlPaid = ps.NiveauPaye[st.ID] * k
 			st.StkPaid = ps.StockPaye[st.ID] * k
 			st.Stock = min(ps.Stock[st.ID], st.StockMax)
+			if st.Kind == Pallet && p.Owned {
+				// (la taille de l'entrepôt d'abord : sinon les palettes étaient coupées à leur taille
+				// de départ à chaque lancement, et les drones se jetaient sur les quais pour les remplir)
+				st.PileMax = PalletMax(p.ID, g.Levels[p.key("entrepot")])
+			}
 			st.Pile = min(ps.Pile[st.ID], st.PileMax)
 			if b, ok := ps.Buf[st.ID]; ok {
 				for i := 0; i < int(NItems) && i < len(b); i++ {
