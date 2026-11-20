@@ -1839,3 +1839,4 @@ LIN = FLAX
 OLIVIERS = OLIVE TREES
 NOISETIERS = HAZEL TREES
 NOYERS = WALNUT TREES
+Les caisses de l'entrée encaissent les visiteurs plus vite (+2 % par point). = The entrance ticket booths check visitors in faster (+2% per point).

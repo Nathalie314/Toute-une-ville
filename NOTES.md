@@ -1506,3 +1506,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   les 6 premiers à leur prix d'avant, puis ×1,6 ; crèmerie : 4 200 … 270 000 au 6e … 499 M au dernier).
 - Crêperie : la case « Serveur +1 » remonte au-dessus de celle du parking (920) : en entrant par la porte de gauche,
   on ne marche plus dessus.
+- Parc : le point « Mécaniciens : Caisses » dit ce qu'il fait là-bas : « Les caisses de l'entrée encaissent les
+  visiteurs plus vite » (il accélérait déjà l'encaissement des entrées ; le texte parlait d'articles).

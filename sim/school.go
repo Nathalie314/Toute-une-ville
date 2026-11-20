@@ -836,7 +836,11 @@ func (p *Place) PointKinds() []PointKind {
 		}
 	}
 	if p.sells() {
-		add("pts_caisse", "ouvrier", "Mécaniciens", "Caisses", "Les caisses passent les articles plus vite (+2 % par point).", func(n int) string { return pctVal(2 * n) })
+		if p.ID == "parc" { // (au parc, on encaisse des entrées, pas des articles)
+			add("pts_caisse", "ouvrier", "Mécaniciens", "Caisses", "Les caisses de l'entrée encaissent les visiteurs plus vite (+2 % par point).", func(n int) string { return pctVal(2 * n) })
+		} else {
+			add("pts_caisse", "ouvrier", "Mécaniciens", "Caisses", "Les caisses passent les articles plus vite (+2 % par point).", func(n int) string { return pctVal(2 * n) })
+		}
 	}
 	if p.ID == "parc" {
 		add("pts_embarq", "ouvrier", "Opérateurs", "Embarquement", "Les employés des attractions font monter et descendre les visiteurs plus vite (+1 % par point).", pctVal)
