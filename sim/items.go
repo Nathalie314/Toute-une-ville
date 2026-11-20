@@ -428,7 +428,7 @@ var ExoticSold = []Item{Ananas, Banane, NoixCoco, Mangue, Avocat, Citron, Orange
 
 // EpicerieSold : le rayon « Épicerie » du supermarché (sucre, chocolat, café, riz, épices de
 // la ferme exotique ; noisettes et noix de l'huilerie).
-var EpicerieSold = []Item{SucreMorceaux, SucrePoudre, Chocolat, CafeGrains, CafeMoulu, Riz, Vanille, The, Cannelle, Noisette, Noix, Poivre, Sel} // (le poivre de la ferme exotique, le sel du port)
+var EpicerieSold = []Item{SucreMorceaux, SucrePoudre, Chocolat, CafeGrains, CafeMoulu, Riz, Vanille, The, Cannelle, Poivre, Sel, Noisette, Noix} // (le poivre de la ferme exotique, le sel du port, puis les noisettes et les noix de l'huilerie)
 
 // FutureSold : produits d'un lieu qui n'existe pas encore (leur rayon attend).
 var FutureSold = []Item{}
