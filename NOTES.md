@@ -1473,3 +1473,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   (pts_bonheur : la jauge baisse moins vite dans les files) ; une ligne de plus dans son aide.
 - Ferme : les étals montent jusqu'à 100 produits (22 niveaux de +4 au lieu de 6) ; les 6 premiers niveaux gardent leurs
   prix (200 à 12 873), les suivants ×1,6 (20 600 … 23,8 M pour le dernier).
+- Étals : la marchandise s'étale sur toute la largeur de l'étal ; plein, il est rempli d'un bout à l'autre (on montre
+  la part occupée : avant, au plus 18 objets dessinés, sur la moitié des grands étals de la ferme).

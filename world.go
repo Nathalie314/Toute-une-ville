@@ -932,10 +932,16 @@ func (g *game) drawShelf(dst *ebiten.Image, s *sim.Station) {
 	ellipse(dst, b.C().X, b.Y+b.H, b.W*0.55, 12, rgba(0x000000, 0.18))
 	roundRect(dst, b.X, b.Y, b.W, b.H, 8, rgb(0x9a6b3e))
 	roundRect(dst, b.X, b.Y, b.W, 26, 8, rgb(0xc9935a))
-	// marchandise posée dessus
-	for i := 0; i < min(s.Stock, 18); i++ {
-		c := i % 6
-		l := i / 6
+	// marchandise posée dessus : sur toute la largeur de l'étal, trois rangées ; plein, il
+	// est rempli d'un bout à l'autre (on montre la part de l'étal occupée)
+	cols := max(1, int((b.W-20)/23))
+	show := min(s.Stock, cols*3)
+	if s.StockMax > cols*3 {
+		show = int(math.Ceil(float64(s.Stock) / float64(s.StockMax) * float64(cols*3)))
+	}
+	for i := 0; i < show; i++ {
+		c := i % cols
+		l := i / cols
 		drawItem(dst, s.Item, b.X+18+float64(c)*23, b.Y+12-float64(l)*12, 12)
 	}
 	if s.Stock > 18 {
