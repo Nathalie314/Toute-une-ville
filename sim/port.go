@@ -47,9 +47,10 @@ const (
 	// la route verticale, à droite de la criée ; la zone du joueur et le parking de l'autre côté
 	PortRoadX = 4300.0 // bord gauche de la route
 	PortRoadW = 150.0
-	PortLaneS = PortRoadX + 40  // voie vers le sud (les voitures roulent à droite)
-	PortLaneN = PortRoadX + 110 // voie vers le nord
-	PortGateY = 1960.0          // le passage piéton, face à l'entrée de la criée
+	PortLaneS = PortRoadX + 40      // voie vers le sud (les voitures roulent à droite)
+	PortLaneN = PortRoadX + 110     // voie vers le nord
+	PortGateY = 1960.0              // le passage piéton, face à l'entrée de la criée
+	PortMidX  = 2790 + 1.5*330 + 85 // le milieu des quatre colonnes d'étals de la criée : la caisse et l'étal du sel y sont centrés
 	PortH     = 3500.0
 	// les quais et la voie de livraison (sous le passage piéton)
 	PortDockY0   = 2110.0
@@ -316,13 +317,13 @@ func newPort(g *Game) *Place {
 		shelf(c.It, 2790+float64(c.Sec)*330, y, c.ID)
 	}
 	// le sel : en haut de la criée, au milieu (face au marais salant)
-	shelf(Sel, (PortCrieeX0+PortCrieeX1)/2-85, 330, "marais")
+	shelf(Sel, PortMidX-85, 330, "marais")
 	// la caisse : sous les deux rangées
 	reg := &Station{ID: "caisse", Name: "Caisse", Kind: Register, HireKey: "caissiere", QueueDown: 3}
-	reg.Body = Rect{3290, 1650, 210, 66}
-	reg.Spot = V{3395, 1610}
-	reg.Zone = Rect{3310, 1522, 170, 96}
-	reg.QueueHead = V{3395, 1756}
+	reg.Body = Rect{PortMidX - 105, 1650, 210, 66}
+	reg.Spot = V{PortMidX, 1610}
+	reg.Zone = Rect{PortMidX - 85, 1522, 170, 96}
+	reg.QueueHead = V{PortMidX, 1756}
 	p.Stations = append(p.Stations, reg)
 	trash := &Station{ID: "poubelle", Name: "Poubelle", Kind: Trash}
 	trash.Body = Rect{4040, 3220, 70, 70}
@@ -414,9 +415,9 @@ func newPort(g *Game) *Place {
 	p.Spots = append(p.Spots,
 		&Spot{ID: "cases_marais", Label: "Bassin +1", Zone: Rect{PortSalPivot.X + 140, PortSalPivot.Y - 10, 130, 120}, NeedsBuilt: "marais",
 			Done: func(l int) string { return "Marais salant : un bassin de plus !" }},
-		&Spot{ID: "caissiere", Label: "Caissière", Zone: Rect{3560, 1540, 145, 116}, Done: func(int) string { return "Caissière embauchée !" }},
-		&Spot{ID: "etals", Label: "Étals +", Zone: Rect{2830, 1540, 130, 116}, Done: func(l int) string { return "Étals agrandis : niveau " + itoa(l) + " !" }},
-		&Spot{ID: "entrepot", Label: "Paniers +", Zone: Rect{3720, 1540, 130, 116}, Done: func(l int) string {
+		&Spot{ID: "caissiere", Label: "Caissière", Zone: Rect{PortMidX + 325, 1540, 140, 116}, Done: func(int) string { return "Caissière embauchée !" }},
+		&Spot{ID: "etals", Label: "Étals +", Zone: Rect{PortMidX - 465, 1540, 140, 116}, Done: func(l int) string { return "Étals agrandis : niveau " + itoa(l) + " !" }},
+		&Spot{ID: "entrepot", Label: "Paniers +", Zone: Rect{PortMidX + 165, 1540, 140, 116}, Done: func(l int) string {
 			return "Paniers agrandis : " + itoa(PalletMax(p.ID, l)) + " par panier !"
 		}})
 	for _, st := range p.Stations {
@@ -447,7 +448,7 @@ func newPort(g *Game) *Place {
 	p.Spots = append(p.Spots, &Spot{ID: "ouvriers", Label: "Ouvrier du port", Done: func(l int) string { return "Ouvrier du port +1 !" }})
 	p.setupYard(PortParkX0 + YardW - yardOldW) // (la zone, de l'autre côté de la route verticale)
 	// (les ouvriers s'embauchent à gauche de la caisse, pas dans la zone du joueur)
-	p.spot("ouvriers").Zone = Rect{2985, 1540, 145, 116} // (à gauche de la caisse ; « Étals + » à sa gauche)
+	p.spot("ouvriers").Zone = Rect{PortMidX - 305, 1540, 140, 116} // (en miroir autour de la caisse : ouvriers | caisse | paniers, puis étals … caissière)
 	p.setupPortParking()
 	p.spawnT = 0.5
 	return p

@@ -79,8 +79,8 @@ func (g *game) portGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 			circle(dst, x, y, 14, rgb(0x7a5530))
 		}
 	}
-	roundRect(dst, (cx0+cx1)/2-150, cy0-6, 300, 54, 10, rgb(0x2b5a8a))
-	say(dst, "CRIÉE", (cx0+cx1)/2, cy0+21, 32, true, 0, rgb(0xfff3d6))
+	roundRect(dst, sim.PortMidX-150, cy0-6, 300, 54, 10, rgb(0x2b5a8a)) // (centré sur les étals, comme la caisse)
+	say(dst, "CRIÉE", sim.PortMidX, cy0+21, 32, true, 0, rgb(0xfff3d6))
 	// --- les deux pontons
 	jx0, jy0 := sim.PortJettyX0, sim.PortJettyY0
 	for _, j := range [][2]float64{{sim.PortJettyY0, sim.PortJettyY1}, {sim.PortJ2Y0, sim.PortJ2Y1}} {
