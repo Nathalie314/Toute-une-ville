@@ -27,12 +27,27 @@ func (g *Game) DockEvery(dock *Station) float64 { return TruckInterval(g.meca(do
 // pallet : palette d'un produit dans la réserve d'un lieu (seulement si elle est
 // construite : au domaine, chaque palette s'achète).
 func (p *Place) pallet(it Item) *Station {
-	for _, s := range p.Stations {
-		if s.Kind == Pallet && s.Item == it && s.Built {
+	for _, s := range p.byItem(it) {
+		if s.Kind == Pallet && s.Built {
 			return s
 		}
 	}
 	return nil
+}
+
+// byItem : les palettes et les étals du lieu pour ce produit (index refait si la liste des
+// stations change : on ne parcourt plus tout le lieu à chaque question).
+func (p *Place) byItem(it Item) []*Station {
+	if p.itemIdxN != len(p.Stations) || p.itemIdx == nil {
+		p.itemIdx = map[Item][]*Station{}
+		for _, s := range p.Stations {
+			if s.Kind == Pallet || s.Kind == Shelf {
+				p.itemIdx[s.Item] = append(p.itemIdx[s.Item], s)
+			}
+		}
+		p.itemIdxN = len(p.Stations)
+	}
+	return p.itemIdx[it]
 }
 
 // usesInput : une machine construite du lieu a besoin de ce produit.
@@ -74,15 +89,37 @@ func (g *Game) dockAccepts(dock *Station, it Item) bool {
 func (g *Game) palletRoom(to *Place, it Item) bool {
 	pal := to.pallet(it)
 	mult := DockMult(to)
-	coming := 0
+	return pal.Pile+(g.coming(to.ID)[it]+1)*mult <= pal.PileMax
+}
+
+// coming : ce qui attend sur les quais vers ce lieu (et ce que les drones y apportent), produit
+// par produit. Calculé une fois par pas de jeu (avant : à chaque question d'un drone ou d'un
+// ouvrier, en parcourant tous les quais de tous les lieux, ce qui faisait ramer le jeu).
+func (g *Game) coming(to string) *[NItems]int {
+	if g.comingT != g.T {
+		g.comingT = g.T
+		for k := range g.comingTo {
+			delete(g.comingTo, k)
+		}
+	}
+	if g.comingTo == nil {
+		g.comingTo = map[string]*[NItems]int{}
+	}
+	if c, ok := g.comingTo[to]; ok {
+		return c
+	}
+	c := &[NItems]int{}
 	for _, from := range g.Places {
 		for _, q := range from.Stations {
-			if q.Kind == Dock && q.To == to.ID {
-				coming += q.Buf[it] + q.claim[it]
+			if q.Kind == Dock && q.To == to {
+				for i := range c {
+					c[i] += q.Buf[i] + q.claim[Item(i)]
+				}
 			}
 		}
 	}
-	return pal.Pile+(coming+1)*mult <= pal.PileMax
+	g.comingTo[to] = c
+	return c
 }
 
 // TruckLeft : secondes avant le prochain départ du camion d'un quai.

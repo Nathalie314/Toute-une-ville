@@ -334,6 +334,8 @@ type Place struct {
 	navC           *navGrid
 	Boats          []*Boat // port : les bateaux de pêche
 	dredges        []*Dredge
+	itemIdx        map[Item][]*Station // (byItem)
+	itemIdxN       int
 	salt           *Dredge // le râteau du marais salant (port)
 	boatsInit      bool
 	Vestiaire      Rect      // porte du vestiaire : on s'y arrête pour ouvrir la page « Personnage »
@@ -426,8 +428,8 @@ func lvlFactor(l int) float64 { return 1 + 0.35*float64(l-1) }
 
 // shelfFor renvoie l'étal construit qui vend un produit.
 func (p *Place) shelfFor(it Item) *Station {
-	for _, s := range p.Stations {
-		if s.Kind == Shelf && s.Built && s.Item == it {
+	for _, s := range p.byItem(it) {
+		if s.Kind == Shelf && s.Built {
 			return s
 		}
 	}

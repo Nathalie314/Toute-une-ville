@@ -129,6 +129,8 @@ type incomeRec struct {
 }
 
 type Game struct {
+	comingTo map[string]*[NItems]int // (palletRoom : ce qui arrive vers chaque lieu, recalculé à chaque pas)
+	comingT  float64
 	stepping string // lieu en train d'avancer (pour les événements)
 	Money    float64
 	Places   []*Place
@@ -537,6 +539,7 @@ func (p *Place) PlaceUpgrades() []*Upgrade {
 				}})
 		}
 	}
+	p.ups = ups // (gardées : avant, la ferme les refaisait à chaque image)
 	return ups
 }
 
