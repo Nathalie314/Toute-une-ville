@@ -145,8 +145,8 @@ func (g *game) drawDockV(dst *ebiten.Image, s *sim.Station) {
 	e := every - left
 	x := sim.DomRoadX + sim.DomRoadW/2 + 30
 	if s.PlaceID() == "port" {
-		x = sim.PortLaneS + 10 // (au port : la route verticale, à droite de la criée)
-		truckFrom = "port"
+		g.drawPortTruck(dst, s, left, every)
+		return
 	}
 	y0 := b.C().Y + 10
 	truck := func(y float64) { scaled(x, y, 0.58, func() { drawTruckTop(dst, x, y, true) }) }

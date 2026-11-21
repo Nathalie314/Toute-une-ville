@@ -1642,3 +1642,7 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Port : les noms des parcs et des bassins dans l'eau sont retirés (inutiles avec les panneaux côté ponton ; avant l'achat, la case de déblocage donne le nom).
 - Port : le panneau du contenu est aussi sur les parcs et bassins pas encore achetés (un peu pâle).
 - Port : l'embauche des ouvriers descend à gauche de la caisse (« Étals + » à sa gauche) ; « Paniers + » passe à droite de la caisse, à côté de la caissière.
+- Port : les camions ne stationnent plus sur le passage piéton. Les quais descendent sous lui (PortDockY0 2 110, tous
+  les 190), et une voie de livraison (baie entre la criée et la route, y 2 010 → 2 470, entrée et sortie en biais,
+  « LIVRAISONS ») accueille les camions hors de la circulation : ils arrivent du nord par la route, s'y rangent,
+  puis repartent vers le sud (drawPortTruck).

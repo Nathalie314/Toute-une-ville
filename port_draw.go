@@ -144,6 +144,14 @@ func (g *game) drawPortRoad(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	for x := x0 + 8; x < x0+w-6; x += 26 {
 		rect(dst, x, sim.PortGateY-70, 14, 140, rgb(0xf2f2e6))
 	}
+	// la voie de livraison : une baie le long de la route, devant les quais (entrée et sortie en biais)
+	lx0, lx1 := sim.PortCrieeX1+24, x0
+	ly0, ly1 := sim.PortBayY0, sim.PortBayY1
+	polygon(dst, []V{{X: lx1, Y: ly0 - 60}, {X: lx1, Y: ly1 + 60}, {X: lx0, Y: ly1}, {X: lx0, Y: ly0}}, rgb(0x62666b))
+	for y := ly0 + 10; y < ly1-10; y += 40 {
+		rect(dst, lx1-4, y, 4, 22, rgb(0xf2f2e6)) // le bord de la voie, en pointillés
+	}
+	say(dst, "LIVRAISONS", (lx0+lx1)/2, ly1-26, 15, true, 0, rgba(0xffffff, 0.75))
 	// le parking : trois allées, des places au-dessus et en dessous
 	py0, py1 := sim.PortAisles[0]-170, sim.PortAisles[len(sim.PortAisles)-1]+170
 	px0, px1 := sim.PortParkX0, sim.PortParkX1
@@ -579,4 +587,29 @@ func drawItemPort(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		return false
 	}
 	return true
+}
+
+// drawPortTruck : le camion d'un quai du port, garé dans la voie de livraison ; il arrive du
+// nord par la route, se range dans la voie, puis repart vers le sud.
+func (g *game) drawPortTruck(dst *ebiten.Image, s *sim.Station, left, every float64) {
+	truckFrom = "port"
+	defer func() { truckFrom = "ferme" }()
+	e := every - left
+	x, y0 := sim.PortBayX, s.Body.C().Y+10
+	lane := sim.PortLaneS + 10
+	truck := func(x, y float64) { scaled(x, y, 0.58, func() { drawTruckTop(dst, x, y, false) }) }
+	if e < 2.5 { // il vient de partir vers le sud : il rejoint la route
+		f := e / 2.5
+		truck(x+(lane-x)*math.Min(1, f*3), y0+1800*f*f)
+	}
+	switch {
+	case e >= 4.5:
+		scaled(x, y0, 0.58, func() { drawTruckTop(dst, x, y0, false) })
+		sayOutlined(dst, tr.F("Départ dans {n} s", "n", itoa(int(left))), x, y0+50, 15, 0, rgb(0xffffff), rgb(0x2b2b2b))
+	case e >= 1.5: // le suivant descend la route depuis le nord, puis se range
+		f := (e - 1.5) / 3
+		y := y0 - 1800*(1-f)*(1-f)
+		tx := lane + (x-lane)*math.Max(0, (f-0.66)*3)
+		truck(tx, y)
+	}
 }

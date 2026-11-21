@@ -45,14 +45,20 @@ const (
 	PortSalGapY = 50.0
 	PortSalMax  = 6
 	// la route verticale, à droite de la criée ; la zone du joueur et le parking de l'autre côté
-	PortRoadX  = 4300.0 // bord gauche de la route
-	PortRoadW  = 150.0
-	PortLaneS  = PortRoadX + 40  // voie vers le sud (les voitures roulent à droite)
-	PortLaneN  = PortRoadX + 110 // voie vers le nord
-	PortGateY  = 1960.0          // le passage piéton, face à l'entrée de la criée
-	PortH      = 3500.0
-	PortParkX0 = PortRoadX + PortRoadW + 110 // le parking, sous la zone du joueur
-	PortParkX1 = PortParkX0 + 830
+	PortRoadX = 4300.0 // bord gauche de la route
+	PortRoadW = 150.0
+	PortLaneS = PortRoadX + 40  // voie vers le sud (les voitures roulent à droite)
+	PortLaneN = PortRoadX + 110 // voie vers le nord
+	PortGateY = 1960.0          // le passage piéton, face à l'entrée de la criée
+	PortH     = 3500.0
+	// les quais et la voie de livraison (sous le passage piéton)
+	PortDockY0   = 2110.0
+	PortDockStep = 190.0
+	PortBayX     = PortCrieeX1 + 85 // le milieu de la voie de livraison (les camions s'y garent)
+	PortBayY0    = 2010.0
+	PortBayY1    = 2470.0
+	PortParkX0   = PortRoadX + PortRoadW + 110 // le parking, sous la zone du joueur
+	PortParkX1   = PortParkX0 + 830
 )
 
 // PortSalPivot : le pied du râteau mécanique (sous les bassins, au milieu) ; le tas de sel est juste dessous.
@@ -322,16 +328,17 @@ func newPort(g *Game) *Place {
 	trash.Body = Rect{4040, 3220, 70, 70}
 	trash.Zone = Rect{4020, 3180, 110, 150}
 	p.Stations = append(p.Stations, trash)
-	// les quais : contre la route verticale, à hauteur de la caisse (les camions s'y garent)
+	// les quais : contre la route verticale, sous le passage piéton ; les camions se garent dans la
+	// voie de livraison (une baie entre la criée et la route, hors de la circulation)
 	for i, to := range []string{"super", "creperie"} { // (le thon part aussi à la crêperie)
 		id := "quai"
 		if i > 0 {
 			id = "quai_" + to
 		}
-		y := 1690 + float64(i)*170
+		y := PortDockY0 + float64(i)*PortDockStep
 		q := &Station{ID: id, Name: "Quai du camion", Kind: Dock, BufMax: 20, Built: true, To: to}
-		q.Body = Rect{PortCrieeX1 - 220, y, 210, 56}
-		q.Zone = Rect{PortCrieeX1 - 240, y - 72, 250, 154} // (le texte au-dessus, le quai dessous)
+		q.Body = Rect{PortCrieeX1 - 180, y, 170, 56}
+		q.Zone = Rect{PortCrieeX1 - 190, y - 72, 200, 154} // (le texte au-dessus, le quai dessous)
 		p.Stations = append(p.Stations, q)
 	}
 	cmd := &Station{ID: "commande", Name: "Commandes", Kind: OrderBox, Built: true}
