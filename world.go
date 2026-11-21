@@ -2160,7 +2160,7 @@ func (g *game) drawDock(dst *ebiten.Image, s *sim.Station) {
 	if !g.sim.DockActive(s) {
 		return
 	}
-	if s.PlaceID() == "domaine" {
+	if s.PlaceID() == "domaine" || s.PlaceID() == "port" {
 		g.drawDockV(dst, s) // (la route des camions est verticale)
 		return
 	}

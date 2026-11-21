@@ -1591,3 +1591,23 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
     chaque trajet (600 Ko au supermarché).
   Résultat : pas habituel 0,6 ms ; pire pas ~20 ms (un par minute) au lieu de 100 ms.
   (L'audio semblait coûteux dans les mesures du cloud : c'est l'absence de carte son de la machine de test.)
+- PORT AGRANDI (21/11, d'après son dessin) :
+  - La route n'est plus horizontale : elle passe à la verticale, à droite de la criée (PortRoadX 4300, deux voies :
+    PortLaneS vers le sud, PortLaneN vers le nord). De l'autre côté : la zone du joueur en haut, le parking dessous
+    (trois allées horizontales, PortAisles ; coin des deux-roues près de la route). Les voitures arrivent par le haut
+    ou par le bas, entrent dans leur allée ; les clients traversent au passage piéton (PortGateY 1960) face à
+    l'entrée de la criée. Code : parking.go (setupPortParking, portArrive, portWalkFromCar/ToCar, portDepart,
+    portPassing ; arrêt des voitures au passage vertical), port_draw.go (drawPortRoad). Lieu : W 5 750, H 3 500.
+  - La criée longe toute la mer (y 150 → 3 350) : l'étal du sel en haut au milieu (face au marais), les poissons
+    (y 760), les coquillages du ponton 1 (y 1 200), la caisse dessous (y 1 650 ; caissière à droite, « Étals + » et
+    « Paniers + » à gauche), puis les étals du ponton 2 (nord y 2 150, sud y 2 700). Les deux quais des camions
+    contre la route, à hauteur de la caisse (camions garés sur la route : drawDockV, comme au domaine).
+  - Le ponton 1 ne change pas. Le second ponton (y 2 230 → 2 750), sous les parcs : 4 bassins au nord, 4 au sud
+    (4 × 4 cases, une drague chacun, « Case +1 » depuis le ponton) : bigorneaux, palourdes, araignées de mer,
+    homards au nord ; crabes, tourteaux, langoustines, langoustes au sud. Achat du moins cher au plus cher, après
+    le marais salant (prix de base 400 000 → 1 350 000, × coefficient du port). Prix de vente 190 → 430.
+    Les parcs sont décrits par PortParcs (ponton, côté, section, filet pour les crustacés).
+  - Ouvriers du port : 17 au plus (+8 pour les bassins). Supermarché : les 8 produits à la Poissonnerie.
+    Badges « Pince-mi, pince-moi » (200 crabes) et « Homard bleu » (100 homards).
+  - Prix : les coefficients des lieux sont figés (frozenScale, prices.go). Avant, ajouter du contenu à un lieu
+    faisait baisser le prix de tout ce qu'il contenait déjà (le second ponton aurait divisé par deux les prix du port).

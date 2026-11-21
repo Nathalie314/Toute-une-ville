@@ -63,6 +63,7 @@ func placeHelp(id string) []string {
 	case "port":
 		return []string{
 			"Le port pêche des poissons (sardines, cabillaud, thon, saumon) avec ses bateaux, et ramasse des coquillages et des crustacés (huîtres, moules, saint-jacques, gambas) avec ses dragues.",
+			"Le second ponton, plus au sud, a huit bassins : bigorneaux, palourdes, crabes, tourteaux, araignées de mer, langoustines, homards et langoustes, chacun avec sa drague.",
 			"Au nord de la criée, le marais salant : dans ses bassins, l'eau de mer s'évapore jusqu'à ce qu'ils soient tout blancs ; le râteau mécanique ramasse le sel. On achète les bassins depuis le bord.",
 			"Tous ses produits partent au supermarché.",
 			cmd,

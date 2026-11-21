@@ -195,6 +195,15 @@ const (
 	Poivre      // (ferme exotique, espace épices)
 	Sel         // (port : le marais salant)
 	BaiesPoivre // (ferme exotique : récoltées, elles partent au séchoir à poivre)
+	// le port, second ponton : coquillages et crustacés
+	Bigorneau
+	Palourde
+	Crabe
+	Tourteau
+	Araignee
+	Langoustine
+	Homard
+	Langouste
 	NItems
 )
 
@@ -319,6 +328,14 @@ var Items = [NItems]ItemInfo{
 	Poivre:           {"Poivre", 110},
 	Sel:              {"Sel", 180},
 	BaiesPoivre:      {"Baies de poivre", 30},
+	Bigorneau:        {"Bigorneaux", 190},
+	Palourde:         {"Palourdes", 210},
+	Crabe:            {"Crabes", 230},
+	Tourteau:         {"Tourteaux", 260},
+	Araignee:         {"Araignées de mer", 290},
+	Langoustine:      {"Langoustines", 330},
+	Homard:           {"Homards", 380},
+	Langouste:        {"Langoustes", 430},
 	Aiguillettes:     {"Aiguillettes de canard", 120},
 	Magret:           {"Magret de canard", 150},
 	FoieGras:         {"Foie gras", 280},

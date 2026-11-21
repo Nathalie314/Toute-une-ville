@@ -15,8 +15,8 @@ var carColors = []uint32{0xd9534f, 0x4a90d9, 0xf1c40f, 0x2ecc71, 0xecf0f1, 0x344
 // drawParking : trottoir, parking (places, allée, coin des deux-roues) et
 // passage piéton devant le portail.
 func drawParking(dst *ebiten.Image, p *sim.Place, tl, br V) {
-	if len(p.Parks) == 0 || p.ID == "super" || p.ID == "parc" {
-		return // (le supermarché a son propre parking)
+	if len(p.Parks) == 0 || p.ID == "super" || p.ID == "parc" || p.ID == "port" {
+		return // (le supermarché a son propre parking ; le port aussi, le long de sa route verticale)
 	}
 	const roadY = 1640.0
 	x0, x1, gx := p.ParkX()

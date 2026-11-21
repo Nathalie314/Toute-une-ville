@@ -130,14 +130,18 @@ func (p *Place) arriveBy(c *Customer) bool {
 	v := &Vehicle{Kind: kind, Look: c.Look, Rider: true, spot: s, cust: c}
 	v.speed = []float64{300, 190, 320, 170}[kind]
 	entry := p.ParkEntry()
-	if p.rng.Intn(2) == 0 {
+	if p.portRoad() {
+		p.portArrive(v, s)
+	} else if p.rng.Intn(2) == 0 {
 		v.Pos = V{-250, laneE}
 		v.path = []V{{entry, laneE}}
 	} else {
 		v.Pos = V{p.W + 250, laneW}
 		v.path = []V{{entry, laneW}}
 	}
-	v.path = append(v.path, V{entry, ParkAisle}, V{s.Pos.X, ParkAisle}, s.Pos)
+	if !p.portRoad() {
+		v.path = append(v.path, V{entry, ParkAisle}, V{s.Pos.X, ParkAisle}, s.Pos)
+	}
 	v.Dir = v.path[0].Sub(v.Pos).Norm()
 	p.Vehicles = append(p.Vehicles, v)
 	c.veh = v
@@ -150,11 +154,17 @@ func (p *Place) walkFromCar(s *PSpot) []V {
 	if p.ID == "super" {
 		return p.superWalkFromCar(s)
 	}
+	if p.portRoad() {
+		return p.portWalkFromCar(s)
+	}
 	_, _, gx := p.ParkX()
 	return []V{{s.Pos.X, ParkAisle - 30}, {gx, ParkAisle - 30}, {gx, ParkTop - 20}, p.Gate}
 }
 
 func (p *Place) walkToCar(s *PSpot) []V {
+	if p.portRoad() {
+		return p.portWalkToCar(s)
+	}
 	_, _, gx := p.ParkX()
 	return []V{p.Gate, {gx, ParkTop - 20}, {gx, ParkAisle - 30}, {s.Pos.X, ParkAisle - 30}, s.Pos}
 }
@@ -190,6 +200,10 @@ func (p *Place) depart(v *Vehicle) {
 		p.superDepart(v)
 		return
 	}
+	if p.portRoad() {
+		p.portDepart(v)
+		return
+	}
 	v.State, v.Rider = 2, true
 	exit := p.ParkExit()
 	v.path = []V{{v.spot.Pos.X, ParkAisle}, {exit, ParkAisle}}
@@ -212,7 +226,9 @@ func (p *Place) passing() {
 	}
 	v := &Vehicle{Kind: kind, Look: p.rng.Intn(1 << 20), Rider: true, State: 2}
 	v.speed = []float64{320, 190, 340, 170}[kind]
-	if p.rng.Intn(2) == 0 {
+	if p.portRoad() {
+		p.portPassing(v)
+	} else if p.rng.Intn(2) == 0 {
 		v.Pos, v.path = V{-250, laneE}, []V{{p.W + 300, laneE}}
 	} else {
 		v.Pos, v.path = V{p.W + 250, laneW}, []V{{-300, laneW}}
@@ -233,6 +249,11 @@ func (p *Place) stepVehicles(dt float64) {
 	// quelqu'un sur le passage piéton ?
 	crossing := false
 	onCross := func(q V) bool { return math.Abs(q.X-gx) < 85 && q.Y > roadY-20 && q.Y < roadY+175 }
+	if p.portRoad() { // (le passage piéton traverse la route verticale)
+		onCross = func(q V) bool {
+			return math.Abs(q.Y-PortGateY) < 85 && q.X > PortRoadX-20 && q.X < PortRoadX+PortRoadW+20
+		}
+	}
 	for _, c := range p.Customers {
 		if p.ID == "super" {
 			break // (au supermarché, personne ne traverse la route)
@@ -283,8 +304,14 @@ func (p *Place) stepVehicles(dt float64) {
 		// on laisse passer : piétons sur le passage, véhicule devant
 		stop := false
 		onRoad := math.Abs(v.Pos.Y-laneW) < 4 || math.Abs(v.Pos.Y-laneE) < 4
-		if crossing && onRoad && math.Abs(dir.Y) < 0.1 {
+		if crossing && onRoad && math.Abs(dir.Y) < 0.1 && !p.portRoad() {
 			ahead := (gx - v.Pos.X) * dir.X
+			if ahead > 60 && ahead < 220 {
+				stop = true
+			}
+		}
+		if crossing && p.portRoad() && math.Abs(dir.X) < 0.1 && (math.Abs(v.Pos.X-PortLaneS) < 4 || math.Abs(v.Pos.X-PortLaneN) < 4) {
+			ahead := (PortGateY - v.Pos.Y) * dir.Y
 			if ahead > 60 && ahead < 220 {
 				stop = true
 			}
@@ -315,7 +342,7 @@ func (p *Place) stepVehicles(dt float64) {
 		step := v.speed * dt
 		if d.Len() > 1 {
 			// on ralentit dans le parking
-			if v.Pos.Y > ParkTop-30 {
+			if (!p.portRoad() && v.Pos.Y > ParkTop-30) || (p.portRoad() && v.Pos.X > PortParkX0-10) {
 				step *= 0.55
 			}
 		}
@@ -344,4 +371,70 @@ func (p *Place) ParksBought() int {
 		return p.CrepParkN(p.g.Levels[p.key("parking")])
 	}
 	return len(p.Parks)
+}
+
+// ---------------------------------------------------------------- le port : route verticale
+//
+// Au port, la route passe à la verticale, à droite de la criée ; le parking est de l'autre
+// côté, sous la zone du joueur : trois allées horizontales, des places au-dessus et en dessous
+// de chacune. On traverse la route au passage piéton, face à l'entrée de la criée.
+
+// PortAisles : les allées du parking du port (y).
+var PortAisles = []float64{1880, 2440, 3000}
+
+func (p *Place) portRoad() bool { return p.ID == "port" }
+
+func (p *Place) setupPortParking() {
+	for ai, ay := range PortAisles {
+		for x := PortParkX0 + 80.0; x <= PortParkX1-60; x += 80 {
+			if ai == 0 && x < PortParkX0+330 {
+				continue // (le coin des deux-roues, près de la route)
+			}
+			p.Parks = append(p.Parks, &PSpot{Pos: V{x, ay - 95}, Aisle: ay}, &PSpot{Pos: V{x, ay + 95}, Aisle: ay})
+		}
+	}
+	for x := PortParkX0 + 40.0; x < PortParkX0+300; x += 32 {
+		p.Parks = append(p.Parks, &PSpot{Pos: V{x, PortAisles[0] - 95}, Bike: true, Aisle: PortAisles[0]})
+	}
+}
+
+// portArrive : le véhicule descend (ou monte) la route verticale, puis entre dans son allée.
+func (p *Place) portArrive(v *Vehicle, s *PSpot) {
+	if p.rng.Intn(2) == 0 {
+		v.Pos = V{PortLaneS, PortSalTop - 500}
+		v.path = []V{{PortLaneS, s.Aisle}}
+	} else {
+		v.Pos = V{PortLaneN, PortH + 400}
+		v.path = []V{{PortLaneN, s.Aisle}}
+	}
+	v.path = append(v.path, V{s.Pos.X, s.Aisle}, s.Pos)
+}
+
+func (p *Place) portWalkFromCar(s *PSpot) []V {
+	side := PortRoadX + PortRoadW + 40 // le trottoir, côté parking
+	return []V{{s.Pos.X, s.Aisle}, {PortParkX0 - 20, s.Aisle}, {side, s.Aisle}, {side, PortGateY}, p.Gate}
+}
+
+func (p *Place) portWalkToCar(s *PSpot) []V {
+	side := PortRoadX + PortRoadW + 40
+	return []V{p.Gate, {side, PortGateY}, {side, s.Aisle}, {PortParkX0 - 20, s.Aisle}, {s.Pos.X, s.Aisle}, s.Pos}
+}
+
+func (p *Place) portDepart(v *Vehicle) {
+	v.State, v.Rider = 2, true
+	v.path = []V{{v.spot.Pos.X, v.spot.Aisle}, {PortParkX0 + 20, v.spot.Aisle}}
+	if p.rng.Intn(2) == 0 {
+		v.path = append(v.path, V{PortLaneN, v.spot.Aisle}, V{PortLaneN, PortSalTop - 600})
+	} else {
+		v.path = append(v.path, V{PortLaneS, v.spot.Aisle}, V{PortLaneS, PortH + 500})
+	}
+	v.cust = nil
+}
+
+func (p *Place) portPassing(v *Vehicle) {
+	if p.rng.Intn(2) == 0 {
+		v.Pos, v.path = V{PortLaneS, PortSalTop - 500}, []V{{PortLaneS, PortH + 500}}
+	} else {
+		v.Pos, v.path = V{PortLaneN, PortH + 400}, []V{{PortLaneN, PortSalTop - 600}}
+	}
 }

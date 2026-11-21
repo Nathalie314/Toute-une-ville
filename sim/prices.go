@@ -45,6 +45,15 @@ func ContentTarget(rank int, ref float64) float64 {
 	return ref * math.Pow(scaleFactor, float64(rank-scaleFrom+1))
 }
 
+// frozenScale : le coefficient des lieux déjà construits, figé (21/11). Ajouter du contenu
+// à un lieu (le second ponton du port…) ne doit plus faire baisser les prix de ce qui y
+// est déjà : avant, le coefficient était recalculé pour que le contenu total garde son prix.
+var frozenScale = map[string]float64{
+	"exotique": 7.57, "boulangerie": 12.26, "glacier": 8.25, "port": 40.95, "elevage": 122.09,
+	"boucherie": 42.36, "domaine": 334.49, "creperie": 48.38, "patisserie": 752.14, "parc": 22.57,
+	"huilerie": 5239.05,
+}
+
 // niceRound : un prix arrondi à 3 chiffres (51 234 → 51 200).
 func niceRound(v float64) float64 {
 	if v < 1000 {
@@ -140,6 +149,9 @@ func (g *Game) applyMapPrices() {
 			continue
 		}
 		p.Scale = ContentTarget(r, ref) / c
+		if f, ok := frozenScale[p.ID]; ok {
+			p.Scale = f
+		}
 		p.Price = PlacePrice(r)
 		for _, u := range p.Unlocks {
 			u.Cost = niceRound(u.Cost * p.Scale)

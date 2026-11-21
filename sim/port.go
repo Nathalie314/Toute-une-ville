@@ -22,9 +22,9 @@ const (
 	PortCrieeX0 = 2700.0 // bord ouest de la criée (le quai)
 	PortCrieeX1 = 4150.0
 	PortCrieeY0 = 150.0
-	PortCrieeY1 = 1500.0
-	PortJettyX0 = 380.0 // bout de la jetée
-	PortJettyY0 = 520.0 // (520 de large : on circule au milieu sans passer sur les paniers)
+	PortCrieeY1 = 3350.0 // (la criée longe toute la mer, jusqu'au second ponton)
+	PortJettyX0 = 380.0  // bout de la jetée
+	PortJettyY0 = 520.0  // (520 de large : on circule au milieu sans passer sur les paniers)
 	PortJettyY1 = 1040.0
 	PortSecW    = 520.0             // largeur d'une section (un poisson au nord, un parc au sud)
 	PortSec0X   = 2050.0            // section la plus proche de la criée (sardine, huîtres)
@@ -44,6 +44,15 @@ const (
 	PortSalGapX = 70.0 // les digues entre les bassins
 	PortSalGapY = 50.0
 	PortSalMax  = 6
+	// la route verticale, à droite de la criée ; la zone du joueur et le parking de l'autre côté
+	PortRoadX  = 4300.0 // bord gauche de la route
+	PortRoadW  = 150.0
+	PortLaneS  = PortRoadX + 40  // voie vers le sud (les voitures roulent à droite)
+	PortLaneN  = PortRoadX + 110 // voie vers le nord
+	PortGateY  = 1960.0          // le passage piéton, face à l'entrée de la criée
+	PortH      = 3500.0
+	PortParkX0 = PortRoadX + PortRoadW + 110 // le parking, sous la zone du joueur
+	PortParkX1 = PortParkX0 + 830
 )
 
 // PortSalPivot : le pied du râteau mécanique (sous les bassins, au milieu) ; le tas de sel est juste dessous.
@@ -61,7 +70,85 @@ func PortSalBasin(k int) Rect {
 // plus proche au plus loin de la criée, dans l'ordre de déblocage.
 var PortFish = []Item{Sardine, Cabillaud, Thon, Saumon}
 var PortShell = []Item{Huitre, Moule, SaintJacques, Gambas}
-var PortSold = append(append([]Item{}, PortFish...), PortShell...)
+var PortSold = append(append(append([]Item{}, PortFish...), PortShell...), PortShell2...)
+
+// PortShell2 : les produits du second ponton, dans l'ordre d'achat.
+var PortShell2 = []Item{Bigorneau, Palourde, Crabe, Tourteau, Araignee, Langoustine, Homard, Langouste}
+
+// le second ponton, sous les parcs : des bassins au nord et au sud
+const (
+	PortJ2Y0 = 2230.0
+	PortJ2Y1 = 2750.0
+)
+
+// PortParc : un parc (ponton 1, au sud) ou un bassin (ponton 2, au nord ou au sud). Une drague
+// par parc ramasse ce qui est mûr et le met dans son panier, au bord du ponton.
+type PortParc struct {
+	ID, Name string
+	It       Item
+	Time     float64 // pousse d'une case
+	Case     float64 // prix de base des cases
+	Cost     float64 // déblocage (ponton 2 ; ponton 1 : portUnlockCost)
+	Sec      int     // section (0 : la plus proche de la criée)
+	Side     int     // 0 : ponton 1, au sud ; 1 : ponton 2, au nord ; 2 : ponton 2, au sud
+	Net      bool    // un filet (crustacés) plutôt qu'une benne
+}
+
+var PortParcs = []*PortParc{
+	{ID: "huitres", Name: "Parc à huîtres", It: Huitre, Time: 12, Case: 1500, Sec: 0},
+	{ID: "moules", Name: "Parc à moules", It: Moule, Time: 10, Case: 2200, Sec: 1},
+	{ID: "stjacques", Name: "Parc à saint-jacques", It: SaintJacques, Time: 14, Case: 3200, Sec: 2},
+	{ID: "gambas", Name: "Bassin à gambas", It: Gambas, Time: 16, Case: 4500, Sec: 3, Net: true},
+	// ponton 2 (dans l'ordre d'achat, après le marais salant)
+	{ID: "bigorneaux", Name: "Bassin à bigorneaux", It: Bigorneau, Time: 15, Case: 5500, Cost: 400000, Sec: 0, Side: 1},
+	{ID: "palourdes", Name: "Bassin à palourdes", It: Palourde, Time: 16, Case: 6500, Cost: 480000, Sec: 1, Side: 1},
+	{ID: "crabes", Name: "Bassin à crabes", It: Crabe, Time: 17, Case: 7500, Cost: 570000, Sec: 0, Side: 2, Net: true},
+	{ID: "tourteaux", Name: "Bassin à tourteaux", It: Tourteau, Time: 18, Case: 8500, Cost: 680000, Sec: 1, Side: 2, Net: true},
+	{ID: "araignees", Name: "Bassin à araignées de mer", It: Araignee, Time: 19, Case: 10000, Cost: 810000, Sec: 2, Side: 1, Net: true},
+	{ID: "langoustines", Name: "Bassin à langoustines", It: Langoustine, Time: 20, Case: 11500, Cost: 960000, Sec: 2, Side: 2, Net: true},
+	{ID: "homards", Name: "Bassin à homards", It: Homard, Time: 22, Case: 13000, Cost: 1140000, Sec: 3, Side: 1, Net: true},
+	{ID: "langoustes", Name: "Bassin à langoustes", It: Langouste, Time: 24, Case: 15000, Cost: 1350000, Sec: 3, Side: 2, Net: true},
+}
+
+// ParcTop : le haut du parc ; les cases du ponton 2, côté nord, se remplissent depuis le ponton.
+func (c *PortParc) ParcTop() float64 {
+	switch c.Side {
+	case 1:
+		return PortJ2Y0 - 40 - 4*PortCell
+	case 2:
+		return PortJ2Y1 + 40
+	}
+	return PortParcY
+}
+
+// edge : le bord du ponton où sont le panier, la drague et la case « Case +1 » (top : le bord du haut).
+func (c *PortParc) edge() (y float64, top bool) {
+	switch c.Side {
+	case 1:
+		return PortJ2Y0, true
+	case 2:
+		return PortJ2Y1, false
+	}
+	return PortJettyY1, false
+}
+
+// LabelY : le nom du parc (sous le parc ; au-dessus pour le ponton 2, côté nord).
+func (c *PortParc) LabelY() float64 {
+	if c.Side == 1 {
+		return c.ParcTop() - 34
+	}
+	return c.ParcTop() + 4*PortCell + 44
+}
+
+// portParcByID : le parc d'un ID (nil si aucun).
+func portParcByID(id string) *PortParc {
+	for _, c := range PortParcs {
+		if c.ID == id {
+			return c
+		}
+	}
+	return nil
+}
 
 var portFishID = []string{"sardine", "cabillaud", "thon", "saumon"}
 var portShellID = []string{"huitres", "moules", "stjacques", "gambas"}
@@ -89,6 +176,15 @@ type Dredge struct {
 	Phase  int // 0 : replié ; 1 : il s'étend ; 2 : il racle ; 3 : il revient (chargé)
 	N      int // coquillages ramenés
 	T      float64
+	Net    bool   // un filet (crustacés) plutôt qu'une benne
+	parc   string // la station du parc et celle de son panier
+	basket string
+}
+
+// DredgeOpen : la drague travaille (son parc est acheté).
+func (p *Place) DredgeOpen(d *Dredge) bool {
+	s := p.Station(d.parc)
+	return s != nil && s.Built
 }
 
 // BoatSpeed : vitesse d'un bateau (le voyage aller-retour dure 20 s au départ).
@@ -104,23 +200,24 @@ func DredgeSpeed(pts int) float64 { return 260 * (1 + 0.03*float64(pts)) }
 func DredgeCap(pts int) int       { return 1 + pts/4 }
 
 func newPort(g *Game) *Place {
-	W := 4900.0
-	p := &Place{ID: "port", Name: "Le port", W: W, H: 1800, Top: 0, DecoTop: PortDecoTop, g: g, rng: rand.New(rand.NewSource(71)),
+	W := PortParkX1 + 110
+	p := &Place{ID: "port", Name: "Le port", W: W, H: PortH, Top: 0, DecoTop: PortDecoTop, g: g, rng: rand.New(rand.NewSource(71)),
 		Rep: 3, Price: portPrice, SellMult: 1, SpawnBase: 5, WantMax: 3, MaxCust: 16, LeaveOff: V{170, 60}, RepGain: 0.01, OnlyStocked: true}
-	gx := 3900.0
-	p.SpawnL = V{2400, roadY + 40}
-	p.SpawnR = V{W + 600, roadY + 40}
-	p.Gate = V{gx, roadY + 40}
-	p.Inside = V{gx, 1380}
-	p.RestSpot = V{4000, 1250}
-	// l'eau : tout ce qui est à l'ouest de la criée, sauf la jetée (on n'y marche pas)
+	// les piétons arrivent par le trottoir de la route verticale et traversent au passage piéton
+	p.SpawnL = V{PortRoadX + PortRoadW + 40, PortH + 300}
+	p.SpawnR = V{PortRoadX + PortRoadW + 40, PortSalTop - 300}
+	p.Gate = V{PortCrieeX1 + 70, PortGateY}
+	p.Inside = V{PortCrieeX1 - 200, PortGateY}
+	p.RestSpot = V{3900, 2450}
+	p.Start = V{PortCrieeX1 - 250, PortGateY}
+	// l'eau : tout ce qui est à l'ouest de la criée, sauf les jetées (on n'y marche pas), et au nord du marais
 	p.Water = []Rect{
-		{-3000, -4000, PortCrieeX0 + 3000, PortJettyY0 + 4000},                   // au nord de la jetée
-		{-3000, PortJettyY1, PortCrieeX0 + 3000, roadY - 12 - PortJettyY1},       // au sud (jusqu'au pont de la route)
-		{-3000, PortJettyY0, PortJettyX0 + 3000, PortJettyY1 - PortJettyY0},      // au-delà du bout de la jetée
-		{-3000, roadY + 162, PortCrieeX0 - 120 + 3000, 2000},                     // sous le pont
-		{PortCrieeX0, -4000, PortCrieeX1 + 600 - PortCrieeX0, 4000 + PortSalTop}, // au nord du marais salant : la mer
-		{PortCrieeX1, PortSalTop, 600, PortCrieeY0 - 20 - PortSalTop},            // à droite du marais : la mer aussi
+		{-3000, -4000, PortCrieeX0 + 3000, PortJettyY0 + 4000},              // au nord de la jetée
+		{-3000, PortJettyY1, PortCrieeX0 + 3000, PortJ2Y0 - PortJettyY1},    // entre les deux pontons
+		{-3000, PortJ2Y1, PortCrieeX0 + 3000, PortH + 3000 - PortJ2Y1},      // au sud du second ponton
+		{-3000, PortJettyY0, PortJettyX0 + 3000, PortJettyY1 - PortJettyY0}, // au-delà du bout de la jetée
+		{-3000, PortJ2Y0, PortJettyX0 + 3000, PortJ2Y1 - PortJ2Y0},          // au-delà du bout du second ponton
+		{PortCrieeX0, -4000, PortCrieeX1 - PortCrieeX0, 4000 + PortSalTop},  // au nord du marais salant : la mer
 	}
 	// les bassins et leurs digues : personne n'y va (le joueur achète les bassins depuis le bord)
 	p.Water = append(p.Water, Rect{PortSalX0 - 10, PortSalY0 - 10, 3*PortSalW + 2*PortSalGapX + 20, 2*PortSalH + PortSalGapY + 20})
@@ -129,30 +226,50 @@ func newPort(g *Game) *Place {
 	// --- les sections : un panier par produit, les bateaux, les parcs et leur drague
 	for i := 0; i < 4; i++ {
 		sx := PortSecX(i)
-		fid, sid := portFishID[i], portShellID[i]
-		fish, shell := PortFish[i], PortShell[i]
-		unlF, unlS := fid, sid
+		fid := portFishID[i]
+		fish := PortFish[i]
+		unlF := fid
 		if i == 0 {
 			unlF = "" // la sardine est là dès l'achat du port
 		}
 		bf := &Station{ID: "panier_" + fid, Name: "Panier : " + Items[fish].Name, Kind: Pallet, Item: fish, PileMax: 40, Unlock: unlF}
 		bf.Body = Rect{sx + 20, PortJettyY0 + 14, 110, 56}
 		bf.Zone = Rect{sx + 10, PortJettyY0 + 76, 130, 80}
-		bs := &Station{ID: "panier_" + sid, Name: "Panier : " + Items[shell].Name, Kind: Pallet, Item: shell, PileMax: 40, Unlock: unlS}
-		bs.Body = Rect{sx + 20, PortJettyY1 - 70, 110, 56}
-		bs.Zone = Rect{sx + 10, PortJettyY1 - 156, 130, 80}
-		// le parc : 4 × 4 cases sous l'eau (une case au départ, les autres s'achètent depuis la jetée)
-		parc := &Station{ID: "parc_" + sid, Name: portParcName[i], Kind: Field, Item: shell, Time: portParcTime[i], Unlock: unlS, Dredged: true}
-		parc.Body = Rect{sx + 20, PortParcY - 15, 4*PortCell + 20, 4*PortCell + 20}
+		p.Stations = append(p.Stations, bf)
+	}
+	// --- les parcs (ponton 1) et les bassins (ponton 2) : un panier au bord du ponton, 4 × 4 cases
+	// sous l'eau (une case au départ, les autres s'achètent depuis le ponton) et une drague
+	for _, c := range PortParcs {
+		sx := PortSecX(c.Sec)
+		ey, top := c.edge()
+		bs := &Station{ID: "panier_" + c.ID, Name: "Panier : " + Items[c.It].Name, Kind: Pallet, Item: c.It, PileMax: 40, Unlock: c.ID}
+		if top {
+			bs.Body = Rect{sx + 20, ey + 14, 110, 56}
+			bs.Zone = Rect{sx + 10, ey + 76, 130, 80}
+		} else {
+			bs.Body = Rect{sx + 20, ey - 70, 110, 56}
+			bs.Zone = Rect{sx + 10, ey - 156, 130, 80}
+		}
+		py := c.ParcTop()
+		parc := &Station{ID: "parc_" + c.ID, Name: c.Name, Kind: Field, Item: c.It, Time: c.Time, Unlock: c.ID, Dredged: true}
+		parc.Body = Rect{sx + 20, py - 15, 4*PortCell + 20, 4*PortCell + 20}
 		parc.Zone = Rect{-1000, -1000, 0, 0}
 		for r := 0; r < 4; r++ {
-			for c := 0; c < 4; c++ {
-				parc.Slots = append(parc.Slots, V{sx + 30 + PortCell/2 + float64(c)*PortCell, PortParcY + PortCell/2 + float64(r)*PortCell})
+			rr := r
+			if top {
+				rr = 3 - r // (côté nord du ponton 2 : la première case contre le ponton)
+			}
+			for col := 0; col < 4; col++ {
+				parc.Slots = append(parc.Slots, V{sx + 30 + PortCell/2 + float64(col)*PortCell, py + PortCell/2 + float64(rr)*PortCell})
 			}
 		}
 		parc.Plants = []Plant{{P: parc.Slots[0]}}
-		p.Stations = append(p.Stations, bf, bs, parc)
-		p.dredges = append(p.dredges, &Dredge{Base: V{sx + 440, PortJettyY1 - 40}, Tip: V{sx + 440, PortJettyY1 - 40}, Target: -1})
+		p.Stations = append(p.Stations, bs, parc)
+		by := ey - 40
+		if top {
+			by = ey + 40
+		}
+		p.dredges = append(p.dredges, &Dredge{Base: V{sx + 440, by}, Tip: V{sx + 440, by}, Target: -1, Net: c.Net, parc: "parc_" + c.ID, basket: "panier_" + c.ID})
 	}
 
 	// --- le marais salant (après les gambas) : six bassins (un au départ, « Bassin +1 » ensuite) ;
@@ -184,26 +301,39 @@ func newPort(g *Game) *Place {
 		if i == 0 {
 			unlF = ""
 		}
-		shelf(PortFish[i], x, 330, unlF)
-		shelf(PortShell[i], x, 1020, portShellID[i])
+		shelf(PortFish[i], x, 760, unlF)
 	}
-	// le sel : à gauche de la caisse (sa base de drone à sa gauche : dessous, il y a les coquillages)
-	shelf(Sel, 2990, 770, "marais")
-	if st := p.Station("etal_" + itoa(int(Sel))); st != nil {
-		st.Pad = Rect{2810, 752, 120, 104}
+	// les étals des parcs : les coquillages sous les poissons ; ceux du second ponton plus bas,
+	// sous la caisse (nord du ponton 2, puis sud), chacun dans la colonne de sa section
+	for _, c := range PortParcs {
+		y := []float64{1200, 2150, 2700}[c.Side]
+		shelf(c.It, 2790+float64(c.Sec)*330, y, c.ID)
 	}
-	reg := &Station{ID: "caisse", Name: "Caisse", Kind: Register, HireKey: "caissiere", QueueDown: 1}
-	reg.Body = Rect{3290, 770, 210, 66}
-	reg.Spot = V{3395, 730}
-	reg.Zone = Rect{3310, 642, 170, 96}
-	reg.QueueHead = V{3395, 876}
+	// le sel : en haut de la criée, au milieu (face au marais salant)
+	shelf(Sel, (PortCrieeX0+PortCrieeX1)/2-85, 330, "marais")
+	// la caisse : sous les deux rangées
+	reg := &Station{ID: "caisse", Name: "Caisse", Kind: Register, HireKey: "caissiere", QueueDown: 3}
+	reg.Body = Rect{3290, 1650, 210, 66}
+	reg.Spot = V{3395, 1610}
+	reg.Zone = Rect{3310, 1522, 170, 96}
+	reg.QueueHead = V{3395, 1756}
 	p.Stations = append(p.Stations, reg)
 	trash := &Station{ID: "poubelle", Name: "Poubelle", Kind: Trash}
-	trash.Body = Rect{4040, 1330, 70, 70}
-	trash.Zone = Rect{4020, 1290, 110, 150}
+	trash.Body = Rect{4040, 3220, 70, 70}
+	trash.Zone = Rect{4020, 3180, 110, 150}
 	p.Stations = append(p.Stations, trash)
-	p.dock("quai", "super", 3560)
-	p.dock("quai_creperie", "creperie", 3910) // (le thon)
+	// les quais : contre la route verticale, à hauteur de la caisse (les camions s'y garent)
+	for i, to := range []string{"super", "creperie"} { // (le thon part aussi à la crêperie)
+		id := "quai"
+		if i > 0 {
+			id = "quai_" + to
+		}
+		y := 1690 + float64(i)*130
+		q := &Station{ID: id, Name: "Quai du camion", Kind: Dock, BufMax: 20, Built: true, To: to}
+		q.Body = Rect{PortCrieeX1 - 220, y, 210, 56}
+		q.Zone = Rect{PortCrieeX1 - 240, y - 30, 250, 112}
+		p.Stations = append(p.Stations, q)
+	}
 	cmd := &Station{ID: "commande", Name: "Commandes", Kind: OrderBox, Built: true}
 	p.Stations = append(p.Stations, cmd)
 
@@ -224,6 +354,16 @@ func newPort(g *Game) *Place {
 	}
 	p.Unlocks = append(p.Unlocks, &Unlock{ID: "marais", Name: "Marais salant", Cost: 330000, Zone: Rect{PortSalPivot.X + 140, PortSalPivot.Y - 10, 200, 130},
 		Hint: "Six bassins d'eau de mer : l'eau s'évapore, le râteau mécanique ramasse le sel. Achète les bassins depuis le marais."})
+	for _, c := range PortParcs[4:] { // le second ponton, après le marais salant
+		sx := PortSecX(c.Sec)
+		ey, top := c.edge()
+		y := ey - 140
+		if top {
+			y = ey + 10
+		}
+		p.Unlocks = append(p.Unlocks, &Unlock{ID: c.ID, Name: c.Name, Cost: c.Cost, Zone: Rect{sx + 170, y, 200, 130},
+			Hint: "Un bassin sous l'eau : une drague ramasse ce qui est mûr. Achète des cases depuis le ponton."})
+	}
 	for _, s := range p.Stations {
 		if s.Unlock == "" {
 			s.Built = true
@@ -238,7 +378,8 @@ func newPort(g *Game) *Place {
 		{Key: k("entrepot"), Name: "Paniers plus grands", Max: 12, Base: 6000, Mult: 1.6, Desc: func(l int) string {
 			return "Chaque panier de la jetée contient " + itoa(PalletMax(p.ID, l)) + " produits."
 		}},
-		{Key: k("ouvriers"), Name: "Ouvrier du port", Max: 9, Now: true, Costs: []float64{4000, 8000, 15000, 25000, 40000, 60000, 90000, 130000, 180000}, // (le 9e : pour le marais salant)
+		{Key: k("ouvriers"), Name: "Ouvrier du port", Max: 17, Now: true, Costs: []float64{4000, 8000, 15000, 25000, 40000, 60000, 90000, 130000, 180000, // (le 9e : le marais salant ;
+			240000, 320000, 420000, 550000, 720000, 940000, 1220000, 1600000}, // les 8 derniers : le second ponton)
 			Desc: func(l int) string {
 				return "Il porte les paniers de la jetée jusqu'aux étals de la criée. Embauchés : " + itoa(l) + "."
 			}},
@@ -250,10 +391,13 @@ func newPort(g *Game) *Place {
 				Costs: portBoatCosts[i], Desc: func(l int) string {
 					return "Un bateau de pêche de plus (automatique). Bateaux : " + itoa(l+1) + " / " + itoa(PortBoatMax) + "."
 				}},
-			&Upgrade{Key: k("cases_" + portShellID[i]), Name: "Case : " + portParcName[i], Max: 15, Now: true,
-				Base: portCaseBase[i], Mult: 1.16, Desc: func(l int) string {
-					return "Une case de plus dans le parc (la drague y ramasse les coquillages). Cases : " + itoa(l+1) + " / 16."
-				}})
+		)
+	}
+	for _, c := range PortParcs {
+		p.ups = append(p.ups, &Upgrade{Key: k("cases_" + c.ID), Name: "Case : " + c.Name, Max: 15, Now: true,
+			Base: c.Case, Mult: 1.16, Desc: func(l int) string {
+				return "Une case de plus dans le parc (la drague y ramasse les coquillages). Cases : " + itoa(l+1) + " / 16."
+			}})
 	}
 	p.ups = append(p.ups, &Upgrade{Key: k("cases_marais"), Name: "Bassin : Marais salant", Max: PortSalMax - 1, Now: true, Base: 9000, Mult: 1.35,
 		Desc: func(l int) string {
@@ -263,9 +407,9 @@ func newPort(g *Game) *Place {
 	p.Spots = append(p.Spots,
 		&Spot{ID: "cases_marais", Label: "Bassin +1", Zone: Rect{PortSalPivot.X + 140, PortSalPivot.Y - 10, 130, 120}, NeedsBuilt: "marais",
 			Done: func(l int) string { return "Marais salant : un bassin de plus !" }},
-		&Spot{ID: "caissiere", Label: "Caissière", Zone: Rect{3560, 650, 145, 116}, Done: func(int) string { return "Caissière embauchée !" }},
-		&Spot{ID: "etals", Label: "Étals +", Zone: Rect{3720, 650, 130, 116}, Done: func(l int) string { return "Étals agrandis : niveau " + itoa(l) + " !" }},
-		&Spot{ID: "entrepot", Label: "Paniers +", Zone: Rect{3870, 650, 130, 116}, Done: func(l int) string {
+		&Spot{ID: "caissiere", Label: "Caissière", Zone: Rect{3560, 1540, 145, 116}, Done: func(int) string { return "Caissière embauchée !" }},
+		&Spot{ID: "etals", Label: "Étals +", Zone: Rect{3020, 1540, 130, 116}, Done: func(l int) string { return "Étals agrandis : niveau " + itoa(l) + " !" }},
+		&Spot{ID: "entrepot", Label: "Paniers +", Zone: Rect{2860, 1540, 130, 116}, Done: func(l int) string {
 			return "Paniers agrandis : " + itoa(PalletMax(p.ID, l)) + " par panier !"
 		}})
 	for _, st := range p.Stations {
@@ -280,26 +424,33 @@ func newPort(g *Game) *Place {
 		sx := PortSecX(i)
 		p.Spots = append(p.Spots,
 			&Spot{ID: "bateaux_" + portFishID[i], Label: "Bateau +1", Zone: Rect{sx + 205, PortJettyY0 + 14, 130, 120}, NeedsBuilt: "panier_" + portFishID[i],
-				Done: func(l int) string { return "Nouveau bateau : " + Items[PortFish[i]].Name + " !" }},
-			&Spot{ID: "cases_" + portShellID[i], Label: "Case +1", Zone: Rect{sx + 205, PortJettyY1 - 134, 130, 120}, NeedsBuilt: "parc_" + portShellID[i],
-				Done: func(l int) string { return portParcName[i] + " : une case de plus !" }})
+				Done: func(l int) string { return "Nouveau bateau : " + Items[PortFish[i]].Name + " !" }})
+	}
+	for _, c := range PortParcs {
+		c := c
+		sx := PortSecX(c.Sec)
+		ey, top := c.edge()
+		y := ey - 134
+		if top {
+			y = ey + 14
+		}
+		p.Spots = append(p.Spots, &Spot{ID: "cases_" + c.ID, Label: "Case +1", Zone: Rect{sx + 205, y, 130, 120}, NeedsBuilt: "parc_" + c.ID,
+			Done: func(l int) string { return c.Name + " : une case de plus !" }})
 	}
 	p.Spots = append(p.Spots, &Spot{ID: "ouvriers", Label: "Ouvrier du port", Done: func(l int) string { return "Ouvrier du port +1 !" }})
-	p.setupYard(4570) // (la zone, 830 de large, commence à 4300 : à droite de la criée)
+	p.setupYard(PortParkX0 + YardW - yardOldW) // (la zone, de l'autre côté de la route verticale)
 	// (les ouvriers s'embauchent à l'entrée de la jetée, pas dans la zone du joueur)
 	p.spot("ouvriers").Zone = Rect{PortSec0X + PortSecW + 8, PortJettyY0 + 200, 118, 120}
-	p.setupParking()
+	p.setupPortParking()
 	p.spawnT = 0.5
 	return p
 }
 
 var portParcName = []string{"Parc à huîtres", "Parc à moules", "Parc à saint-jacques", "Bassin à gambas"}
-var portParcTime = []float64{12, 10, 14, 16}
 
 // déblocages : cabillaud, thon, saumon, puis les quatre parcs
 var portUnlockCost = []float64{0, 15000, 32000, 60000, 90000, 130000, 180000, 250000}
 var portBoatCosts = [][]float64{{5000, 9000, 15000}, {12000, 20000, 32000}, {26000, 40000, 60000}, {45000, 70000, 100000}}
-var portCaseBase = []float64{1500, 2200, 3200, 4500}
 
 // portOrder : un particulier commande deux ou trois produits du port.
 func (g *Game) portOrder() *Order { return g.shopOrder("port") }
@@ -325,9 +476,11 @@ func (p *Place) syncPort() {
 				p.Boats = append(p.Boats, b)
 			}
 		}
-		parc := p.Station("parc_" + portShellID[i])
+	}
+	for _, c := range PortParcs {
+		parc := p.Station("parc_" + c.ID)
 		if parc.Built {
-			n := 1 + min(15, g.Levels[p.key("cases_"+portShellID[i])])
+			n := 1 + min(15, g.Levels[p.key("cases_"+c.ID)])
 			for len(parc.Plants) < n {
 				parc.Plants = append(parc.Plants, Plant{P: parc.Slots[len(parc.Plants)]})
 			}
@@ -454,9 +607,9 @@ func (p *Place) stepPort(dt float64) {
 	}
 	p.stepSalt(dt)
 	// dragues
-	for i, d := range p.dredges {
-		parc := p.Station("parc_" + portShellID[i])
-		basket := p.Station("panier_" + portShellID[i])
+	for _, d := range p.dredges {
+		parc := p.Station(d.parc)
+		basket := p.Station(d.basket)
 		if !parc.Built {
 			continue
 		}
