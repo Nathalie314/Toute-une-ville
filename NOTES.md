@@ -1613,3 +1613,9 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
     faisait baisser le prix de tout ce qu'il contenait déjà (le second ponton aurait divisé par deux les prix du port).
 - Quais le long d'une route verticale (port, domaine) : plus hauts (zone de 154, le texte « QUAI DU CAMION → … »
   au-dessus, le quai dessous) ; avant, le quai cachait la destination. Domaine : quais à y -300, tous les 170.
+- PRIX DU PORT rééquilibrés (21/11, « le joueur qui en est au port doit pouvoir débloquer tout le port avant de passer
+  au lieu suivant »). Mesure : total des déblocages de chaque lieu / prix du lieu suivant = 0,6 à 4,4 partout (exotique
+  9) ; le port était à 38 (6 sans le second ponton). Son coefficient passe de 40,95 à 1,5 (frozenScale) : tout le
+  port (bateaux, parcs, marais, 8 bassins) coûte 11,2 M, 1,4 fois la ferme d'élevage (8 M). Tous ses prix baissent
+  ensemble (ouvriers, cases, drones, étals…), l'ordre et les écarts restent. Exemples : cabillaud 22 500, gambas
+  375 000, marais 495 000, bigorneaux 600 000, langoustes 2,03 M ; ouvriers 6 000 → 2,4 M.

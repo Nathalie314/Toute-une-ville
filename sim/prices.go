@@ -48,8 +48,11 @@ func ContentTarget(rank int, ref float64) float64 {
 // frozenScale : le coefficient des lieux déjà construits, figé (21/11). Ajouter du contenu
 // à un lieu (le second ponton du port…) ne doit plus faire baisser les prix de ce qui y
 // est déjà : avant, le coefficient était recalculé pour que le contenu total garde son prix.
+// Le port (40,95 avant) passe à 1,5 : ses déblocages coûtaient 38 fois le prix du lieu suivant
+// (ailleurs : 0,6 à 4 fois) ; avec 1,5, tout le port se débloque pour ~1,4 fois le prix de
+// la ferme d'élevage : on peut finir le port avant de passer au lieu suivant.
 var frozenScale = map[string]float64{
-	"exotique": 7.57, "boulangerie": 12.26, "glacier": 8.25, "port": 40.95, "elevage": 122.09,
+	"exotique": 7.57, "boulangerie": 12.26, "glacier": 8.25, "port": 1.5, "elevage": 122.09,
 	"boucherie": 42.36, "domaine": 334.49, "creperie": 48.38, "patisserie": 752.14, "parc": 22.57,
 	"huilerie": 5239.05,
 }
