@@ -1563,3 +1563,11 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   d'avant) ; ajouter du contenu à la crèmerie ne change plus les prix des autres lieux. Les sommes déjà versées en
   partie sont sauvegardées sans coefficient : elles gardent leur proportion.
 - Supermarché, Épicerie : le poivre et le sel passent avant les noisettes et les noix.
+- LENTEUR (21/11 : « ça rame tellement que ça n'est plus jouable », exe sur son portable). Mesure avec sa sauvegarde
+  (un pas de simulation, 60 par seconde) : 4,7 ms, dont 65 % dans palletRoom. Depuis que les palettes ne sont plus
+  tronquées au chargement, celles du supermarché sont pleines : les drones posés redemandaient à chaque image si la
+  palette d'arrivée avait de la place, en parcourant tous les quais de tous les lieux. Corrections :
+  ce qui arrive vers chaque lieu est calculé une fois par pas (Game.coming) ; palettes et étals d'un lieu indexés par
+  produit (Place.byItem : pallet, shelfFor) ; les améliorations de la ferme ne sont plus refaites à chaque image
+  (PlaceUpgrades les garde). Résultat : 0,87 ms par pas (5,4 fois plus rapide). Le dessin ne concernait déjà que
+  le lieu affiché.
