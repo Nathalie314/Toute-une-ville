@@ -1646,3 +1646,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   les 190), et une voie de livraison (baie entre la criée et la route, y 2 010 → 2 470, entrée et sortie en biais,
   « LIVRAISONS ») accueille les camions hors de la circulation : ils arrivent du nord par la route, s'y rangent,
   puis repartent vers le sud (drawPortTruck).
+- Port : les camions roulent vers le sud cabine devant (drawTruckTopDir, le camion vu de dessus retourné) ; leur étiquette dit « LE PORT ».

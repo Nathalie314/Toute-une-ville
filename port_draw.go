@@ -597,15 +597,15 @@ func (g *game) drawPortTruck(dst *ebiten.Image, s *sim.Station, left, every floa
 	e := every - left
 	x, y0 := sim.PortBayX, s.Body.C().Y+10
 	lane := sim.PortLaneS + 10
-	truck := func(x, y float64) { scaled(x, y, 0.58, func() { drawTruckTop(dst, x, y, false) }) }
+	truck := func(x, y float64) { scaled(x, y, 0.58, func() { drawTruckTopDir(dst, x, y, false, true) }) }
 	if e < 2.5 { // il vient de partir vers le sud : il rejoint la route
 		f := e / 2.5
 		truck(x+(lane-x)*math.Min(1, f*3), y0+1800*f*f)
 	}
 	switch {
 	case e >= 4.5:
-		scaled(x, y0, 0.58, func() { drawTruckTop(dst, x, y0, false) })
-		sayOutlined(dst, tr.F("Départ dans {n} s", "n", itoa(int(left))), x, y0+50, 15, 0, rgb(0xffffff), rgb(0x2b2b2b))
+		scaled(x, y0, 0.58, func() { drawTruckTopDir(dst, x, y0, left < 2, true) })
+		sayOutlined(dst, tr.F("Départ dans {n} s", "n", itoa(int(left))), x, y0+88, 15, 0, rgb(0xffffff), rgb(0x2b2b2b)) // (sous la cabine)
 	case e >= 1.5: // le suivant descend la route depuis le nord, puis se range
 		f := (e - 1.5) / 3
 		y := y0 - 1800*(1-f)*(1-f)

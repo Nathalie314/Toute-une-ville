@@ -421,28 +421,41 @@ func drawItemDomaine(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 // drawTruckTop : un camion vu du dessus, qui roule vers le nord (route verticale) :
 // la cabine devant, la remorque derrière ; d'où il vient est écrit sur son toit.
 func drawTruckTop(dst *ebiten.Image, cx, cy float64, busy bool) {
-	label := map[string]string{"ferme": "MA FERME", "domaine": "LE DOMAINE", "elevage": "ÉLEVAGE"}[truckFrom]
+	drawTruckTopDir(dst, cx, cy, busy, false)
+}
+
+// drawTruckTopDir : le camion vu de dessus ; down : il roule vers le sud (la cabine en bas).
+func drawTruckTopDir(dst *ebiten.Image, cx, cy float64, busy, down bool) {
+	label := map[string]string{"ferme": "MA FERME", "domaine": "LE DOMAINE", "elevage": "ÉLEVAGE", "port": "LE PORT"}[truckFrom]
 	if label == "" {
 		label = "MA FERME"
 	}
-	roundRect(dst, cx-44, cy-118, 104, 250, 12, rgba(0x000000, 0.22)) // ombre
-	for _, wy := range []float64{-80, 50, 92} {                       // les roues, qui dépassent un peu
-		roundRect(dst, cx-56, cy+wy, 12, 30, 4, rgb(0x2b2b2b))
-		roundRect(dst, cx+44, cy+wy, 12, 30, 4, rgb(0x2b2b2b))
+	// (y, hauteur) d'un morceau du camion, retourné s'il roule vers le sud
+	Y := func(dy, h float64) float64 {
+		if down {
+			return cy - dy - h
+		}
+		return cy + dy
+	}
+	roundRect(dst, cx-44, Y(-118, 250), 104, 250, 12, rgba(0x000000, 0.22)) // ombre
+	for _, wy := range []float64{-80, 50, 92} {                             // les roues, qui dépassent un peu
+		roundRect(dst, cx-56, Y(wy, 30), 12, 30, 4, rgb(0x2b2b2b))
+		roundRect(dst, cx+44, Y(wy, 30), 12, 30, 4, rgb(0x2b2b2b))
 	}
 	// la remorque et son toit
-	roundRect(dst, cx-48, cy-50, 96, 180, 8, rgb(0xd9ccb2))
-	roundRect(dst, cx-44, cy-46, 88, 172, 6, rgb(0xf3ead8))
-	for y := cy - 30; y < cy+120; y += 24 {
-		line(dst, cx-40, y, cx+40, y, 1.5, rgba(0xb9ab90, 0.6))
+	roundRect(dst, cx-48, Y(-50, 180), 96, 180, 8, rgb(0xd9ccb2))
+	roundRect(dst, cx-44, Y(-46, 172), 88, 172, 6, rgb(0xf3ead8))
+	for y := -30.0; y < 120; y += 24 {
+		yy := Y(y, 0)
+		line(dst, cx-40, yy, cx+40, yy, 1.5, rgba(0xb9ab90, 0.6))
 	}
-	roundRect(dst, cx-42, cy+22, 84, 34, 6, rgba(0xffffff, 0.9))
-	sayFit(dst, label, cx, cy+39, 16, true, 0, 80, rgb(0x2fa86b))
-	// la cabine, devant (au nord)
-	roundRect(dst, cx-44, cy-112, 88, 58, 12, rgb(0x2fa86b))
-	roundRect(dst, cx-36, cy-108, 72, 18, 6, rgb(0x9fd3ff)) // le pare-brise
-	rect(dst, cx-44, cy-112, 14, 58, rgb(0x46c283))
+	roundRect(dst, cx-42, Y(22, 34), 84, 34, 6, rgba(0xffffff, 0.9))
+	sayFit(dst, label, cx, Y(22, 34)+17, 16, true, 0, 80, rgb(0x2fa86b))
+	// la cabine, devant
+	roundRect(dst, cx-44, Y(-112, 58), 88, 58, 12, rgb(0x2fa86b))
+	roundRect(dst, cx-36, Y(-108, 18), 72, 18, 6, rgb(0x9fd3ff)) // le pare-brise
+	rect(dst, cx-44, Y(-112, 58), 14, 58, rgb(0x46c283))
 	if busy {
-		circle(dst, cx, cy+136, 7, rgb(0xffd23f))
+		circle(dst, cx, Y(136, 0), 7, rgb(0xffd23f))
 	}
 }
