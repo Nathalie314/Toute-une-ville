@@ -1640,3 +1640,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
     prix d'avant. TestSuperPaliers vérifie ces totaux et que chaque produit a son lieu d'origine.
 - Port : sur chaque parc et chaque bassin, côté ponton, entre le panier et la drague, un panneau dit ce qu'il contient (icône et nom du produit).
 - Port : les noms des parcs et des bassins dans l'eau sont retirés (inutiles avec les panneaux côté ponton ; avant l'achat, la case de déblocage donne le nom).
+- Port : le panneau du contenu est aussi sur les parcs et bassins pas encore achetés (un peu pâle).

@@ -115,8 +115,8 @@ func (g *game) portGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		roundRect(dst, sx+130, sim.PortBerthY-80, 260, 40, 10, rgba(0x2b5a8a, a))
 		sayFit(dst, sim.PortSecName(i, false), sx+260, sim.PortBerthY-60, 18, true, 0, 250, rgba(0xffffff, a))
 	}
-	// (les noms des parcs et des bassins ne sont plus dans l'eau : un panneau sur chaque parc acheté dit ce
-	// qu'il contient, côté ponton ; avant l'achat, la case de déblocage donne son nom)
+	// (les noms des parcs et des bassins ne sont plus dans l'eau : un panneau sur chaque parc dit ce
+	// qu'il contient, côté ponton, acheté ou non)
 }
 
 // drawPortRoad : la route verticale à droite de la criée, ses trottoirs, le passage piéton
@@ -190,9 +190,9 @@ func (g *game) drawPortSea(dst *ebiten.Image, p *sim.Place) {
 	}
 	// sur chaque parc, côté ponton, entre le panier et la drague : ce qu'il contient
 	for _, c := range sim.PortParcs {
-		st := p.Station("parc_" + c.ID)
-		if st == nil || !st.Built {
-			continue
+		a := 0.95 // (pas encore acheté : le panneau est là aussi, un peu pâle)
+		if st := p.Station("parc_" + c.ID); st == nil || !st.Built {
+			a = 0.7
 		}
 		top := c.ParcTop()
 		y := top - 26 // (le parc est sous le ponton : le panneau au bord du haut)
@@ -202,9 +202,9 @@ func (g *game) drawPortSea(dst *ebiten.Image, p *sim.Place) {
 		x := sim.PortSecX(c.Sec) + 260
 		name := tr.T(sim.Items[c.It].Name)
 		w := textWidth(name, 24, true) + 84
-		roundRect(dst, x-w/2, y-26, w, 52, 12, rgba(0xffffff, 0.95))
+		roundRect(dst, x-w/2, y-26, w, 52, 12, rgba(0xffffff, a))
 		drawItem(dst, c.It, x-w/2+30, y, 19)
-		say(dst, name, x+22, y, 24, true, 0, rgb(0x2b5a8a))
+		say(dst, name, x+22, y, 24, true, 0, rgba(0x2b5a8a, a))
 	}
 	if m := p.Station("marais"); m != nil && m.Built && p.Salt() != nil {
 		drawSaltRake(dst, p.Salt(), t)
