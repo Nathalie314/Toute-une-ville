@@ -328,10 +328,10 @@ func newPort(g *Game) *Place {
 		if i > 0 {
 			id = "quai_" + to
 		}
-		y := 1690 + float64(i)*130
+		y := 1690 + float64(i)*170
 		q := &Station{ID: id, Name: "Quai du camion", Kind: Dock, BufMax: 20, Built: true, To: to}
 		q.Body = Rect{PortCrieeX1 - 220, y, 210, 56}
-		q.Zone = Rect{PortCrieeX1 - 240, y - 30, 250, 112}
+		q.Zone = Rect{PortCrieeX1 - 240, y - 72, 250, 154} // (le texte au-dessus, le quai dessous)
 		p.Stations = append(p.Stations, q)
 	}
 	cmd := &Station{ID: "commande", Name: "Commandes", Kind: OrderBox, Built: true}

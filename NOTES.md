@@ -1611,3 +1611,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
     Badges « Pince-mi, pince-moi » (200 crabes) et « Homard bleu » (100 homards).
   - Prix : les coefficients des lieux sont figés (frozenScale, prices.go). Avant, ajouter du contenu à un lieu
     faisait baisser le prix de tout ce qu'il contenait déjà (le second ponton aurait divisé par deux les prix du port).
+- Quais le long d'une route verticale (port, domaine) : plus hauts (zone de 154, le texte « QUAI DU CAMION → … »
+  au-dessus, le quai dessous) ; avant, le quai cachait la destination. Domaine : quais à y -300, tous les 170.
