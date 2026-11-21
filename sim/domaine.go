@@ -42,7 +42,7 @@ const (
 	DomRoadX    = 4520.0 // la route des camions (verticale)
 	DomRoadW    = 160.0
 	DomDockY0   = -300.0 // les quais (supermarché, crêperie, zoo), au nord de la réserve
-	DomDockStep = 170.0 // (des quais hauts : on lit « QUAI DU CAMION → … » au-dessus du quai)
+	DomDockStep = 170.0  // (des quais hauts : on lit « QUAI DU CAMION → … » au-dessus du quai)
 )
 
 var domaineZones = []*ShopZone{
