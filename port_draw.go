@@ -6,6 +6,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 
 	"ville/sim"
+	"ville/tr"
 )
 
 // Le port : la mer à gauche (et au nord), la jetée en bois, les bateaux, les
@@ -194,6 +195,24 @@ func (g *game) drawPortSea(dst *ebiten.Image, p *sim.Place) {
 			continue
 		}
 		drawDredge(dst, d, d.Net, t)
+	}
+	// sur chaque parc, côté ponton, entre le panier et la drague : ce qu'il contient
+	for _, c := range sim.PortParcs {
+		st := p.Station("parc_" + c.ID)
+		if st == nil || !st.Built {
+			continue
+		}
+		top := c.ParcTop()
+		y := top - 26 // (le parc est sous le ponton : le panneau au bord du haut)
+		if c.Side == 1 {
+			y = top + 4*sim.PortCell + 26 // (côté nord du second ponton : au bord du bas)
+		}
+		x := sim.PortSecX(c.Sec) + 260
+		name := tr.T(sim.Items[c.It].Name)
+		w := textWidth(name, 24, true) + 84
+		roundRect(dst, x-w/2, y-26, w, 52, 12, rgba(0xffffff, 0.95))
+		drawItem(dst, c.It, x-w/2+30, y, 19)
+		say(dst, name, x+22, y, 24, true, 0, rgb(0x2b5a8a))
 	}
 	if m := p.Station("marais"); m != nil && m.Built && p.Salt() != nil {
 		drawSaltRake(dst, p.Salt(), t)
