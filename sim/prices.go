@@ -45,17 +45,26 @@ func ContentTarget(rank int, ref float64) float64 {
 	return ref * math.Pow(scaleFactor, float64(rank-scaleFrom+1))
 }
 
-// frozenScale : le coefficient des lieux déjà construits, figé (21/11). Ajouter du contenu
-// à un lieu (le second ponton du port…) ne doit plus faire baisser les prix de ce qui y
-// est déjà : avant, le coefficient était recalculé pour que le contenu total garde son prix.
-// Le port (40,95 avant) passe à 1,5 : ses déblocages coûtaient 38 fois le prix du lieu suivant
-// (ailleurs : 0,6 à 4 fois) ; avec 1,5, tout le port se débloque pour ~1,4 fois le prix de
-// la ferme d'élevage : on peut finir le port avant de passer au lieu suivant.
-var frozenScale = map[string]float64{
-	"exotique": 7.57, "boulangerie": 12.26, "glacier": 8.25, "port": 1.5, "elevage": 122.09,
-	"boucherie": 42.36, "domaine": 334.49, "creperie": 48.38, "patisserie": 752.14, "parc": 22.57,
-	"huilerie": 5239.05,
-}
+// LA RÈGLE DES PALIERS (21/11) : un joueur qui arrive dans un lieu doit pouvoir tout y
+// débloquer avant de passer au lieu suivant, et pas beaucoup plus tôt. Pour chaque lieu à
+// partir de la ferme exotique, le total de ses déblocages (champs, machines, bateaux, bassins…)
+// vaut palier × le prix du lieu suivant sur la carte ; le coefficient du lieu (Place.Scale) en
+// découle, et il s'applique à tout ce qu'on y achète (employés, cases, drones, étals…).
+//
+// Avant, le coefficient venait du contenu total du lieu (tous les niveaux de tout), ce qui
+// donnait des lieux 10 à 40 fois trop chers (la ferme exotique, le port) ou trop bon marché.
+//
+// Ajouter des marchandises à un lieu existant : les nouvelles doivent coûter plus cher, sans
+// faire baisser les anciennes. On monte alors le budget du lieu (extension[id]) pour que son
+// coefficient ne bouge pas ; TestPaliers (prices_test.go) vérifie les coefficients et que chaque
+// lieu reste dans la norme (ce qui arriverait sinon : la règle ferait baisser les anciens prix).
+const palier = 1.2
+
+// extension : budget en plus d'un lieu agrandi après coup (1 : aucun).
+var extension = map[string]float64{}
+
+// nextPrice : le prix du lieu qui suit sur la carte (pour le dernier : deux fois le sien).
+func nextPrice(r int) float64 { return PlacePrice(r + 1) }
 
 // niceRound : un prix arrondi à 3 chiffres (51 234 → 51 200).
 func niceRound(v float64) float64 {
@@ -147,13 +156,20 @@ func (g *Game) applyMapPrices() {
 		if r < scaleFrom || ref <= 0 {
 			continue
 		}
-		c := p.contentCost()
-		if c <= 0 {
-			continue
+		raw := 0.0 // les déblocages, sans coefficient
+		for _, u := range p.Unlocks {
+			raw += u.Cost
 		}
-		p.Scale = ContentTarget(r, ref) / c
-		if f, ok := frozenScale[p.ID]; ok {
-			p.Scale = f
+		if raw > 0 {
+			k := palier
+			if e, ok := extension[p.ID]; ok {
+				k *= e
+			}
+			p.Scale = k * nextPrice(r) / raw
+		} else if c := p.contentCost(); c > 0 {
+			p.Scale = ContentTarget(r, ref) / c
+		} else {
+			continue
 		}
 		p.Price = PlacePrice(r)
 		for _, u := range p.Unlocks {

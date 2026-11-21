@@ -1619,3 +1619,12 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   port (bateaux, parcs, marais, 8 bassins) coûte 11,2 M, 1,4 fois la ferme d'élevage (8 M). Tous ses prix baissent
   ensemble (ouvriers, cases, drones, étals…), l'ordre et les écarts restent. Exemples : cabillaud 22 500, gambas
   375 000, marais 495 000, bigorneaux 600 000, langoustes 2,03 M ; ouvriers 6 000 → 2,4 M.
+- RÈGLE DES PALIERS (21/11, « que tout le jeu soit cohérent et harmonieux, et que ce genre de problème ne se
+  reproduise pas quand j'ajoute des lieux ou des marchandises »). Mesure : total des déblocages d'un lieu / prix du
+  lieu suivant = de 0,6 (pâtisserie) à 38 (port) selon les lieux. Nouvelle règle (prices.go) : pour chaque lieu dès
+  la ferme exotique, ce total vaut palier (1,2) × le prix du lieu suivant ; le coefficient du lieu en découle et
+  s'applique à tout ce qu'on y achète. Changements : exotique ÷8, élevage ÷2,5, domaine ÷3,7, parc ÷1,6, huilerie
+  ÷5,6, port ÷1,2 ; boulangerie et glacier ×1,8, crêperie ×1,6, pâtisserie ×2 ; boucherie inchangée.
+  Ajout de marchandises à un lieu existant : monter extension[lieu] pour que les anciens prix ne bougent pas.
+  Garde-fou : TestPaliers (sim/prices_test.go) vérifie le coefficient de chaque lieu et que tout débloquer ne
+  dépasse pas 3 fois le lieu suivant. Consigne ajoutée à CLAUDE.md. (frozenScale supprimé.)
