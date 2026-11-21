@@ -115,16 +115,8 @@ func (g *game) portGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		roundRect(dst, sx+130, sim.PortBerthY-80, 260, 40, 10, rgba(0x2b5a8a, a))
 		sayFit(dst, sim.PortSecName(i, false), sx+260, sim.PortBerthY-60, 18, true, 0, 250, rgba(0xffffff, a))
 	}
-	// les noms des parcs et des bassins
-	for _, c := range sim.PortParcs {
-		a := 0.9
-		if s := p.Station("parc_" + c.ID); s == nil || !s.Built {
-			a = 0.4
-		}
-		sx := sim.PortSecX(c.Sec)
-		roundRect(dst, sx+90, c.LabelY()-20, 340, 40, 10, rgba(0x2b5a8a, a))
-		sayFit(dst, c.Name, sx+260, c.LabelY(), 18, true, 0, 330, rgba(0xffffff, a))
-	}
+	// (les noms des parcs et des bassins ne sont plus dans l'eau : un panneau sur chaque parc acheté dit ce
+	// qu'il contient, côté ponton ; avant l'achat, la case de déblocage donne son nom)
 }
 
 // drawPortRoad : la route verticale à droite de la criée, ses trottoirs, le passage piéton

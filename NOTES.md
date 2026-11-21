@@ -1639,3 +1639,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
     magasinier ; domaine 800 000 / 1,6 M ; pâtisserie 4,6 M / 9,1 M ; huilerie 14 M / 28 M. Produits de la ferme :
     prix d'avant. TestSuperPaliers vérifie ces totaux et que chaque produit a son lieu d'origine.
 - Port : sur chaque parc et chaque bassin, côté ponton, entre le panier et la drague, un panneau dit ce qu'il contient (icône et nom du produit).
+- Port : les noms des parcs et des bassins dans l'eau sont retirés (inutiles avec les panneaux côté ponton ; avant l'achat, la case de déblocage donne le nom).
