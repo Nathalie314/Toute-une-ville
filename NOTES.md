@@ -1571,3 +1571,11 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   produit (Place.byItem : pallet, shelfFor) ; les améliorations de la ferme ne sont plus refaites à chaque image
   (PlaceUpgrades les garde). Résultat : 0,87 ms par pas (5,4 fois plus rapide). Le dessin ne concernait déjà que
   le lieu affiché.
+- LENTEUR, suite (« ça rame encore ») :
+  - Dessin : on ne dessine plus que ce qui est à l'écran (avec une marge) : champs, ombres, zones, déblocages,
+    cases, stations, ouvriers, drones, ce que demandent les machines (world.go : viewTL/viewBR, stationSeen,
+    rectSeen, pointSeen). Avant, tout le lieu était dessiné à chaque image (le supermarché : des dizaines de rayons
+    hors de l'écran, avec leurs textes, qui coupent les lots de dessin).
+  - Bouton « Image légère » / « Image fine » sur la carte (à gauche de « Plein écran »), gardé dans la sauvegarde
+    (image_legere) : sans le sur-échantillonnage ×2, quatre fois moins de points à dessiner. Mesure (rendu logiciel,
+    sa sauvegarde) : ferme 103 → 203 images en 15 s, supermarché 137 → 275.

@@ -1865,3 +1865,7 @@ Faire 200 sachets de poivre. = Make 200 bags of pepper.
 Fleur de sel = Fleur de sel
 Récolter 500 sel au marais salant. = Harvest 500 salt at the salt marsh.
 Au nord de la criée, le marais salant : dans ses bassins, l'eau de mer s'évapore jusqu'à ce qu'ils soient tout blancs ; le râteau mécanique ramasse le sel. On achète les bassins depuis le bord. = North of the fish market, the salt marsh: in its pans, the seawater evaporates until they turn completely white; the mechanical rake gathers the salt. You buy the pans from the edge.
+Image légère = Lighter graphics
+Image fine = Sharp graphics
+Image légère : le jeu dessine quatre fois moins de points, il est plus fluide. = Lighter graphics: the game draws four times fewer pixels and runs more smoothly.
+Image fine : plus nette, mais plus lourde pour l'ordinateur. = Sharp graphics: crisper, but harder work for the computer.

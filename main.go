@@ -67,6 +67,7 @@ type button struct {
 
 type game struct {
 	wheelAcc  float64    // crans de molette pas encore utilisés par une liste
+	light     bool       // « Image légère » : pas de sur-échantillonnage (gardé dans la sauvegarde)
 	windowed  bool       // PC : le joueur préfère jouer en fenêtre (gardé dans la sauvegarde)
 	lastPlace *sim.Place // le dernier lieu visité (Tab sur la carte y ramène)
 	mapHover  string     // carte : le lieu sous la main ou la souris (un chiffre en fait un favori)
@@ -383,6 +384,9 @@ func (g *game) Draw(screen *ebiten.Image) {
 		// (écran déjà très fin, téléphone ou tablette : pas de sur-échantillonnage,
 		// quatre fois moins de points à dessiner, et la différence ne se voit pas)
 		k = 1
+	}
+	if g.light {
+		k = 1 // « Image légère » : quatre fois moins de points à dessiner (ordinateurs peu puissants)
 	}
 	scr.K = k
 	w, h := int(math.Ceil(scr.W*k)), int(math.Ceil(scr.H*k))

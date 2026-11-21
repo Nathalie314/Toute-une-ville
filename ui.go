@@ -1333,6 +1333,20 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		}
 		g.btn(dst, lbl, scr.VW-1000, scr.VH-100, 230, 70, 0x6a6a8a, true, func() { g.toggleWindow() })
 	}
+	// image fine (sur-échantillonnée) ou légère (quatre fois moins de points : plus fluide)
+	lbl := "Image légère"
+	if g.light {
+		lbl = "Image fine"
+	}
+	g.btn(dst, lbl, scr.VW-1260, scr.VH-100, 240, 70, 0x6a6a8a, true, func() {
+		g.light = !g.light
+		if g.light {
+			g.toast("Image légère : le jeu dessine quatre fois moins de points, il est plus fluide.", "")
+		} else {
+			g.toast("Image fine : plus nette, mais plus lourde pour l'ordinateur.", "")
+		}
+		g.save()
+	})
 	g.btn(dst, "Recommencer à zéro", 50, scr.VH-100, 330, 70, 0x8a7a6a, true, func() { g.openPanel(panelReset) })
 	g.btn(dst, "Badges", scr.VW-760, scr.VH-100, 220, 70, 0xd4a017, true, func() { g.openPanel(panelBadges) })
 	g.flagButtons(dst, scr.VW-200, 70)

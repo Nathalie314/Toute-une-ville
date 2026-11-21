@@ -61,6 +61,33 @@ func (g *game) updateCamera(p *sim.Place, dt float64) {
 
 // ---------------------------------------------------------------- monde
 
+// La partie du monde visible à l'écran (drawWorld) : on ne dessine que ce qui s'y trouve
+// (les lieux sont grands : le supermarché a des dizaines de rayons, dont la plupart sont
+// hors de l'écran ; les dessiner tous faisait ramer le jeu).
+var viewTL, viewBR V
+
+func rectSeen(r sim.Rect, m float64) bool {
+	return r.X+r.W >= viewTL.X-m && r.X <= viewBR.X+m && r.Y+r.H >= viewTL.Y-m && r.Y <= viewBR.Y+m
+}
+
+func pointSeen(q V, m float64) bool {
+	return q.X >= viewTL.X-m && q.X <= viewBR.X+m && q.Y >= viewTL.Y-m && q.Y <= viewBR.Y+m
+}
+
+// stationSeen : la station, ses zones et sa base de drone (avec une large marge : ce qui
+// est dessiné au-dessus, les étiquettes, les camions du quai…).
+func stationSeen(s *sim.Station) bool {
+	b := s.Body
+	for _, r := range []sim.Rect{s.Zone, s.OutZone} {
+		if r.W > 0 && r.X > -900 {
+			x0, y0 := math.Min(b.X, r.X), math.Min(b.Y, r.Y)
+			x1, y1 := math.Max(b.X+b.W, r.X+r.W), math.Max(b.Y+b.H, r.Y+r.H)
+			b = sim.Rect{X: x0, Y: y0, W: x1 - x0, H: y1 - y0}
+		}
+	}
+	return rectSeen(b, 450)
+}
+
 type drawable struct {
 	y  float64
 	fn func()
@@ -79,6 +106,7 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 		tl = V{X: math.Min(math.Min(tl.X, br.X), math.Min(a.X, b.X)), Y: math.Min(math.Min(tl.Y, br.Y), math.Min(a.Y, b.Y))}
 		br = V{X: math.Max(math.Max(cam.toLogical(0, 0).X, br.X), math.Max(a.X, b.X)), Y: math.Max(math.Max(cam.toLogical(0, 0).Y, br.Y), math.Max(a.Y, b.Y))}
 	}
+	viewTL, viewBR = tl, br
 	dec := g.placeDecor(p)
 	gameT = g.t
 	drawGrass(dst, p, tl, br)
@@ -90,7 +118,7 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 
 	// --- champs (au sol)
 	for _, s := range p.Stations {
-		if s.Kind == sim.Field {
+		if s.Kind == sim.Field && stationSeen(s) {
 			g.drawField(dst, s)
 		}
 	}
@@ -99,17 +127,20 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	}
 	// --- ombres des machines et des bâtiments
 	for _, s := range p.Stations {
-		if s.Built && s.Kind != sim.Field {
+		if s.Built && s.Kind != sim.Field && stationSeen(s) {
 			stationShadow(dst, s)
 		}
 	}
 	// --- zones au sol
 	for _, s := range p.Stations {
-		if s.Built {
+		if s.Built && stationSeen(s) {
 			g.drawZones(dst, p, s)
 		}
 	}
 	for _, u := range p.Unlocks {
+		if !rectSeen(u.Zone, 300) {
+			continue
+		}
 		if !u.Done && p.Visible(u) {
 			g.drawUnlock(dst, u)
 		} else if p.ShowLocked(u) {
@@ -121,6 +152,9 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 		}
 	}
 	for _, s := range p.Stations {
+		if !stationSeen(s) {
+			continue
+		}
 		if s.Built && s.Upgradable() {
 			g.drawLevelZone(dst, p, s)
 		}
@@ -130,6 +164,9 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	}
 	g.drawBus(dst, p)
 	for _, sp := range p.Spots {
+		if !rectSeen(sp.Zone, 300) {
+			continue
+		}
 		if p.SpotVisible(sp) {
 			g.drawSpot(dst, p, sp)
 		} else if why, title := p.DroneLock(sp), "Drone"; why != "" || p.HireLock(sp) != "" {
@@ -151,13 +188,16 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	var ds []drawable
 	for _, s := range p.Stations {
 		s := s
-		if !s.Built || s.Kind == sim.Field {
+		if !s.Built || s.Kind == sim.Field || !stationSeen(s) {
 			continue
 		}
 		ds = append(ds, drawable{x: s.Body.C().X, y: s.Body.Y + s.Body.H, fn: func() { g.drawStation(dst, p, s) }})
 	}
 	for _, w := range p.Workers {
 		w := w
+		if !pointSeen(w.Pos, 250) {
+			continue
+		}
 		ds = append(ds, drawable{x: w.Pos.X, y: w.Pos.Y, fn: func() { drawAgent(dst, p.ID, w, t) }})
 	}
 	for _, r := range p.Registers() {
@@ -224,13 +264,16 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	// ce que demandent les machines : par-dessus les personnages (la caissière
 	// cachait le miel du pain d'épices)
 	for _, s := range p.Stations {
-		if s.Built && s.Kind == sim.Machine {
+		if s.Built && s.Kind == sim.Machine && stationSeen(s) {
 			machineInputs(dst, s)
 		}
 	}
 	// les drones volent au-dessus de tout
 	for _, s := range p.Stations {
 		for _, d := range s.Drones {
+			if !pointSeen(d.Pos, 250) {
+				continue
+			}
 			lift := 0.0
 			if d.Phase != 0 {
 				lift = 40
