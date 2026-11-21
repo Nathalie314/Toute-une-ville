@@ -1,6 +1,7 @@
 package sim
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 )
@@ -509,6 +510,88 @@ func (g *Game) fixRayonCosts() {
 				u.Cost = 11000 + 0.5*c
 			}
 			u.Cost = math.Round(u.Cost/50) * 50
+		}
+	}
+}
+
+// ---------------------------------------------------------------- prix (règle des paliers)
+//
+// Au supermarché, chaque produit appartient au lieu qui le fabrique : son rayon et le
+// magasinier qui va avec suivent le palier de ce lieu. Pour un lieu, ses rayons coûtent
+// ensemble superRayons × son prix d'achat, ses magasiniers superMagas × son prix. Le k-ième
+// magasinier d'un espace coûte selon le k-ième produit de l'espace (dans l'ordre d'arrivée).
+// Les produits de la ferme (début du jeu, tutoriel) gardent leurs prix d'avant.
+const (
+	superRayons = 0.25
+	superMagas  = 0.5
+)
+
+// SourceOf : le lieu qui fabrique un produit vendu au supermarché ("" : inconnu).
+func (g *Game) SourceOf(it Item) string {
+	for _, p := range g.Places {
+		if p.ID == "super" {
+			continue
+		}
+		for _, s := range p.Stations {
+			if (s.Kind == Field || s.Kind == Machine || s.Kind == Animal) && s.Item == it {
+				return p.ID
+			}
+		}
+	}
+	for _, it2 := range PortFish { // (les poissons du port : pêchés par les bateaux)
+		if it2 == it {
+			return "port"
+		}
+	}
+	return ""
+}
+
+// superSource : le lieu d'origine et son prix d'achat (0 si la règle ne s'applique pas).
+func (g *Game) superSource(it Item) (string, float64) {
+	id := g.SourceOf(it)
+	q := g.Place(id)
+	if q == nil || MapRank(id) < palierFrom {
+		return id, 0
+	}
+	return id, q.Price
+}
+
+func (g *Game) superPrices() {
+	sup := g.Place("super")
+	if sup == nil {
+		return
+	}
+	n := map[string]int{} // produits de chaque lieu au supermarché
+	for _, z := range SuperZones {
+		for _, it := range z.Items {
+			if id, pr := g.superSource(it); pr > 0 {
+				n[id]++
+			}
+		}
+	}
+	round := func(v float64) float64 { return math.Max(50, math.Round(v/50)*50) }
+	for _, u := range sup.Unlocks {
+		var it Item
+		if _, err := fmt.Sscanf(u.ID, "r_%d", &it); err != nil {
+			continue
+		}
+		if id, pr := g.superSource(it); pr > 0 {
+			u.Cost = round(superRayons * pr / float64(n[id]))
+		}
+	}
+	for _, z := range SuperZones {
+		for _, u := range sup.ups {
+			if u.Key != sup.key(teamKey(z.ID)) {
+				continue
+			}
+			for l, it := range z.Items {
+				if l >= len(u.Costs) {
+					break
+				}
+				if id, pr := g.superSource(it); pr > 0 {
+					u.Costs[l] = round(superMagas * pr / float64(n[id]))
+				}
+			}
 		}
 	}
 }

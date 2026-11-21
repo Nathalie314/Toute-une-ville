@@ -47,7 +47,7 @@ func ContentTarget(rank int, ref float64) float64 {
 
 // LA RÈGLE DES PALIERS (21/11) : un joueur qui arrive dans un lieu doit pouvoir tout y
 // débloquer avant de passer au lieu suivant, et pas beaucoup plus tôt. Pour chaque lieu à
-// partir de la ferme exotique, le total de ses déblocages (champs, machines, bateaux, bassins…)
+// partir de la crèmerie, le total de ses déblocages (champs, machines, bateaux, bassins…)
 // vaut palier × le prix du lieu suivant sur la carte ; le coefficient du lieu (Place.Scale) en
 // découle, et il s'applique à tout ce qu'on y achète (employés, cases, drones, étals…).
 //
@@ -59,6 +59,11 @@ func ContentTarget(rank int, ref float64) float64 {
 // coefficient ne bouge pas ; TestPaliers (prices_test.go) vérifie les coefficients et que chaque
 // lieu reste dans la norme (ce qui arriverait sinon : la règle ferait baisser les anciens prix).
 const palier = 1.2
+
+// palierFrom : premier rang soumis à la règle (la crèmerie ; la ferme et l'école, lieux de départ
+// avec le tutoriel, gardent leurs prix ; le supermarché suit les lieux qui le fournissent :
+// voir superPrices).
+const palierFrom = 4
 
 // extension : budget en plus d'un lieu agrandi après coup (1 : aucun).
 var extension = map[string]float64{}
@@ -153,7 +158,7 @@ func (g *Game) applyMapPrices() {
 	ref := refContent
 	for _, p := range g.Places {
 		r := MapRank(p.ID)
-		if r < scaleFrom || ref <= 0 {
+		if r < palierFrom || ref <= 0 {
 			continue
 		}
 		raw := 0.0 // les déblocages, sans coefficient
@@ -171,7 +176,9 @@ func (g *Game) applyMapPrices() {
 		} else {
 			continue
 		}
-		p.Price = PlacePrice(r)
+		if r >= scaleFrom {
+			p.Price = PlacePrice(r) // (la crèmerie garde son prix d'achat)
+		}
 		for _, u := range p.Unlocks {
 			u.Cost = niceRound(u.Cost * p.Scale)
 		}

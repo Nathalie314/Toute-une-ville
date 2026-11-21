@@ -1628,3 +1628,13 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   Ajout de marchandises à un lieu existant : monter extension[lieu] pour que les anciens prix ne bougent pas.
   Garde-fou : TestPaliers (sim/prices_test.go) vérifie le coefficient de chaque lieu et que tout débloquer ne
   dépasse pas 3 fois le lieu suivant. Consigne ajoutée à CLAUDE.md. (frozenScale supprimé.)
+- RÈGLE DES PALIERS étendue (21/11) :
+  - La crèmerie y entre (palierFrom = 4) : ses déblocages passent de 210 000 à 600 000 (× 2,86), 1,2 fois la ferme
+    exotique ; elle garde son prix d'achat (22 000). La ferme et l'école (lieux de départ, tutoriel) restent hors règle.
+  - Supermarché (superPrices, super.go), avant : rayons presque gratuits pour les lieux récents (pâtisserie : 172 000
+    pour un lieu à 128 M) et magasiniers selon la place de l'espace dans le magasin (× 2,2 par espace, × 3 par
+    embauche) : de 2 à 181 fois le prix du lieu fournisseur selon l'espace. Maintenant, chaque produit suit le
+    lieu qui le fabrique (SourceOf) : ses rayons coûtent ensemble ¼ du prix d'achat du lieu, ses magasiniers ½
+    (le k-ième magasinier d'un espace coûte selon le k-ième produit). Exemples : exotique 6 600 le rayon, 13 000 le
+    magasinier ; domaine 800 000 / 1,6 M ; pâtisserie 4,6 M / 9,1 M ; huilerie 14 M / 28 M. Produits de la ferme :
+    prix d'avant. TestSuperPaliers vérifie ces totaux et que chaque produit a son lieu d'origine.
