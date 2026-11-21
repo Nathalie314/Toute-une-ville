@@ -1579,3 +1579,15 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   - Bouton « Image légère » / « Image fine » sur la carte (à gauche de « Plein écran »), gardé dans la sauvegarde
     (image_legere) : sans le sur-échantillonnage ×2, quatre fois moins de points à dessiner. Mesure (rendu logiciel,
     sa sauvegarde) : ferme 103 → 203 images en 15 s, supermarché 137 → 275.
+- LENTEUR, 3e partie (« ça rame dès que les clients arrivent, dès qu'il y a du mouvement », à la pâtisserie et au
+  domaine). Mesure avec sa sauvegarde : un pas de jeu prend 1 ms en général, mais il y avait des pics jusqu'à
+  100 ms (une dizaine par minute), venant surtout du supermarché, qui tourne aussi quand on n'y est pas. Cause :
+  la recherche de chemin des clients et des employés.
+  - Le lissage du trajet testait toutes les paires de points (coût au carré de la longueur), et chaque test
+    « tout droit ? » comparait chaque point à tous les bâtiments du lieu. Maintenant : on avance tant que c'est
+    libre, et solidAt n'interroge que les bâtiments du carré de 256 où il se trouve (index Place.solid, refait quand
+    le nombre de bâtiments construits change).
+  - A* garde ses tableaux d'une recherche à l'autre (tampons de génération), au lieu d'en allouer trois grands à
+    chaque trajet (600 Ko au supermarché).
+  Résultat : pas habituel 0,6 ms ; pire pas ~20 ms (un par minute) au lieu de 100 ms.
+  (L'audio semblait coûteux dans les mesures du cloud : c'est l'absence de carte son de la machine de test.)

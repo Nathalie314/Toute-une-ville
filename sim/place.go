@@ -334,6 +334,7 @@ type Place struct {
 	navC           *navGrid
 	Boats          []*Boat // port : les bateaux de pêche
 	dredges        []*Dredge
+	solid          *solidIdx           // (solidAt)
 	itemIdx        map[Item][]*Station // (byItem)
 	itemIdxN       int
 	salt           *Dredge // le râteau du marais salant (port)
@@ -1028,6 +1029,88 @@ func (p *Place) complete(u *Unlock) {
 // ---------------------------------------------------------------- déplacement
 
 func (p *Place) solidAt(q V, r float64) bool {
+	if q.X < p.MinX()+20 || q.Y < p.Top+20 || q.X > p.MaxX()-20 || q.Y > p.H-20 {
+		return true
+	}
+	if r > solidMaxR {
+		return p.solidAtSlow(q, r)
+	}
+	ix := p.solidIndex()
+	k := solidKey(q)
+	for _, s := range ix.st[k] {
+		if s.Body.Grow(r).Has(q) {
+			return true
+		}
+	}
+	for _, w := range ix.water[k] {
+		if w.Grow(r).Has(q) {
+			return true
+		}
+	}
+	return false
+}
+
+// L'index des obstacles d'un lieu : les bâtiments (et l'eau) rangés par carrés de 256 de côté.
+// solidAt ne regarde plus que ceux du carré où il se trouve (avant : tous les bâtiments du lieu,
+// à chaque point de chaque trajet ; au supermarché, cela faisait des pics de 30 ms).
+// Il est refait quand le nombre de bâtiments construits change (vérifié une fois par pas).
+const (
+	solidCell = 256.0
+	solidMaxR = 24.0 // les obstacles sont rangés avec cette marge
+)
+
+type solidIdx struct {
+	t     float64
+	built int
+	st    map[[2]int][]*Station
+	water map[[2]int][]Rect
+}
+
+func solidKey(q V) [2]int {
+	return [2]int{int(math.Floor(q.X / solidCell)), int(math.Floor(q.Y / solidCell))}
+}
+
+func (p *Place) solidIndex() *solidIdx {
+	if p.solid != nil && p.solid.t == p.g.T {
+		return p.solid
+	}
+	ix := p.solid
+	if ix == nil {
+		ix = &solidIdx{built: -1}
+		p.solid = ix
+	}
+	ix.t = p.g.T
+	if n := p.builtCount(); n != ix.built {
+		ix.built = n
+	} else {
+		return ix // (rien de neuf : une fois par pas, on compte seulement les bâtiments construits)
+	}
+	ix.st = map[[2]int][]*Station{}
+	ix.water = map[[2]int][]Rect{}
+	each := func(r Rect, fn func(k [2]int)) {
+		g := r.Grow(solidMaxR)
+		a, b := solidKey(V{g.X, g.Y}), solidKey(V{g.X + g.W, g.Y + g.H})
+		for x := a[0]; x <= b[0]; x++ {
+			for y := a[1]; y <= b[1]; y++ {
+				fn([2]int{x, y})
+			}
+		}
+	}
+	for _, s := range p.Stations {
+		if s.Built && s.Solid() {
+			s := s
+			each(s.Body, func(k [2]int) { ix.st[k] = append(ix.st[k], s) })
+		}
+	}
+	for _, w := range p.Water {
+		w := w
+		each(w, func(k [2]int) { ix.water[k] = append(ix.water[k], w) })
+	}
+	return ix
+}
+
+// solidAtSlow : l'ancienne façon (pour une marge plus grande que celle de l'index).
+func (p *Place) solidAtSlow(q V, r float64) bool {
 	for _, s := range p.Stations {
 		if !s.Built || !s.Solid() {
 			continue
@@ -1035,9 +1118,6 @@ func (p *Place) solidAt(q V, r float64) bool {
 		if s.Body.Grow(r).Has(q) {
 			return true
 		}
-	}
-	if q.X < p.MinX()+20 || q.Y < p.Top+20 || q.X > p.MaxX()-20 || q.Y > p.H-20 {
-		return true
 	}
 	for _, w := range p.Water {
 		if w.Grow(r).Has(q) {

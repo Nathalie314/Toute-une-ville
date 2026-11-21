@@ -15,6 +15,15 @@ type navGrid struct {
 	blocked []bool
 	built   int     // nombre de stations construites quand la grille a été faite
 	oy      float64 // haut de la grille (la ferme monte au-dessus de 0)
+	// tableaux de travail de A*, gardés d'une recherche à l'autre (avant : trois grands
+	// tableaux neufs à chaque trajet, ce qui faisait travailler le ramasse-miettes et ramer
+	// le jeu) ; une case n'est valable que si son tampon est celui de la recherche en cours
+	gs   []float64
+	prev []int32
+	seen []uint32 // tampon : gs et prev valables
+	shut []uint32 // tampon : case fermée
+	gen  uint32
+	open navHeap
 }
 
 func (p *Place) builtCount() int {
@@ -94,16 +103,15 @@ func (p *Place) clear(a, b V) bool {
 }
 
 type navNode struct {
-	i    int
-	f    float64
-	heap int
+	i int32
+	f float64
 }
-type navHeap []*navNode
+type navHeap []navNode
 
 func (h navHeap) Len() int            { return len(h) }
 func (h navHeap) Less(i, j int) bool  { return h[i].f < h[j].f }
-func (h navHeap) Swap(i, j int)       { h[i], h[j] = h[j], h[i]; h[i].heap = i; h[j].heap = j }
-func (h *navHeap) Push(x interface{}) { n := x.(*navNode); n.heap = len(*h); *h = append(*h, n) }
+func (h navHeap) Swap(i, j int)       { h[i], h[j] = h[j], h[i] }
+func (h *navHeap) Push(x interface{}) { *h = append(*h, x.(navNode)) }
 func (h *navHeap) Pop() interface{} {
 	old := *h
 	n := old[len(old)-1]
@@ -145,33 +153,46 @@ func (p *Place) routeOn(g *navGrid, from, to V, clear func(a, b V) bool) []V {
 	tx, ty := nearest(to)
 	start, goal := sy*g.w+sx, ty*g.w+tx
 	n := g.w * g.h
-	gs := make([]float64, n)
-	prev := make([]int, n)
-	closed := make([]bool, n)
-	for i := range gs {
-		gs[i] = math.Inf(1)
-		prev[i] = -1
+	if len(g.gs) != n {
+		g.gs, g.prev = make([]float64, n), make([]int32, n)
+		g.seen, g.shut = make([]uint32, n), make([]uint32, n)
+		g.gen = 0
+	}
+	g.gen++
+	if g.gen == 0 { // (le compteur a fait le tour : on repart de zéro)
+		for i := range g.seen {
+			g.seen[i], g.shut[i] = 0, 0
+		}
+		g.gen = 1
+	}
+	gen := g.gen
+	gsAt := func(i int) float64 {
+		if g.seen[i] != gen {
+			return math.Inf(1)
+		}
+		return g.gs[i]
 	}
 	hfn := func(i int) float64 {
 		dx := math.Abs(float64(i%g.w - tx))
 		dy := math.Abs(float64(i/g.w - ty))
 		return math.Max(dx, dy) + 0.414*math.Min(dx, dy)
 	}
-	open := &navHeap{}
-	gs[start] = 0
-	heap.Push(open, &navNode{i: start, f: hfn(start)})
+	open := &g.open
+	*open = (*open)[:0]
+	g.gs[start], g.prev[start], g.seen[start] = 0, -1, gen
+	heap.Push(open, navNode{i: int32(start), f: hfn(start)})
 	found := false
 	for open.Len() > 0 {
-		cur := heap.Pop(open).(*navNode)
-		if closed[cur.i] {
+		cur := int(heap.Pop(open).(navNode).i)
+		if g.shut[cur] == gen {
 			continue
 		}
-		if cur.i == goal {
+		if cur == goal {
 			found = true
 			break
 		}
-		closed[cur.i] = true
-		cx, cy := cur.i%g.w, cur.i/g.w
+		g.shut[cur] = gen
+		cx, cy := cur%g.w, cur/g.w
 		for dy := -1; dy <= 1; dy++ {
 			for dx := -1; dx <= 1; dx++ {
 				if dx == 0 && dy == 0 {
@@ -190,10 +211,9 @@ func (p *Place) routeOn(g *navGrid, from, to V, clear func(a, b V) bool) []V {
 				if dx != 0 && dy != 0 {
 					cost = 1.414
 				}
-				if v := gs[cur.i] + cost; v < gs[ni] {
-					gs[ni] = v
-					prev[ni] = cur.i
-					heap.Push(open, &navNode{i: ni, f: v + hfn(ni)})
+				if v := g.gs[cur] + cost; v < gsAt(ni) {
+					g.gs[ni], g.prev[ni], g.seen[ni] = v, int32(cur), gen
+					heap.Push(open, navNode{i: int32(ni), f: v + hfn(ni)})
 				}
 			}
 		}
@@ -202,7 +222,7 @@ func (p *Place) routeOn(g *navGrid, from, to V, clear func(a, b V) bool) []V {
 		return []V{to}
 	}
 	var pts []V
-	for i := goal; i != -1 && i != start; i = prev[i] {
+	for i := goal; i != -1 && i != start; i = int(g.prev[i]) {
 		pts = append(pts, V{(float64(i%g.w) + 0.5) * navCell, g.oy + (float64(i/g.w)+0.5)*navCell})
 	}
 	// à l'endroit
@@ -210,13 +230,14 @@ func (p *Place) routeOn(g *navGrid, from, to V, clear func(a, b V) bool) []V {
 		pts[i], pts[j] = pts[j], pts[i]
 	}
 	pts = append(pts, to)
-	// on lisse : on saute les points quand la ligne droite est libre
+	// on lisse : on va tout droit tant que la ligne droite reste libre (avant : on essayait
+	// chaque point depuis le bout du chemin, ce qui coûtait le carré de sa longueur)
 	var out []V
 	cur := from
 	for i := 0; i < len(pts); {
-		j := len(pts) - 1
-		for j > i && !clear(cur, pts[j]) {
-			j--
+		j := i
+		for j+1 < len(pts) && clear(cur, pts[j+1]) {
+			j++
 		}
 		out = append(out, pts[j])
 		cur = pts[j]
