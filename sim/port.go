@@ -408,8 +408,8 @@ func newPort(g *Game) *Place {
 		&Spot{ID: "cases_marais", Label: "Bassin +1", Zone: Rect{PortSalPivot.X + 140, PortSalPivot.Y - 10, 130, 120}, NeedsBuilt: "marais",
 			Done: func(l int) string { return "Marais salant : un bassin de plus !" }},
 		&Spot{ID: "caissiere", Label: "Caissière", Zone: Rect{3560, 1540, 145, 116}, Done: func(int) string { return "Caissière embauchée !" }},
-		&Spot{ID: "etals", Label: "Étals +", Zone: Rect{3020, 1540, 130, 116}, Done: func(l int) string { return "Étals agrandis : niveau " + itoa(l) + " !" }},
-		&Spot{ID: "entrepot", Label: "Paniers +", Zone: Rect{2860, 1540, 130, 116}, Done: func(l int) string {
+		&Spot{ID: "etals", Label: "Étals +", Zone: Rect{2830, 1540, 130, 116}, Done: func(l int) string { return "Étals agrandis : niveau " + itoa(l) + " !" }},
+		&Spot{ID: "entrepot", Label: "Paniers +", Zone: Rect{3720, 1540, 130, 116}, Done: func(l int) string {
 			return "Paniers agrandis : " + itoa(PalletMax(p.ID, l)) + " par panier !"
 		}})
 	for _, st := range p.Stations {
@@ -439,8 +439,8 @@ func newPort(g *Game) *Place {
 	}
 	p.Spots = append(p.Spots, &Spot{ID: "ouvriers", Label: "Ouvrier du port", Done: func(l int) string { return "Ouvrier du port +1 !" }})
 	p.setupYard(PortParkX0 + YardW - yardOldW) // (la zone, de l'autre côté de la route verticale)
-	// (les ouvriers s'embauchent à l'entrée de la jetée, pas dans la zone du joueur)
-	p.spot("ouvriers").Zone = Rect{PortSec0X + PortSecW + 8, PortJettyY0 + 200, 118, 120}
+	// (les ouvriers s'embauchent à gauche de la caisse, pas dans la zone du joueur)
+	p.spot("ouvriers").Zone = Rect{2985, 1540, 145, 116} // (à gauche de la caisse ; « Étals + » à sa gauche)
 	p.setupPortParking()
 	p.spawnT = 0.5
 	return p

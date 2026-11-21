@@ -1641,3 +1641,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Port : sur chaque parc et chaque bassin, côté ponton, entre le panier et la drague, un panneau dit ce qu'il contient (icône et nom du produit).
 - Port : les noms des parcs et des bassins dans l'eau sont retirés (inutiles avec les panneaux côté ponton ; avant l'achat, la case de déblocage donne le nom).
 - Port : le panneau du contenu est aussi sur les parcs et bassins pas encore achetés (un peu pâle).
+- Port : l'embauche des ouvriers descend à gauche de la caisse (« Étals + » à sa gauche) ; « Paniers + » passe à droite de la caisse, à côté de la caissière.
