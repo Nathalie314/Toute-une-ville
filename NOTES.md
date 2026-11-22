@@ -1729,3 +1729,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
     par une voiture dont le seul événement possible est le vol ne participe plus au tirage. Test : TestVideosurveillance.
 - Un capitaine ne peut pas surveiller un lieu déjà confié à une voiture de police (demande ; bouton grisé, SetCamera refuse) ; une voiture envoyée dans un lieu surveillé libère son capitaine.
 - Commissariat aéré (demande) : deux rangées de bureaux et de cellules séparées par un couloir horizontal (PolCorH) ; le hall descend jusqu'en bas, ses portes de côté ouvrent sur les couloirs ; plus d'espace entre bureaux (PolOffGap) et cellules (PolCellGap) ; les barreaux des cellules côté couloir. Bâtiment remonté (PolBldY 480).
+- L'objectif (en haut de l'écran) ne vise que les lieux de la rangée du haut (demande : plus de « Objectif : le commissariat »).
