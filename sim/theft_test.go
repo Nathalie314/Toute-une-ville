@@ -132,3 +132,23 @@ func TestVolPourboires(t *testing.T) {
 		t.Fatalf("il reste %.0f de pourboires sur les tables", reste)
 	}
 }
+
+// TestVolZoneJoueur : pendant un vol, le joueur ne sort pas de sa zone.
+func TestVolZoneJoueur(t *testing.T) {
+	g := NewGame()
+	g.Place("super").Owned = true
+	p := g.Place("ferme")
+	g.Enter(p)
+	g.Player.Pos = V{p.Yard.X + p.Yard.W + 300, p.Yard.Y + 300} // (dehors, dans la ferme)
+	g.StartTheft("ferme")
+	if !p.Yard.Has(g.Player.Pos) {
+		t.Fatal("le joueur n'est pas revenu dans sa zone")
+	}
+	for i := 0; i < 30*20; i++ {
+		g.MovePlayer(V{1, 0.3}, 1.0/30)
+		g.Step(1.0 / 30)
+		if !p.Yard.Has(g.Player.Pos) {
+			t.Fatalf("le joueur est sorti de sa zone : %v", g.Player.Pos)
+		}
+	}
+}

@@ -18,6 +18,7 @@ import (
 // poussent et les animaux produisent toujours. Cinq voleurs en noir (visage découvert : la
 // vidéosurveillance servira) vident chaque caisse une fois : une minute des gains du lieu.
 // À la crêperie, sans caisse, ils raflent les pourboires laissés sur les tables.
+// Le joueur, lui, ne peut pas sortir de sa zone tant que les voleurs sont là.
 // Les événements n'arrivent que pendant qu'on joue ; un vol en cours est sauvegardé (TheftSave).
 
 const (
@@ -90,6 +91,10 @@ func (g *Game) startTheft(id string) {
 	d := 60 * float64(max(1, g.TopOwned()))
 	g.startTheftQuiet(id, d)
 	p.theftFlee()
+	if g.Cur == p && p.Yard.W > 0 && !p.Yard.Has(g.Player.Pos) {
+		g.Player.Pos = p.Start // (le joueur se retrouve dans sa zone, qu'il ne quitte plus jusqu'à la fin du vol)
+		g.Player.Moving = false
+	}
 	g.emit(Event{Kind: EvLevel, Place: id, Pos: p.Gate, Text: tr.F("Des voleurs attaquent {lieu} ! Tout s'arrête pendant {duree}.", "lieu", theName(id), "duree", durText(d))})
 	g.emit(Event{Kind: EvAngry, Place: id, Pos: p.Gate})
 }

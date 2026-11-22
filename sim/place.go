@@ -1179,7 +1179,22 @@ func (g *Game) MovePlayer(dir V, dt float64) {
 	pl.holdT += dt
 	ramp := 0.25 + 0.75*math.Min(1, pl.holdT/0.45)
 	pl.Face = dir.Norm()
+	was := pl.Pos
 	p.moveAgent(&pl.Pos, dir, p.agentSpeed(pl)*ramp*math.Min(1, dir.Len())*dt)
+	if p.robbed() && p.Yard.W > 0 && !p.Yard.Has(pl.Pos) { // (pendant un vol, on ne sort pas de sa zone)
+		x, y := V{pl.Pos.X, was.Y}, V{was.X, pl.Pos.Y} // (on glisse le long du bord)
+		switch {
+		case p.Yard.Has(x):
+			pl.Pos = x
+		case p.Yard.Has(y):
+			pl.Pos = y
+		default:
+			pl.Pos = was
+		}
+		if !p.Yard.Has(pl.Pos) {
+			pl.Pos = p.Start
+		}
+	}
 	pl.WalkT += dt
 }
 
