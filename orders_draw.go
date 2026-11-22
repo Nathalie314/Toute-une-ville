@@ -167,11 +167,12 @@ func (g *game) drawOrderHUD(dst *ebiten.Image, x, y float64) {
 	roundRect(dst, x+16, y+h-10, (w-32)*math.Max(0, o.Left/o.Total), 4, 2, rgba(0xffe066, 0.8))
 }
 
-// nextGoal : le prochain lieu à acheter (le moins cher).
+// nextGoal : le prochain lieu à acheter (le moins cher), parmi ceux de la rangée du haut de la
+// carte (l'école, le commissariat… n'en sont jamais).
 func (g *game) nextGoal() *sim.Place {
 	var best *sim.Place
 	for _, p := range g.sim.Places {
-		if !p.Owned && (best == nil || p.Price < best.Price) {
+		if !p.Owned && !sim.BottomRow[p.ID] && (best == nil || p.Price < best.Price) {
 			best = p
 		}
 	}
