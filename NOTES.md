@@ -1686,4 +1686,6 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Crêperie (pas de caisse) : les voleurs raflent les pourboires laissés sur les tables (robTips). Les cinq voleurs se
   répartissent les caisses/tables (aimed) au lieu de viser tous la même. Test : TestVolPourboires.
 - Pendant un vol, le joueur ne peut pas sortir de sa zone (MovePlayer le retient, il glisse le long du bord) ; s'il était
-  ailleurs dans le lieu quand les voleurs arrivent, il se retrouve dans sa zone (p.Start). Test : TestVolZoneJoueur.
+  ailleurs dans le lieu quand les voleurs arrivent, il est terrorisé (demande) : on perd le contrôle, il court tout seul
+  jusqu'à sa zone (Theft.Scared, playerFlee ; un « ! » rouge tremble au-dessus de sa tête), et là seulement on le
+  dirige de nouveau. Test : TestVolZoneJoueur.

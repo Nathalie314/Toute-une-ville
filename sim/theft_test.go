@@ -141,8 +141,12 @@ func TestVolZoneJoueur(t *testing.T) {
 	g.Enter(p)
 	g.Player.Pos = V{p.Yard.X + p.Yard.W + 300, p.Yard.Y + 300} // (dehors, dans la ferme)
 	g.StartTheft("ferme")
-	if !p.Yard.Has(g.Player.Pos) {
-		t.Fatal("le joueur n'est pas revenu dans sa zone")
+	for i := 0; i < 30*30 && g.Theft.Scared; i++ {
+		g.MovePlayer(V{1, 0}, 1.0/30) // (on essaie de le diriger : il n'écoute pas)
+		g.Step(1.0 / 30)
+	}
+	if g.Theft.Scared || !p.Yard.Has(g.Player.Pos) {
+		t.Fatalf("le joueur n'a pas rejoint sa zone : %v", g.Player.Pos)
 	}
 	for i := 0; i < 30*20; i++ {
 		g.MovePlayer(V{1, 0.3}, 1.0/30)

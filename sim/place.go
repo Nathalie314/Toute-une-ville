@@ -1169,6 +1169,9 @@ func (g *Game) MovePlayer(dir V, dt float64) {
 	if p == nil || pl == nil {
 		return
 	}
+	if th := g.Theft; th != nil && th.Scared && th.Place == p.ID {
+		return // (terrorisé par les voleurs : il ne répond plus avant d'être dans sa zone)
+	}
 	pl.Moving = dir.Len() > 0.05
 	if !pl.Moving {
 		pl.holdT = 0
@@ -1192,7 +1195,7 @@ func (g *Game) MovePlayer(dir V, dt float64) {
 			pl.Pos = was
 		}
 		if !p.Yard.Has(pl.Pos) {
-			pl.Pos = p.Start
+			g.Theft.Scared = true
 		}
 	}
 	pl.WalkT += dt

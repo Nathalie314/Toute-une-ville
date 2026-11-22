@@ -18,7 +18,8 @@ import (
 // poussent et les animaux produisent toujours. Cinq voleurs en noir (visage découvert : la
 // vidéosurveillance servira) vident chaque caisse une fois : une minute des gains du lieu.
 // À la crêperie, sans caisse, ils raflent les pourboires laissés sur les tables.
-// Le joueur, lui, ne peut pas sortir de sa zone tant que les voleurs sont là.
+// Le joueur, lui, ne peut pas sortir de sa zone tant que les voleurs sont là ; s'il est ailleurs
+// dans le lieu quand ils arrivent, terrorisé, il y court tout seul (on ne le dirige plus avant).
 // Les événements n'arrivent que pendant qu'on joue ; un vol en cours est sauvegardé (TheftSave).
 
 const (
@@ -39,6 +40,7 @@ type Theft struct {
 	targets []V          // les caisses (ou, sans caisse, quelques points du lieu)
 	tables  []*CrepTable // à la crêperie : les tables, dont ils raflent les pourboires
 	hasRegs bool
+	Scared  bool // le joueur, terrorisé, court se réfugier dans sa zone (on ne le dirige plus)
 }
 
 // Robber : un voleur.
@@ -92,8 +94,7 @@ func (g *Game) startTheft(id string) {
 	g.startTheftQuiet(id, d)
 	p.theftFlee()
 	if g.Cur == p && p.Yard.W > 0 && !p.Yard.Has(g.Player.Pos) {
-		g.Player.Pos = p.Start // (le joueur se retrouve dans sa zone, qu'il ne quitte plus jusqu'à la fin du vol)
-		g.Player.Moving = false
+		g.Theft.Scared = true // (terrorisé, le joueur court tout seul jusqu'à sa zone)
 	}
 	g.emit(Event{Kind: EvLevel, Place: id, Pos: p.Gate, Text: tr.F("Des voleurs attaquent {lieu} ! Tout s'arrête pendant {duree}.", "lieu", theName(id), "duree", durText(d))})
 	g.emit(Event{Kind: EvAngry, Place: id, Pos: p.Gate})
@@ -197,6 +198,9 @@ func (g *Game) stepTheft(dt float64) {
 		g.orderT = g.eventGap()
 		return
 	}
+	if th.Scared {
+		g.playerFlee(p, dt)
+	}
 	for i, r := range th.Robbers {
 		if r.waitT > 0 {
 			r.waitT -= dt
@@ -276,6 +280,23 @@ func (g *Game) robTips(p *Place, th *Theft, t *CrepTable) {
 	t.Tips = 0
 	th.Stolen += a
 	g.emit(Event{Kind: EvLevel, Place: p.ID, Pos: t.Pos, Text: tr.F("Les voleurs ont raflé les pourboires d'une table : −{prix}", "prix", moneyText(a))})
+}
+
+// playerFlee : le joueur terrorisé court jusqu'à sa zone ; là seulement, on le dirige de nouveau.
+func (g *Game) playerFlee(p *Place, dt float64) {
+	pl := g.Player
+	if g.Cur != p || pl == nil {
+		g.Theft.Scared = false
+		return
+	}
+	in := p.Yard
+	in.X, in.Y, in.W, in.H = in.X+40, in.Y+40, in.W-80, in.H-80
+	if in.Has(pl.Pos) {
+		g.Theft.Scared = false
+		pl.Moving, pl.route = false, nil
+		return
+	}
+	p.walk(pl, p.Start, p.agentSpeed(pl)*1.4, dt)
 }
 
 // hideWorker : pendant un vol, l'employé court se réfugier au vestiaire.
