@@ -47,7 +47,7 @@ func (g *game) policeGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	rect(dst, gx-110, sim.PolParkY+sim.PolParkH, 220, 1640-sim.PolParkY-sim.PolParkH, rgb(0x55595e))
 	// le parking des voitures de police
 	b1, bn := sim.PolBay(1), sim.PolBay(sim.PolCars())
-	px0, px1 := b1.X-220, bn.X+bn.W+220
+	px0, px1 := b1.X-sim.PolParkM, bn.X+bn.W+sim.PolParkM
 	slab(dst, px0, sim.PolParkY, px1-px0, sim.PolParkH, 14, 6, 0x5d6166)
 	for k := 1; k <= sim.PolCars(); k++ {
 		b := sim.PolBay(k)
@@ -175,7 +175,7 @@ func (g *game) policeDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable) [
 	}
 	// les lieutenants à pied : ils errent sur le parking en sifflotant
 	for i, c := range p.Pol.Cops {
-		if c.InCar {
+		if c == nil || c.InCar {
 			continue
 		}
 		c, i := c, i

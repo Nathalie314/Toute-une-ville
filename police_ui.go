@@ -42,8 +42,8 @@ func (g *game) policeHUD(dst *ebiten.Image) {
 	}
 	// un clic sur le parking ouvre aussi le menu
 	b1, bn := sim.PolBay(1), sim.PolBay(sim.PolCars())
-	x0, y0 := g.worldCam.P(b1.X-220, sim.PolParkY)
-	x1, y1 := g.worldCam.P(bn.X+bn.W+220, sim.PolParkY+sim.PolParkH)
+	x0, y0 := g.worldCam.P(b1.X-sim.PolParkM, sim.PolParkY)
+	x1, y1 := g.worldCam.P(bn.X+bn.W+sim.PolParkM, sim.PolParkY+sim.PolParkH)
 	s := cam.s
 	if g.panel == panelNone {
 		g.addButton(float64(x0)/s, float64(y0)/s, float64(x1-x0)/s, float64(y1-y0)/s, func() { g.openPanel(panelPolice) })
@@ -79,8 +79,8 @@ func (g *game) drawPolicePanel(dst *ebiten.Image) {
 		switch {
 		case !gs.PolCarOwned(k):
 			status = "Pas encore achetée (au parking)"
-		case gs.PolLieutenants() < k:
-			status = tr.F("Il lui faut le lieutenant n° {n} (hall)", "n", itoa(k))
+		case !gs.PolLieutenant(k):
+			status = tr.F("Il lui faut son lieutenant (case sous la voiture n° {n})", "n", itoa(k))
 		case gs.PolOnPatrol(k):
 			status = "En patrouille"
 		default:
@@ -180,7 +180,7 @@ func (g *game) patrolledBy(id string) int {
 // polTutoPages : le petit tutoriel du commissariat (facultatif, proposé à la première visite).
 var polTutoPages = []string{
 	"Le commissariat protège la ville des voleurs. Il est offert, mais il ne fonctionne qu'avec un commissaire : il ne s'achète pas avec de l'argent, il coûte 10 points d'université (l'école). Sa case est dans son bureau.",
-	"Avec le commissaire, la première voiture de police est offerte. Les suivantes s'achètent au parking. Une voiture ne roule qu'avec son lieutenant : il se forme avec des points du collège, sur la case du hall (10 points le premier, puis 50, puis 250…). Un lieutenant sans voiture erre sur le parking en sifflotant.",
+	"Avec le commissaire, la première voiture de police est offerte. Les suivantes s'achètent au parking. Une voiture ne roule qu'avec son lieutenant : il se forme avec des points du collège, sur la case sous sa voiture (10 points pour la première voiture, puis 50, puis 250…). Un lieutenant sans patrouille erre sur le parking en sifflotant.",
 	"Sur le parking, la case « Patrouilles » (ou un clic sur le parking) ouvre le menu des voitures : choisis le lieu où chacune patrouille. Ce lieu ne peut plus être attaqué. Avec des mécaniciens (points du primaire), une voiture protège un deuxième lieu.",
 }
 

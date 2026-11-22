@@ -1700,8 +1700,9 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
     4 aujourd'hui avec 14 lieux ; la 5e viendra avec le 16e lieu, la 6e avec le 20e…, demande). 2e : prix du 4e lieu (ferme
     exotique), 3e : du 8e (ferme d'élevage), 4e : du 12e (pâtisserie). Le parking (et la largeur du lieu, PolW) grandit avec.
     Une case au parking, quand la précédente est achetée.
-  - Lieutenants : points du collège (10, 50, 250… ×5), case du hall ; le n° k conduit la voiture n° k. Sans patrouille,
-    il erre sur le parking en sifflotant.
+  - Lieutenants : un par voiture (commissariat.lieutenant_k), formé sur la case sous sa voiture (demande), points du collège
+    (10, 50, 250… ×5 d'une voiture à l'autre). Sans patrouille, il erre sur le parking en sifflotant. La case des
+    patrouilles est passée à droite des voitures.
   - Patrouilles : la case « Patrouilles » du parking (ou un clic sur le parking) ouvre le menu (voitures à gauche, lieux
     débloqués de la rangée du haut à droite). Un lieu patrouillé n'a plus de voleurs dans le tirage des événements
     (eventGroups) ; un lieu qui n'a que des voleurs (supermarché, élevage, huilerie) ne tire plus rien. Une patrouille

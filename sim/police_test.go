@@ -39,11 +39,11 @@ func TestCommissariat(t *testing.T) {
 	}
 	// un lieutenant (10 points du collège), puis la patrouille à la ferme
 	g.Levels["pts.marketing"] = 10
-	g.Player.Pos = pol.spot("lieutenants").Zone.C()
+	g.Player.Pos = pol.spot("lieutenant_1").Zone.C()
 	for i := 0; i < 60; i++ {
 		g.Step(1.0 / 30)
 	}
-	if g.PolLieutenants() != 1 || len(pol.Pol.Cops) != 1 {
+	if g.PolLieutenants() != 1 || pol.Pol.Cops[0] == nil {
 		t.Fatalf("lieutenants : %d", g.PolLieutenants())
 	}
 	g.SetPatrol(1, 0, "ferme")

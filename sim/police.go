@@ -15,8 +15,8 @@ import (
 //   - Les voitures de police, sur le parking : la n-ième coûte le prix du lieu n° 4(n−1) de la
 //     rangée du haut, et n'existe que si ce lieu existe. La première est offerte avec le
 //     commissaire ; la 2e coûte le prix du 4e lieu, la 3e du 8e, la 4e du 12e, la 5e du 16e…
-//   - Les lieutenants : ils se forment (points du collège : 10, 50, 250… ×5 à chaque fois),
-//     autant que de voitures. Le lieutenant n° k conduit la voiture n° k ; sans voiture (ou sans
+//   - Les lieutenants : un par voiture, formé sur la case sous sa voiture (points du collège :
+//     10, 50, 250… ×5 d'une voiture à la suivante). Le lieutenant n° k conduit la voiture n° k ; sans voiture (ou sans
 //     patrouille), il erre sur le parking en sifflotant.
 //   - Le parking (menu) : chaque voiture conduite par son lieutenant patrouille dans un lieu de
 //     la rangée du haut. Ce lieu ne peut plus être attaqué par les voleurs ; on y voit passer,
@@ -25,7 +25,7 @@ import (
 //     protège alors un deuxième lieu. Au mieux, un lieu sur deux est protégé.
 //
 // Rien n'est sauvegardé à part : tout est dans Levels (commissariat.commissaire,
-// .voiture_k, .lieutenants, .double_k, .patrouille_k_s = rang du lieu dans TopRow).
+// .voiture_k, .lieutenant_k, .double_k, .patrouille_k_s = rang du lieu dans TopRow).
 
 // Géométrie du commissariat.
 const (
@@ -33,7 +33,8 @@ const (
 	PolBldW   = 2480.0 //
 	PolBldH   = 700.0  //
 	PolParkY  = 1010.0 // le parking des voitures de police (sous le bâtiment)
-	PolParkH  = 470.0  //
+	PolParkH  = 540.0  // (sous chaque place : la case de son lieutenant)
+	PolParkM  = 270.0  // de la place à gauche et à droite des voitures (la case des patrouilles à droite)
 	PolBayW   = 300.0  // une place de parking
 	PolBayGap = 140.0  // (de la place entre deux voitures : le jeu reste aéré)
 )
@@ -48,7 +49,7 @@ var PolBldX = (PolW - PolBldW) / 2
 // PolOffice : le bureau du commissaire (à gauche dans le bâtiment).
 func PolOffice() Rect { return Rect{PolBldX + 60, PolBldY + 60, 700, PolBldH - 120} }
 
-// PolHall : le hall, au milieu (on y forme les lieutenants).
+// PolHall : le hall, au milieu (l'accueil).
 func PolHall() Rect { return Rect{PolBldX + 880, PolBldY + 60, 720, PolBldH - 120} }
 
 // PolWing : l'aile de droite (les bureaux des capitaines, plus tard).
@@ -88,7 +89,10 @@ func PolBay(k int) Rect {
 }
 
 // PolPatrolZone : la case du parking qui ouvre le menu des patrouilles.
-func PolPatrolZone() Rect { return Rect{PolW/2 - 130, PolParkY + PolParkH - 140, 260, 120} }
+func PolPatrolZone() Rect {
+	b := PolBay(PolCars())
+	return Rect{b.X + b.W + 50, PolParkY + 150, 190, 150}
+}
 
 // LieutCost : points du collège pour former le lieutenant n° k (10, 50, 250… : ×5).
 func LieutCost(k int) int { return 10 * int(math.Pow(5, float64(k-1))) }
@@ -115,22 +119,26 @@ func newPolice(g *Game) *Place {
 				}
 				return "Sans lui, le commissariat ne fonctionne pas. Il coûte 10 points d'université (l'école). La première voiture est offerte avec lui."
 			}},
-		{Key: k("lieutenants"), Name: "Lieutenant", Max: PolCars(), Pts: "marketing", Costs: lieutCosts(),
-			Desc: func(l int) string {
-				return tr.F("Formé avec des points du collège, il conduit une voiture de police (le n° {n} conduit la voiture n° {n}).", "n", itoa(l))
-			}},
 	}
 	for c := 1; c <= PolCars(); c++ {
+		c := c
+		p.ups = append(p.ups, &Upgrade{Key: k("lieutenant_" + itoa(c)), Name: "Lieutenant", Max: 1, Pts: "marketing", Costs: []float64{float64(LieutCost(c))},
+			Desc: func(int) string {
+				return tr.F("Formé avec des points du collège, il conduit la voiture n° {n}.", "n", itoa(c))
+			}})
 		cost := PlacePrice(4 * (c - 1))
 		p.ups = append(p.ups, &Upgrade{Key: k("voiture_" + itoa(c)), Name: "Voiture de police", Max: 1, Costs: []float64{cost},
 			Desc: func(int) string {
-				return "Conduite par un lieutenant, elle patrouille dans un lieu : les voleurs n'y viennent plus. On la choisit au parking (case « Patrouilles »)."
+				return "Avec son lieutenant, elle protège un lieu des voleurs (case « Patrouilles »)."
 			}})
 	}
 	p.Spots = append(p.Spots, &Spot{ID: "commissaire", Label: "Commissaire", Zone: Rect{PolOffice().C().X - 70, PolOffice().Y + PolOffice().H - 170, 140, 130},
 		Done: func(int) string { return "Le commissaire est arrivé ! La première voiture de police est offerte." }})
-	p.Spots = append(p.Spots, &Spot{ID: "lieutenants", Label: "Lieutenant", Needs: "commissaire", Zone: Rect{PolHall().C().X - 70, PolHall().Y + PolHall().H - 170, 140, 130},
-		Done: func(l int) string { return tr.F("Lieutenant n° {n} formé !", "n", itoa(l)) }})
+	for c := 1; c <= PolCars(); c++ { // le lieutenant de chaque voiture : sa case sous la voiture
+		c, b := c, PolBay(c)
+		p.Spots = append(p.Spots, &Spot{ID: "lieutenant_" + itoa(c), Label: "Lieutenant", Needs: "voiture_" + itoa(c), Zone: Rect{b.C().X - 70, b.Y + b.H + 14, 140, 120},
+			Done: func(int) string { return tr.F("Lieutenant n° {n} formé !", "n", itoa(c)) }})
+	}
 	for c := 2; c <= PolCars(); c++ {
 		b := PolBay(c)
 		prev := "voiture_" + itoa(c-1)
@@ -141,14 +149,6 @@ func newPolice(g *Game) *Place {
 	return p
 }
 
-func lieutCosts() []float64 {
-	var cs []float64
-	for k := 1; k <= PolCars(); k++ {
-		cs = append(cs, float64(LieutCost(k)))
-	}
-	return cs
-}
-
 // HasChief : le commissaire est-il là ?
 func (g *Game) HasChief() bool { return g.Levels["commissariat.commissaire"] > 0 }
 
@@ -157,12 +157,23 @@ func (g *Game) PolCarOwned(k int) bool {
 	return g.Levels["commissariat.voiture_"+itoa(k)] > 0 || (k == 1 && g.HasChief()) // (la 1re : offerte avec lui)
 }
 
+// PolLieutenant : le lieutenant de la voiture n° k est-il formé ?
+func (g *Game) PolLieutenant(k int) bool { return g.Levels["commissariat.lieutenant_"+itoa(k)] > 0 }
+
 // PolLieutenants : le nombre de lieutenants formés.
-func (g *Game) PolLieutenants() int { return min(g.Levels["commissariat.lieutenants"], PolCars()) }
+func (g *Game) PolLieutenants() int {
+	n := 0
+	for k := 1; k <= PolCars(); k++ {
+		if g.PolLieutenant(k) {
+			n++
+		}
+	}
+	return n
+}
 
 // PolDriven : la voiture n° k a-t-elle son lieutenant (et le commissaire) ?
 func (g *Game) PolDriven(k int) bool {
-	return g.HasChief() && g.PolCarOwned(k) && g.PolLieutenants() >= k
+	return g.HasChief() && g.PolCarOwned(k) && g.PolLieutenant(k)
 }
 
 // PolDouble : la voiture n° k protège-t-elle deux lieux (mécaniciens) ?
@@ -252,18 +263,25 @@ func (g *Game) BuyDouble(k int) bool {
 // parking quand ils ne patrouillent pas.
 func (p *Place) stepPolice(dt float64, active bool) {
 	g := p.g
-	if g.HasChief() && !g.PolCarOwned(1) {
+	if g.HasChief() && g.Levels[p.key("voiture_1")] == 0 {
 		g.Levels[p.key("voiture_1")] = 1 // (la première voiture est offerte avec le commissaire)
 	}
 	pol := p.Pol
-	for len(pol.Cops) < g.PolLieutenants() {
-		k := len(pol.Cops)
-		c := &Cop{Pos: PolDoor().Add(V{float64(k*40 - 40), 60}), Face: V{0, 1}, Look: 700 + 53*k}
-		c.to = c.Pos
-		pol.Cops = append(pol.Cops, c)
-		g.emit(Event{Kind: EvHire, Pos: c.Pos, Place: p.ID})
+	for len(pol.Cops) < PolCars() {
+		pol.Cops = append(pol.Cops, nil)
+	}
+	for k := 1; k <= PolCars(); k++ { // (le lieutenant n° k : Cops[k-1])
+		if pol.Cops[k-1] == nil && g.PolLieutenant(k) {
+			c := &Cop{Pos: PolBay(k).C().Add(V{0, 200}), Face: V{0, 1}, Look: 700 + 53*k}
+			c.to = c.Pos
+			pol.Cops[k-1] = c
+			g.emit(Event{Kind: EvHire, Pos: c.Pos, Place: p.ID})
+		}
 	}
 	for i, c := range pol.Cops {
+		if c == nil {
+			continue
+		}
 		c.InCar = g.PolOnPatrol(i + 1)
 		if c.InCar {
 			c.Moving = false

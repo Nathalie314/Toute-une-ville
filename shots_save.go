@@ -70,7 +70,7 @@ func newSaveShots(dir, file string) *saveShots {
 		}
 		if v := os.Getenv("CAPPOL"); v != "" { // CAPPOL=1 : un commissariat équipé (2 : et son menu, 3 : le tutoriel)
 			lv := g.sim.Levels
-			lv["commissariat.commissaire"], lv["commissariat.lieutenants"], lv["commissariat.voiture_2"] = 1, 3, 1
+			lv["commissariat.commissaire"], lv["commissariat.lieutenant_1"], lv["commissariat.lieutenant_2"], lv["commissariat.voiture_2"] = 1, 1, 1, 1
 			if v != "3" {
 				lv["commissariat.tuto"] = 1
 			}

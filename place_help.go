@@ -115,7 +115,7 @@ func placeHelp(id string) []string {
 		return []string{
 			"Le commissariat protège la ville des voleurs. Il est offert avec le supermarché, mais rien n'y fonctionne sans le commissaire : il coûte 10 points d'université (sa case est dans son bureau).",
 			"La première voiture de police est offerte avec le commissaire ; les suivantes s'achètent au parking (la 2e coûte le prix du 4e lieu de la carte, la 3e celui du 8e, la 4e celui du 12e…). Une nouvelle voiture arrive tous les quatre lieux de la rangée du haut.",
-			"Chaque voiture a besoin de son lieutenant, formé avec des points du collège sur la case du hall (10, puis 50, puis 250…). Un lieutenant sans patrouille erre sur le parking en sifflotant.",
+			"Chaque voiture a besoin de son lieutenant, formé avec des points du collège sur la case sous la voiture (10, puis 50, puis 250…). Un lieutenant sans patrouille erre sur le parking en sifflotant.",
 			"La case « Patrouilles » du parking (ou un clic sur le parking) ouvre le menu des voitures : une voiture qui patrouille dans un lieu le protège, les voleurs n'y viennent plus. On l'y voit passer de temps en temps.",
 			"Des mécaniciens (points du primaire : 100 fois les points de son lieutenant) permettent à une voiture de protéger un deuxième lieu.",
 		}
