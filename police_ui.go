@@ -186,16 +186,7 @@ func (g *game) drawPolicePanel(dst *ebiten.Image) {
 }
 
 // patrolledBy : la voiture à qui ce lieu est confié (même sans lieutenant ; 0 : aucune).
-func (g *game) patrolledBy(id string) int {
-	for k := 1; k <= sim.PolCars(); k++ {
-		for s := 0; s < g.sim.PolSlots(k); s++ {
-			if g.sim.PolPatrol(k, s) == id {
-				return k
-			}
-		}
-	}
-	return 0
-}
+func (g *game) patrolledBy(id string) int { return g.sim.PatrolAssigned(id) }
 
 // polTutoPages : le petit tutoriel du commissariat (facultatif, proposé à la première visite).
 var polTutoPages = []string{
@@ -308,7 +299,8 @@ func (g *game) drawVideoTab(dst *ebiten.Image, x, y, w, h float64) {
 		case other > 0 || g.patrolledBy(id) > 0:
 			col = 0x9a8ab8
 		}
-		g.btn(dst, mapNames[id], bx, by, bw, 58, col, can, func() {
+		car := g.patrolledBy(id) > 0 // (déjà protégé par une voiture : pas de capitaine)
+		g.btn(dst, mapNames[id], bx, by, bw, 58, col, can && !car, func() {
 			if mine {
 				gs.SetCamera(g.vidSel, "")
 			} else {

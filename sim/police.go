@@ -312,6 +312,13 @@ func (g *Game) SetPatrol(k, s int, id string) {
 			}
 		}
 	}
+	if id != "" { // (une voiture arrive : le capitaine qui surveillait ce lieu est libéré)
+		for c := 1; c <= PolOffices(); c++ {
+			if g.PolCamera(c) == id {
+				delete(g.Levels, "commissariat.camera_"+itoa(c))
+			}
+		}
+	}
 	key := "commissariat.patrouille_" + itoa(k) + "_" + itoa(s)
 	if r := PriceRank(id); id != "" && r > 0 {
 		g.Levels[key] = r
@@ -464,6 +471,9 @@ func (g *Game) PolCamera(n int) string {
 
 // SetCamera : le capitaine n° n surveille ce lieu ("" : aucun). Un capitaine par lieu.
 func (g *Game) SetCamera(n int, id string) {
+	if id != "" && g.PatrolAssigned(id) > 0 {
+		return // (un lieu confié à une voiture de police n'a pas besoin de capitaine)
+	}
 	if id != "" {
 		for c := 1; c <= PolOffices(); c++ {
 			if g.PolCamera(c) == id {
@@ -582,4 +592,16 @@ func (g *Game) custodySave() []GardeSave {
 		out = append(out, GardeSave{N: c.N, Reste: c.Left})
 	}
 	return out
+}
+
+// PatrolAssigned : la voiture à qui ce lieu est confié, même sans son lieutenant (0 : aucune).
+func (g *Game) PatrolAssigned(id string) int {
+	for k := 1; k <= PolCars(); k++ {
+		for s := 0; s < g.PolSlots(k); s++ {
+			if g.PolPatrol(k, s) == id {
+				return k
+			}
+		}
+	}
+	return 0
 }

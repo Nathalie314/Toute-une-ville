@@ -114,6 +114,15 @@ func TestVideosurveillance(t *testing.T) {
 	}
 	lv := g.Levels
 	lv["commissariat.commissaire"], lv["commissariat.bureau_1"], lv["commissariat.capitaine_1"] = 1, 1, 1
+	g.SetPatrol(1, 0, "super")
+	if g.SetCamera(1, "super"); g.PolCamera(1) != "" {
+		t.Fatal("un capitaine sur un lieu déjà confié à une voiture")
+	}
+	g.SetCamera(1, "ferme")
+	if g.SetPatrol(1, 0, "ferme"); g.PolCamera(1) != "" {
+		t.Fatal("la voiture arrive : le capitaine aurait dû être libéré")
+	}
+	g.SetPatrol(1, 0, "super")
 	g.SetCamera(1, "ferme")
 	lv["pts.ouvrier"] = 2000
 	if !g.BuyVideo(1, 2000) || g.CatchChance(1) != 1 || g.Points("ouvrier") != 2000-VideoMax {

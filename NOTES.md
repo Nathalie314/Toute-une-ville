@@ -1727,3 +1727,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
     vol fini pendant l'absence fait arrêter ses voleurs à l'heure où il a fini). Les voleurs en garde à vue ne comptent
     plus (Thieves) ; moins de 5 en liberté : ils attaquent à ce qu'ils sont ; plus aucun : plus d'attaque. Un lieu protégé
     par une voiture dont le seul événement possible est le vol ne participe plus au tirage. Test : TestVideosurveillance.
+- Un capitaine ne peut pas surveiller un lieu déjà confié à une voiture de police (demande ; bouton grisé, SetCamera refuse) ; une voiture envoyée dans un lieu surveillé libère son capitaine.
