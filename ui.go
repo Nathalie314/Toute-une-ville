@@ -1236,9 +1236,10 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		{id: "mairie", name: "Mairie", open: true, col: 0x5b7fd6, fn: func() { g.openPanel(panelMairie) }},
 		{id: "vetements", name: "Personnage", open: true, col: 0x9b6bd6, fn: func() { g.openPanel(panelWardrobe) }},
 	}
+	// en haut : les lieux qui rapportent de l'argent ou produisent des marchandises ;
+	// en bas, à part : ceux qui ne rapportent rien (l'école, la police, la justice, la santé)
 	tiles := []tile{
 		{id: "ferme", name: "Ma ferme", open: true, col: 0xc0623a, fn: func() { g.goPlace(farm) }},
-		g.placeTile("ecole", "École", 0xf1c40f),
 		g.superTile(),
 		g.placeTile("cremerie", "Crèmerie", 0x7fb3d5),
 		g.placeTile("exotique", "Ferme exotique", 0x2e9e6a),
@@ -1257,14 +1258,21 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		{id: "restaurant", name: "Restaurant", status: "Bientôt", col: 0xe67e22},
 		{id: "hotel", name: "Hôtel", status: "Bientôt", col: 0x8e44ad},
 		{id: "zoo", name: "Zoo", status: "Bientôt", col: 0x7a9a2a},
-		{id: "hopital", name: "Hôpital", status: "Bientôt", col: 0xe74c3c},
-		{id: "prison", name: "Prison", status: "Bientôt", col: 0x5d6d7e},
 	}
-	cols := (len(tiles) + 2) / 3 // trois rangées
+	services := []tile{
+		g.placeTile("ecole", "École", 0xf1c40f),
+		{id: "commissariat", name: "Commissariat", status: "Bientôt", col: 0x2b4f8a},
+		{id: "tribunal", name: "Tribunal", status: "Bientôt", col: 0x8a6a3a},
+		{id: "prison", name: "Prison", status: "Bientôt", col: 0x5d6d7e},
+		{id: "hopital", name: "Hôpital", status: "Bientôt", col: 0xe74c3c},
+	}
+	cols := 7 // trois rangées en haut, puis la rangée à part
 	gap := 26.0
 	sep := 70.0
+	split := 44.0 // l'espace entre les deux parties de la carte
 	tw := math.Min(300, (scr.VW-200-sep-float64(cols-1)*gap)/float64(cols+1))
 	th := tw * 236 / 300
+	rows := (len(tiles) + cols - 1) / cols
 	gw := tw + sep + float64(cols)*tw + float64(cols-1)*gap
 	x0 := (scr.VW-160)/2 - gw/2
 	y0 := 150.0
@@ -1307,17 +1315,22 @@ func (g *game) drawMap(dst *ebiten.Image) {
 			sayFit(dst, "Commande à livrer !", x+tw/2, y+th-12-3*k, 16, true, 0, tw*0.58, rgb(0x5a3d00))
 		}
 	}
-	mapTrees(dst, x0-30, y0-30, gw+60, 3*th+2*gap+60)
+	sy := y0 + float64(rows)*(th+gap) - gap + split // la rangée à part
+	mapTrees(dst, x0-30, y0-30, gw+60, sy+th-y0+60)
 	for i, tl := range side {
 		draw(tl, x0, y0+float64(i)*(th+gap))
 	}
-	// séparation
+	// séparations : la colonne de gauche ; puis les deux parties de la carte
 	lx := x0 + tw + sep/2
-	rect(dst, lx-3, y0, 6, 3*th+2*gap, rgba(0x3b6a2a, 0.35))
+	rect(dst, lx-3, y0, 6, sy+th-y0, rgba(0x3b6a2a, 0.35))
+	rect(dst, x0+tw+sep, sy-split/2-3, float64(cols)*tw+float64(cols-1)*gap, 6, rgba(0x3b6a2a, 0.35))
 	for i, tl := range tiles {
 		c := i % cols
 		r := i / cols
 		draw(tl, x0+tw+sep+float64(c)*(tw+gap), y0+float64(r)*(th+gap))
+	}
+	for i, tl := range services {
+		draw(tl, x0+tw+sep+float64(i)*(tw+gap), sy)
 	}
 	if !isWeb { // (dans un navigateur, on ferme simplement l'onglet)
 		g.btn(dst, "Quitter", scr.VW-260, scr.VH-100, 210, 70, 0xd9534f, true, func() {

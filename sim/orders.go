@@ -83,7 +83,8 @@ var orderWho = []string{"Mme Martin", "M. Dupont", "la famille Leroy", "Mamie Je
 	"le docteur Simon", "Mme Laurent", "M. Michel", "la famille Fontaine", "Tante Odette", "le curé", "Mme Girard", "M. Bonnet",
 	"les sœurs Dubois", "le gendarme", "Mme Mercier", "M. Blanc", "la famille Faure", "le pharmacien", "Mme Chevalier", "M. Perrin",
 	"la maîtresse d'école", "le coiffeur", "Mme Robin", "M. Gauthier", "la famille Roux", "le boulanger d'en face", "Mlle Colin", "M. Vincent", "la fleuriste",
-	"le garagiste", "le vétérinaire", "le marin"}
+	"le garagiste", "le vétérinaire", "le marin", "Mme Lambert", "M. Fournier", "la famille Garcia", "Mlle Bertrand",
+	"M. Henry", "Mme Dumas", "le libraire"} // (50 particuliers)
 
 const orderTime = 300.0
 
@@ -96,53 +97,85 @@ func (g *Game) orderBox(o *Order) (*Place, *Station) {
 	return p, p.Station("commande")
 }
 
-// Clients qui passent des commandes : la ferme (des habitants) et, dès que
-// l'école et la boulangerie sont ouvertes, la cantine de l'école. Chaque
-// nouvelle commande vient d'un client tiré au hasard, à parts égales.
-// (Plus tard : hôpital, prison…)
-func (g *Game) orderSources() []func() *Order {
-	src := []func() *Order{g.farmOrder}
-	// boulangerie, crèmerie, glacier : des particuliers ou la cantine de l'école, au hasard
-	for _, id := range []string{"boulangerie", "cremerie", "glacier"} {
-		if c := g.Place(id); c != nil && c.Owned {
-			id := id
-			src = append(src, func() *Order {
-				if sc := g.Place("ecole"); sc != nil && sc.Owned && g.rng.Float64() < 0.5 {
-					if o := g.schoolOrder(id); o != nil {
-						return o
-					}
-				}
-				return g.shopOrder(id)
-			})
+// LES ÉVÉNEMENTS (22/11) : un seul à la fois ; le suivant arrive 1 à 10 minutes après la fin du
+// précédent (sa conséquence comprise : le cadeau d'une commande). Un lieu de la rangée du haut
+// de la carte (ceux qui rapportent ou produisent) est tiré au sort parmi ceux qui sont débloqués,
+// tous à égalité ; puis, dans ce lieu, l'un des groupes qui peuvent s'y manifester, selon leur
+// poids : les particuliers (50), la cantine de l'école (50), le parc d'attractions (50) ; plus
+// tard, les voleurs (50 + 5 par lieu débloqué).
+const (
+	eventGapMin = 60.0
+	eventGapMax = 600.0
+	poidsGroupe = 50.0
+)
+
+// TopRow : les lieux de la rangée du haut de la carte, dans l'ordre (l'école est en bas).
+func TopRow() []string {
+	var r []string
+	for _, id := range MapOrder {
+		if id != "ecole" {
+			r = append(r, id)
 		}
 	}
-	if c := g.Place("exotique"); c != nil && c.Owned {
-		src = append(src, g.exoticOrder)
-	}
-	if c := g.Place("port"); c != nil && c.Owned {
-		src = append(src, g.portOrder)
-	}
-	if c := g.Place("domaine"); c != nil && c.Owned {
-		src = append(src, g.domaineOrder)
-	}
-	if c := g.Place("patisserie"); c != nil && c.Owned {
-		src = append(src, func() *Order { return g.shopOrder("patisserie") })
-	}
-	if c := g.Place("boucherie"); c != nil && c.Owned {
-		src = append(src, func() *Order { return g.shopOrder("boucherie") }) // (des particuliers)
-	}
-	// la crêperie : seulement des crêpes nature, et seulement pour la cantine de l'école (le parc,
-	// lui, en commande avec ses autres commandes)
-	if c := g.Place("creperie"); c != nil && c.Owned {
-		if sc := g.Place("ecole"); sc != nil && sc.Owned {
-			src = append(src, func() *Order { return g.schoolOrder("creperie") })
-		}
-	}
-	if c := g.Place("parc"); c != nil && c.Owned {
-		src = append(src, g.parcOrder)
-	}
-	return src
+	return r
 }
+
+// eventGroup : un groupe qui peut se manifester dans un lieu.
+type eventGroup struct {
+	poids float64
+	gen   func() *Order
+}
+
+// eventGroups : les groupes possibles dans ce lieu (vide : rien ne s'y passe encore).
+func (g *Game) eventGroups(id string) []eventGroup {
+	var gs []eventGroup
+	owned := func(id string) bool { q := g.Place(id); return q != nil && q.Owned }
+	switch id { // les particuliers : dans les lieux qui vendent et prennent des commandes
+	case "ferme":
+		gs = append(gs, eventGroup{poidsGroupe, g.farmOrder})
+	case "boulangerie", "cremerie", "glacier", "exotique", "port", "domaine", "patisserie", "boucherie":
+		gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.shopOrder(id) }})
+	}
+	if owned("ecole") { // la cantine de l'école
+		switch id {
+		case "boulangerie", "cremerie", "glacier", "creperie":
+			gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.schoolOrder(id) }})
+		}
+	}
+	if owned("parc") && g.parcOrderAt(id) != nil { // le parc d'attractions
+		gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.parcOrderAt(id) }})
+	}
+	return gs
+}
+
+// nextEvent : tire au sort le lieu, puis le groupe, et fabrique la commande.
+func (g *Game) nextEvent() *Order {
+	var places []string
+	for _, id := range TopRow() {
+		if q := g.Place(id); q != nil && q.Owned && len(g.eventGroups(id)) > 0 {
+			places = append(places, id)
+		}
+	}
+	if len(places) == 0 {
+		return g.farmOrder()
+	}
+	id := places[g.rng.Intn(len(places))]
+	gs := g.eventGroups(id)
+	tot := 0.0
+	for _, e := range gs {
+		tot += e.poids
+	}
+	r := g.rng.Float64() * tot
+	for _, e := range gs {
+		if r -= e.poids; r < 0 {
+			return e.gen()
+		}
+	}
+	return gs[len(gs)-1].gen()
+}
+
+// eventGap : l'attente avant le prochain événement.
+func (g *Game) eventGap() float64 { return eventGapMin + (eventGapMax-eventGapMin)*g.rng.Float64() }
 
 func (g *Game) stepOrders(dt float64) {
 	if g.Order != nil {
@@ -176,7 +209,7 @@ func (g *Game) stepOrders(dt float64) {
 			g.emit(Event{Kind: EvLevel, Pos: at, Text: txt})
 			g.emit(Event{Kind: EvAngry, Pos: at})
 			g.Order = nil
-			g.orderT = 180 + 120*g.rng.Float64()
+			g.orderT = g.eventGap()
 		}
 		return
 	}
@@ -193,10 +226,9 @@ func (g *Game) stepOrders(dt float64) {
 	if g.orderT > 0 {
 		return
 	}
-	src := g.orderSources()
 	var o *Order
 	for try := 0; try < 6; try++ {
-		o = src[g.rng.Intn(len(src))]()
+		o = g.nextEvent()
 		if o == nil {
 			o = g.farmOrder()
 		}
@@ -383,6 +415,16 @@ func (g *Game) schoolOrder(at string) *Order {
 // maïs à la ferme (le pop-corn), du sucre en poudre à la ferme exotique (la barbe à
 // papa), des glaces au glacier (le marchand de glaces). Livrée : ses gains sont
 // multipliés ; ratée : divisés par deux pendant 5 min.
+// parcOrderAt : la commande du parc à livrer dans ce lieu (nil si le parc n'y commande rien).
+func (g *Game) parcOrderAt(at string) *Order {
+	for k := 0; k < 30; k++ {
+		if o := g.parcOrder(); o != nil && o.At == at {
+			return o
+		}
+	}
+	return nil
+}
+
 func (g *Game) parcOrder() *Order {
 	type cmd struct {
 		at    string
@@ -411,7 +453,7 @@ func (g *Game) parcOrder() *Order {
 func (g *Game) finishOrder(at V) {
 	o := g.Order
 	g.Order = nil
-	g.orderT = 180 + 120*g.rng.Float64()
+	g.orderT = g.eventGap()
 	g.Stats.Orders++
 	if o.Gift != "" {
 		express := o.FastLeft() > 0

@@ -1649,3 +1649,16 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Port : les camions roulent vers le sud cabine devant (drawTruckTopDir, le camion vu de dessus retourné) ; leur étiquette dit « LE PORT ».
 - Port : la caisse, l'étal du sel et le panneau « CRIÉE » sont centrés sur les quatre colonnes d'étals (PortMidX) ; autour de la caisse, en miroir : « Ouvrier du port +1 » | caisse | « Paniers + », puis « Étals + » … caissière.
 - Le camion de la ferme vers la crèmerie est un camion-citerne de lait (drawMilkTruck : citerne d'inox, « LAIT », cabine verte de la ferme), au quai de la ferme comme à la crèmerie (truckTo : la destination du camion dessiné).
+- ÉVÉNEMENTS ET SÉCURITÉ, étape 1 (22/11 ; plan : 1 carte + événements, 2 voleurs, 3 commissariat, 4 bureaux et
+  garde à vue ; plus tard prison, pompiers). Décisions : voleurs = 50 + 5 par lieu débloqué de la rangée du haut
+  (ils attaquent par 5) ; un vol dure [lieux débloqués de la rangée du haut] minutes ; événements seulement en jeu,
+  mais garde à vue (2 h) et prison (12 h) comptent hors ligne ; les prix gardent le rang de MapOrder.
+  - Carte : en haut, 3 rangées de 7 pour les lieux qui rapportent ou produisent (ferme, supermarché, crèmerie…,
+    puis pizzeria, fleuriste, restaurant, hôtel, zoo à venir) ; en bas, à part : école, commissariat, tribunal,
+    prison, hôpital (bientôt).
+  - Événements (orders.go) : un seul à la fois, le suivant 1 à 10 min après la fin du précédent (cadeau compris).
+    On tire au sort un lieu débloqué de la rangée du haut (TopRow), tous à égalité, parmi ceux où un groupe peut
+    se manifester ; puis le groupe selon son poids : particuliers 50 (lieux qui vendent : ferme, boulangerie,
+    crèmerie, glacier, exotique, port, domaine, pâtisserie, boucherie), cantine de l'école 50 (boulangerie,
+    crèmerie, glacier, crêperie), parc 50 (ferme, exotique, glacier, crêperie : parcOrderAt). 50 particuliers
+    (7 noms ajoutés). Avant : une source tirée parmi une liste, toutes les 3 à 5 min.
