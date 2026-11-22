@@ -1677,3 +1677,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   Sans caisse (élevage, huilerie) : ils rôdent. Bandeau rouge « Vol en cours » à la place de la commande, « Des
   voleurs ! » sur la tuile de la carte. Un vol n'est pas sauvegardé ; un seul événement à la fois (le suivant 1 à
   10 min après). Outil : CAPVOL=1 (captures). Test : TestVol.
+- Vol sauvegardé (Save.Vol : lieu, temps restant, caisses déjà vidées) et en pause jeu fermé : quitter puis revenir ne chasse plus les voleurs (« Les voleurs sont toujours là… »). Test : TestVolSauvegarde.

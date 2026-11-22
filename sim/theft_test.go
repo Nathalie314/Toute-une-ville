@@ -36,3 +36,21 @@ func TestVol(t *testing.T) {
 		}
 	}
 }
+
+// TestVolSauvegarde : quitter le jeu ne chasse pas les voleurs (le vol reprend, en pause jeu fermé).
+func TestVolSauvegarde(t *testing.T) {
+	g := NewGame()
+	g.Place("super").Owned = true
+	g.Enter(g.Place("ferme"))
+	g.StartTheft("ferme")
+	for i := 0; i < 30*30; i++ {
+		g.Step(1.0 / 30)
+	}
+	left := g.Theft.Left
+	s := g.Snapshot(1000)
+	g2 := NewGame()
+	g2.Restore(s, 1000+3600) // (une heure plus tard)
+	if g2.Theft == nil || g2.Theft.Place != "ferme" || g2.Theft.Left != left {
+		t.Fatalf("le vol n'a pas repris : %+v (il restait %v s)", g2.Theft, left)
+	}
+}

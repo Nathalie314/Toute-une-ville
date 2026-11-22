@@ -21,6 +21,7 @@ type Save struct {
 	Badges   map[string]bool
 	Commande *Order            `json:",omitempty"` // commande spéciale en cours (le temps s'arrête jeu fermé)
 	Cadeau   *Boost            `json:",omitempty"` // cadeau d'une commande en cours (en pause jeu fermé)
+	Vol      *TheftSave        `json:",omitempty"` // vol en cours (en pause jeu fermé : quitter ne chasse pas les voleurs)
 	Favoris  map[string]string `json:",omitempty"` // touches 1 à 9 et 0 → lieu
 }
 
@@ -46,7 +47,7 @@ type PlaceSave struct {
 
 func (g *Game) Snapshot(unix int64) *Save {
 	s := &Save{Version: SaveVersion, Money: g.Money, Levels: g.Levels, Outfit: g.Outfit, Owned: g.Owned, Stats: g.Stats,
-		Rate: g.RateOffline(), Unix: unix, Places: map[string]*PlaceSave{}, Badges: g.Badges, Commande: g.Order, Cadeau: g.Boost, Favoris: g.Fav}
+		Rate: g.RateOffline(), Unix: unix, Places: map[string]*PlaceSave{}, Badges: g.Badges, Commande: g.Order, Cadeau: g.Boost, Favoris: g.Fav, Vol: g.theftSave()}
 	for _, p := range g.Places {
 		ps := &PlaceSave{Paid: map[string]float64{}, Stock: map[string]int{}, Pile: map[string]int{}, Buf: map[string][]int{}, Pousses: map[string]int{}, PoussePaye: map[string]float64{}, NiveauPaye: map[string]float64{}, StockPaye: map[string]float64{}, CasePaye: map[string]float64{}}
 		// les montants payés sont écrits sans le coefficient du lieu (prices.go) :
@@ -403,7 +404,8 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 	if s.Rate > 0 {
 		g.income = append(g.income, incomeRec{t: g.T, a: s.Rate * 60})
 	}
-	g.Boost = s.Cadeau // (après les gains d'absence : un cadeau ne travaille pas jeu fermé)
+	g.Boost = s.Cadeau    // (après les gains d'absence : un cadeau ne travaille pas jeu fermé)
+	g.theftRestore(s.Vol) // (le vol reprend là où il en était)
 	g.sessionStart = g.T
 	return
 }

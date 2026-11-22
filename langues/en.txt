@@ -1907,3 +1907,4 @@ Vol en cours : {nom} = Robbery in progress: {nom}
 Tout est arrêté. Les voleurs partiront dans : = Everything has stopped. The thieves will leave in:
 Volé dans les caisses : {prix} = Stolen from the registers: {prix}
 Des voleurs ! = Thieves!
+Les voleurs sont toujours là : {lieu} reste arrêté encore {duree}. = The thieves are still there: {lieu} stays stopped for another {duree}.

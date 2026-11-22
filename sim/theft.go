@@ -86,6 +86,15 @@ func (g *Game) startTheft(id string) {
 		return
 	}
 	d := 60 * float64(max(1, g.TopOwned()))
+	g.startTheftQuiet(id, d)
+	p.theftFlee()
+	g.emit(Event{Kind: EvLevel, Place: id, Pos: p.Gate, Text: tr.F("Des voleurs attaquent {lieu} ! Tout s'arrête pendant {duree}.", "lieu", theName(id), "duree", durText(d))})
+	g.emit(Event{Kind: EvAngry, Place: id, Pos: p.Gate})
+}
+
+// startTheftQuiet : met les voleurs en place (sans message).
+func (g *Game) startTheftQuiet(id string, d float64) {
+	p := g.Place(id)
 	th := &Theft{Place: id, Left: d, Total: d, robbed: map[int]bool{}}
 	for _, s := range p.Stations {
 		if s.Kind == Register && s.Built {
@@ -110,9 +119,6 @@ func (g *Game) startTheft(id string) {
 		th.Robbers = append(th.Robbers, r)
 	}
 	g.Theft = th
-	p.theftFlee()
-	g.emit(Event{Kind: EvLevel, Place: id, Pos: p.Gate, Text: tr.F("Des voleurs attaquent {lieu} ! Tout s'arrête pendant {duree}.", "lieu", theName(id), "duree", durText(d))})
-	g.emit(Event{Kind: EvAngry, Place: id, Pos: p.Gate})
 }
 
 // theftFlee : au début du vol, tous les clients s'enfuient (sans payer, en jetant leurs achats).
@@ -254,4 +260,49 @@ func (g *Game) StartTheft(id string) {
 		g.Order = nil
 		g.startTheft(id)
 	}
+}
+
+// TheftSave : un vol en cours, dans la sauvegarde. Il est en pause jeu fermé : en revenant, les
+// voleurs sont toujours là, avec le temps qu'il leur restait (quitter le jeu ne les chasse pas).
+type TheftSave struct {
+	Lieu    string
+	Reste   float64
+	Duree   float64
+	Vole    float64 `json:",omitempty"`
+	Caisses []int   `json:",omitempty"` // les caisses déjà vidées
+}
+
+func (g *Game) theftSave() *TheftSave {
+	th := g.Theft
+	if th == nil {
+		return nil
+	}
+	ts := &TheftSave{Lieu: th.Place, Reste: th.Left, Duree: th.Total, Vole: th.Stolen}
+	for k, done := range th.robbed {
+		if done {
+			ts.Caisses = append(ts.Caisses, k)
+		}
+	}
+	return ts
+}
+
+func (g *Game) theftRestore(ts *TheftSave) {
+	if ts == nil || ts.Reste <= 0 {
+		return
+	}
+	p := g.Place(ts.Lieu)
+	if p == nil || !p.Owned {
+		return
+	}
+	g.Order = nil
+	g.startTheftQuiet(ts.Lieu, ts.Duree)
+	th := g.Theft
+	th.Left, th.Stolen = math.Min(ts.Reste, ts.Duree), ts.Vole
+	for _, k := range ts.Caisses {
+		th.robbed[k] = true
+	}
+	for _, w := range p.Workers {
+		w.Hidden = true // (ils étaient déjà au vestiaire)
+	}
+	g.emit(Event{Kind: EvLevel, Place: p.ID, Pos: p.Gate, Text: tr.F("Les voleurs sont toujours là : {lieu} reste arrêté encore {duree}.", "lieu", theName(p.ID), "duree", durText(th.Left))})
 }
