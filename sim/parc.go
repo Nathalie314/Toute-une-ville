@@ -562,8 +562,12 @@ func (p *Place) stepParc(dt float64, active bool) {
 	}
 	p.stepVehicles(dt)
 	p.parcStaff()
-	// nouveaux visiteurs
+	// nouveaux visiteurs (pas pendant un vol : tout est arrêté, les visiteurs s'en vont)
+	robbed := p.robbed()
 	p.spawnT -= dt
+	if robbed {
+		p.spawnT = math.Max(p.spawnT, 1)
+	}
 	if p.spawnT <= 0 {
 		p.spawnT = 1.2 + 1.6*p.rand()
 		if p.ParcSeats() > 0 && len(pc.Visitors) < p.ParcTarget() {
@@ -571,18 +575,23 @@ func (p *Place) stepParc(dt float64, active bool) {
 		}
 	}
 	for _, r := range pc.Regs {
-		p.stepParcReg(r, dt)
+		if !robbed {
+			p.stepParcReg(r, dt)
+		}
 	}
 	for _, s := range pc.Stands {
 		s.Sold += dt
 	}
 	for _, r := range pc.Rides {
-		if p.RideBuilt(r) {
+		if p.RideBuilt(r) && !robbed {
 			p.stepRide(r, dt)
 		}
 	}
 	alive := pc.Visitors[:0]
 	for _, v := range pc.Visitors {
+		if robbed {
+			p.parcFlee(v)
+		}
 		p.stepVisitor(v, dt)
 		if v.State != vGone {
 			alive = append(alive, v)

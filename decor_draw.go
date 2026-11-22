@@ -285,6 +285,8 @@ func (g *game) drawGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		g.crepGround(dst, p, tl, br)
 	case "huilerie":
 		g.huilerieGround(dst, p, tl, br)
+	case "commissariat":
+		g.policeGround(dst, p, tl, br)
 	default:
 		g.workshopGround(dst, p, tl, br)
 	}

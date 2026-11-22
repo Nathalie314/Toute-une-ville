@@ -77,6 +77,7 @@ type Upgrade struct {
 	Costs []float64 // prix de chaque niveau (si absent : Base × Mult^niveau)
 	Base  float64
 	Mult  float64
+	Pts   string // payé en points d'école de ce type (formation = université…), pas en argent
 }
 
 func (u *Upgrade) Cost(lvl int) float64 {
@@ -85,6 +86,9 @@ func (u *Upgrade) Cost(lvl int) float64 {
 		c = u.Costs[lvl]
 	} else {
 		c = math.Round(u.Base * math.Pow(u.Mult, float64(lvl)))
+	}
+	if u.Pts != "" {
+		return c // (des points : ni coefficient ni négociation)
 	}
 	if CostScale != nil {
 		if s := CostScale(u.Key); s != 1 {
@@ -129,6 +133,8 @@ type incomeRec struct {
 }
 
 type Game struct {
+	Theft    *Theft                  // le vol en cours (événements)
+	Custody  []*Custody              // des voleurs en garde à vue (commissariat)
 	comingTo map[string]*[NItems]int // (palletRoom : ce qui arrive vers chaque lieu, recalculé à chaque pas)
 	comingT  float64
 	stepping string // lieu en train d'avancer (pour les événements)
@@ -188,7 +194,7 @@ func NewGame() *Game {
 	for k, v := range DefaultFav {
 		g.Fav[k] = v
 	}
-	g.Places = []*Place{newFarm(g), newSuper(g), newWorkshop(g, bakerySpec), newWorkshop(g, cremerieSpec), newWorkshop(g, iceSpec), newSchool(g), newElevage(g), newBoucherie(g), newExotic(g), newPort(g), newDomaine(g), newCreperie(g), newWorkshop(g, patisserieSpec), newParc(g), newHuilerie(g)}
+	g.Places = []*Place{newFarm(g), newSuper(g), newWorkshop(g, bakerySpec), newWorkshop(g, cremerieSpec), newWorkshop(g, iceSpec), newSchool(g), newElevage(g), newBoucherie(g), newExotic(g), newPort(g), newDomaine(g), newCreperie(g), newWorkshop(g, patisserieSpec), newParc(g), newHuilerie(g), newPolice(g)}
 	g.sortPlaces()
 	for _, p := range g.Places {
 		p.applyCaps()
@@ -225,11 +231,23 @@ func NewGame() *Game {
 }
 
 // MapOrder : les lieux dans l'ordre de la carte de la ville (ui.go, drawMap). Il
-// fixe l'ordre des listes (points d'école…) et le rang de chaque lieu, qui fixe
-// ses prix (PlaceScale). Un nouveau lieu se met ici, à sa place sur la carte.
-var MapOrder = []string{"ferme", "ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "port", "elevage", "boucherie", "domaine", "creperie", "patisserie", "parc", "huilerie"}
+// fixe l'ordre des listes (points d'école…) ; les prix suivent PriceRank (la rangée
+// du haut, sans l'école). Un nouveau lieu se met ici, à sa place sur la carte.
+var MapOrder = []string{"ferme", "ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "port", "elevage", "boucherie", "domaine", "creperie", "patisserie", "parc", "huilerie", "commissariat"}
 
-// MapRank : position du lieu sur la carte (1 : ma ferme) ; 0 si inconnu.
+// PriceRank : le rang du lieu dans la rangée du haut de la carte (les lieux qui rapportent ou
+// produisent : 1 ma ferme, 2 le supermarché, 3 la crèmerie…) ; c'est lui qui fixe les prix.
+// L'école, le commissariat, la prison, l'hôpital (rangée du bas) : 0, hors du calcul des prix.
+func PriceRank(id string) int {
+	for i, m := range TopRow() {
+		if m == id {
+			return i + 1
+		}
+	}
+	return 0
+}
+
+// MapRank : position du lieu dans MapOrder (l'ordre des listes) ; 0 si inconnu.
 func MapRank(id string) int {
 	for i, m := range MapOrder {
 		if m == id {
@@ -312,8 +330,12 @@ func (g *Game) RateLong() float64 { return g.rateOver(900) }
 func (g *Game) RateOffline() float64 {
 	r := g.rateOver(900)
 	crep := 0.0
+	vol := ""
+	if g.Theft != nil {
+		vol = g.Theft.Place // (des voleurs : ce lieu rapporte seulement après leur départ, TheftSave.Taux)
+	}
 	for _, x := range g.income {
-		if (x.place == "creperie" || x.place == "parc") && x.t >= g.T-900 {
+		if (x.place == "creperie" || x.place == "parc" || (vol != "" && x.place == vol)) && x.t >= g.T-900 {
 			crep += x.a
 		}
 	}
@@ -373,6 +395,8 @@ func (g *Game) Step(dt float64) {
 	g.syncPallets()
 	g.stepTrucks(dt)
 	g.stepRayonDiag(dt)
+	g.openPolice() // (avec le supermarché)
+	g.stepCustody(dt)
 	g.stepOrders(dt)
 	g.stepBoost(dt)
 	g.badgeT += dt
@@ -466,6 +490,14 @@ func (g *Game) Buy(u *Upgrade) bool {
 		return false // les ouvriers de la ferme s'embauchent dans l'ordre
 	}
 	c := u.Cost(l)
+	if u.Pts != "" { // (payé en points d'école)
+		if g.Points(u.Pts) < int(c) {
+			return false
+		}
+		g.Levels["pts."+u.Pts] -= int(c)
+		g.Levels[u.Key] = l + 1
+		return true
+	}
 	if g.Money < c {
 		return false
 	}

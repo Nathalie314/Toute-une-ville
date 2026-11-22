@@ -143,6 +143,7 @@ type Agent struct {
 	Bored   float64
 	Mood    int
 	Settled bool
+	Hidden  bool // réfugié au vestiaire pendant un vol
 
 	tick   float64
 	target V
@@ -342,6 +343,7 @@ type Place struct {
 	Vestiaire      Rect      // porte du vestiaire : on s'y arrête pour ouvrir la page « Personnage »
 	Parc           *Parc     // parc d'attractions : attractions, caisses, visiteurs
 	Crep           *Creperie // crêperie : tables, clients, serveurs
+	Pol            *Police   // commissariat : commissaire, lieutenants
 
 	spawnT   float64
 	queueSeq int
@@ -449,6 +451,10 @@ func (p *Place) step(dt float64, active bool) {
 		p.stepParc(dt, active)
 		return
 	}
+	if p.Pol != nil {
+		p.stepPolice(dt, active)
+		return
+	}
 	if p.Crep != nil {
 		defer p.stepCreperie(dt, active) // (la cuisine comme un atelier, puis la salle)
 	}
@@ -549,14 +555,22 @@ func (p *Place) step(dt float64, active bool) {
 	if active && g.Player != nil {
 		p.interact(g.Player, dt)
 	}
-	// employés
+	// employés (pendant un vol : ils se réfugient au vestiaire)
 	p.syncStaff()
+	robbed := p.robbed()
 	for _, w := range p.Workers {
+		if robbed {
+			p.hideWorker(w, dt)
+			continue
+		}
 		p.workerAI(w, dt)
 		p.interact(w, dt)
 	}
-	// clients
+	// clients (pas de nouveaux pendant un vol)
 	p.spawnT -= dt
+	if robbed {
+		p.spawnT = math.Max(p.spawnT, 1)
+	}
 	if p.ID == "super" {
 		p.syncBarriers()
 		if p.spawnT <= 0 {
@@ -603,7 +617,9 @@ func (p *Place) step(dt float64, active bool) {
 
 // NoRep : pas de réputation ici (pas de clients : la ferme d'élevage ; un restaurant,
 // où la jauge de bonheur décide des pourboires : la crêperie).
-func (p *Place) NoRep() bool { return p.Crep != nil || p.ID == "elevage" || p.ID == "huilerie" }
+func (p *Place) NoRep() bool {
+	return p.Crep != nil || p.ID == "elevage" || p.ID == "huilerie" || p.Pol != nil
+}
 
 // ShopMaxCust : dans un petit magasin, 10 clients au plus en même temps
 // (+1 tous les 10 % de marketing).
@@ -754,12 +770,28 @@ func (p *Place) interact(a *Agent, dt float64) {
 			return
 		}
 	}
+	// améliorations payées en points d'école (commissariat) : d'un coup, si on les a
+	if a.Kind == PlayerAgent && !a.Moving {
+		for _, sp := range p.Spots {
+			u := p.SpotUpgrade(sp)
+			if u == nil || u.Pts == "" || !p.SpotVisible(sp) || !sp.Zone.Has(a.Pos) {
+				continue
+			}
+			l := g.Levels[u.Key]
+			if l < u.Max && g.Buy(u) {
+				a.tick = 0.6
+				p.applyCaps()
+				g.emit(Event{Kind: EvLevel, Pos: sp.Zone.C(), Text: sp.Done(l + 1)})
+				return
+			}
+		}
+	}
 	// améliorations du lieu posées au sol (caissière, hangar, bord de route)
 	if a.Kind == PlayerAgent && !a.Moving && g.Money >= 1 {
 		for _, sp := range p.Spots {
 			u := p.SpotUpgrade(sp)
 			l := g.Levels[u.Key]
-			if l >= u.Max || (sp.Shelf != nil && l >= p.DroneMax(sp.Shelf)) || !p.SpotVisible(sp) || !sp.Zone.Has(a.Pos) {
+			if u.Pts != "" || l >= u.Max || (sp.Shelf != nil && l >= p.DroneMax(sp.Shelf)) || !p.SpotVisible(sp) || !sp.Zone.Has(a.Pos) {
 				continue
 			}
 			cost := u.Cost(l)
@@ -1160,6 +1192,9 @@ func (g *Game) MovePlayer(dir V, dt float64) {
 	if p == nil || pl == nil {
 		return
 	}
+	if th := g.Theft; th != nil && th.Scared && th.Place == p.ID {
+		return // (terrorisé par les voleurs : il ne répond plus avant d'être dans sa zone)
+	}
 	pl.Moving = dir.Len() > 0.05
 	if !pl.Moving {
 		pl.holdT = 0
@@ -1170,7 +1205,22 @@ func (g *Game) MovePlayer(dir V, dt float64) {
 	pl.holdT += dt
 	ramp := 0.25 + 0.75*math.Min(1, pl.holdT/0.45)
 	pl.Face = dir.Norm()
+	was := pl.Pos
 	p.moveAgent(&pl.Pos, dir, p.agentSpeed(pl)*ramp*math.Min(1, dir.Len())*dt)
+	if p.robbed() && p.Yard.W > 0 && !p.Yard.Has(pl.Pos) { // (pendant un vol, on ne sort pas de sa zone)
+		x, y := V{pl.Pos.X, was.Y}, V{was.X, pl.Pos.Y} // (on glisse le long du bord)
+		switch {
+		case p.Yard.Has(x):
+			pl.Pos = x
+		case p.Yard.Has(y):
+			pl.Pos = y
+		default:
+			pl.Pos = was
+		}
+		if !p.Yard.Has(pl.Pos) {
+			g.Theft.Scared = true
+		}
+	}
 	pl.WalkT += dt
 }
 
@@ -1324,6 +1374,10 @@ func (p *Place) SpotVisible(sp *Spot) bool {
 	if sp.Room != nil {
 		u := p.SpotUpgrade(sp)
 		return sp.Room.built && p.g.Levels[u.Key] < u.Max
+	}
+	if p.Pol != nil { // (au commissariat : tant qu'il reste à acheter, une fois le précédent acheté)
+		u := p.SpotUpgrade(sp)
+		return u != nil && p.g.Levels[u.Key] < u.Max && (sp.Needs == "" || p.g.Levels[p.key(sp.Needs)] > 0)
 	}
 	if p.Crep != nil {
 		l := p.g.Levels[p.key(sp.ID)]

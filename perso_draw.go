@@ -156,6 +156,11 @@ func (g *game) drawPlayer(dst *ebiten.Image, a *sim.Agent) {
 		return
 	}
 	g.drawHero(dst, a.Pos, a.Face, a.WalkT, a.Moving, a.Carry)
+	if th := g.sim.Theft; th != nil && th.Scared { // terrorisé par les voleurs : un « ! » qui tremble
+		dx := 3 * math.Sin(g.t*40)
+		circle(dst, a.Pos.X+dx, a.Pos.Y-118, 17, rgb(0xffffff))
+		say(dst, "!", a.Pos.X+dx, a.Pos.Y-118, 26, true, 0, rgb(0xe53935))
+	}
 }
 
 func (g *game) drawPlayerIcon(dst *ebiten.Image, a *sim.Agent) {

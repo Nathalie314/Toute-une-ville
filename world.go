@@ -96,7 +96,12 @@ type drawable struct {
 
 func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	staffPlace = p.ID
+	theftPlace = ""
+	if th := g.sim.Theft; th != nil {
+		theftPlace = th.Place
+	}
 	cam = g.worldView(scr.K)
+	g.worldCam = cam
 	t := g.t
 	// --- herbe et décor au sol
 	tl := cam.toLogical(0, 0)
@@ -222,6 +227,12 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 		}
 		ds = append(ds, drawable{x: v.Pos.X, y: v.Pos.Y + 20, fn: func() { drawVehicle(dst, v) }})
 	}
+	if th := g.sim.TheftAt(p.ID); th != nil {
+		for _, r := range th.Robbers {
+			r := r
+			ds = append(ds, drawable{x: r.Pos.X, y: r.Pos.Y, fn: func() { drawRobber(dst, r, t) }})
+		}
+	}
 	if g.sim.Cur == p {
 		pl := g.sim.Player
 		ds = append(ds, drawable{x: pl.Pos.X, y: pl.Pos.Y, fn: func() { g.drawPlayer(dst, pl) }})
@@ -241,6 +252,10 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	if p.Crep != nil {
 		ds = g.crepDrawables(dst, p, ds)
 	}
+	if p.Pol != nil {
+		ds = g.policeDrawables(dst, p, ds)
+	}
+	ds = g.patrolDrawables(dst, p, ds) // (un lieu protégé : la patrouille passe)
 	ds = decorDrawables(dst, dec, ds, tl, br, p.ID == "exotique")
 	if p.ID == "exotique" {
 		ds = exoticAnimals(dst, p, ds, tl, br, t) // perroquets, singes, toucans, flamants
@@ -1446,8 +1461,16 @@ func drawPerson(dst *ebiten.Image, pos, face V, walkT float64, moving bool, lk l
 }
 
 func drawAgent(dst *ebiten.Image, place string, a *sim.Agent, t float64) {
+	if a.Hidden {
+		return // (réfugié au vestiaire : des voleurs)
+	}
 	lk := staffLook(place, a.Kind, a.Look)
 	lk.crate = place != "ferme"
+	if place == theftPlace { // des voleurs : ceux qui sont restés lèvent les bras
+		lk.armsUp = true
+		drawPerson(dst, a.Pos, a.Face, 0, false, lk, nil)
+		return
+	}
 	if a.Kind == sim.WorkerAgent && a.Settled && !a.Moving {
 		drawBored(dst, a, lk, t)
 		return
@@ -1740,6 +1763,9 @@ func (g *game) drawSpot(dst *ebiten.Image, p *sim.Place, sp *sim.Spot) {
 	}
 	cost := u.Cost(l)
 	afford := g.sim.Money >= cost-sp.Paid
+	if u.Pts != "" { // (payé en points d'école)
+		afford = float64(g.sim.Points(u.Pts)) >= cost
+	}
 	c := uint32(0x9fd3ff)
 	if afford {
 		c = 0x6fe36f
@@ -1756,6 +1782,9 @@ func (g *game) drawSpot(dst *ebiten.Image, p *sim.Place, sp *sim.Spot) {
 	}
 	if strings.HasPrefix(sp.ID, "drone") {
 		icon = "drone"
+	}
+	if strings.HasPrefix(sp.ID, "voiture_") {
+		icon = "voiture"
 	}
 	spotIcon(dst, icon, r.C().X, r.Y+30)
 	title := sp.Label
@@ -1783,6 +1812,10 @@ func (g *game) drawSpot(dst *ebiten.Image, p *sim.Place, sp *sim.Spot) {
 		title += " niv. " + itoa(l+1)
 	}
 	sayFit(dst, title, r.C().X, r.Y+r.H-46, 19, true, 0, r.W-8, rgb(0xffffff))
+	if u.Pts != "" {
+		pricePill(dst, ptsPrice(u.Pts, int(cost)), r.C().X, r.Y+r.H-4, r.W+60)
+		return
+	}
 	pricePill(dst, money(cost-sp.Paid), r.C().X, r.Y+r.H-4, r.W+20)
 }
 
@@ -1819,6 +1852,12 @@ func spotIcon(dst *ebiten.Image, id string, x, y float64) {
 		roundRect(dst, x-9, y-24, 18, 16, 3, rgb(0xd9b77e))
 	case "drone":
 		drawDroneShape(dst, x, y, 0.8, 0)
+	case "commissaire":
+		scaled(x, y, 0.42, func() { drawPerson(dst, V{X: x, Y: y + 46}, V{Y: 1}, 0, false, chiefLook(), nil) })
+	case "lieutenants":
+		scaled(x, y, 0.42, func() { drawPerson(dst, V{X: x, Y: y + 46}, V{Y: 1}, 0, false, copLook(7), nil) })
+	case "voiture":
+		scaled(x, y, 0.22, func() { drawPoliceCarTop(dst, x, y, false, gameT) })
 	}
 }
 

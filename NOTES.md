@@ -1649,3 +1649,83 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Port : les camions roulent vers le sud cabine devant (drawTruckTopDir, le camion vu de dessus retourné) ; leur étiquette dit « LE PORT ».
 - Port : la caisse, l'étal du sel et le panneau « CRIÉE » sont centrés sur les quatre colonnes d'étals (PortMidX) ; autour de la caisse, en miroir : « Ouvrier du port +1 » | caisse | « Paniers + », puis « Étals + » … caissière.
 - Le camion de la ferme vers la crèmerie est un camion-citerne de lait (drawMilkTruck : citerne d'inox, « LAIT », cabine verte de la ferme), au quai de la ferme comme à la crèmerie (truckTo : la destination du camion dessiné).
+- ÉVÉNEMENTS ET SÉCURITÉ, étape 1 (22/11 ; plan : 1 carte + événements, 2 voleurs, 3 commissariat, 4 bureaux et
+  garde à vue ; plus tard prison, pompiers). Décisions : voleurs = 50 + 5 par lieu débloqué de la rangée du haut
+  (ils attaquent par 5) ; un vol dure [lieux débloqués de la rangée du haut] minutes ; événements seulement en jeu,
+  mais garde à vue (2 h) et prison (12 h) comptent hors ligne ; les prix gardent le rang de MapOrder.
+  - Carte : en haut, 3 rangées de 7 pour les lieux qui rapportent ou produisent (ferme, supermarché, crèmerie…,
+    puis pizzeria, fleuriste, restaurant, hôtel, zoo à venir) ; en bas, à part : école, commissariat, prison,
+    hôpital (bientôt ; pas de tribunal).
+  - Événements (orders.go) : un seul à la fois, le suivant 1 à 10 min après la fin du précédent (cadeau compris).
+    On tire au sort un lieu débloqué de la rangée du haut (TopRow), tous à égalité, parmi ceux où un groupe peut
+    se manifester ; puis le groupe selon son poids : particuliers 50 (lieux qui vendent : ferme, boulangerie,
+    crèmerie, glacier, exotique, port, domaine, pâtisserie, boucherie), cantine de l'école 50 (boulangerie,
+    crèmerie, glacier, crêperie), parc 50 (ferme, exotique, glacier, crêperie : parcOrderAt). 50 particuliers
+    (7 noms ajoutés). Avant : une source tirée parmi une liste, toutes les 3 à 5 min.
+  - Prix : le rang qui fixe les prix est celui de la rangée du haut (PriceRank : 1 ferme, 2 supermarché, 3 crèmerie,
+    4 ferme exotique…) ; l'école et les lieux de la rangée du bas n'y comptent plus. scaleFrom 4, palierFrom 3 :
+    les montants ne changent pas (l'école était déjà hors de la courbe) ; « le 4e lieu » = la ferme exotique.
+- ÉVÉNEMENTS, étape 2 : LES VOLEURS (sim/theft.go, theft_draw.go). Dès que le supermarché est ouvert, les voleurs
+  sont un groupe du tirage dans tous les lieux de la rangée du haut : 50 + 5 par lieu débloqué en haut. Un vol dure
+  [lieux débloqués en haut] minutes (2 avec la ferme et le supermarché). Dans le lieu : les clients fuient sans
+  payer en jetant leurs achats (fleeCustomer ; crêperie : crepLeave ; parc : parcFlee, attractions et caisses
+  arrêtées), personne n'arrive ; les ouvriers courent au vestiaire et disparaissent (Agent.Hidden) ; caissières,
+  serveurs de la crêperie, employés des attractions lèvent les bras (dessin) ; les drones jettent leur chargement
+  et restent posés ; les camions de ce lieu (départ ou arrivée) ne bougent plus ; champs et animaux continuent.
+  Cinq voleurs en noir, visage découvert (casquette, pied-de-biche, sac de butin), vont de caisse en caisse : chaque
+  caisse est vidée une fois, d'une minute des gains du lieu (EarningsByPlace, dans la limite de l'argent du joueur).
+  Sans caisse (élevage, huilerie) : ils rôdent. Bandeau rouge « Vol en cours » à la place de la commande, « Des
+  voleurs ! » sur la tuile de la carte. Un vol n'est pas sauvegardé ; un seul événement à la fois (le suivant 1 à
+  10 min après). Outil : CAPVOL=1 (captures). Test : TestVol.
+- Vol sauvegardé (Save.Vol : lieu, temps restant, caisses déjà vidées) et en pause jeu fermé : quitter puis revenir ne chasse plus les voleurs (« Les voleurs sont toujours là… »). Test : TestVolSauvegarde.
+- Hors ligne pendant un vol : le lieu attaqué ne compte pas dans les gains d'absence (RateOffline l'exclut, comme la crêperie et le parc) ; il reste arrêté, le vol reprend au retour. Test : TestVolHorsLigne.
+- Vol et absence (demande : « décompter le temps hors ligne de l'attaque ») : le temps du vol s'écoule aussi jeu fermé.
+  Revenir avant la fin : les voleurs sont toujours là (pour le temps restant) et le lieu n'a rien rapporté. Revenir après :
+  ils sont partis, et le lieu a rapporté normalement une fois le vol fini (TheftSave.Taux : son revenu par seconde,
+  retiré de Save.Rate, rendu pour le temps d'absence au-delà du reste du vol). Tests : TestVolSauvegarde, TestVolHorsLigneRetour.
+- Crêperie (pas de caisse) : les voleurs raflent les pourboires laissés sur les tables (robTips). Les cinq voleurs se
+  répartissent les caisses/tables (aimed) au lieu de viser tous la même. Test : TestVolPourboires.
+- Pendant un vol, le joueur ne peut pas sortir de sa zone (MovePlayer le retient, il glisse le long du bord) ; s'il était
+  ailleurs dans le lieu quand les voleurs arrivent, il est terrorisé (demande) : on perd le contrôle, il court tout seul
+  jusqu'à sa zone (Theft.Scared, playerFlee ; un « ! » rouge tremble au-dessus de sa tête), et là seulement on le
+  dirige de nouveau. Test : TestVolZoneJoueur.
+- LE COMMISSARIAT (événements, étape 3 ; demande : « Rajoute le commissariat ») : sim/police.go, police_draw.go, police_ui.go.
+  Rangée du bas de la carte (BottomRow : école, commissariat, prison, hôpital ; TopRow les exclut, PriceRank 0). Offert :
+  il s'ouvre avec le supermarché (openPolice), même dans une ancienne partie. Tout est dans Levels (pas de champ de
+  sauvegarde nouveau) : commissariat.commissaire, .voiture_k, .lieutenants, .double_k, .patrouille_k_s (rang du lieu
+  dans TopRow), .tuto.
+  - Commissaire : 10 points d'université, sur sa case dans son bureau (Upgrade.Pts : une amélioration payée en points
+    d'école, d'un coup, sans coefficient de prix). La 1re voiture est offerte avec lui.
+  - Voitures : la n-ième coûte PlacePrice(4(n−1)) et n'existe que si le lieu n° 4(n−1) existe (PolCars = lieux du haut / 4 + 1 :
+    4 aujourd'hui avec 14 lieux ; la 5e viendra avec le 16e lieu, la 6e avec le 20e…, demande). 2e : prix du 4e lieu (ferme
+    exotique), 3e : du 8e (ferme d'élevage), 4e : du 12e (pâtisserie). Le parking (et la largeur du lieu, PolW) grandit avec.
+    Une case au parking, quand la précédente est achetée.
+  - Lieutenants : un par voiture (commissariat.lieutenant_k), formé sur la case sous sa voiture (demande), points du collège
+    (10, 50, 250… ×5 d'une voiture à l'autre). Sans patrouille, il erre sur le parking en sifflotant. La case des
+    patrouilles est passée à droite des voitures.
+  - Patrouilles : la case « Patrouilles » du parking (ou un clic sur le parking) ouvre le menu (voitures à gauche, lieux
+    débloqués de la rangée du haut à droite). Un lieu patrouillé n'a plus de voleurs dans le tirage des événements
+    (eventGroups) ; un lieu qui n'a que des voleurs (supermarché, élevage, huilerie) ne tire plus rien. Une patrouille
+    par lieu. On voit la voiture passer sur la route du lieu (patrolDrawables ; au port, sur la route verticale).
+  - Mécaniciens (points du primaire, 100 × les points du lieutenant : 1 000, 5 000, 25 000) : la voiture protège un
+    2e lieu (menu des patrouilles).
+  - Tutoriel facultatif à la première visite (Oui / Non merci ; trois pages). Aide « ? » du lieu. Pas de réputation,
+    pas dans le tableau des gains (sells faux). Badges : ouvert, commissaire, toute la flotte, toute la brigade, en
+    patrouille, deux lieux à la fois. Captures : CAPPOL=1 (équipé), 2 (menu), 3 (tutoriel) ; CAPPATROL=0.5.
+  - Disposition (demandes) : le bâtiment seul au-dessus de la route ; en dessous, la zone du joueur (à l'horizontale, à
+    gauche) et le parking (à droite). Le bureau du commissaire au sommet et au centre (« symbole de sa mission »), le hall
+    (porte, accueil) dessous ; à gauche les bureaux des capitaines, à droite la garde à vue (symétrique).
+  - ÉTAPE 4 : vidéosurveillance et garde à vue. Tous les lieux peuvent être protégés : la moitié par des voitures, la
+    moitié par des capitaines. En théorie, voiture 1 : lieux 1 et 2 ; caméra : 3 ; voiture 2 : 4 et 5 ; caméras : 6 et 7…
+    Le bureau n° n coûte le prix du lieu survRank(n) = 3, 6, 7, 10, 11, 14, 15… (PolOffices : ceux qui existent, 6 avec
+    14 lieux), dans l'ordre. Capitaine : case dans son bureau, points du lycée 50, 500, 5 000… (×10). Le menu (onglet
+    « Vidéosurveillance », case du hall) lui confie un lieu (un capitaine par lieu). Chance de repérer les voleurs : 1 %,
+    +1 % par 10 points du primaire placés dans CE bureau (BuyVideo, 990 au plus : 100 %). Un seul tirage au début du vol
+    pour tout le groupe : s'ils sont repérés (Theft.Spotted), ils volent quand même mais sont arrêtés en partant.
+  - Garde à vue : 10 cellules quel que soit le nombre de bureaux (la prison les videra), 5 voleurs chacune, moitié du prix
+    du bureau de même rang. Sans place : les voleurs repérés restent libres. 2 heures, même jeu fermé (Save.Garde ; un
+    vol fini pendant l'absence fait arrêter ses voleurs à l'heure où il a fini). Les voleurs en garde à vue ne comptent
+    plus (Thieves) ; moins de 5 en liberté : ils attaquent à ce qu'ils sont ; plus aucun : plus d'attaque. Un lieu protégé
+    par une voiture dont le seul événement possible est le vol ne participe plus au tirage. Test : TestVideosurveillance.
+- Un capitaine ne peut pas surveiller un lieu déjà confié à une voiture de police (demande ; bouton grisé, SetCamera refuse) ; une voiture envoyée dans un lieu surveillé libère son capitaine.
+- Commissariat aéré (demande) : deux rangées de bureaux et de cellules séparées par un couloir horizontal (PolCorH) ; le hall descend jusqu'en bas, ses portes de côté ouvrent sur les couloirs ; plus d'espace entre bureaux (PolOffGap) et cellules (PolCellGap) ; les barreaux des cellules côté couloir. Bâtiment remonté (PolBldY 480).

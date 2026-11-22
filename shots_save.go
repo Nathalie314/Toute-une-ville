@@ -65,6 +65,28 @@ func newSaveShots(dir, file string) *saveShots {
 			)
 			return ""
 		}
+		if os.Getenv("CAPPATROL") != "" {
+			patrolAt = envF("CAPPATROL", 0.5)
+		}
+		if v := os.Getenv("CAPPOL"); v != "" { // CAPPOL=1 : un commissariat équipé (2 : et son menu, 3 : le tutoriel)
+			lv := g.sim.Levels
+			lv["commissariat.commissaire"], lv["commissariat.lieutenant_1"], lv["commissariat.lieutenant_2"], lv["commissariat.voiture_2"] = 1, 1, 1, 1
+			lv["commissariat.bureau_1"], lv["commissariat.capitaine_1"], lv["commissariat.bureau_2"], lv["commissariat.cellule_1"], lv["commissariat.cellule_2"], lv["commissariat.video_1"] = 1, 1, 1, 1, 1, 90
+			g.sim.SetCamera(1, "ferme")
+			g.sim.Custody = append(g.sim.Custody, &sim.Custody{N: 7, Left: 3000})
+			if v != "3" {
+				lv["commissariat.tuto"] = 1
+			}
+			g.sim.SetPatrol(1, 0, "super")
+			if v == "2" {
+				s.queue = append(s.queue, func(g *game) string {
+					g.goPlace(g.sim.Place("commissariat"))
+					g.openPanel(panelPolice)
+					g.polTab = 1
+					return "video"
+				}, func(g *game) string { g.closePanel(); return "" })
+			}
+		}
 		if os.Getenv("CAPMAP") != "" { // CAPMAP=1 : la carte de la ville d'abord
 			s.queue = append(s.queue, func(g *game) string {
 				g.goMap()
@@ -105,6 +127,9 @@ func newSaveShots(dir, file string) *saveShots {
 					k := k
 					s.queue = append(s.queue, func(g *game) string {
 						g.goPlace(p)
+						if k == 0 && os.Getenv("CAPVOL") != "" { // CAPVOL=1 : des voleurs attaquent le lieu
+							g.sim.StartTheft(p.ID)
+						}
 						if k > 0 {
 							for t := 0.0; t < envF("CAPDT", 3); t += 1.0 / 30 {
 								g.sim.Step(1.0 / 30)

@@ -57,6 +57,8 @@ const (
 	panelQuit      // « Quitter le jeu ? » (Échap)
 	panelTempWarn  // le jeu a été lancé depuis le zip : extraire d'abord
 	panelStart     // première partie : « Bienvenue… » (Jouer ou Tutoriel)
+	panelPolice    // le parking du commissariat : les patrouilles
+	panelPoliceTuto
 )
 
 type button struct {
@@ -75,6 +77,13 @@ type game struct {
 	scene     scene
 	panel     panel
 	helpPage  int       // page de l'aide (petits écrans : l'aide tient sur plusieurs pages)
+	polSel    int       // menu des patrouilles : la voiture choisie (1, 2…)
+	polSlot   int       // … et sa case (0 ou 1)
+	polTuto   int       // tutoriel du commissariat : 0 la question, puis la page
+	polTab    int       // menu du commissariat : 0 les patrouilles, 1 la vidéosurveillance
+	vidSel    int       // … le bureau de capitaine choisi (1, 2…)
+	polZoneIn bool      // le joueur est sur la case des patrouilles (le menu s'est ouvert)
+	worldCam  view      // la caméra du monde (pour cliquer sur un endroit du lieu)
 	gains     gainsView // la page des gains par lieu (calculée à son ouverture)
 	zoom      float64
 	camPos    V
@@ -450,6 +459,10 @@ func (g *game) Draw(screen *ebiten.Image) {
 		g.drawGains(dst)
 	case panelStart:
 		g.drawStart(dst)
+	case panelPolice:
+		g.drawPolicePanel(dst)
+	case panelPoliceTuto:
+		g.drawPoliceTuto(dst)
 	}
 	g.drawTuto(dst)
 	g.drawHand(dst)

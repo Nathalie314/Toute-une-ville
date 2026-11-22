@@ -156,6 +156,13 @@ func (p *Place) stepDrones(dt float64) {
 // stepDrone : un drone d'un étal (base → étal → quai → base).
 func (p *Place) stepDrone(s *Station, d *Drone, pad V, capa int, speed, dt float64) {
 	g := p.g
+	if p.robbed() && (d.Phase == 1 || d.Phase == 2) {
+		// des voleurs : le drone jette son chargement et rentre sur sa base, où il reste posé
+		if d.dock != nil {
+			d.dock.claim[d.It] = max(0, d.dock.claim[d.It]-d.N)
+		}
+		d.N, d.Phase = 0, 3
+	}
 	{
 		// vol en ligne droite, à vitesse constante
 		fly := func(to V) bool {
@@ -174,6 +181,9 @@ func (p *Place) stepDrone(s *Station, d *Drone, pad V, capa int, speed, dt float
 			d.Pos = pad
 			if d.wait > 0 {
 				d.wait -= dt
+				return
+			}
+			if p.robbed() {
 				return
 			}
 			// (ce que les autres drones de l'étal vont déjà prendre)

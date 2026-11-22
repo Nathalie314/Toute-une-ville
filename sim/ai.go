@@ -617,6 +617,9 @@ func (p *Place) pickRegister() *Station {
 }
 
 func (p *Place) customerStep(c *Customer, dt float64) {
+	if c.State != cLeave && c.State != cGone && !c.InCar() && p.robbed() {
+		p.fleeCustomer(c) // (des voleurs : il s'enfuit, sans payer)
+	}
 	speed := 165.0
 	if p.ID == "super" {
 		speed *= p.superCustSpeed()

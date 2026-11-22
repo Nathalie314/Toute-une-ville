@@ -19,7 +19,7 @@ func TestPaliers(t *testing.T) {
 	}
 	g := NewGame()
 	for _, p := range g.Places {
-		r := MapRank(p.ID)
+		r := PriceRank(p.ID)
 		if r < palierFrom {
 			continue
 		}
@@ -72,7 +72,7 @@ func TestSuperPaliers(t *testing.T) {
 	}
 	for id, r := range ray {
 		q := g.Place(id)
-		if q == nil || MapRank(id) < palierFrom {
+		if q == nil || PriceRank(id) < palierFrom {
 			continue
 		}
 		if math.Abs(r/(superRayons*q.Price)-1) > 0.05 {

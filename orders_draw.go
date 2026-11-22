@@ -56,6 +56,10 @@ func (g *game) drawOrderBox(dst *ebiten.Image, s *sim.Station) {
 
 // drawOrderHUD : la commande en cours, sous l'argent (visible partout).
 func (g *game) drawOrderHUD(dst *ebiten.Image, x, y float64) {
+	if g.sim.Theft != nil { // (un seul événement à la fois : le vol en cours)
+		g.drawTheftHUD(dst, x, y)
+		return
+	}
 	o := g.sim.Order
 	if o == nil {
 		g.drawBoostHUD(dst, x, y)

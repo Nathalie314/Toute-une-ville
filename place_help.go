@@ -111,6 +111,17 @@ func placeHelp(id string) []string {
 			"Tous ses produits partent au supermarché.",
 			cmd,
 		}
+	case "commissariat":
+		return []string{
+			"Le commissariat protège la ville des voleurs. Il est offert avec le supermarché, mais rien n'y fonctionne sans le commissaire : il coûte 10 points d'université (sa case est dans son bureau).",
+			"La première voiture de police est offerte avec le commissaire ; les suivantes s'achètent au parking (la 2e coûte le prix du 4e lieu de la carte, la 3e celui du 8e, la 4e celui du 12e…). Une nouvelle voiture arrive tous les quatre lieux de la rangée du haut.",
+			"Chaque voiture a besoin de son lieutenant, formé avec des points du collège sur la case sous la voiture (10, puis 50, puis 250…). Un lieutenant sans patrouille erre sur le parking en sifflotant.",
+			"La case « Patrouilles » du parking (ou un clic sur le parking) ouvre le menu des voitures : une voiture qui patrouille dans un lieu le protège, les voleurs n'y viennent plus. On l'y voit passer de temps en temps.",
+			"Des mécaniciens (points du primaire : 100 fois les points de son lieutenant) permettent à une voiture de protéger un deuxième lieu.",
+			"À gauche du bâtiment, les bureaux des capitaines : chacun coûte le prix d'un lieu de la carte (le 3e, puis le 6e, le 7e, le 10e…). Le capitaine se forme sur la case de son bureau, avec des points du lycée (50, puis 500, puis 5 000…).",
+			"La case « Vidéosurveillance » du hall ouvre le menu des capitaines : chacun surveille un lieu. Quand des voleurs y attaquent, il a une chance de les repérer (1 %, puis +1 % tous les 10 points du primaire placés dans son bureau) : ils volent quand même, mais sont arrêtés en partant.",
+			"Les voleurs arrêtés vont en garde à vue (à droite du bâtiment ; 5 par cellule, 10 cellules au plus) pendant 2 heures, même jeu fermé : pendant ce temps, ils n'attaquent plus. Sans place libre, ils restent libres.",
+		}
 	case "huilerie":
 		return []string{
 			"L'huilerie ne reçoit pas de clients et ne prend pas de commandes : tout part en camion.",
