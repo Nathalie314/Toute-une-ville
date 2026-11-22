@@ -96,6 +96,10 @@ type drawable struct {
 
 func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	staffPlace = p.ID
+	theftPlace = ""
+	if th := g.sim.Theft; th != nil {
+		theftPlace = th.Place
+	}
 	cam = g.worldView(scr.K)
 	t := g.t
 	// --- herbe et décor au sol
@@ -221,6 +225,12 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 			continue
 		}
 		ds = append(ds, drawable{x: v.Pos.X, y: v.Pos.Y + 20, fn: func() { drawVehicle(dst, v) }})
+	}
+	if th := g.sim.TheftAt(p.ID); th != nil {
+		for _, r := range th.Robbers {
+			r := r
+			ds = append(ds, drawable{x: r.Pos.X, y: r.Pos.Y, fn: func() { drawRobber(dst, r, t) }})
+		}
 	}
 	if g.sim.Cur == p {
 		pl := g.sim.Player
@@ -1446,8 +1456,16 @@ func drawPerson(dst *ebiten.Image, pos, face V, walkT float64, moving bool, lk l
 }
 
 func drawAgent(dst *ebiten.Image, place string, a *sim.Agent, t float64) {
+	if a.Hidden {
+		return // (réfugié au vestiaire : des voleurs)
+	}
 	lk := staffLook(place, a.Kind, a.Look)
 	lk.crate = place != "ferme"
+	if place == theftPlace { // des voleurs : ceux qui sont restés lèvent les bras
+		lk.armsUp = true
+		drawPerson(dst, a.Pos, a.Face, 0, false, lk, nil)
+		return
+	}
 	if a.Kind == sim.WorkerAgent && a.Settled && !a.Moving {
 		drawBored(dst, a, lk, t)
 		return

@@ -1307,6 +1307,11 @@ func (g *game) drawMap(dst *ebiten.Image) {
 			roundRect(dst, x+8, by, 40, 40, 10, rgba(0x2b2140, 0.85))
 			say(dst, k, x+28, by+21, 24, true, 0, rgb(0xffe066))
 		}
+		if vol := g.sim.Theft; vol != nil && (vol.Place == tl.place || vol.Place == tl.id) {
+			k := 0.5 + 0.5*math.Sin(g.t*6)
+			roundRect(dst, x+tw/2-tw*0.3, y+th-30-3*k, tw*0.6, 36, 12, rgb(0xd9342b))
+			sayFit(dst, "Des voleurs !", x+tw/2, y+th-12-3*k, 16, true, 0, tw*0.58, rgb(0xffffff))
+		}
 		if o := g.sim.Order; o != nil && (o.Place() == tl.place || o.Place() == tl.id) {
 			// la commande en cours est à livrer ici
 			k := 0.5 + 0.5*math.Sin(g.t*4)

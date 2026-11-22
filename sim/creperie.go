@@ -600,8 +600,12 @@ func (p *Place) stepCreperie(dt float64, active bool) {
 	cp := p.Crep
 	g := p.g
 	p.crepWaiters()
+	robbed := p.robbed() // (des voleurs : personne n'arrive, les serveurs lèvent les bras)
 	// une nouvelle voiture
 	p.spawnT -= dt
+	if robbed {
+		p.spawnT = math.Max(p.spawnT, 1)
+	}
 	if p.spawnT <= 0 {
 		p.spawnT = (4 + 4*p.rand()) / (1 + p.ptsF("pts_reclame"))
 		alive := 0
@@ -625,6 +629,10 @@ func (p *Place) stepCreperie(dt float64, active bool) {
 	}
 	cp.Groups = alive
 	for _, w := range cp.Waiters {
+		if robbed {
+			w.A.Moving = false
+			continue
+		}
 		p.stepWaiter(w, dt)
 	}
 	if active && g.Player != nil {

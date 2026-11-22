@@ -143,6 +143,7 @@ type Agent struct {
 	Bored   float64
 	Mood    int
 	Settled bool
+	Hidden  bool // réfugié au vestiaire pendant un vol
 
 	tick   float64
 	target V
@@ -549,14 +550,22 @@ func (p *Place) step(dt float64, active bool) {
 	if active && g.Player != nil {
 		p.interact(g.Player, dt)
 	}
-	// employés
+	// employés (pendant un vol : ils se réfugient au vestiaire)
 	p.syncStaff()
+	robbed := p.robbed()
 	for _, w := range p.Workers {
+		if robbed {
+			p.hideWorker(w, dt)
+			continue
+		}
 		p.workerAI(w, dt)
 		p.interact(w, dt)
 	}
-	// clients
+	// clients (pas de nouveaux pendant un vol)
 	p.spawnT -= dt
+	if robbed {
+		p.spawnT = math.Max(p.spawnT, 1)
+	}
 	if p.ID == "super" {
 		p.syncBarriers()
 		if p.spawnT <= 0 {

@@ -177,6 +177,9 @@ func (g *Game) stepTrucks(dt float64) {
 			if !g.DockActive(dock) {
 				continue
 			}
+			if g.TheftAt(from.ID) != nil || g.TheftAt(dock.To) != nil {
+				continue // (des voleurs : plus aucun camion ne bouge, au départ comme à l'arrivée)
+			}
 			key := dock.ID + "@" + dock.place
 			g.TruckT[key] += dt * g.boostF("garage", "") // (cadeau du garagiste)
 			if g.TruckT[key] < every {

@@ -124,6 +124,7 @@ func TopRow() []string {
 type eventGroup struct {
 	poids float64
 	gen   func() *Order
+	vol   bool // les voleurs (gen est nil : on lance un vol)
 }
 
 // eventGroups : les groupes possibles dans ce lieu (vide : rien ne s'y passe encore).
@@ -132,24 +133,28 @@ func (g *Game) eventGroups(id string) []eventGroup {
 	owned := func(id string) bool { q := g.Place(id); return q != nil && q.Owned }
 	switch id { // les particuliers : dans les lieux qui vendent et prennent des commandes
 	case "ferme":
-		gs = append(gs, eventGroup{poidsGroupe, g.farmOrder})
+		gs = append(gs, eventGroup{poidsGroupe, g.farmOrder, false})
 	case "boulangerie", "cremerie", "glacier", "exotique", "port", "domaine", "patisserie", "boucherie":
-		gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.shopOrder(id) }})
+		gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.shopOrder(id) }, false})
 	}
 	if owned("ecole") { // la cantine de l'école
 		switch id {
 		case "boulangerie", "cremerie", "glacier", "creperie":
-			gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.schoolOrder(id) }})
+			gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.schoolOrder(id) }, false})
 		}
 	}
 	if owned("parc") && g.parcOrderAt(id) != nil { // le parc d'attractions
-		gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.parcOrderAt(id) }})
+		gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.parcOrderAt(id) }, false})
+	}
+	if g.thievesActive() { // les voleurs : partout, dès que le supermarché est ouvert
+		gs = append(gs, eventGroup{float64(g.Thieves()), nil, true})
 	}
 	return gs
 }
 
-// nextEvent : tire au sort le lieu, puis le groupe, et fabrique la commande.
-func (g *Game) nextEvent() *Order {
+// nextEvent : tire au sort le lieu, puis le groupe, et fabrique la commande (ou lance un vol :
+// elle renvoie alors nil et vol à vrai).
+func (g *Game) nextEvent() (o *Order, vol bool) {
 	var places []string
 	for _, id := range TopRow() {
 		if q := g.Place(id); q != nil && q.Owned && len(g.eventGroups(id)) > 0 {
@@ -157,7 +162,7 @@ func (g *Game) nextEvent() *Order {
 		}
 	}
 	if len(places) == 0 {
-		return g.farmOrder()
+		return g.farmOrder(), false
 	}
 	id := places[g.rng.Intn(len(places))]
 	gs := g.eventGroups(id)
@@ -166,18 +171,28 @@ func (g *Game) nextEvent() *Order {
 		tot += e.poids
 	}
 	r := g.rng.Float64() * tot
+	pick := gs[len(gs)-1]
 	for _, e := range gs {
 		if r -= e.poids; r < 0 {
-			return e.gen()
+			pick = e
+			break
 		}
 	}
-	return gs[len(gs)-1].gen()
+	if pick.vol {
+		g.startTheft(id)
+		return nil, true
+	}
+	return pick.gen(), false
 }
 
 // eventGap : l'attente avant le prochain événement.
 func (g *Game) eventGap() float64 { return eventGapMin + (eventGapMax-eventGapMin)*g.rng.Float64() }
 
 func (g *Game) stepOrders(dt float64) {
+	if g.Theft != nil { // (un seul événement à la fois : le vol en cours)
+		g.stepTheft(dt)
+		return
+	}
 	if g.Order != nil {
 		_, box := g.orderBox(g.Order)
 		g.Order.Left -= dt
@@ -228,7 +243,10 @@ func (g *Game) stepOrders(dt float64) {
 	}
 	var o *Order
 	for try := 0; try < 6; try++ {
-		o = g.nextEvent()
+		var vol bool
+		if o, vol = g.nextEvent(); vol {
+			return // (des voleurs : stepTheft prend la suite)
+		}
 		if o == nil {
 			o = g.farmOrder()
 		}

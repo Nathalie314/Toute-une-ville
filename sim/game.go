@@ -129,6 +129,7 @@ type incomeRec struct {
 }
 
 type Game struct {
+	Theft    *Theft                  // le vol en cours (événements ; pas sauvegardé)
 	comingTo map[string]*[NItems]int // (palletRoom : ce qui arrive vers chaque lieu, recalculé à chaque pas)
 	comingT  float64
 	stepping string // lieu en train d'avancer (pour les événements)

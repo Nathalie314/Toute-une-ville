@@ -1665,3 +1665,15 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   - Prix : le rang qui fixe les prix est celui de la rangée du haut (PriceRank : 1 ferme, 2 supermarché, 3 crèmerie,
     4 ferme exotique…) ; l'école et les lieux de la rangée du bas n'y comptent plus. scaleFrom 4, palierFrom 3 :
     les montants ne changent pas (l'école était déjà hors de la courbe) ; « le 4e lieu » = la ferme exotique.
+- ÉVÉNEMENTS, étape 2 : LES VOLEURS (sim/theft.go, theft_draw.go). Dès que le supermarché est ouvert, les voleurs
+  sont un groupe du tirage dans tous les lieux de la rangée du haut : 50 + 5 par lieu débloqué en haut. Un vol dure
+  [lieux débloqués en haut] minutes (2 avec la ferme et le supermarché). Dans le lieu : les clients fuient sans
+  payer en jetant leurs achats (fleeCustomer ; crêperie : crepLeave ; parc : parcFlee, attractions et caisses
+  arrêtées), personne n'arrive ; les ouvriers courent au vestiaire et disparaissent (Agent.Hidden) ; caissières,
+  serveurs de la crêperie, employés des attractions lèvent les bras (dessin) ; les drones jettent leur chargement
+  et restent posés ; les camions de ce lieu (départ ou arrivée) ne bougent plus ; champs et animaux continuent.
+  Cinq voleurs en noir, visage découvert (casquette, pied-de-biche, sac de butin), vont de caisse en caisse : chaque
+  caisse est vidée une fois, d'une minute des gains du lieu (EarningsByPlace, dans la limite de l'argent du joueur).
+  Sans caisse (élevage, huilerie) : ils rôdent. Bandeau rouge « Vol en cours » à la place de la commande, « Des
+  voleurs ! » sur la tuile de la carte. Un vol n'est pas sauvegardé ; un seul événement à la fois (le suivant 1 à
+  10 min après). Outil : CAPVOL=1 (captures). Test : TestVol.

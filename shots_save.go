@@ -105,6 +105,9 @@ func newSaveShots(dir, file string) *saveShots {
 					k := k
 					s.queue = append(s.queue, func(g *game) string {
 						g.goPlace(p)
+						if k == 0 && os.Getenv("CAPVOL") != "" { // CAPVOL=1 : des voleurs attaquent le lieu
+							g.sim.StartTheft(p.ID)
+						}
 						if k > 0 {
 							for t := 0.0; t < envF("CAPDT", 3); t += 1.0 / 30 {
 								g.sim.Step(1.0 / 30)
