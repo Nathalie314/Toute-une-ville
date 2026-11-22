@@ -225,11 +225,23 @@ func NewGame() *Game {
 }
 
 // MapOrder : les lieux dans l'ordre de la carte de la ville (ui.go, drawMap). Il
-// fixe l'ordre des listes (points d'école…) et le rang de chaque lieu, qui fixe
-// ses prix (PlaceScale). Un nouveau lieu se met ici, à sa place sur la carte.
+// fixe l'ordre des listes (points d'école…) ; les prix suivent PriceRank (la rangée
+// du haut, sans l'école). Un nouveau lieu se met ici, à sa place sur la carte.
 var MapOrder = []string{"ferme", "ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "port", "elevage", "boucherie", "domaine", "creperie", "patisserie", "parc", "huilerie"}
 
-// MapRank : position du lieu sur la carte (1 : ma ferme) ; 0 si inconnu.
+// PriceRank : le rang du lieu dans la rangée du haut de la carte (les lieux qui rapportent ou
+// produisent : 1 ma ferme, 2 le supermarché, 3 la crèmerie…) ; c'est lui qui fixe les prix.
+// L'école, le commissariat, la prison, l'hôpital (rangée du bas) : 0, hors du calcul des prix.
+func PriceRank(id string) int {
+	for i, m := range TopRow() {
+		if m == id {
+			return i + 1
+		}
+	}
+	return 0
+}
+
+// MapRank : position du lieu dans MapOrder (l'ordre des listes) ; 0 si inconnu.
 func MapRank(id string) int {
 	for i, m := range MapOrder {
 		if m == id {

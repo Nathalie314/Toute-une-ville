@@ -1262,7 +1262,6 @@ func (g *game) drawMap(dst *ebiten.Image) {
 	services := []tile{
 		g.placeTile("ecole", "École", 0xf1c40f),
 		{id: "commissariat", name: "Commissariat", status: "Bientôt", col: 0x2b4f8a},
-		{id: "tribunal", name: "Tribunal", status: "Bientôt", col: 0x8a6a3a},
 		{id: "prison", name: "Prison", status: "Bientôt", col: 0x5d6d7e},
 		{id: "hopital", name: "Hôpital", status: "Bientôt", col: 0xe74c3c},
 	}

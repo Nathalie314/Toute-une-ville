@@ -550,7 +550,7 @@ func (g *Game) SourceOf(it Item) string {
 func (g *Game) superSource(it Item) (string, float64) {
 	id := g.SourceOf(it)
 	q := g.Place(id)
-	if q == nil || MapRank(id) < palierFrom {
+	if q == nil || PriceRank(id) < palierFrom {
 		return id, 0
 	}
 	return id, q.Price

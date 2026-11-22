@@ -21,7 +21,7 @@ import (
 // (produits plus chers) : chaque lieu doit à peu près doubler les revenus.
 
 const (
-	scaleFrom   = 5      // premier rang dont les prix suivent la courbe (la ferme exotique)
+	scaleFrom   = 4      // premier rang dont les prix suivent la courbe (la ferme exotique)
 	priceFrom   = 500000 // prix d'achat du lieu de rang scaleFrom
 	scaleFactor = 2.0    // d'un lieu au suivant
 	// refContent : le prix total du contenu de la crèmerie (lieu de rang scaleFrom-1) quand la
@@ -63,7 +63,7 @@ const palier = 1.2
 // palierFrom : premier rang soumis à la règle (la crèmerie ; la ferme et l'école, lieux de départ
 // avec le tutoriel, gardent leurs prix ; le supermarché suit les lieux qui le fournissent :
 // voir superPrices).
-const palierFrom = 4
+const palierFrom = 3
 
 // extension : budget en plus d'un lieu agrandi après coup (1 : aucun).
 var extension = map[string]float64{}
@@ -157,7 +157,7 @@ func (p *Place) contentCost() float64 {
 func (g *Game) applyMapPrices() {
 	ref := refContent
 	for _, p := range g.Places {
-		r := MapRank(p.ID)
+		r := PriceRank(p.ID)
 		if r < palierFrom || ref <= 0 {
 			continue
 		}

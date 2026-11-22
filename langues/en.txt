@@ -1893,7 +1893,6 @@ Récolter 100 homards. = Harvest 100 lobsters.
 Le second ponton, plus au sud, a huit bassins : bigorneaux, palourdes, crabes, tourteaux, araignées de mer, langoustines, homards et langoustes, chacun avec sa drague. = The second pier, further south, has eight ponds: periwinkles, clams, crabs, brown crabs, spider crabs, langoustines, lobsters and spiny lobsters, each with its own dredge.
 LAIT = MILK
 Commissariat = Police station
-Tribunal = Courthouse
 Mme Lambert = Mrs. Lambert
 M. Fournier = Mr. Fournier
 la famille Garcia = the Garcia family

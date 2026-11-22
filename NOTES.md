@@ -1654,11 +1654,14 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   (ils attaquent par 5) ; un vol dure [lieux débloqués de la rangée du haut] minutes ; événements seulement en jeu,
   mais garde à vue (2 h) et prison (12 h) comptent hors ligne ; les prix gardent le rang de MapOrder.
   - Carte : en haut, 3 rangées de 7 pour les lieux qui rapportent ou produisent (ferme, supermarché, crèmerie…,
-    puis pizzeria, fleuriste, restaurant, hôtel, zoo à venir) ; en bas, à part : école, commissariat, tribunal,
-    prison, hôpital (bientôt).
+    puis pizzeria, fleuriste, restaurant, hôtel, zoo à venir) ; en bas, à part : école, commissariat, prison,
+    hôpital (bientôt ; pas de tribunal).
   - Événements (orders.go) : un seul à la fois, le suivant 1 à 10 min après la fin du précédent (cadeau compris).
     On tire au sort un lieu débloqué de la rangée du haut (TopRow), tous à égalité, parmi ceux où un groupe peut
     se manifester ; puis le groupe selon son poids : particuliers 50 (lieux qui vendent : ferme, boulangerie,
     crèmerie, glacier, exotique, port, domaine, pâtisserie, boucherie), cantine de l'école 50 (boulangerie,
     crèmerie, glacier, crêperie), parc 50 (ferme, exotique, glacier, crêperie : parcOrderAt). 50 particuliers
     (7 noms ajoutés). Avant : une source tirée parmi une liste, toutes les 3 à 5 min.
+  - Prix : le rang qui fixe les prix est celui de la rangée du haut (PriceRank : 1 ferme, 2 supermarché, 3 crèmerie,
+    4 ferme exotique…) ; l'école et les lieux de la rangée du bas n'y comptent plus. scaleFrom 4, palierFrom 3 :
+    les montants ne changent pas (l'école était déjà hors de la courbe) ; « le 4e lieu » = la ferme exotique.
