@@ -1898,12 +1898,12 @@ func (g *game) backTruck(dst *ebiten.Image, p *sim.Place) {
 		return
 	}
 	e := every - best
-	truckFrom = fromID
+	truckFrom, truckTo = fromID, p.ID
 	ty := 60.0 - p.Lift // (crèmerie : la route du haut est montée avec le bâtiment)
 	if p.ID == "creperie" {
 		ty = sim.CrepTop + 85 // (sa route est au-dessus de la cuisine)
 	}
-	defer func() { truckFrom = "ferme" }()
+	defer func() { truckFrom, truckTo = "ferme", "" }()
 	stop := 260.0
 	if p.ID == "super" {
 		stop = superTruckStop(fromID) // il s'arrête derrière son espace
@@ -1969,9 +1969,16 @@ func (g *game) workshopGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 // truckFrom : lieu d'où part le camion qu'on dessine (son nom est sur le flanc).
 var truckFrom = "ferme"
 
+// truckTo : lieu où va le camion qu'on dessine ("" : peu importe).
+var truckTo = ""
+
 func drawTruck(dst *ebiten.Image, cx, cy float64, busy bool) {
 	if truckFrom == "elevage" {
 		drawFridgeTruck(dst, cx, cy, busy) // la viande voyage au froid
+		return
+	}
+	if truckFrom == "ferme" && truckTo == "cremerie" {
+		drawMilkTruck(dst, cx, cy, busy) // la ferme n'envoie que du lait à la crèmerie
 		return
 	}
 	ellipse(dst, cx, cy+38, 120, 10, rgba(0x000000, 0.25))
@@ -1981,6 +1988,34 @@ func drawTruck(dst *ebiten.Image, cx, cy float64, busy bool) {
 		label = "MA FERME"
 	}
 	sayFit(dst, label, cx-40, cy-6, 20, true, 0, 150, rgb(0x2fa86b))
+	roundRect(dst, cx+40, cy-22, 70, 54, 10, rgb(0x2fa86b))
+	rect(dst, cx+66, cy-14, 34, 20, rgb(0x9fd3ff))
+	for _, wx := range []float64{-85, -10, 80} {
+		circle(dst, cx+wx, cy+34, 15, rgb(0x2b2b2b))
+		circle(dst, cx+wx, cy+34, 6, rgb(0x999999))
+	}
+	if busy {
+		circle(dst, cx+118, cy+10, 6, rgb(0xffd23f))
+	}
+}
+
+// drawMilkTruck : le camion-citerne de lait (de la ferme à la crèmerie), vu de côté, comme drawTruck.
+func drawMilkTruck(dst *ebiten.Image, cx, cy float64, busy bool) {
+	ellipse(dst, cx, cy+38, 120, 10, rgba(0x000000, 0.25))
+	rect(dst, cx-118, cy+18, 160, 12, rgb(0x5a5f66)) // le châssis
+	// la citerne : un grand cylindre d'inox, couché
+	roundRect(dst, cx-122, cy-44, 166, 66, 33, rgb(0xc9d3dc))
+	roundRect(dst, cx-116, cy-40, 154, 22, 11, rgb(0xeef3f7)) // le reflet
+	for _, x := range []float64{-70, -10} {                   // les cerclages
+		rect(dst, cx+x, cy-44, 5, 66, rgb(0xa9b6c2))
+	}
+	for _, x := range []float64{-95, -40} { // les trous d'homme, sur le dessus
+		roundRect(dst, cx+x, cy-52, 22, 10, 4, rgb(0x8a97a4))
+	}
+	roundRect(dst, cx-100, cy-16, 120, 26, 8, rgba(0xffffff, 0.9))
+	say(dst, "LAIT", cx-40, cy-3, 18, true, 0, rgb(0x2b5a8a))
+	sayFit(dst, "MA FERME", cx-40, cy+14, 12, true, 0, 100, rgb(0x2fa86b))
+	// la cabine, comme les autres camions de la ferme
 	roundRect(dst, cx+40, cy-22, 70, 54, 10, rgb(0x2fa86b))
 	rect(dst, cx+66, cy-14, 34, 20, rgb(0x9fd3ff))
 	for _, wx := range []float64{-85, -10, 80} {
@@ -2179,8 +2214,8 @@ func (g *game) drawDock(dst *ebiten.Image, s *sim.Station) {
 	}
 	left := g.sim.TruckLeft(s)
 	every := g.sim.DockEvery(s)
-	truckFrom = s.PlaceID()
-	defer func() { truckFrom = "ferme" }()
+	truckFrom, truckTo = s.PlaceID(), s.To
+	defer func() { truckFrom, truckTo = "ferme", "" }()
 	e := every - left // temps depuis le dernier départ
 	x0, y0 := b.C().X, b.Y+90
 	truck := func(x float64) {
