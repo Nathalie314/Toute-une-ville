@@ -94,6 +94,14 @@ func (g *game) policeGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 			}
 		}
 	}
+	// les couloirs, entre les deux rangées (ils partent des portes de côté du hall)
+	cy := sim.PolCorridorY()
+	for _, r := range []sim.Rect{{X: wing.X - 10, Y: cy, W: wing.W + sim.PolGap + 10, H: sim.PolCorH}, {X: hall.X + hall.W, Y: cy, W: cells.W + sim.PolGap + 10, H: sim.PolCorH}} {
+		rect(dst, r.X, r.Y+20, r.W, r.H-40, rgb(0xd9d6ce))
+		for x := r.X; x < r.X+r.W; x += 80 {
+			rect(dst, x, r.Y+r.H/2-2, 40, 4, rgba(0xb8b4aa, 0.8))
+		}
+	}
 	for n := 1; n <= sim.PolOffices(); n++ { // les bureaux : moquette (grisée tant qu'ils ne sont pas construits)
 		r := sim.PolCapOffice(n)
 		c := rgb(0x9aa8bd)
@@ -112,14 +120,14 @@ func (g *game) policeGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	}
 	// les murs (avec leurs portes)
 	wall := rgb(0x4a505a)
-	for _, x := range []float64{off.X - sim.PolGap/2, off.X + off.W + sim.PolGap/2} {
-		rect(dst, x-14, by+40, 28, bh-80, wall)
-		rect(dst, x-14, hall.Y+hall.H/2-60, 28, 120, rgb(0xd6d2c8)) // (la porte, côté hall)
+	for _, x := range []float64{off.X - sim.PolGap/2, off.X + off.W + sim.PolGap/2} { // (une porte sur chaque couloir)
+		rect(dst, x-14, by+40, 28, cy+20-by-40, wall)
+		rect(dst, x-14, cy+sim.PolCorH-20, 28, by+bh-40-(cy+sim.PolCorH-20), wall)
 	}
 	rect(dst, off.X, off.Y+off.H+6, off.W/2-70, 10, wall)
 	rect(dst, off.X+off.W/2+70, off.Y+off.H+6, off.W/2-70, 10, wall)
 	say(dst, "BUREAU DU COMMISSAIRE", off.C().X, off.Y+24, 20, true, 0, rgba(0x4a3a22, 0.75))
-	say(dst, "HALL", hall.C().X, hall.Y+hall.H-24, 20, true, 0, rgba(0x2b3a5a, 0.7))
+	say(dst, "HALL", hall.C().X, hall.Y+24, 20, true, 0, rgba(0x2b3a5a, 0.7))
 	say(dst, "BUREAUX DES CAPITAINES", wing.C().X, by+28, 20, true, 0, rgba(0xffffff, 0.85))
 	say(dst, "GARDE À VUE", cells.C().X, by+28, 20, true, 0, rgba(0xffffff, 0.85))
 	// la case de la vidéosurveillance (le menu des capitaines)
@@ -173,10 +181,11 @@ func (g *game) policeDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable) [
 	}})
 	// le hall : le comptoir d'accueil, deux plantes vertes
 	hx := hall.C().X
-	ds = append(ds, drawable{x: hx, y: hall.Y + 110, fn: func() {
-		roundRect(dst, hx-200, hall.Y+40, 400, 70, 10, rgb(0x7a8ca8))
-		rect(dst, hx-190, hall.Y+46, 380, 12, rgb(0x9fb0c8))
-		say(dst, "ACCUEIL", hx, hall.Y+85, 20, true, 0, rgb(0xffffff))
+	ay := sim.PolCorridorY() + sim.PolCorH - hall.Y + 30 // (sous le passage d'un couloir à l'autre)
+	ds = append(ds, drawable{x: hx, y: hall.Y + ay + 70, fn: func() {
+		roundRect(dst, hx-200, hall.Y+ay, 400, 70, 10, rgb(0x7a8ca8))
+		rect(dst, hx-190, hall.Y+ay+6, 380, 12, rgb(0x9fb0c8))
+		say(dst, "ACCUEIL", hx, hall.Y+ay+45, 20, true, 0, rgb(0xffffff))
 	}})
 	for _, x := range []float64{hall.X + 50, hall.X + hall.W - 50} {
 		x := x
@@ -231,14 +240,23 @@ func (g *game) policeDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable) [
 		in := min(left, sim.PolCellCap)
 		left -= in
 		for k := 0; k < in; k++ {
-			rb := &sim.Robber{Pos: V{X: r.X + 30 + float64(k%3)*55, Y: r.Y + 150 + float64(k/3)*80}, Face: V{Y: 1}, Look: 31*n + 7*k}
+			y0 := r.Y + 110 // (au fond de la cellule, loin des barreaux)
+			if n > 5 {
+				y0 = r.Y + 210
+			}
+			rb := &sim.Robber{Pos: V{X: r.X + 30 + float64(k%3)*55, Y: y0 + float64(k/3)*80}, Face: V{Y: 1}, Look: 31*n + 7*k}
 			ds = append(ds, drawable{x: rb.Pos.X, y: rb.Pos.Y, fn: func() { drawRobber(dst, rb, t) }})
 		}
+		top := n <= 5 // (les barreaux du côté du couloir)
 		ds = append(ds, drawable{x: r.C().X, y: r.Y + r.H, fn: func() {
-			for x := r.X + 8; x < r.X+r.W; x += 22 {
-				rect(dst, x, r.Y+r.H-120, 5, 120, rgb(0x3a3f47))
+			by := r.Y + r.H - 120
+			if !top {
+				by = r.Y
 			}
-			rect(dst, r.X, r.Y+r.H-124, r.W, 8, rgb(0x3a3f47))
+			for x := r.X + 8; x < r.X+r.W; x += 22 {
+				rect(dst, x, by, 5, 120, rgb(0x3a3f47))
+			}
+			rect(dst, r.X, by-4, r.W, 8, rgb(0x3a3f47))
 		}})
 	}
 	// les voitures garées (achetées, pas en patrouille)

@@ -29,23 +29,26 @@ import (
 
 // Géométrie du commissariat.
 const (
-	PolBldY    = 700.0                 // le bâtiment, seul au-dessus de la route
-	PolBldH    = 800.0                 //
-	PolParkY   = 1880.0                // sous la route : la zone du joueur à gauche, le parking des voitures à droite
-	PolYardX   = 300.0                 // le bord gauche de la zone du joueur (à l'horizontale, 2150 de large)
-	PolParkX0  = PolYardX + 2150 + 200 // le bord gauche du parking
-	PolParkH   = 540.0                 // (sous chaque place : la case de son lieutenant)
-	PolParkM   = 270.0                 // de la place à gauche et à droite des voitures (la case des patrouilles à droite)
-	PolBayW    = 300.0                 // une place de parking
-	PolBayGap  = 140.0                 // (de la place entre deux voitures : le jeu reste aéré)
-	PolRoomW   = 640.0                 // le bureau du commissaire, le hall
-	PolOffW    = 300.0                 // un bureau de capitaine (deux rangées)
-	PolOffH    = 330.0                 //
-	PolCellW   = 170.0                 // une cellule de garde à vue (deux rangées de cinq)
-	PolCellH   = 330.0                 //
-	PolCellN   = 10                    // cellules au plus (quel que soit le nombre de bureaux)
-	PolCellCap = 5                     // voleurs par cellule
-	PolGap     = 60.0                  // l'épaisseur des murs entre les pièces
+	PolBldY    = 480.0                                 // le bâtiment, seul au-dessus de la route
+	PolBldH    = 60 + PolOffH + PolCorH + PolOffH + 60 // deux rangées de pièces, un couloir entre les deux
+	PolCorH    = 200.0                                 // le couloir (bureaux des capitaines, garde à vue)
+	PolOffGap  = 50.0                                  // entre deux bureaux de capitaines
+	PolCellGap = 34.0                                  // entre deux cellules
+	PolParkY   = 1880.0                                // sous la route : la zone du joueur à gauche, le parking des voitures à droite
+	PolYardX   = 300.0                                 // le bord gauche de la zone du joueur (à l'horizontale, 2150 de large)
+	PolParkX0  = PolYardX + 2150 + 200                 // le bord gauche du parking
+	PolParkH   = 540.0                                 // (sous chaque place : la case de son lieutenant)
+	PolParkM   = 270.0                                 // de la place à gauche et à droite des voitures (la case des patrouilles à droite)
+	PolBayW    = 300.0                                 // une place de parking
+	PolBayGap  = 140.0                                 // (de la place entre deux voitures : le jeu reste aéré)
+	PolRoomW   = 640.0                                 // le bureau du commissaire, le hall
+	PolOffW    = 300.0                                 // un bureau de capitaine (deux rangées)
+	PolOffH    = 330.0                                 //
+	PolCellW   = 170.0                                 // une cellule de garde à vue (deux rangées de cinq)
+	PolCellH   = 330.0                                 //
+	PolCellN   = 10                                    // cellules au plus (quel que soit le nombre de bureaux)
+	PolCellCap = 5                                     // voleurs par cellule
+	PolGap     = 60.0                                  // l'épaisseur des murs entre les pièces
 )
 
 // survRank : le rang (dans la rangée du haut) du lieu que protège en théorie le bureau n° n :
@@ -75,7 +78,7 @@ func polOffCols() int { return max(1, (PolOffices()+1)/2) }
 
 // polSide : la largeur d'une aile (les bureaux à gauche, les cellules à droite : la plus large des deux).
 func polSide() float64 {
-	return math.Max(float64(polOffCols())*(PolOffW+20)-20, 5*(PolCellW+16)-16)
+	return math.Max(float64(polOffCols())*(PolOffW+PolOffGap)-PolOffGap, 5*(PolCellW+PolCellGap)-PolCellGap)
 }
 
 // PolBldW : la largeur du bâtiment : au centre, le commissaire (en haut) et le hall (en bas) ;
@@ -95,12 +98,12 @@ func PolOffice() Rect { return Rect{polCX() - PolRoomW/2, PolBldY + 60, PolRoomW
 
 // PolHall : le hall, sous son bureau (la porte, l'accueil, la case de la vidéosurveillance).
 func PolHall() Rect {
-	return Rect{polCX() - PolRoomW/2, PolBldY + 60 + PolOffH + 20, PolRoomW, PolBldH - 140 - PolOffH}
+	return Rect{polCX() - PolRoomW/2, PolBldY + 60 + PolOffH + 20, PolRoomW, PolCorH + PolOffH - 20} // (jusqu'en bas : ses portes de côté donnent sur les couloirs)
 }
 
 // PolWing : l'aile des bureaux des capitaines (à gauche).
 func PolWing() Rect {
-	w := float64(polOffCols())*(PolOffW+20) - 20
+	w := float64(polOffCols())*(PolOffW+PolOffGap) - PolOffGap
 	return Rect{polCX() - PolRoomW/2 - PolGap - w, PolBldY + 60, w, PolBldH - 120}
 }
 
@@ -108,23 +111,26 @@ func PolWing() Rect {
 func PolCapOffice(n int) Rect {
 	w := PolWing()
 	c, r := (n-1)/2, (n-1)%2
-	return Rect{w.X + w.W - PolOffW - float64(c)*(PolOffW+20), w.Y + float64(r)*(PolOffH+20), PolOffW, PolOffH}
+	return Rect{w.X + w.W - PolOffW - float64(c)*(PolOffW+PolOffGap), w.Y + float64(r)*(PolOffH+PolCorH), PolOffW, PolOffH}
 }
 
 // PolCells : la garde à vue (à droite).
 func PolCells() Rect {
-	return Rect{polCX() + PolRoomW/2 + PolGap, PolBldY + 60, 5*(PolCellW+16) - 16, PolBldH - 120}
+	return Rect{polCX() + PolRoomW/2 + PolGap, PolBldY + 60, 5*(PolCellW+PolCellGap) - PolCellGap, PolBldH - 120}
 }
 
 // PolCell : la cellule n° n (1 à 10), du centre vers la droite, en haut puis en bas.
 func PolCell(n int) Rect {
 	a := PolCells()
 	c, r := (n-1)%5, (n-1)/5
-	return Rect{a.X + float64(c)*(PolCellW+16), a.Y + float64(r)*(PolCellH+20), PolCellW, PolCellH}
+	return Rect{a.X + float64(c)*(PolCellW+PolCellGap), a.Y + float64(r)*(PolCellH+PolCorH), PolCellW, PolCellH}
 }
 
 // PolVideoZone : la case du hall qui ouvre le menu de la vidéosurveillance.
 func PolVideoZone() Rect { h := PolHall(); return Rect{h.C().X - 110, h.Y + h.H - 190, 220, 150} }
+
+// PolCorridorY : le haut des couloirs (entre les deux rangées de bureaux et de cellules).
+func PolCorridorY() float64 { return PolBldY + 60 + PolOffH }
 
 // PolDoor : la porte du bâtiment (en bas, au milieu du hall).
 func PolDoor() V { return V{PolHall().C().X, PolBldY + PolBldH} }
