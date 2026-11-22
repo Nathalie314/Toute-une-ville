@@ -1678,3 +1678,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   voleurs ! » sur la tuile de la carte. Un vol n'est pas sauvegardé ; un seul événement à la fois (le suivant 1 à
   10 min après). Outil : CAPVOL=1 (captures). Test : TestVol.
 - Vol sauvegardé (Save.Vol : lieu, temps restant, caisses déjà vidées) et en pause jeu fermé : quitter puis revenir ne chasse plus les voleurs (« Les voleurs sont toujours là… »). Test : TestVolSauvegarde.
+- Hors ligne pendant un vol : le lieu attaqué ne compte pas dans les gains d'absence (RateOffline l'exclut, comme la crêperie et le parc) ; il reste arrêté, le vol reprend au retour. Test : TestVolHorsLigne.

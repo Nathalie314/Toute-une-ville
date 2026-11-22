@@ -54,3 +54,18 @@ func TestVolSauvegarde(t *testing.T) {
 		t.Fatalf("le vol n'a pas repris : %+v (il restait %v s)", g2.Theft, left)
 	}
 }
+
+// TestVolHorsLigne : pendant un vol, le lieu attaqué ne rapporte rien hors ligne.
+func TestVolHorsLigne(t *testing.T) {
+	g := NewGame()
+	g.Place("super").Owned = true
+	g.Enter(g.Place("ferme"))
+	g.T = 600
+	g.earn(30000, V{}, "ferme") // (la ferme a gagné autant que le supermarché ces dernières minutes)
+	g.earn(30000, V{}, "super")
+	avant := g.RateOffline()
+	g.StartTheft("ferme")
+	if apres := g.RateOffline(); avant <= 0 || apres > avant*0.51 {
+		t.Fatalf("gains hors ligne pendant un vol à la ferme : %.2f €/s (avant : %.2f)", apres, avant)
+	}
+}

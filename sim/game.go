@@ -325,8 +325,12 @@ func (g *Game) RateLong() float64 { return g.rateOver(900) }
 func (g *Game) RateOffline() float64 {
 	r := g.rateOver(900)
 	crep := 0.0
+	vol := ""
+	if g.Theft != nil {
+		vol = g.Theft.Place // (des voleurs : ce lieu reste arrêté pendant l'absence, le vol reprendra au retour)
+	}
 	for _, x := range g.income {
-		if (x.place == "creperie" || x.place == "parc") && x.t >= g.T-900 {
+		if (x.place == "creperie" || x.place == "parc" || (vol != "" && x.place == vol)) && x.t >= g.T-900 {
 			crep += x.a
 		}
 	}
