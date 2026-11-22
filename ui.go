@@ -1298,6 +1298,9 @@ func (g *game) drawMap(dst *ebiten.Image) {
 		if pl := g.sim.Place(tl.place); pl != nil && tl.place != "ferme" {
 			hot = (!pl.Owned && g.sim.Money >= g.sim.PriceOf(pl)) || (pl.Owned && g.canBuyPlace(pl))
 		}
+		if !tl.open {
+			hot = false // (un lieu fermé, qu'on ne peut pas encore acheter : le commissariat avant le supermarché)
+		}
 		if hot {
 			glow(dst, x, y, tw, th, g.t)
 		}
