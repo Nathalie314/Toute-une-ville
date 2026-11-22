@@ -343,6 +343,7 @@ type Place struct {
 	Vestiaire      Rect      // porte du vestiaire : on s'y arrête pour ouvrir la page « Personnage »
 	Parc           *Parc     // parc d'attractions : attractions, caisses, visiteurs
 	Crep           *Creperie // crêperie : tables, clients, serveurs
+	Pol            *Police   // commissariat : commissaire, lieutenants
 
 	spawnT   float64
 	queueSeq int
@@ -448,6 +449,10 @@ func (p *Place) step(dt float64, active bool) {
 	}
 	if p.ID == "parc" {
 		p.stepParc(dt, active)
+		return
+	}
+	if p.Pol != nil {
+		p.stepPolice(dt, active)
 		return
 	}
 	if p.Crep != nil {
@@ -612,7 +617,9 @@ func (p *Place) step(dt float64, active bool) {
 
 // NoRep : pas de réputation ici (pas de clients : la ferme d'élevage ; un restaurant,
 // où la jauge de bonheur décide des pourboires : la crêperie).
-func (p *Place) NoRep() bool { return p.Crep != nil || p.ID == "elevage" || p.ID == "huilerie" }
+func (p *Place) NoRep() bool {
+	return p.Crep != nil || p.ID == "elevage" || p.ID == "huilerie" || p.Pol != nil
+}
 
 // ShopMaxCust : dans un petit magasin, 10 clients au plus en même temps
 // (+1 tous les 10 % de marketing).
@@ -763,12 +770,28 @@ func (p *Place) interact(a *Agent, dt float64) {
 			return
 		}
 	}
+	// améliorations payées en points d'école (commissariat) : d'un coup, si on les a
+	if a.Kind == PlayerAgent && !a.Moving {
+		for _, sp := range p.Spots {
+			u := p.SpotUpgrade(sp)
+			if u == nil || u.Pts == "" || !p.SpotVisible(sp) || !sp.Zone.Has(a.Pos) {
+				continue
+			}
+			l := g.Levels[u.Key]
+			if l < u.Max && g.Buy(u) {
+				a.tick = 0.6
+				p.applyCaps()
+				g.emit(Event{Kind: EvLevel, Pos: sp.Zone.C(), Text: sp.Done(l + 1)})
+				return
+			}
+		}
+	}
 	// améliorations du lieu posées au sol (caissière, hangar, bord de route)
 	if a.Kind == PlayerAgent && !a.Moving && g.Money >= 1 {
 		for _, sp := range p.Spots {
 			u := p.SpotUpgrade(sp)
 			l := g.Levels[u.Key]
-			if l >= u.Max || (sp.Shelf != nil && l >= p.DroneMax(sp.Shelf)) || !p.SpotVisible(sp) || !sp.Zone.Has(a.Pos) {
+			if u.Pts != "" || l >= u.Max || (sp.Shelf != nil && l >= p.DroneMax(sp.Shelf)) || !p.SpotVisible(sp) || !sp.Zone.Has(a.Pos) {
 				continue
 			}
 			cost := u.Cost(l)
@@ -1351,6 +1374,10 @@ func (p *Place) SpotVisible(sp *Spot) bool {
 	if sp.Room != nil {
 		u := p.SpotUpgrade(sp)
 		return sp.Room.built && p.g.Levels[u.Key] < u.Max
+	}
+	if p.Pol != nil { // (au commissariat : tant qu'il reste à acheter, une fois le précédent acheté)
+		u := p.SpotUpgrade(sp)
+		return u != nil && p.g.Levels[u.Key] < u.Max && (sp.Needs == "" || p.g.Levels[p.key(sp.Needs)] > 0)
 	}
 	if p.Crep != nil {
 		l := p.g.Levels[p.key(sp.ID)]

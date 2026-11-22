@@ -77,6 +77,7 @@ type Upgrade struct {
 	Costs []float64 // prix de chaque niveau (si absent : Base × Mult^niveau)
 	Base  float64
 	Mult  float64
+	Pts   string // payé en points d'école de ce type (formation = université…), pas en argent
 }
 
 func (u *Upgrade) Cost(lvl int) float64 {
@@ -85,6 +86,9 @@ func (u *Upgrade) Cost(lvl int) float64 {
 		c = u.Costs[lvl]
 	} else {
 		c = math.Round(u.Base * math.Pow(u.Mult, float64(lvl)))
+	}
+	if u.Pts != "" {
+		return c // (des points : ni coefficient ni négociation)
 	}
 	if CostScale != nil {
 		if s := CostScale(u.Key); s != 1 {
@@ -189,7 +193,7 @@ func NewGame() *Game {
 	for k, v := range DefaultFav {
 		g.Fav[k] = v
 	}
-	g.Places = []*Place{newFarm(g), newSuper(g), newWorkshop(g, bakerySpec), newWorkshop(g, cremerieSpec), newWorkshop(g, iceSpec), newSchool(g), newElevage(g), newBoucherie(g), newExotic(g), newPort(g), newDomaine(g), newCreperie(g), newWorkshop(g, patisserieSpec), newParc(g), newHuilerie(g)}
+	g.Places = []*Place{newFarm(g), newSuper(g), newWorkshop(g, bakerySpec), newWorkshop(g, cremerieSpec), newWorkshop(g, iceSpec), newSchool(g), newElevage(g), newBoucherie(g), newExotic(g), newPort(g), newDomaine(g), newCreperie(g), newWorkshop(g, patisserieSpec), newParc(g), newHuilerie(g), newPolice(g)}
 	g.sortPlaces()
 	for _, p := range g.Places {
 		p.applyCaps()
@@ -228,7 +232,7 @@ func NewGame() *Game {
 // MapOrder : les lieux dans l'ordre de la carte de la ville (ui.go, drawMap). Il
 // fixe l'ordre des listes (points d'école…) ; les prix suivent PriceRank (la rangée
 // du haut, sans l'école). Un nouveau lieu se met ici, à sa place sur la carte.
-var MapOrder = []string{"ferme", "ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "port", "elevage", "boucherie", "domaine", "creperie", "patisserie", "parc", "huilerie"}
+var MapOrder = []string{"ferme", "ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "port", "elevage", "boucherie", "domaine", "creperie", "patisserie", "parc", "huilerie", "commissariat"}
 
 // PriceRank : le rang du lieu dans la rangée du haut de la carte (les lieux qui rapportent ou
 // produisent : 1 ma ferme, 2 le supermarché, 3 la crèmerie…) ; c'est lui qui fixe les prix.
@@ -390,6 +394,7 @@ func (g *Game) Step(dt float64) {
 	g.syncPallets()
 	g.stepTrucks(dt)
 	g.stepRayonDiag(dt)
+	g.openPolice() // (avec le supermarché)
 	g.stepOrders(dt)
 	g.stepBoost(dt)
 	g.badgeT += dt
@@ -483,6 +488,14 @@ func (g *Game) Buy(u *Upgrade) bool {
 		return false // les ouvriers de la ferme s'embauchent dans l'ordre
 	}
 	c := u.Cost(l)
+	if u.Pts != "" { // (payé en points d'école)
+		if g.Points(u.Pts) < int(c) {
+			return false
+		}
+		g.Levels["pts."+u.Pts] -= int(c)
+		g.Levels[u.Key] = l + 1
+		return true
+	}
 	if g.Money < c {
 		return false
 	}

@@ -109,11 +109,14 @@ const (
 	poidsGroupe = 50.0
 )
 
+// BottomRow : les lieux de la rangée du bas de la carte (ni argent ni marchandises).
+var BottomRow = map[string]bool{"ecole": true, "commissariat": true, "prison": true, "hopital": true}
+
 // TopRow : les lieux de la rangée du haut de la carte, dans l'ordre (l'école est en bas).
 func TopRow() []string {
 	var r []string
 	for _, id := range MapOrder {
-		if id != "ecole" {
+		if !BottomRow[id] {
 			r = append(r, id)
 		}
 	}
@@ -146,7 +149,7 @@ func (g *Game) eventGroups(id string) []eventGroup {
 	if owned("parc") && g.parcOrderAt(id) != nil { // le parc d'attractions
 		gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.parcOrderAt(id) }, false})
 	}
-	if g.thievesActive() { // les voleurs : partout, dès que le supermarché est ouvert
+	if g.thievesActive() && !g.Patrolled(id) { // les voleurs : partout, dès que le supermarché est ouvert (sauf sous la protection d'une patrouille)
 		gs = append(gs, eventGroup{float64(g.Thieves()), nil, true})
 	}
 	return gs

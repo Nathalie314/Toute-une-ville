@@ -65,6 +65,24 @@ func newSaveShots(dir, file string) *saveShots {
 			)
 			return ""
 		}
+		if os.Getenv("CAPPATROL") != "" {
+			patrolAt = envF("CAPPATROL", 0.5)
+		}
+		if v := os.Getenv("CAPPOL"); v != "" { // CAPPOL=1 : un commissariat équipé (2 : et son menu, 3 : le tutoriel)
+			lv := g.sim.Levels
+			lv["commissariat.commissaire"], lv["commissariat.lieutenants"], lv["commissariat.voiture_2"] = 1, 3, 1
+			if v != "3" {
+				lv["commissariat.tuto"] = 1
+			}
+			g.sim.SetPatrol(1, 0, "super")
+			if v == "2" {
+				s.queue = append(s.queue, func(g *game) string {
+					g.goPlace(g.sim.Place("commissariat"))
+					g.openPanel(panelPolice)
+					return "patrouilles"
+				}, func(g *game) string { g.closePanel(); return "" })
+			}
+		}
 		if os.Getenv("CAPMAP") != "" { // CAPMAP=1 : la carte de la ville d'abord
 			s.queue = append(s.queue, func(g *game) string {
 				g.goMap()

@@ -491,6 +491,33 @@ func init() {
 				}
 				return q.Owned
 			}})
+	// le commissariat (comme placeBadges : ouvert, tout acheté, équipe au complet ; puis les patrouilles)
+	polAll := func(g *Game) bool {
+		for k := 1; k <= PolCars(); k++ {
+			if !g.PolCarOwned(k) {
+				return false
+			}
+		}
+		return g.HasChief()
+	}
+	B(Badge{ID: "commissariat_ouvert", Place: "commissariat", Name: "Sous bonne garde", Desc: "Ouvrir le commissariat (il est offert avec le supermarché).", Icon: IconStar,
+		Check: func(g *Game) bool { return g.Place("commissariat").Owned }},
+		Badge{ID: "commissariat_chef", Place: "commissariat", Name: "Monsieur le commissaire", Desc: "Faire venir le commissaire.", Icon: IconWorker,
+			Check: func(g *Game) bool { return g.HasChief() }},
+		Badge{ID: "commissariat_tout", Place: "commissariat", Name: "Toute la flotte", Desc: "Acheter toutes les voitures de police.", Icon: IconTruck, Check: polAll},
+		Badge{ID: "commissariat_equipe", Place: "commissariat", Name: "Toute la brigade", Desc: "Former tous les lieutenants.", Icon: IconWorker,
+			Check: func(g *Game) bool { return g.PolLieutenants() >= PolCars() }},
+		Badge{ID: "commissariat_patrouille", Place: "commissariat", Name: "En patrouille", Desc: "Envoyer une voiture de police en patrouille.", Icon: IconTruck,
+			Check: func(g *Game) bool { return g.PolOnPatrol(1) || g.PolOnPatrol(2) || g.PolOnPatrol(3) }},
+		Badge{ID: "commissariat_double", Place: "commissariat", Name: "Deux lieux à la fois", Desc: "Une voiture protège deux lieux (mécaniciens).", Icon: IconStar,
+			Check: func(g *Game) bool {
+				for k := 1; k <= PolCars(); k++ {
+					if g.PolDriven(k) && g.PolPatrol(k, 0) != "" && g.PolPatrol(k, 1) != "" {
+						return true
+					}
+				}
+				return false
+			}})
 	// le parc d'attractions
 	parc := func(g *Game) *Place { return g.Place("parc") }
 	B(placeBadges("parc", "parc d'attractions", "Ticket d'entrée", "Tout le parc", "Équipe au complet", "Parc étoilé", 1000, IconHeart)...)

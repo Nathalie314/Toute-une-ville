@@ -352,6 +352,9 @@ func (g *game) hint() (string, V, bool) {
 			}
 		}
 	}
+	if p.Pol != nil {
+		return "", V{}, false // (au commissariat : le tutoriel, et l'aide « ? »)
+	}
 	if p.ID != "ferme" {
 		return g.superHint(p)
 	}
@@ -598,6 +601,7 @@ func (g *game) drawHUD(dst *ebiten.Image) {
 	}
 	g.drawGoal(dst, 672, 18)
 	g.drawOrderHUD(dst, 20, 124)
+	g.policeHUD(dst)
 
 	// alerte : clients en attente sans caissière
 	p := g.sim.Cur
@@ -1261,7 +1265,7 @@ func (g *game) drawMap(dst *ebiten.Image) {
 	}
 	services := []tile{
 		g.placeTile("ecole", "École", 0xf1c40f),
-		{id: "commissariat", name: "Commissariat", status: "Bientôt", col: 0x2b4f8a},
+		g.placeTile("commissariat", "Commissariat", 0x2b4f8a),
 		{id: "prison", name: "Prison", status: "Bientôt", col: 0x5d6d7e},
 		{id: "hopital", name: "Hôpital", status: "Bientôt", col: 0xe74c3c},
 	}
@@ -1417,6 +1421,14 @@ func (g *game) drawTileBody(dst *ebiten.Image, tl tile, x, y, w, h float64, farm
 	case "vetements":
 		// le personnage lui-même
 		scaled(bx, by, 1.4, func() { g.drawHero(dst, V{X: bx, Y: by + 10}, V{Y: 1}, 0, false, nil) })
+	case "commissariat": // un bâtiment bleu, son enseigne, une voiture de police
+		building(dst, sim.Rect{X: bx - 100, Y: by - 84, W: 150, H: 104}, wall, shadeHex(wall, 0.6))
+		roundRect(dst, bx-46, by-20, 36, 40, 6, rgb(0x1c2a44))
+		roundRect(dst, bx-92, by-62, 134, 22, 6, rgb(0xffffff))
+		say(dst, "POLICE", bx-25, by-51, 15, true, 0, rgb(wall))
+		if tl.open {
+			scaled(bx+90, by-10, 0.32, func() { drawPoliceCarTop(dst, bx+90, by-10, false, g.t) })
+		}
 	default:
 		building(dst, sim.Rect{X: bx - 80, Y: by - 80, W: 160, H: 100}, wall, shadeHex(wall, 0.6))
 		roundRect(dst, bx-18, by-20, 36, 40, 6, rgb(0x6e4322))
@@ -1485,6 +1497,9 @@ func scaled(cx, cy, k float64, fn func()) {
 
 func (g *game) affordable(u *sim.Upgrade) bool {
 	l := g.sim.Levels[u.Key]
+	if u.Pts != "" {
+		return l < u.Max && float64(g.sim.Points(u.Pts)) >= u.Cost(l)
+	}
 	return l < u.Max && g.sim.Money >= u.Cost(l)
 }
 
@@ -1613,7 +1628,7 @@ func (g *game) drawBadges(dst *ebiten.Image) {
 	ch := 150.0
 	total := 0.0
 	type sect struct{ id, title string }
-	sects := []sect{{"ferme", "Ma ferme"}, {"super", "Le supermarché"}, {"boulangerie", "La boulangerie"}, {"cremerie", "La crèmerie"}, {"glacier", "Le glacier"}, {"exotique", "La ferme exotique"}, {"elevage", "La ferme d'élevage"}, {"boucherie", "La boucherie"}, {"port", "Le port"}, {"domaine", "Le domaine"}, {"creperie", "La crêperie"}, {"patisserie", "La pâtisserie"}, {"parc", "Le parc d'attractions"}, {"huilerie", "L'huilerie"}, {"ecole", "L'école"}, {"ville", "Clairbourg"}}
+	sects := []sect{{"ferme", "Ma ferme"}, {"super", "Le supermarché"}, {"boulangerie", "La boulangerie"}, {"cremerie", "La crèmerie"}, {"glacier", "Le glacier"}, {"exotique", "La ferme exotique"}, {"elevage", "La ferme d'élevage"}, {"boucherie", "La boucherie"}, {"port", "Le port"}, {"domaine", "Le domaine"}, {"creperie", "La crêperie"}, {"patisserie", "La pâtisserie"}, {"parc", "Le parc d'attractions"}, {"huilerie", "L'huilerie"}, {"ecole", "L'école"}, {"commissariat", "Le commissariat"}, {"ville", "Clairbourg"}}
 	for _, sc := range sects {
 		n := 0
 		for _, b := range sim.Badges {
@@ -1977,6 +1992,24 @@ func (g *game) superTile() tile {
 func (g *game) placeTile(id, name string, col uint32) tile {
 	sup := g.sim.Place(id)
 	t := tile{id: id, name: name, col: col, open: true, place: id}
+	if id == "commissariat" { // (offert : il s'ouvre avec le supermarché)
+		switch {
+		case !sup.Owned:
+			t.open, t.status = false, "S'ouvre avec le supermarché"
+		case !g.sim.HasChief():
+			t.status = "Il lui faut un commissaire"
+		default:
+			n := 0
+			for k := 1; k <= sim.PolCars(); k++ {
+				if g.sim.PolOnPatrol(k) {
+					n++
+				}
+			}
+			t.status = tr.F("Ouvert : {n} patrouille(s)", "n", itoa(n))
+		}
+		t.fn = func() { g.goPlace(sup) }
+		return t
+	}
 	if sup.Owned && id == "ecole" {
 		t.status = "Ouvert"
 		if n := g.totalPoints(); n > 0 {
