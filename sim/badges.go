@@ -508,7 +508,14 @@ func init() {
 		Badge{ID: "commissariat_equipe", Place: "commissariat", Name: "Toute la brigade", Desc: "Former tous les lieutenants.", Icon: IconWorker,
 			Check: func(g *Game) bool { return g.PolLieutenants() >= PolCars() }},
 		Badge{ID: "commissariat_patrouille", Place: "commissariat", Name: "En patrouille", Desc: "Envoyer une voiture de police en patrouille.", Icon: IconTruck,
-			Check: func(g *Game) bool { return g.PolOnPatrol(1) || g.PolOnPatrol(2) || g.PolOnPatrol(3) }},
+			Check: func(g *Game) bool {
+				for k := 1; k <= PolCars(); k++ {
+					if g.PolOnPatrol(k) {
+						return true
+					}
+				}
+				return false
+			}},
 		Badge{ID: "commissariat_double", Place: "commissariat", Name: "Deux lieux à la fois", Desc: "Une voiture protège deux lieux (mécaniciens).", Icon: IconStar,
 			Check: func(g *Game) bool {
 				for k := 1; k <= PolCars(); k++ {

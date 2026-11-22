@@ -12,9 +12,9 @@ import (
 //
 //   - Le bureau du commissaire : rien ne marche sans lui. Il ne s'achète pas avec de
 //     l'argent : 10 points d'université.
-//   - Les voitures de police, sur le parking : [lieux de la rangée du haut] / 4 au plus. La
-//     première est offerte avec le commissaire ; la 2e coûte le prix du 4e lieu de la carte,
-//     la 3e celui du 8e… (la n-ième : celui du lieu n° 4(n−1)).
+//   - Les voitures de police, sur le parking : la n-ième coûte le prix du lieu n° 4(n−1) de la
+//     rangée du haut, et n'existe que si ce lieu existe. La première est offerte avec le
+//     commissaire ; la 2e coûte le prix du 4e lieu, la 3e du 8e, la 4e du 12e, la 5e du 16e…
 //   - Les lieutenants : ils se forment (points du collège : 10, 50, 250… ×5 à chaque fois),
 //     autant que de voitures. Le lieutenant n° k conduit la voiture n° k ; sans voiture (ou sans
 //     patrouille), il erre sur le parking en sifflotant.
@@ -29,8 +29,6 @@ import (
 
 // Géométrie du commissariat.
 const (
-	PolW      = 3000.0
-	PolBldX   = 260.0  // le bâtiment
 	PolBldY   = 150.0  //
 	PolBldW   = 2480.0 //
 	PolBldH   = 700.0  //
@@ -39,6 +37,13 @@ const (
 	PolBayW   = 300.0  // une place de parking
 	PolBayGap = 140.0  // (de la place entre deux voitures : le jeu reste aéré)
 )
+
+// PolW : la largeur du commissariat (le parking s'allonge avec le nombre de voitures) ; le
+// bâtiment est centré.
+var PolW = math.Max(3000, float64(PolCars())*(PolBayW+PolBayGap)+1000)
+
+// PolBldX : le bord gauche du bâtiment.
+var PolBldX = (PolW - PolBldW) / 2
 
 // PolOffice : le bureau du commissaire (à gauche dans le bâtiment).
 func PolOffice() Rect { return Rect{PolBldX + 60, PolBldY + 60, 700, PolBldH - 120} }
@@ -69,8 +74,10 @@ type Cop struct {
 	waitT     float64
 }
 
-// PolCars : le nombre de voitures au plus ([lieux de la rangée du haut] / 4, au moins 1).
-func PolCars() int { return max(1, len(TopRow())/4) }
+// PolCars : le nombre de voitures au plus. La voiture n° k coûte le prix du lieu n° 4(k−1) (la
+// 1re : celui du « lieu 0 », gratuite ; la 2e : le 4e lieu ; la 3e : le 8e…) : elle n'existe que
+// si ce lieu existe. 14 lieux : 4 voitures ; la 5e viendra avec le 16e lieu, la 6e avec le 20e…
+func PolCars() int { return len(TopRow())/4 + 1 }
 
 // PolBay : la place de parking de la voiture n° k (1, 2…), centrées sur le lieu.
 func PolBay(k int) Rect {

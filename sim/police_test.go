@@ -16,7 +16,7 @@ func TestCommissariat(t *testing.T) {
 	if !pol.Owned {
 		t.Fatal("le commissariat ne s'ouvre pas avec le supermarché")
 	}
-	if PriceRank("commissariat") != 0 || len(TopRow()) != 14 || PolCars() != 3 {
+	if PriceRank("commissariat") != 0 || len(TopRow()) != 14 || PolCars() != 4 {
 		t.Fatalf("rangées de la carte : rang %d, %d lieux en haut, %d voitures", PriceRank("commissariat"), len(TopRow()), PolCars())
 	}
 	// le commissaire : 10 points d'université, sur sa case
@@ -84,5 +84,8 @@ func TestCommissariat(t *testing.T) {
 	}
 	if c := pol.SpotUpgrade(pol.spot("voiture_3")).Cost(0); c != PlacePrice(8) {
 		t.Fatalf("3e voiture : %.0f (8e lieu : %.0f)", c, PlacePrice(8))
+	}
+	if c := pol.SpotUpgrade(pol.spot("voiture_4")).Cost(0); c != PlacePrice(12) {
+		t.Fatalf("4e voiture : %.0f (12e lieu : %.0f)", c, PlacePrice(12))
 	}
 }

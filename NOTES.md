@@ -1696,8 +1696,10 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   dans TopRow), .tuto.
   - Commissaire : 10 points d'université, sur sa case dans son bureau (Upgrade.Pts : une amélioration payée en points
     d'école, d'un coup, sans coefficient de prix). La 1re voiture est offerte avec lui.
-  - Voitures : [lieux de la rangée du haut] / 4 (3 aujourd'hui) ; la n-ième coûte PlacePrice(4(n−1)) : la 2e le prix
-    du 4e lieu (ferme exotique), la 3e celui du 8e (ferme d'élevage). Une case au parking, quand la précédente est achetée.
+  - Voitures : la n-ième coûte PlacePrice(4(n−1)) et n'existe que si le lieu n° 4(n−1) existe (PolCars = lieux du haut / 4 + 1 :
+    4 aujourd'hui avec 14 lieux ; la 5e viendra avec le 16e lieu, la 6e avec le 20e…, demande). 2e : prix du 4e lieu (ferme
+    exotique), 3e : du 8e (ferme d'élevage), 4e : du 12e (pâtisserie). Le parking (et la largeur du lieu, PolW) grandit avec.
+    Une case au parking, quand la précédente est achetée.
   - Lieutenants : points du collège (10, 50, 250… ×5), case du hall ; le n° k conduit la voiture n° k. Sans patrouille,
     il erre sur le parking en sifflotant.
   - Patrouilles : la case « Patrouilles » du parking (ou un clic sur le parking) ouvre le menu (voitures à gauche, lieux
