@@ -6,6 +6,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 
 	"ville/sim"
+	"ville/tr"
 )
 
 // Le port : la mer à gauche (et au nord), la jetée en bois, les bateaux, les
@@ -20,11 +21,13 @@ func (g *game) portGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	if x1 > x0 {
 		rect(dst, x0, tl.Y-20, x1-x0, br.Y-tl.Y+40, rgb(0x3f93c9))
 	}
-	if tl.Y < -200 { // le large, plus foncé (sur toute la largeur)
-		rect(dst, tl.X-20, tl.Y-20, br.X-tl.X+40, -200-tl.Y+20, rgb(0x2f7fb8))
+	if tl.Y < -200 { // le large, plus foncé (jusqu'à la terre, à droite de la criée)
+		rect(dst, tl.X-20, tl.Y-20, math.Min(br.X+20, sim.PortCrieeX1+16)-tl.X+20, -200-tl.Y+20, rgb(0x2f7fb8))
 	}
-	// au nord de la criée aussi
-	rect(dst, sim.PortCrieeX0-10, tl.Y-20, br.X-sim.PortCrieeX0+30, math.Max(0, sim.PortCrieeY0-20-tl.Y+20), rgb(0x3f93c9))
+	// sous la criée aussi, la mer
+	rect(dst, sim.PortCrieeX0-10, sim.PortCrieeY1, sim.PortCrieeX1-sim.PortCrieeX0+26, math.Max(0, br.Y+20-sim.PortCrieeY1), rgb(0x3f93c9))
+	// au nord du marais salant aussi
+	rect(dst, sim.PortCrieeX0-10, tl.Y-20, sim.PortCrieeX1-sim.PortCrieeX0+26, math.Max(0, sim.PortSalTop-tl.Y+20), rgb(0x3f93c9))
 	// la terre du marais salant, au nord de la criée (bord de pierre côté mer)
 	if tl.Y < sim.PortCrieeY0 {
 		mx0, mx1 := sim.PortCrieeX0, sim.PortCrieeX1
@@ -45,11 +48,9 @@ func (g *game) portGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		if x < tl.X-60 || x > br.X+60 || y < tl.Y-20 || y > br.Y+20 {
 			continue
 		}
-		onWater := x < sim.PortCrieeX0-10 || y < sim.PortCrieeY0-30
-		if x > sim.PortCrieeX0-30 && x < sim.PortCrieeX1+20 && y > sim.PortSalTop-30 {
-			onWater = false // (la terre du marais salant)
-		}
-		if !onWater || (x > sim.PortJettyX0-20 && y > sim.PortJettyY0-10 && y < sim.PortJettyY1+10) {
+		onWater := x < sim.PortCrieeX0-10 || ((y < sim.PortSalTop-30 || y > sim.PortCrieeY1+30) && x < sim.PortCrieeX1+20)
+		onJetty := x > sim.PortJettyX0-20 && ((y > sim.PortJettyY0-10 && y < sim.PortJettyY1+10) || (y > sim.PortJ2Y0-10 && y < sim.PortJ2Y1+10))
+		if !onWater || onJetty {
 			continue
 		}
 		a := 0.25 + 0.2*math.Sin(t*1.5+fi)
@@ -57,15 +58,16 @@ func (g *game) portGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		line(dst, x+18, y-4, x+36, y, 2.5, rgba(0xd8f1fb, a))
 	}
 	// --- le quai de la criée (bord de pierre côté mer)
-	rect(dst, sim.PortCrieeX0-16, sim.PortCrieeY0-16, 16, sim.PortCrieeY1-sim.PortCrieeY0+130, rgb(0x8d8a82))
-	rect(dst, sim.PortCrieeX0-16, sim.PortCrieeY0-16, br.X-sim.PortCrieeX0+40, 16, rgb(0x8d8a82))
+	rect(dst, sim.PortCrieeX0-16, sim.PortCrieeY0-16, 16, sim.PortCrieeY1-sim.PortCrieeY0+32, rgb(0x8d8a82))
+	rect(dst, sim.PortCrieeX0-16, sim.PortCrieeY1, sim.PortCrieeX1-sim.PortCrieeX0+32, 16, rgb(0x8d8a82))
+	g.drawPortRoad(dst, p, tl, br)
 	// --- la criée : un grand plancher, des poteaux, pas de murs
 	cx0, cy0, cx1, cy1 := sim.PortCrieeX0, sim.PortCrieeY0, sim.PortCrieeX1, sim.PortCrieeY1
 	rect(dst, cx0, cy0, cx1-cx0, cy1-cy0, rgb(0xc89a62))
 	for y := cy0; y < cy1; y += 34 {
 		line(dst, cx0, y, cx1, y, 2, rgba(0x9a7040, 0.55))
 	}
-	for k := 0; k < 30; k++ { // joints décalés des planches
+	for k := 0; k < int((cy1-cy0)/34)+1; k++ { // joints décalés des planches
 		y := cy0 + float64(k)*34
 		off := math.Mod(float64(k)*137, 260)
 		for x := cx0 + off; x < cx1; x += 260 {
@@ -73,22 +75,25 @@ func (g *game) portGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		}
 	}
 	for _, x := range []float64{cx0 + 30, (cx0 + cx1) / 2, cx1 - 30} {
-		for _, y := range []float64{cy0 + 30, cy1 - 30} {
+		for _, y := range []float64{cy0 + 30, (cy0 + cy1) / 2, cy1 - 30} {
 			circle(dst, x, y, 14, rgb(0x7a5530))
 		}
 	}
-	roundRect(dst, (cx0+cx1)/2-150, cy0-6, 300, 54, 10, rgb(0x2b5a8a))
-	say(dst, "CRIÉE", (cx0+cx1)/2, cy0+21, 32, true, 0, rgb(0xfff3d6))
-	// --- la jetée
-	jx0, jy0, jy1 := sim.PortJettyX0, sim.PortJettyY0, sim.PortJettyY1
-	rect(dst, jx0-8, jy0-8, cx0-jx0+8, jy1-jy0+16, rgb(0x7a5530))
-	rect(dst, jx0, jy0, cx0-jx0, jy1-jy0, rgb(0xc9a06a))
-	for x := jx0; x < cx0; x += 38 {
-		line(dst, x, jy0, x, jy1, 2, rgba(0x9a7040, 0.6))
-	}
-	for x := jx0 + 20; x < cx0; x += 180 { // les pieux
-		circle(dst, x, jy0-4, 9, rgb(0x6a4a28))
-		circle(dst, x, jy1+4, 9, rgb(0x6a4a28))
+	roundRect(dst, sim.PortMidX-150, cy0-6, 300, 54, 10, rgb(0x2b5a8a)) // (centré sur les étals, comme la caisse)
+	say(dst, "CRIÉE", sim.PortMidX, cy0+21, 32, true, 0, rgb(0xfff3d6))
+	// --- les deux pontons
+	jx0, jy0 := sim.PortJettyX0, sim.PortJettyY0
+	for _, j := range [][2]float64{{sim.PortJettyY0, sim.PortJettyY1}, {sim.PortJ2Y0, sim.PortJ2Y1}} {
+		y0, y1 := j[0], j[1]
+		rect(dst, jx0-8, y0-8, cx0-jx0+8, y1-y0+16, rgb(0x7a5530))
+		rect(dst, jx0, y0, cx0-jx0, y1-y0, rgb(0xc9a06a))
+		for x := jx0; x < cx0; x += 38 {
+			line(dst, x, y0, x, y1, 2, rgba(0x9a7040, 0.6))
+		}
+		for x := jx0 + 20; x < cx0; x += 180 { // les pieux
+			circle(dst, x, y0-4, 9, rgb(0x6a4a28))
+			circle(dst, x, y1+4, 9, rgb(0x6a4a28))
+		}
 	}
 	// --- les sections : les appontements des bateaux (au nord) et les noms
 	for i := 0; i < 4; i++ {
@@ -109,22 +114,69 @@ func (g *game) portGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		}
 		roundRect(dst, sx+130, sim.PortBerthY-80, 260, 40, 10, rgba(0x2b5a8a, a))
 		sayFit(dst, sim.PortSecName(i, false), sx+260, sim.PortBerthY-60, 18, true, 0, 250, rgba(0xffffff, a))
-		a = 0.9
-		if !p.PortSecOpen(i, true) {
-			a = 0.4
-		}
-		roundRect(dst, sx+110, sim.PortParcY+4*sim.PortCell+24, 300, 40, 10, rgba(0x2b5a8a, a))
-		sayFit(dst, sim.PortSecName(i, true), sx+260, sim.PortParcY+4*sim.PortCell+44, 18, true, 0, 290, rgba(0xffffff, a))
 	}
-	// --- la route passe sur un pont au-dessus de la mer
-	road(dst, tl, br, 1640)
-	if tl.X < cx0 {
-		bx1 := math.Min(br.X+20, cx0-110)
-		for x := math.Floor((tl.X-40)/220) * 220; x < bx1; x += 220 {
-			rect(dst, x+90, 1802, 40, 60, rgb(0x8d8a82)) // piles du pont
+	// (les noms des parcs et des bassins ne sont plus dans l'eau : un panneau sur chaque parc dit ce
+	// qu'il contient, côté ponton, acheté ou non)
+}
+
+// drawPortRoad : la route verticale à droite de la criée, ses trottoirs, le passage piéton
+// face à l'entrée de la criée, et le parking de l'autre côté (sous la zone du joueur).
+func (g *game) drawPortRoad(dst *ebiten.Image, p *sim.Place, tl, br V) {
+	x0, w := sim.PortRoadX, sim.PortRoadW
+	top, bot := tl.Y-20, br.Y+20
+	// le quai entre la criée et la route, puis le trottoir d'en face
+	rect(dst, sim.PortCrieeX1+16, top, x0-sim.PortCrieeX1-16, bot-top, rgb(0xc4c3bb))
+	rect(dst, x0+w, top, 90, bot-top, rgb(0xc4c3bb))
+	for y := math.Floor(top/80) * 80; y < bot; y += 80 {
+		line(dst, sim.PortCrieeX1+16, y, x0, y, 1.5, rgba(0x9c9b93, 0.6))
+		line(dst, x0+w, y, x0+w+90, y, 1.5, rgba(0x9c9b93, 0.6))
+	}
+	rect(dst, x0, top, w, bot-top, rgb(0x62666b))
+	rect(dst, x0-4, top, 4, bot-top, rgb(0x93928a))
+	rect(dst, x0+w, top, 4, bot-top, rgb(0x93928a))
+	for y := math.Floor(top/160) * 160; y < bot; y += 160 {
+		if math.Abs(y+40-sim.PortGateY) < 120 {
+			continue
 		}
-		rect(dst, tl.X-20, 1620, bx1-tl.X+20, 8, rgb(0x6f6c66)) // garde-corps
-		rect(dst, tl.X-20, 1796, bx1-tl.X+20, 8, rgb(0x6f6c66))
+		rect(dst, x0+w/2-4, y, 8, 80, rgb(0xf2f2e6))
+	}
+	// le passage piéton
+	for x := x0 + 8; x < x0+w-6; x += 26 {
+		rect(dst, x, sim.PortGateY-70, 14, 140, rgb(0xf2f2e6))
+	}
+	// la voie de livraison : une baie le long de la route, devant les quais (entrée et sortie en biais)
+	lx0, lx1 := sim.PortCrieeX1+24, x0
+	ly0, ly1 := sim.PortBayY0, sim.PortBayY1
+	polygon(dst, []V{{X: lx1, Y: ly0 - 60}, {X: lx1, Y: ly1 + 60}, {X: lx0, Y: ly1}, {X: lx0, Y: ly0}}, rgb(0x62666b))
+	for y := ly0 + 10; y < ly1-10; y += 40 {
+		rect(dst, lx1-4, y, 4, 22, rgb(0xf2f2e6)) // le bord de la voie, en pointillés
+	}
+	say(dst, "LIVRAISONS", (lx0+lx1)/2, ly1-26, 15, true, 0, rgba(0xffffff, 0.75))
+	// le parking : trois allées, des places au-dessus et en dessous
+	py0, py1 := sim.PortAisles[0]-170, sim.PortAisles[len(sim.PortAisles)-1]+170
+	px0, px1 := sim.PortParkX0, sim.PortParkX1
+	roundRect(dst, px0-12, py0-12, px1-px0+24, py1-py0+24, 18, rgb(0x9a9a92))
+	roundRect(dst, px0, py0, px1-px0, py1-py0, 12, rgb(0x5f6368))
+	for _, ay := range sim.PortAisles {
+		rect(dst, x0+w, ay-50, px0-x0-w+2, 100, rgb(0x5f6368)) // l'entrée, depuis la route
+		for x := px0 + 40; x < px1-40; x += 90 {
+			polygon(dst, []V{{X: x + 26, Y: ay}, {X: x + 6, Y: ay - 11}, {X: x + 6, Y: ay + 11}}, rgba(0xffffff, 0.55))
+		}
+	}
+	bx0, bx1 := 1e9, -1e9
+	for _, s := range p.Parks {
+		if s.Bike {
+			bx0, bx1 = math.Min(bx0, s.Pos.X), math.Max(bx1, s.Pos.X)
+			continue
+		}
+		top := s.Pos.Y - 55
+		line(dst, s.Pos.X-40, top, s.Pos.X-40, top+110, 3, rgba(0xffffff, 0.8))
+		line(dst, s.Pos.X+40, top, s.Pos.X+40, top+110, 3, rgba(0xffffff, 0.8))
+	}
+	if bx1 > bx0 {
+		y := sim.PortAisles[0] - 95
+		roundRect(dst, bx0-22, y-55, bx1-bx0+44, 110, 8, rgb(0x6f7378))
+		say(dst, "2 roues", (bx0+bx1)/2, y-75, 15, true, 0, rgba(0xffffff, 0.75))
 	}
 }
 
@@ -138,11 +190,29 @@ func (g *game) drawPortSea(dst *ebiten.Image, p *sim.Place) {
 		moving := b.Phase == 1 || b.Phase == 3
 		drawBoat(dst, b.Pos.X, b.Pos.Y, portSecCols[b.Sec], b.N, moving, b.Phase == 3, t+float64(b.K))
 	}
-	for i, d := range p.Dredges() {
-		if !p.PortSecOpen(i, true) {
+	for _, d := range p.Dredges() {
+		if !p.DredgeOpen(d) {
 			continue
 		}
-		drawDredge(dst, d, i == 3, t)
+		drawDredge(dst, d, d.Net, t)
+	}
+	// sur chaque parc, côté ponton, entre le panier et la drague : ce qu'il contient
+	for _, c := range sim.PortParcs {
+		a := 0.95 // (pas encore acheté : le panneau est là aussi, un peu pâle)
+		if st := p.Station("parc_" + c.ID); st == nil || !st.Built {
+			a = 0.7
+		}
+		top := c.ParcTop()
+		y := top - 26 // (le parc est sous le ponton : le panneau au bord du haut)
+		if c.Side == 1 {
+			y = top + 4*sim.PortCell + 26 // (côté nord du second ponton : au bord du bas)
+		}
+		x := sim.PortSecX(c.Sec) + 260
+		name := tr.T(sim.Items[c.It].Name)
+		w := textWidth(name, 24, true) + 84
+		roundRect(dst, x-w/2, y-26, w, 52, 12, rgba(0xffffff, a))
+		drawItem(dst, c.It, x-w/2+30, y, 19)
+		say(dst, name, x+22, y, 24, true, 0, rgba(0x2b5a8a, a))
 	}
 	if m := p.Station("marais"); m != nil && m.Built && p.Salt() != nil {
 		drawSaltRake(dst, p.Salt(), t)
@@ -430,6 +500,82 @@ func drawItemPort(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		for k := 0; k < 5; k++ {
 			circle(dst, x-r*0.5+float64(k)*r*0.25, y+r*0.3-float64(k%2)*r*0.3, r*0.07, rgb(0xb8c4cf))
 		}
+	case sim.Bigorneau:
+		// une petite coquille spiralée, presque noire
+		circle(dst, x, y, r*0.6, rgb(0x2b2f3a))
+		circle(dst, x+r*0.15, y-r*0.1, r*0.38, rgb(0x3d4352))
+		circle(dst, x+r*0.25, y-r*0.18, r*0.18, rgb(0x5a6274))
+		polygon(dst, []V{{X: x - r*0.55, Y: y + r*0.1}, {X: x - r*0.9, Y: y + r*0.55}, {X: x - r*0.2, Y: y + r*0.5}}, rgb(0x2b2f3a))
+		ellipse(dst, x-r*0.45, y+r*0.35, r*0.16, r*0.1, rgb(0xd8cfc0))
+	case sim.Palourde:
+		// une coquille beige striée
+		ellipse(dst, x, y, r*0.85, r*0.6, rgb(0xd9c7a0))
+		for k := 0; k < 4; k++ {
+			ellipse(dst, x, y+r*0.1, r*(0.75-float64(k)*0.17), r*(0.5-float64(k)*0.11), rgb([]uint32{0xc9b48a, 0xd9c7a0, 0xc2ab7e, 0xe3d3b0}[k]))
+		}
+		circle(dst, x, y-r*0.5, r*0.12, rgb(0xa88e62))
+	case sim.Crabe, sim.Tourteau, sim.Araignee:
+		// un crabe : une carapace, des pattes, deux pinces
+		body, claw := uint32(0xe0602f), uint32(0xc84a20)
+		bw, bh, leg := 0.6, 0.42, 0.95
+		switch it {
+		case sim.Tourteau: // plus large, brun-orangé, pinces aux bouts noirs
+			body, claw, bw, bh = 0xc07a3a, 0xa8642a, 0.75, 0.48
+		case sim.Araignee: // une carapace en pointe, de longues pattes fines
+			body, claw, bw, bh, leg = 0xd8552e, 0xd8552e, 0.45, 0.55, 1.25
+		}
+		for k := 0; k < 3; k++ {
+			dy := -r*0.2 + float64(k)*r*0.22
+			line(dst, x-r*bw*0.8, y+dy, x-r*leg, y+dy+r*0.35, r*0.08, rgb(claw))
+			line(dst, x+r*bw*0.8, y+dy, x+r*leg, y+dy+r*0.35, r*0.08, rgb(claw))
+		}
+		if it == sim.Araignee {
+			polygon(dst, []V{{X: x, Y: y - r*0.75}, {X: x + r*bw, Y: y - r*0.1}, {X: x + r*bw*0.7, Y: y + r*0.45}, {X: x - r*bw*0.7, Y: y + r*0.45}, {X: x - r*bw, Y: y - r*0.1}}, rgb(body))
+			for k := 0; k < 5; k++ {
+				circle(dst, x-r*0.25+float64(k%3)*r*0.25, y-r*0.2+float64(k/3)*r*0.3, r*0.07, rgb(0xb03a1a))
+			}
+		} else {
+			ellipse(dst, x, y, r*bw, r*bh, rgb(body))
+		}
+		for _, sd := range []float64{-1, 1} { // les pinces
+			cx, cy := x+sd*r*bw*0.9, y-r*bh*1.1
+			line(dst, x+sd*r*bw*0.5, y-r*bh*0.6, cx, cy, r*0.1, rgb(claw))
+			ellipse(dst, cx, cy-r*0.08, r*0.2, r*0.15, rgb(claw))
+			if it == sim.Tourteau {
+				circle(dst, cx+sd*r*0.08, cy-r*0.15, r*0.08, rgb(0x2b2b2b))
+			}
+		}
+		circle(dst, x-r*0.15, y-r*bh*0.7, r*0.06, rgb(0x1b1b1b))
+		circle(dst, x+r*0.15, y-r*bh*0.7, r*0.06, rgb(0x1b1b1b))
+	case sim.Langoustine, sim.Homard, sim.Langouste:
+		// un corps allongé (la queue en bas), des antennes ; de grosses pinces (homard), de
+		// longues pinces fines (langoustine), pas de pinces mais des épines (langouste)
+		body := map[sim.Item]uint32{sim.Langoustine: 0xf29a7a, sim.Homard: 0x2b4f8a, sim.Langouste: 0xb8452a}[it]
+		dark := map[sim.Item]uint32{sim.Langoustine: 0xd9785a, sim.Homard: 0x1d3a6a, sim.Langouste: 0x8a2f1a}[it]
+		for k := 0; k < 4; k++ { // la queue en anneaux
+			ellipse(dst, x, y+r*0.1+float64(k)*r*0.2, r*(0.28-float64(k)*0.03), r*0.12, rgb(dark))
+		}
+		polygon(dst, []V{{X: x - r*0.25, Y: y + r*0.85}, {X: x + r*0.25, Y: y + r*0.85}, {X: x + r*0.35, Y: y + r}, {X: x - r*0.35, Y: y + r}}, rgb(dark))
+		ellipse(dst, x, y-r*0.25, r*0.3, r*0.35, rgb(body))
+		line(dst, x-r*0.1, y-r*0.55, x-r*0.6, y-r*1.0, r*0.05, rgb(dark)) // les antennes
+		line(dst, x+r*0.1, y-r*0.55, x+r*0.6, y-r*1.0, r*0.05, rgb(dark))
+		switch it {
+		case sim.Homard:
+			for _, sd := range []float64{-1, 1} {
+				line(dst, x+sd*r*0.25, y-r*0.3, x+sd*r*0.55, y-r*0.55, r*0.1, rgb(body))
+				ellipse(dst, x+sd*r*0.62, y-r*0.72, r*0.2, r*0.28, rgb(body))
+			}
+		case sim.Langoustine:
+			for _, sd := range []float64{-1, 1} {
+				line(dst, x+sd*r*0.22, y-r*0.35, x+sd*r*0.5, y-r*0.85, r*0.07, rgb(body))
+			}
+		case sim.Langouste:
+			for k := 0; k < 4; k++ { // des épines claires
+				circle(dst, x-r*0.15+float64(k%2)*r*0.3, y-r*0.4+float64(k/2)*r*0.25, r*0.05, rgb(0xf2c9a0))
+			}
+			line(dst, x-r*0.1, y-r*0.55, x-r*0.9, y-r*0.6, r*0.06, rgb(dark)) // de très longues antennes
+			line(dst, x+r*0.1, y-r*0.55, x+r*0.9, y-r*0.6, r*0.06, rgb(dark))
+		}
 	case sim.Gambas:
 		for k := 0; k < 5; k++ {
 			a := math.Pi*0.15 + float64(k)*0.32
@@ -441,4 +587,29 @@ func drawItemPort(dst *ebiten.Image, it sim.Item, x, y, r float64) bool {
 		return false
 	}
 	return true
+}
+
+// drawPortTruck : le camion d'un quai du port, garé dans la voie de livraison ; il arrive du
+// nord par la route, se range dans la voie, puis repart vers le sud.
+func (g *game) drawPortTruck(dst *ebiten.Image, s *sim.Station, left, every float64) {
+	truckFrom = "port"
+	defer func() { truckFrom = "ferme" }()
+	e := every - left
+	x, y0 := sim.PortBayX, s.Body.C().Y+10
+	lane := sim.PortLaneS + 10
+	truck := func(x, y float64) { scaled(x, y, 0.58, func() { drawTruckTopDir(dst, x, y, false, true) }) }
+	if e < 2.5 { // il vient de partir vers le sud : il rejoint la route
+		f := e / 2.5
+		truck(x+(lane-x)*math.Min(1, f*3), y0+1800*f*f)
+	}
+	switch {
+	case e >= 4.5:
+		scaled(x, y0, 0.58, func() { drawTruckTopDir(dst, x, y0, left < 2, true) })
+		sayOutlined(dst, tr.F("Départ dans {n} s", "n", itoa(int(left))), x, y0+88, 15, 0, rgb(0xffffff), rgb(0x2b2b2b)) // (sous la cabine)
+	case e >= 1.5: // le suivant descend la route depuis le nord, puis se range
+		f := (e - 1.5) / 3
+		y := y0 - 1800*(1-f)*(1-f)
+		tx := lane + (x-lane)*math.Max(0, (f-0.66)*3)
+		truck(tx, y)
+	}
 }

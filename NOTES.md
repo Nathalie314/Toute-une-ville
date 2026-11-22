@@ -1591,3 +1591,61 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
     chaque trajet (600 Ko au supermarché).
   Résultat : pas habituel 0,6 ms ; pire pas ~20 ms (un par minute) au lieu de 100 ms.
   (L'audio semblait coûteux dans les mesures du cloud : c'est l'absence de carte son de la machine de test.)
+- PORT AGRANDI (21/11, d'après son dessin) :
+  - La route n'est plus horizontale : elle passe à la verticale, à droite de la criée (PortRoadX 4300, deux voies :
+    PortLaneS vers le sud, PortLaneN vers le nord). De l'autre côté : la zone du joueur en haut, le parking dessous
+    (trois allées horizontales, PortAisles ; coin des deux-roues près de la route). Les voitures arrivent par le haut
+    ou par le bas, entrent dans leur allée ; les clients traversent au passage piéton (PortGateY 1960) face à
+    l'entrée de la criée. Code : parking.go (setupPortParking, portArrive, portWalkFromCar/ToCar, portDepart,
+    portPassing ; arrêt des voitures au passage vertical), port_draw.go (drawPortRoad). Lieu : W 5 750, H 3 500.
+  - La criée longe toute la mer (y 150 → 3 350) : l'étal du sel en haut au milieu (face au marais), les poissons
+    (y 760), les coquillages du ponton 1 (y 1 200), la caisse dessous (y 1 650 ; caissière à droite, « Étals + » et
+    « Paniers + » à gauche), puis les étals du ponton 2 (nord y 2 150, sud y 2 700). Les deux quais des camions
+    contre la route, à hauteur de la caisse (camions garés sur la route : drawDockV, comme au domaine).
+  - Le ponton 1 ne change pas. Le second ponton (y 2 230 → 2 750), sous les parcs : 4 bassins au nord, 4 au sud
+    (4 × 4 cases, une drague chacun, « Case +1 » depuis le ponton) : bigorneaux, palourdes, araignées de mer,
+    homards au nord ; crabes, tourteaux, langoustines, langoustes au sud. Achat du moins cher au plus cher, après
+    le marais salant (prix de base 400 000 → 1 350 000, × coefficient du port). Prix de vente 190 → 430.
+    Les parcs sont décrits par PortParcs (ponton, côté, section, filet pour les crustacés).
+  - Ouvriers du port : 17 au plus (+8 pour les bassins). Supermarché : les 8 produits à la Poissonnerie.
+    Badges « Pince-mi, pince-moi » (200 crabes) et « Homard bleu » (100 homards).
+  - Prix : les coefficients des lieux sont figés (frozenScale, prices.go). Avant, ajouter du contenu à un lieu
+    faisait baisser le prix de tout ce qu'il contenait déjà (le second ponton aurait divisé par deux les prix du port).
+- Quais le long d'une route verticale (port, domaine) : plus hauts (zone de 154, le texte « QUAI DU CAMION → … »
+  au-dessus, le quai dessous) ; avant, le quai cachait la destination. Domaine : quais à y -300, tous les 170.
+- PRIX DU PORT rééquilibrés (21/11, « le joueur qui en est au port doit pouvoir débloquer tout le port avant de passer
+  au lieu suivant »). Mesure : total des déblocages de chaque lieu / prix du lieu suivant = 0,6 à 4,4 partout (exotique
+  9) ; le port était à 38 (6 sans le second ponton). Son coefficient passe de 40,95 à 1,5 (frozenScale) : tout le
+  port (bateaux, parcs, marais, 8 bassins) coûte 11,2 M, 1,4 fois la ferme d'élevage (8 M). Tous ses prix baissent
+  ensemble (ouvriers, cases, drones, étals…), l'ordre et les écarts restent. Exemples : cabillaud 22 500, gambas
+  375 000, marais 495 000, bigorneaux 600 000, langoustes 2,03 M ; ouvriers 6 000 → 2,4 M.
+- RÈGLE DES PALIERS (21/11, « que tout le jeu soit cohérent et harmonieux, et que ce genre de problème ne se
+  reproduise pas quand j'ajoute des lieux ou des marchandises »). Mesure : total des déblocages d'un lieu / prix du
+  lieu suivant = de 0,6 (pâtisserie) à 38 (port) selon les lieux. Nouvelle règle (prices.go) : pour chaque lieu dès
+  la ferme exotique, ce total vaut palier (1,2) × le prix du lieu suivant ; le coefficient du lieu en découle et
+  s'applique à tout ce qu'on y achète. Changements : exotique ÷8, élevage ÷2,5, domaine ÷3,7, parc ÷1,6, huilerie
+  ÷5,6, port ÷1,2 ; boulangerie et glacier ×1,8, crêperie ×1,6, pâtisserie ×2 ; boucherie inchangée.
+  Ajout de marchandises à un lieu existant : monter extension[lieu] pour que les anciens prix ne bougent pas.
+  Garde-fou : TestPaliers (sim/prices_test.go) vérifie le coefficient de chaque lieu et que tout débloquer ne
+  dépasse pas 3 fois le lieu suivant. Consigne ajoutée à CLAUDE.md. (frozenScale supprimé.)
+- RÈGLE DES PALIERS étendue (21/11) :
+  - La crèmerie y entre (palierFrom = 4) : ses déblocages passent de 210 000 à 600 000 (× 2,86), 1,2 fois la ferme
+    exotique ; elle garde son prix d'achat (22 000). La ferme et l'école (lieux de départ, tutoriel) restent hors règle.
+  - Supermarché (superPrices, super.go), avant : rayons presque gratuits pour les lieux récents (pâtisserie : 172 000
+    pour un lieu à 128 M) et magasiniers selon la place de l'espace dans le magasin (× 2,2 par espace, × 3 par
+    embauche) : de 2 à 181 fois le prix du lieu fournisseur selon l'espace. Maintenant, chaque produit suit le
+    lieu qui le fabrique (SourceOf) : ses rayons coûtent ensemble ¼ du prix d'achat du lieu, ses magasiniers ½
+    (le k-ième magasinier d'un espace coûte selon le k-ième produit). Exemples : exotique 6 600 le rayon, 13 000 le
+    magasinier ; domaine 800 000 / 1,6 M ; pâtisserie 4,6 M / 9,1 M ; huilerie 14 M / 28 M. Produits de la ferme :
+    prix d'avant. TestSuperPaliers vérifie ces totaux et que chaque produit a son lieu d'origine.
+- Port : sur chaque parc et chaque bassin, côté ponton, entre le panier et la drague, un panneau dit ce qu'il contient (icône et nom du produit).
+- Port : les noms des parcs et des bassins dans l'eau sont retirés (inutiles avec les panneaux côté ponton ; avant l'achat, la case de déblocage donne le nom).
+- Port : le panneau du contenu est aussi sur les parcs et bassins pas encore achetés (un peu pâle).
+- Port : l'embauche des ouvriers descend à gauche de la caisse (« Étals + » à sa gauche) ; « Paniers + » passe à droite de la caisse, à côté de la caissière.
+- Port : les camions ne stationnent plus sur le passage piéton. Les quais descendent sous lui (PortDockY0 2 110, tous
+  les 190), et une voie de livraison (baie entre la criée et la route, y 2 010 → 2 470, entrée et sortie en biais,
+  « LIVRAISONS ») accueille les camions hors de la circulation : ils arrivent du nord par la route, s'y rangent,
+  puis repartent vers le sud (drawPortTruck).
+- Port : les camions roulent vers le sud cabine devant (drawTruckTopDir, le camion vu de dessus retourné) ; leur étiquette dit « LE PORT ».
+- Port : la caisse, l'étal du sel et le panneau « CRIÉE » sont centrés sur les quatre colonnes d'étals (PortMidX) ; autour de la caisse, en miroir : « Ouvrier du port +1 » | caisse | « Paniers + », puis « Étals + » … caissière.
+- Le camion de la ferme vers la crèmerie est un camion-citerne de lait (drawMilkTruck : citerne d'inox, « LAIT », cabine verte de la ferme), au quai de la ferme comme à la crèmerie (truckTo : la destination du camion dessiné).

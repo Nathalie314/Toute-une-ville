@@ -453,7 +453,9 @@ func init() {
 	B(placeBadges("port", "port", "Moussaillon", "Toute la criée", "Équipage au complet", "Port étoilé", 1000, IconTruck)...)
 	B(madeBadge("port_sardines", "port", "Serrés comme des sardines", "Pêcher 100 sardines.", Sardine, 100, IconStar),
 		madeBadge("port_huitres", "port", "Perle rare", "Récolter 100 huîtres.", Huitre, 100, IconStar),
-		madeBadge("port_sel", "port", "Fleur de sel", "Récolter 500 sel au marais salant.", Sel, 500, IconStar))
+		madeBadge("port_sel", "port", "Fleur de sel", "Récolter 500 sel au marais salant.", Sel, 500, IconStar),
+		madeBadge("port_crabes", "port", "Pince-mi, pince-moi", "Récolter 200 crabes.", Crabe, 200, IconStar),
+		madeBadge("port_homards", "port", "Homard bleu", "Récolter 100 homards.", Homard, 100, IconStar))
 	// le domaine
 	B(placeBadges("domaine", "domaine", "Bienvenue au domaine", "Grand cru", "Domaine au complet", "Domaine étoilé", 1000, IconFruit)...)
 	B(madeBadge("domaine_vin", "domaine", "Vendanges", "Faire 100 bouteilles de vin rouge.", VinRouge, 100, IconFruit),

@@ -45,6 +45,32 @@ func ContentTarget(rank int, ref float64) float64 {
 	return ref * math.Pow(scaleFactor, float64(rank-scaleFrom+1))
 }
 
+// LA RÈGLE DES PALIERS (21/11) : un joueur qui arrive dans un lieu doit pouvoir tout y
+// débloquer avant de passer au lieu suivant, et pas beaucoup plus tôt. Pour chaque lieu à
+// partir de la crèmerie, le total de ses déblocages (champs, machines, bateaux, bassins…)
+// vaut palier × le prix du lieu suivant sur la carte ; le coefficient du lieu (Place.Scale) en
+// découle, et il s'applique à tout ce qu'on y achète (employés, cases, drones, étals…).
+//
+// Avant, le coefficient venait du contenu total du lieu (tous les niveaux de tout), ce qui
+// donnait des lieux 10 à 40 fois trop chers (la ferme exotique, le port) ou trop bon marché.
+//
+// Ajouter des marchandises à un lieu existant : les nouvelles doivent coûter plus cher, sans
+// faire baisser les anciennes. On monte alors le budget du lieu (extension[id]) pour que son
+// coefficient ne bouge pas ; TestPaliers (prices_test.go) vérifie les coefficients et que chaque
+// lieu reste dans la norme (ce qui arriverait sinon : la règle ferait baisser les anciens prix).
+const palier = 1.2
+
+// palierFrom : premier rang soumis à la règle (la crèmerie ; la ferme et l'école, lieux de départ
+// avec le tutoriel, gardent leurs prix ; le supermarché suit les lieux qui le fournissent :
+// voir superPrices).
+const palierFrom = 4
+
+// extension : budget en plus d'un lieu agrandi après coup (1 : aucun).
+var extension = map[string]float64{}
+
+// nextPrice : le prix du lieu qui suit sur la carte (pour le dernier : deux fois le sien).
+func nextPrice(r int) float64 { return PlacePrice(r + 1) }
+
 // niceRound : un prix arrondi à 3 chiffres (51 234 → 51 200).
 func niceRound(v float64) float64 {
 	if v < 1000 {
@@ -132,15 +158,27 @@ func (g *Game) applyMapPrices() {
 	ref := refContent
 	for _, p := range g.Places {
 		r := MapRank(p.ID)
-		if r < scaleFrom || ref <= 0 {
+		if r < palierFrom || ref <= 0 {
 			continue
 		}
-		c := p.contentCost()
-		if c <= 0 {
+		raw := 0.0 // les déblocages, sans coefficient
+		for _, u := range p.Unlocks {
+			raw += u.Cost
+		}
+		if raw > 0 {
+			k := palier
+			if e, ok := extension[p.ID]; ok {
+				k *= e
+			}
+			p.Scale = k * nextPrice(r) / raw
+		} else if c := p.contentCost(); c > 0 {
+			p.Scale = ContentTarget(r, ref) / c
+		} else {
 			continue
 		}
-		p.Scale = ContentTarget(r, ref) / c
-		p.Price = PlacePrice(r)
+		if r >= scaleFrom {
+			p.Price = PlacePrice(r) // (la crèmerie garde son prix d'achat)
+		}
 		for _, u := range p.Unlocks {
 			u.Cost = niceRound(u.Cost * p.Scale)
 		}

@@ -21,6 +21,12 @@ NOTES.md raconte l'histoire du projet et chaque décision de conception : lis-le
 - Le jeu doit rester « aéré » : de la place entre les machines, les rayons, les zones.
 - Chaque nouveau lieu reçoit ses badges (sim/badges.go : placeBadges + 2 ou 3 badges propres à ce qu'il fabrique) et sa
   section dans la page des badges (ui.go, sects). Elle n'y tient pas, mais des joueurs adorent.
+- **Prix : la règle des paliers** (sim/prices.go). Dans chaque lieu (dès la crèmerie), tout débloquer coûte
+  1,2 fois le prix du lieu suivant : on peut finir un lieu avant de passer au suivant. Le coefficient de chaque lieu
+  en découle. Supermarché : les produits d'un lieu y ont des rayons qui coûtent ensemble ¼ de son prix d'achat, et
+  des magasiniers ½ (superPrices, sim/super.go) ; tout nouveau produit vendu doit avoir son lieu d'origine (SourceOf). Marchandises ajoutées à un lieu existant : plus chères que les précédentes, sans faire baisser les
+  anciennes (monter `extension[lieu]`) ; `go test ./sim` (TestPaliers) le vérifie. Nouveau lieu : ajouter son
+  coefficient au test. Ne jamais figer ni bricoler un prix à la main hors de cette règle.
 - Tableau des gains (clic sur l'argent) : tout lieu qui gagne de l'argent y apparaît, nouveaux lieux compris (son nom
   dans gainNames, ui.go) ; un lieu qui ne rapporte rien par définition (école, ferme d'élevage) n'y est pas :
   Place.EarnsMoney (sim/school.go, sells) doit le dire pour chaque nouveau lieu.

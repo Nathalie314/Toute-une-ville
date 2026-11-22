@@ -209,6 +209,7 @@ func NewGame() *Game {
 	g.fixRayonCosts()
 	CostScale = g.keyScale
 	g.applyMapPrices()
+	g.superPrices() // (rayons et magasiniers : au palier du lieu qui fournit chaque produit)
 	// l'école est ouverte dès le début, gratuitement, avec une table et un prof
 	if sc := g.Place("ecole"); sc != nil {
 		sc.Owned, sc.Price = true, 0

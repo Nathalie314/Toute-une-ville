@@ -41,8 +41,8 @@ const (
 	DomPalX     = 4210.0 // les palettes de la réserve
 	DomRoadX    = 4520.0 // la route des camions (verticale)
 	DomRoadW    = 160.0
-	DomDockY0   = -330.0 // les quais (supermarché, crêperie, zoo), au nord de la réserve
-	DomDockStep = 150.0
+	DomDockY0   = -300.0 // les quais (supermarché, crêperie, zoo), au nord de la réserve
+	DomDockStep = 170.0  // (des quais hauts : on lit « QUAI DU CAMION → … » au-dessus du quai)
 )
 
 var domaineZones = []*ShopZone{
@@ -180,7 +180,7 @@ func newDomaine(g *Game) *Place {
 		y := DomDockY0 + float64(i)*DomDockStep
 		q := &Station{ID: id, Name: "Quai du camion", Kind: Dock, BufMax: 20, Built: true, To: to}
 		q.Body = Rect{DomRoadX - 230, y, 210, 56}
-		q.Zone = Rect{DomPalX - 10, y - 30, 270, 112}
+		q.Zone = Rect{DomPalX - 10, y - 72, 270, 154} // (le texte au-dessus, le quai dessous)
 		p.Stations = append(p.Stations, q)
 	}
 	cmd := &Station{ID: "commande", Name: "Commandes", Kind: OrderBox, Built: true}
