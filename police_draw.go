@@ -41,13 +41,13 @@ func chiefLook() look {
 func (g *game) policeGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	gx := p.Gate.X
 	road(dst, tl, br, 1640)
-	// l'allée, du portail au parking, puis jusqu'à la porte
+	// l'allée, de la porte à la route ; de l'autre côté, l'entrée du parking
 	path := rgb(0xd6d2c8)
-	rect(dst, gx-90, sim.PolBldY+sim.PolBldH, 180, sim.PolParkY-sim.PolBldY-sim.PolBldH, path)
-	rect(dst, gx-110, sim.PolParkY+sim.PolParkH, 220, 1640-sim.PolParkY-sim.PolParkH, rgb(0x55595e))
-	// le parking des voitures de police
+	rect(dst, gx-90, sim.PolBldY+sim.PolBldH, 180, 1624-sim.PolBldY-sim.PolBldH, path)
 	b1, bn := sim.PolBay(1), sim.PolBay(sim.PolCars())
 	px0, px1 := b1.X-sim.PolParkM, bn.X+bn.W+sim.PolParkM
+	rect(dst, (px0+px1)/2-110, 1790, 220, sim.PolParkY-1790, rgb(0x55595e))
+	// le parking des voitures de police
 	slab(dst, px0, sim.PolParkY, px1-px0, sim.PolParkH, 14, 6, 0x5d6166)
 	for k := 1; k <= sim.PolCars(); k++ {
 		b := sim.PolBay(k)
@@ -77,17 +77,16 @@ func (g *game) policeGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		say(dst, "PATROUILLES", r.C().X, r.C().Y-14, 22, true, 0, rgb(0xffffff))
 		say(dst, "Reste ici ou clique", r.C().X, r.C().Y+20, 15, false, 0, rgba(0xffffff, 0.85))
 	}
-	// le bâtiment : un grand plan vu de dessus, trois pièces
+	// le bâtiment, vu de dessus : au centre le bureau du commissaire (au sommet) et le hall ;
+	// à gauche les bureaux des capitaines, à droite la garde à vue
 	bx, by, bw, bh := sim.PolBldX, sim.PolBldY, sim.PolBldW, sim.PolBldH
 	slab(dst, bx, by, bw, bh, 8, 16, 0x7f8794)
-	off, hall, wing := sim.PolOffice(), sim.PolHall(), sim.PolWing()
-	// bureau du commissaire : parquet
-	rect(dst, off.X, off.Y, off.W, off.H, rgb(0xc9a477))
+	off, hall, wing, cells := sim.PolOffice(), sim.PolHall(), sim.PolWing(), sim.PolCells()
+	rect(dst, off.X, off.Y, off.W, off.H, rgb(0xc9a477)) // parquet
 	for y := off.Y; y < off.Y+off.H; y += 36 {
 		rect(dst, off.X, y, off.W, 2, rgba(0x8a6a44, 0.35))
 	}
-	// hall : carrelage
-	rect(dst, hall.X, hall.Y, hall.W, hall.H, rgb(0xe8ecf0))
+	rect(dst, hall.X, hall.Y, hall.W, hall.H, rgb(0xe8ecf0)) // carrelage
 	for x := hall.X; x < hall.X+hall.W; x += 60 {
 		for y := hall.Y; y < hall.Y+hall.H; y += 60 {
 			if int((x-hall.X)/60+(y-hall.Y)/60)%2 == 0 {
@@ -95,17 +94,42 @@ func (g *game) policeGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 			}
 		}
 	}
-	// les bureaux : moquette
-	rect(dst, wing.X, wing.Y, wing.W, wing.H, rgb(0x9aa8bd))
-	// les murs entre les pièces (avec une porte)
-	wall := rgb(0x4a505a)
-	for _, x := range []float64{off.X + off.W + 30, hall.X + hall.W + 30} {
-		rect(dst, x-14, by+40, 28, 170, wall)
-		rect(dst, x-14, by+330, 28, bh-370, wall)
+	for n := 1; n <= sim.PolOffices(); n++ { // les bureaux : moquette (grisée tant qu'ils ne sont pas construits)
+		r := sim.PolCapOffice(n)
+		c := rgb(0x9aa8bd)
+		if !g.sim.PolOfficeOwned(n) {
+			c = rgba(0x9aa8bd, 0.35)
+		}
+		rect(dst, r.X, r.Y, r.W, r.H, c)
 	}
-	say(dst, "BUREAU DU COMMISSAIRE", off.C().X, off.Y+30, 20, true, 0, rgba(0x4a3a22, 0.75))
-	say(dst, "HALL", hall.C().X, hall.Y+30, 20, true, 0, rgba(0x2b3a5a, 0.7))
-	say(dst, "BUREAUX", wing.C().X, wing.Y+30, 20, true, 0, rgba(0x2b3a5a, 0.7))
+	for n := 1; n <= sim.PolCellN; n++ { // les cellules : du béton
+		r := sim.PolCell(n)
+		c := rgb(0xb8b4aa)
+		if g.sim.Levels["commissariat.cellule_"+itoa(n)] == 0 {
+			c = rgba(0xb8b4aa, 0.35)
+		}
+		rect(dst, r.X, r.Y, r.W, r.H, c)
+	}
+	// les murs (avec leurs portes)
+	wall := rgb(0x4a505a)
+	for _, x := range []float64{off.X - sim.PolGap/2, off.X + off.W + sim.PolGap/2} {
+		rect(dst, x-14, by+40, 28, bh-80, wall)
+		rect(dst, x-14, hall.Y+hall.H/2-60, 28, 120, rgb(0xd6d2c8)) // (la porte, côté hall)
+	}
+	rect(dst, off.X, off.Y+off.H+6, off.W/2-70, 10, wall)
+	rect(dst, off.X+off.W/2+70, off.Y+off.H+6, off.W/2-70, 10, wall)
+	say(dst, "BUREAU DU COMMISSAIRE", off.C().X, off.Y+24, 20, true, 0, rgba(0x4a3a22, 0.75))
+	say(dst, "HALL", hall.C().X, hall.Y+hall.H-24, 20, true, 0, rgba(0x2b3a5a, 0.7))
+	say(dst, "BUREAUX DES CAPITAINES", wing.C().X, by+28, 20, true, 0, rgba(0xffffff, 0.85))
+	say(dst, "GARDE À VUE", cells.C().X, by+28, 20, true, 0, rgba(0xffffff, 0.85))
+	// la case de la vidéosurveillance (le menu des capitaines)
+	if g.sim.HasChief() {
+		r := sim.PolVideoZone()
+		in := g.sim.Cur == p && r.Has(g.sim.Player.Pos)
+		zoneBox(dst, r, in, g.t, 0x9fd3ff)
+		say(dst, "VIDÉOSURVEILLANCE", r.C().X, r.C().Y-14, 18, true, 0, rgb(0x2b3a5a))
+		say(dst, "Reste ici", r.C().X, r.C().Y+18, 15, false, 0, rgba(0x2b3a5a, 0.85))
+	}
 	// la façade : la porte, et l'enseigne bleue
 	dx := sim.PolDoor().X
 	rect(dst, dx-80, by+bh-6, 160, 22, rgb(0xd6d2c8))
@@ -114,54 +138,107 @@ func (g *game) policeGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	say(dst, "COMMISSARIAT", dx, by+bh+47, 26, true, 0, rgb(0xffffff))
 }
 
-// policeDrawables : le mobilier, le commissaire, les voitures garées, les lieutenants.
+// captainLook : un capitaine (chemise bleu marine, casquette, insigne).
+func captainLook(n int) look {
+	lk := copLook(900 + 37*n)
+	lk.shirt = 0x2b4f8a
+	lk.vest = 0x1c2a44
+	return lk
+}
+
+// policeDrawables : le mobilier, le commissaire, les capitaines, la garde à vue, les voitures
+// garées, les lieutenants.
 func (g *game) policeDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable) []drawable {
 	t := g.t
-	off, hall, wing := sim.PolOffice(), sim.PolHall(), sim.PolWing()
-	// le bureau du commissaire, au fond de la pièce
-	dx, dy := off.C().X, off.Y+150
-	ds = append(ds, drawable{x: dx, y: dy + 60, fn: func() {
+	off, hall := sim.PolOffice(), sim.PolHall()
+	// le bureau du commissaire, au fond de la pièce (sa case est à droite)
+	dx, dy := off.C().X-60, off.Y+170
+	ds = append(ds, drawable{x: dx, y: dy + 70, fn: func() {
 		roundRect(dst, dx-150, dy, 300, 70, 8, rgb(0x6e4322))
 		rect(dst, dx-140, dy+6, 280, 8, rgb(0x8a5a33))
 		roundRect(dst, dx-110, dy+16, 70, 44, 4, rgb(0xf3ead8)) // des dossiers
 		roundRect(dst, dx+40, dy+14, 60, 40, 4, rgb(0x2b2b2b))  // un écran
 		rect(dst, dx+46, dy+18, 48, 28, rgb(0x5b9bd5))
 	}})
-	// derrière le bureau : son fauteuil (et lui, s'il est arrivé) ; un drapeau
 	ds = append(ds, drawable{x: dx, y: dy - 5, fn: func() {
 		roundRect(dst, dx-32, dy-80, 64, 70, 14, rgb(0x2b2b33))
 		if g.sim.HasChief() {
 			drawPerson(dst, V{X: dx, Y: dy - 12}, V{Y: 1}, 0, false, chiefLook(), nil)
 		}
-		fx := off.X + off.W - 60
-		rect(dst, fx, off.Y+70, 5, 150, rgb(0x9a9a9a))
-		rect(dst, fx+5, off.Y+74, 26, 46, rgb(0x2045a8))
-		rect(dst, fx+31, off.Y+74, 26, 46, rgb(0xffffff))
-		rect(dst, fx+57, off.Y+74, 26, 46, rgb(0xd9342b))
+		fx := off.X + 40 // le drapeau
+		rect(dst, fx, off.Y+60, 5, 150, rgb(0x9a9a9a))
+		rect(dst, fx+5, off.Y+64, 26, 46, rgb(0x2045a8))
+		rect(dst, fx+31, off.Y+64, 26, 46, rgb(0xffffff))
+		rect(dst, fx+57, off.Y+64, 26, 46, rgb(0xd9342b))
 	}})
-	// le hall : le comptoir d'accueil
+	// le hall : le comptoir d'accueil, deux plantes vertes
 	hx := hall.C().X
-	ds = append(ds, drawable{x: hx, y: hall.Y + 230, fn: func() {
-		roundRect(dst, hx-220, hall.Y+160, 440, 70, 10, rgb(0x7a8ca8))
-		rect(dst, hx-210, hall.Y+166, 420, 12, rgb(0x9fb0c8))
-		say(dst, "ACCUEIL", hx, hall.Y+205, 20, true, 0, rgb(0xffffff))
+	ds = append(ds, drawable{x: hx, y: hall.Y + 110, fn: func() {
+		roundRect(dst, hx-200, hall.Y+40, 400, 70, 10, rgb(0x7a8ca8))
+		rect(dst, hx-190, hall.Y+46, 380, 12, rgb(0x9fb0c8))
+		say(dst, "ACCUEIL", hx, hall.Y+85, 20, true, 0, rgb(0xffffff))
 	}})
-	// les bureaux (vides pour l'instant) : des tables et leurs écrans
-	for i := 0; i < 3; i++ {
-		x := wing.X + 90 + float64(i)*(wing.W-180)/2
-		y := wing.Y + 220
-		ds = append(ds, drawable{x: x, y: y + 60, fn: func() {
-			roundRect(dst, x-90, y, 180, 60, 6, rgba(0x6e4322, 0.55))
-			roundRect(dst, x-30, y+6, 60, 36, 4, rgba(0x2b2b2b, 0.55))
-		}})
-	}
-	// les plantes vertes du hall
 	for _, x := range []float64{hall.X + 50, hall.X + hall.W - 50} {
 		x := x
 		ds = append(ds, drawable{x: x, y: hall.Y + hall.H - 30, fn: func() {
 			roundRect(dst, x-20, hall.Y+hall.H-70, 40, 40, 6, rgb(0xa0522d))
 			circle(dst, x, hall.Y+hall.H-90, 30, rgb(0x3f8f3a))
 			circle(dst, x-12, hall.Y+hall.H-104, 18, rgb(0x52a84a))
+		}})
+	}
+	// les bureaux des capitaines : un bureau, trois écrans ; le capitaine ; ce qu'il surveille
+	for n := 1; n <= sim.PolOffices(); n++ {
+		n, r := n, sim.PolCapOffice(n)
+		if !g.sim.PolOfficeOwned(n) {
+			continue
+		}
+		cx, cy := r.C().X, r.Y+120
+		ds = append(ds, drawable{x: cx, y: cy + 60, fn: func() {
+			roundRect(dst, cx-120, cy, 240, 60, 6, rgb(0x6e4322))
+			for k := -1; k <= 1; k++ { // les écrans de la vidéosurveillance
+				sx := cx + float64(k)*74
+				roundRect(dst, sx-32, cy-34, 64, 44, 4, rgb(0x2b2b2b))
+				c := uint32(0x3a5a4a)
+				if g.sim.PolWatching(n) && g.sim.PolCamera(n) != "" {
+					c = 0x5fae8a
+					if math.Mod(t*0.7+float64(k+n), 3) < 0.15 {
+						c = 0x9fe0c0
+					}
+				}
+				rect(dst, sx-27, cy-30, 54, 34, rgb(c))
+			}
+		}})
+		ds = append(ds, drawable{x: cx, y: cy - 5, fn: func() {
+			roundRect(dst, cx-30, cy-70, 60, 62, 14, rgb(0x2b2b33))
+			if g.sim.PolCaptain(n) {
+				drawPerson(dst, V{X: cx, Y: cy - 10}, V{Y: 1}, 0, false, captainLook(n), nil)
+			}
+			lbl := tr.F("Bureau n° {n}", "n", itoa(n))
+			if id := g.sim.PolCamera(n); id != "" && g.sim.PolCaptain(n) {
+				lbl = tr.F("{lieu} : {p} %", "lieu", tr.T(mapNames[id]), "p", itoa(int(math.Round(100*g.sim.CatchChance(n)))))
+			}
+			tr.Seen(lbl)
+			sayFit(dst, lbl, cx, r.Y+22, 16, true, 0, r.W-20, rgb(0xffffff))
+		}})
+	}
+	// la garde à vue : des barreaux ; dedans, les voleurs arrêtés
+	left := g.sim.InCustody()
+	for n := 1; n <= sim.PolCellN; n++ {
+		n, r := n, sim.PolCell(n)
+		if g.sim.Levels["commissariat.cellule_"+itoa(n)] == 0 {
+			continue
+		}
+		in := min(left, sim.PolCellCap)
+		left -= in
+		for k := 0; k < in; k++ {
+			rb := &sim.Robber{Pos: V{X: r.X + 30 + float64(k%3)*55, Y: r.Y + 150 + float64(k/3)*80}, Face: V{Y: 1}, Look: 31*n + 7*k}
+			ds = append(ds, drawable{x: rb.Pos.X, y: rb.Pos.Y, fn: func() { drawRobber(dst, rb, t) }})
+		}
+		ds = append(ds, drawable{x: r.C().X, y: r.Y + r.H, fn: func() {
+			for x := r.X + 8; x < r.X+r.W; x += 22 {
+				rect(dst, x, r.Y+r.H-120, 5, 120, rgb(0x3a3f47))
+			}
+			rect(dst, r.X, r.Y+r.H-124, r.W, 8, rgb(0x3a3f47))
 		}})
 	}
 	// les voitures garées (achetées, pas en patrouille)

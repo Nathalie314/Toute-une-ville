@@ -47,7 +47,10 @@ func (g *game) drawTheftHUD(dst *ebiten.Image, x, y float64) {
 	ts := itoa(m) + ":" + map[bool]string{true: "0", false: ""}[sec < 10] + itoa(sec)
 	sayFit(dst, tr.T("Tout est arrêté. Les voleurs partiront dans :"), x+20, y+52, 15, false, -1, w-110, rgb(0xffd9d9))
 	say(dst, ts, x+w-16, y+52, 20, true, 1, rgb(0xffffff))
-	if th.Stolen > 0 {
+	switch {
+	case th.Spotted:
+		sayFit(dst, "Repérés par la vidéosurveillance : la police les attend !", x+20, y+82, 15, true, -1, w-40, rgb(0x9fe0ff))
+	case th.Stolen > 0:
 		sayFit(dst, tr.F("Volé dans les caisses : {prix}", "prix", money(th.Stolen)), x+20, y+82, 15, true, -1, w-40, rgb(0xffe066))
 	}
 }

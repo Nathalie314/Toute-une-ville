@@ -1712,4 +1712,18 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   - Tutoriel facultatif à la première visite (Oui / Non merci ; trois pages). Aide « ? » du lieu. Pas de réputation,
     pas dans le tableau des gains (sells faux). Badges : ouvert, commissaire, toute la flotte, toute la brigade, en
     patrouille, deux lieux à la fois. Captures : CAPPOL=1 (équipé), 2 (menu), 3 (tutoriel) ; CAPPATROL=0.5.
-  - Étape 4 (pas encore faite) : bureaux, capitaines, vidéosurveillance, garde à vue.
+  - Disposition (demandes) : le bâtiment seul au-dessus de la route ; en dessous, la zone du joueur (à l'horizontale, à
+    gauche) et le parking (à droite). Le bureau du commissaire au sommet et au centre (« symbole de sa mission »), le hall
+    (porte, accueil) dessous ; à gauche les bureaux des capitaines, à droite la garde à vue (symétrique).
+  - ÉTAPE 4 : vidéosurveillance et garde à vue. Tous les lieux peuvent être protégés : la moitié par des voitures, la
+    moitié par des capitaines. En théorie, voiture 1 : lieux 1 et 2 ; caméra : 3 ; voiture 2 : 4 et 5 ; caméras : 6 et 7…
+    Le bureau n° n coûte le prix du lieu survRank(n) = 3, 6, 7, 10, 11, 14, 15… (PolOffices : ceux qui existent, 6 avec
+    14 lieux), dans l'ordre. Capitaine : case dans son bureau, points du lycée 50, 500, 5 000… (×10). Le menu (onglet
+    « Vidéosurveillance », case du hall) lui confie un lieu (un capitaine par lieu). Chance de repérer les voleurs : 1 %,
+    +1 % par 10 points du primaire placés dans CE bureau (BuyVideo, 990 au plus : 100 %). Un seul tirage au début du vol
+    pour tout le groupe : s'ils sont repérés (Theft.Spotted), ils volent quand même mais sont arrêtés en partant.
+  - Garde à vue : 10 cellules quel que soit le nombre de bureaux (la prison les videra), 5 voleurs chacune, moitié du prix
+    du bureau de même rang. Sans place : les voleurs repérés restent libres. 2 heures, même jeu fermé (Save.Garde ; un
+    vol fini pendant l'absence fait arrêter ses voleurs à l'heure où il a fini). Les voleurs en garde à vue ne comptent
+    plus (Thieves) ; moins de 5 en liberté : ils attaquent à ce qu'ils sont ; plus aucun : plus d'attaque. Un lieu protégé
+    par une voiture dont le seul événement possible est le vol ne participe plus au tirage. Test : TestVideosurveillance.

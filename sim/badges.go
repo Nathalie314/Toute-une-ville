@@ -516,6 +516,17 @@ func init() {
 				}
 				return false
 			}},
+		Badge{ID: "commissariat_capitaine", Place: "commissariat", Name: "Œil de lynx", Desc: "Former un capitaine.", Icon: IconWorker,
+			Check: func(g *Game) bool {
+				for n := 1; n <= PolOffices(); n++ {
+					if g.PolCaptain(n) {
+						return true
+					}
+				}
+				return false
+			}},
+		Badge{ID: "commissariat_arrest", Place: "commissariat", Name: "Pris la main dans le sac", Desc: "Arrêter des voleurs grâce à la vidéosurveillance.", Icon: IconStar,
+			Check: func(g *Game) bool { return g.Levels["commissariat.arrestations"] > 0 }},
 		Badge{ID: "commissariat_double", Place: "commissariat", Name: "Deux lieux à la fois", Desc: "Une voiture protège deux lieux (mécaniciens).", Icon: IconStar,
 			Check: func(g *Game) bool {
 				for k := 1; k <= PolCars(); k++ {

@@ -37,6 +37,7 @@ type Theft struct {
 	Robbers []*Robber
 	Stolen  float64 // ce qui a été pris dans les caisses
 	robbed  map[int]bool
+	Spotted bool         // repérés par la vidéosurveillance : ils seront arrêtés en partant
 	targets []V          // les caisses (ou, sans caisse, quelques points du lieu)
 	tables  []*CrepTable // à la crêperie : les tables, dont ils raflent les pourboires
 	hasRegs bool
@@ -66,7 +67,8 @@ func (g *Game) TopOwned() int {
 }
 
 // Thieves : le nombre de voleurs dans la ville.
-func (g *Game) Thieves() int { return thievesBase + thievesPerLieu*g.TopOwned() }
+// (ceux qui sont en garde à vue n'en font plus partie : ils ne peuvent plus attaquer)
+func (g *Game) Thieves() int { return max(0, thievesBase+thievesPerLieu*g.TopOwned()-g.InCustody()) }
 
 // thievesActive : les voleurs sont-ils arrivés en ville (le supermarché est ouvert) ?
 func (g *Game) thievesActive() bool {
@@ -91,17 +93,21 @@ func (g *Game) startTheft(id string) {
 		return
 	}
 	d := 60 * float64(max(1, g.TopOwned()))
-	g.startTheftQuiet(id, d)
+	g.startTheftQuiet(id, d, min(robbersN, g.Thieves()))
 	p.theftFlee()
 	if g.Cur == p && p.Yard.W > 0 && !p.Yard.Has(g.Player.Pos) {
 		g.Theft.Scared = true // (terrorisé, le joueur court tout seul jusqu'à sa zone)
 	}
 	g.emit(Event{Kind: EvLevel, Place: id, Pos: p.Gate, Text: tr.F("Des voleurs attaquent {lieu} ! Tout s'arrête pendant {duree}.", "lieu", theName(id), "duree", durText(d))})
 	g.emit(Event{Kind: EvAngry, Place: id, Pos: p.Gate})
+	if n := g.CameraOf(id); n > 0 && g.rng.Float64() < g.CatchChance(n) { // (un seul tirage pour tout le groupe)
+		g.Theft.Spotted = true
+		g.emit(Event{Kind: EvLevel, Place: id, Pos: p.Gate, Text: "La vidéosurveillance a repéré les voleurs : la police les attend à la sortie !"})
+	}
 }
 
 // startTheftQuiet : met les voleurs en place (sans message).
-func (g *Game) startTheftQuiet(id string, d float64) {
+func (g *Game) startTheftQuiet(id string, d float64, nr int) {
 	p := g.Place(id)
 	th := &Theft{Place: id, Left: d, Total: d, robbed: map[int]bool{}}
 	for _, s := range p.Stations {
@@ -130,7 +136,7 @@ func (g *Game) startTheftQuiet(id string, d float64) {
 			th.targets = append(th.targets, c.Add(V{math.Cos(a) * 220, math.Sin(a) * 120}))
 		}
 	}
-	for k := 0; k < robbersN; k++ {
+	for k := 0; k < max(1, nr); k++ { // (moins de 5 voleurs en liberté : ils viennent à ce qu'ils sont)
 		r := &Robber{Pos: p.Gate.Add(V{float64(k-2) * 40, 30}), Face: V{0, -1}, Look: 500 + 97*k, target: -1, waitT: float64(k) * 0.6}
 		th.Robbers = append(th.Robbers, r)
 	}
@@ -189,6 +195,9 @@ func (g *Game) stepTheft(dt float64) {
 	th.Left -= dt
 	if th.Left <= 0 || p == nil {
 		g.Theft = nil
+		if th.Spotted {
+			g.arrest(th.Place, len(th.Robbers), CustodyTime)
+		}
 		if p != nil {
 			for _, w := range p.Workers {
 				w.Hidden = false // (ils sortent du vestiaire)
@@ -333,6 +342,8 @@ type TheftSave struct {
 	Taux    float64 `json:",omitempty"` // ce que le lieu rapporte par seconde (retiré de Save.Rate)
 	Vole    float64 `json:",omitempty"`
 	Caisses []int   `json:",omitempty"` // les caisses déjà vidées
+	Repere  bool    `json:",omitempty"` // repérés par la vidéosurveillance
+	Voleurs int     `json:",omitempty"` // combien ils sont (0 : 5)
 }
 
 func (g *Game) theftSave() *TheftSave {
@@ -340,7 +351,7 @@ func (g *Game) theftSave() *TheftSave {
 	if th == nil {
 		return nil
 	}
-	ts := &TheftSave{Lieu: th.Place, Reste: th.Left, Duree: th.Total, Vole: th.Stolen, Taux: g.placeRate(th.Place)}
+	ts := &TheftSave{Lieu: th.Place, Reste: th.Left, Duree: th.Total, Vole: th.Stolen, Taux: g.placeRate(th.Place), Repere: th.Spotted, Voleurs: len(th.Robbers)}
 	for k, done := range th.robbed {
 		if done {
 			ts.Caisses = append(ts.Caisses, k)
@@ -361,7 +372,17 @@ func (g *Game) placeRate(id string) float64 {
 }
 
 func (g *Game) theftRestore(ts *TheftSave) {
-	if ts == nil || ts.Reste <= 0 {
+	if ts == nil {
+		return
+	}
+	if ts.Reste <= 0 { // (ils sont partis pendant l'absence : arrêtés en partant, s'ils étaient repérés)
+		if ts.Repere {
+			n := ts.Voleurs
+			if n == 0 {
+				n = robbersN
+			}
+			g.arrest(ts.Lieu, n, CustodyTime+ts.Reste)
+		}
 		return
 	}
 	p := g.Place(ts.Lieu)
@@ -369,8 +390,13 @@ func (g *Game) theftRestore(ts *TheftSave) {
 		return
 	}
 	g.Order = nil
-	g.startTheftQuiet(ts.Lieu, ts.Duree)
+	nr := ts.Voleurs
+	if nr == 0 {
+		nr = robbersN
+	}
+	g.startTheftQuiet(ts.Lieu, ts.Duree, nr)
 	th := g.Theft
+	th.Spotted = ts.Repere
 	th.Left, th.Stolen = math.Min(ts.Reste, ts.Duree), ts.Vole
 	for _, k := range ts.Caisses {
 		th.robbed[k] = true

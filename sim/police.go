@@ -29,31 +29,102 @@ import (
 
 // Géométrie du commissariat.
 const (
-	PolBldY   = 150.0  //
-	PolBldW   = 2480.0 //
-	PolBldH   = 700.0  //
-	PolParkY  = 1010.0 // le parking des voitures de police (sous le bâtiment)
-	PolParkH  = 540.0  // (sous chaque place : la case de son lieutenant)
-	PolParkM  = 270.0  // de la place à gauche et à droite des voitures (la case des patrouilles à droite)
-	PolBayW   = 300.0  // une place de parking
-	PolBayGap = 140.0  // (de la place entre deux voitures : le jeu reste aéré)
+	PolBldY    = 700.0                 // le bâtiment, seul au-dessus de la route
+	PolBldH    = 800.0                 //
+	PolParkY   = 1880.0                // sous la route : la zone du joueur à gauche, le parking des voitures à droite
+	PolYardX   = 300.0                 // le bord gauche de la zone du joueur (à l'horizontale, 2150 de large)
+	PolParkX0  = PolYardX + 2150 + 200 // le bord gauche du parking
+	PolParkH   = 540.0                 // (sous chaque place : la case de son lieutenant)
+	PolParkM   = 270.0                 // de la place à gauche et à droite des voitures (la case des patrouilles à droite)
+	PolBayW    = 300.0                 // une place de parking
+	PolBayGap  = 140.0                 // (de la place entre deux voitures : le jeu reste aéré)
+	PolRoomW   = 640.0                 // le bureau du commissaire, le hall
+	PolOffW    = 300.0                 // un bureau de capitaine (deux rangées)
+	PolOffH    = 330.0                 //
+	PolCellW   = 170.0                 // une cellule de garde à vue (deux rangées de cinq)
+	PolCellH   = 330.0                 //
+	PolCellN   = 10                    // cellules au plus (quel que soit le nombre de bureaux)
+	PolCellCap = 5                     // voleurs par cellule
+	PolGap     = 60.0                  // l'épaisseur des murs entre les pièces
 )
 
-// PolW : la largeur du commissariat (le parking s'allonge avec le nombre de voitures) ; le
-// bâtiment est centré.
-var PolW = math.Max(3000, float64(PolCars())*(PolBayW+PolBayGap)+1000)
+// survRank : le rang (dans la rangée du haut) du lieu que protège en théorie le bureau n° n :
+// 3, puis 6 et 7, 10 et 11, 14 et 15… (les voitures : 1 et 2, 4 et 5, 8 et 9…). Le bureau
+// coûte le prix de ce lieu ; la cellule n° n, la moitié.
+func survRank(n int) int {
+	c := 0
+	for r := 3; ; r++ {
+		if r == 3 || (r >= 6 && (r%4 == 2 || r%4 == 3)) {
+			if c++; c == n {
+				return r
+			}
+		}
+	}
+}
+
+// PolOffices : le nombre de bureaux de capitaines (un par lieu « à surveiller » qui existe).
+func PolOffices() int {
+	n := 0
+	for survRank(n+1) <= len(TopRow()) {
+		n++
+	}
+	return n
+}
+
+func polOffCols() int { return max(1, (PolOffices()+1)/2) }
+
+// polSide : la largeur d'une aile (les bureaux à gauche, les cellules à droite : la plus large des deux).
+func polSide() float64 {
+	return math.Max(float64(polOffCols())*(PolOffW+20)-20, 5*(PolCellW+16)-16)
+}
+
+// PolBldW : la largeur du bâtiment : au centre, le commissaire (en haut) et le hall (en bas) ;
+// à gauche, les bureaux des capitaines ; à droite, la garde à vue.
+var PolBldW = 60 + polSide() + PolGap + PolRoomW + PolGap + polSide() + 60
+
+// PolW : la largeur du commissariat (le bâtiment, la zone du joueur et le parking).
+var PolW = math.Max(PolBldW+600, PolParkX0+2*PolParkM+float64(PolCars())*(PolBayW+PolBayGap)-PolBayGap+300)
 
 // PolBldX : le bord gauche du bâtiment.
 var PolBldX = (PolW - PolBldW) / 2
 
-// PolOffice : le bureau du commissaire (à gauche dans le bâtiment).
-func PolOffice() Rect { return Rect{PolBldX + 60, PolBldY + 60, 700, PolBldH - 120} }
+func polCX() float64 { return PolBldX + PolBldW/2 }
 
-// PolHall : le hall, au milieu (l'accueil).
-func PolHall() Rect { return Rect{PolBldX + 880, PolBldY + 60, 720, PolBldH - 120} }
+// PolOffice : le bureau du commissaire : au sommet, au centre (le symbole de sa mission).
+func PolOffice() Rect { return Rect{polCX() - PolRoomW/2, PolBldY + 60, PolRoomW, PolOffH} }
 
-// PolWing : l'aile de droite (les bureaux des capitaines, plus tard).
-func PolWing() Rect { return Rect{PolBldX + 1720, PolBldY + 60, PolBldW - 1780, PolBldH - 120} }
+// PolHall : le hall, sous son bureau (la porte, l'accueil, la case de la vidéosurveillance).
+func PolHall() Rect {
+	return Rect{polCX() - PolRoomW/2, PolBldY + 60 + PolOffH + 20, PolRoomW, PolBldH - 140 - PolOffH}
+}
+
+// PolWing : l'aile des bureaux des capitaines (à gauche).
+func PolWing() Rect {
+	w := float64(polOffCols())*(PolOffW+20) - 20
+	return Rect{polCX() - PolRoomW/2 - PolGap - w, PolBldY + 60, w, PolBldH - 120}
+}
+
+// PolCapOffice : le bureau n° n (1, 2…) : du centre vers la gauche, en haut puis en bas.
+func PolCapOffice(n int) Rect {
+	w := PolWing()
+	c, r := (n-1)/2, (n-1)%2
+	return Rect{w.X + w.W - PolOffW - float64(c)*(PolOffW+20), w.Y + float64(r)*(PolOffH+20), PolOffW, PolOffH}
+}
+
+// PolCells : la garde à vue (à droite).
+func PolCells() Rect {
+	return Rect{polCX() + PolRoomW/2 + PolGap, PolBldY + 60, 5*(PolCellW+16) - 16, PolBldH - 120}
+}
+
+// PolCell : la cellule n° n (1 à 10), du centre vers la droite, en haut puis en bas.
+func PolCell(n int) Rect {
+	a := PolCells()
+	c, r := (n-1)%5, (n-1)/5
+	return Rect{a.X + float64(c)*(PolCellW+16), a.Y + float64(r)*(PolCellH+20), PolCellW, PolCellH}
+}
+
+// PolVideoZone : la case du hall qui ouvre le menu de la vidéosurveillance.
+func PolVideoZone() Rect { h := PolHall(); return Rect{h.C().X - 110, h.Y + h.H - 190, 220, 150} }
 
 // PolDoor : la porte du bâtiment (en bas, au milieu du hall).
 func PolDoor() V { return V{PolHall().C().X, PolBldY + PolBldH} }
@@ -82,9 +153,7 @@ func PolCars() int { return len(TopRow())/4 + 1 }
 
 // PolBay : la place de parking de la voiture n° k (1, 2…), centrées sur le lieu.
 func PolBay(k int) Rect {
-	n := float64(PolCars())
-	w := n*PolBayW + (n-1)*PolBayGap
-	x0 := PolW/2 - w/2
+	x0 := PolParkX0 + PolParkM
 	return Rect{x0 + float64(k-1)*(PolBayW+PolBayGap), PolParkY + 60, PolBayW, 250}
 }
 
@@ -102,14 +171,14 @@ func DoubleCost(k int) int { return 100 * LieutCost(k) }
 
 func newPolice(g *Game) *Place {
 	W := PolW
-	p := &Place{ID: "commissariat", Name: "Le commissariat", W: W, H: 1800, g: g, rng: rand.New(rand.NewSource(113)),
+	p := &Place{ID: "commissariat", Name: "Le commissariat", W: W, H: PolParkY + PolParkH + 130, Top: PolBldY - 150, g: g, rng: rand.New(rand.NewSource(113)),
 		Rep: 3, Price: 0, SellMult: 1, MaxCust: 0}
 	p.Pol = &Police{}
-	p.Gate = V{W / 2, roadY + 40}
+	p.Gate = V{PolDoor().X, roadY + 40}
 	p.SpawnL = V{350, roadY + 40}
 	p.SpawnR = V{W - 350, roadY + 40}
-	p.Inside = V{W / 2, PolParkY + 300}
-	p.RestSpot = V{W / 2, PolParkY + 300}
+	p.Inside = PolDoor().Add(V{0, -200})
+	p.RestSpot = PolBay(1).C().Add(V{0, 200})
 	k := p.key
 	p.ups = []*Upgrade{
 		{Key: k("commissaire"), Name: "Commissaire", Max: 1, Costs: []float64{10}, Pts: "formation",
@@ -132,7 +201,7 @@ func newPolice(g *Game) *Place {
 				return "Avec son lieutenant, elle protège un lieu des voleurs (case « Patrouilles »)."
 			}})
 	}
-	p.Spots = append(p.Spots, &Spot{ID: "commissaire", Label: "Commissaire", Zone: Rect{PolOffice().C().X - 70, PolOffice().Y + PolOffice().H - 170, 140, 130},
+	p.Spots = append(p.Spots, &Spot{ID: "commissaire", Label: "Commissaire", Zone: Rect{PolOffice().X + PolOffice().W - 180, PolOffice().Y + PolOffice().H - 150, 140, 130},
 		Done: func(int) string { return "Le commissaire est arrivé ! La première voiture de police est offerte." }})
 	for c := 1; c <= PolCars(); c++ { // le lieutenant de chaque voiture : sa case sous la voiture
 		c, b := c, PolBay(c)
@@ -145,7 +214,41 @@ func newPolice(g *Game) *Place {
 		p.Spots = append(p.Spots, &Spot{ID: "voiture_" + itoa(c), Label: "Voiture de police", Needs: prev, Zone: Rect{b.C().X - 70, b.C().Y - 65, 140, 130},
 			Done: func(int) string { return "Nouvelle voiture de police !" }})
 	}
-	p.setupYard(-620)
+	// les bureaux des capitaines (de l'argent : le prix du lieu qu'ils surveillent en théorie),
+	// leurs capitaines (des points du lycée), les cellules de garde à vue (moitié prix)
+	for n := 1; n <= PolOffices(); n++ {
+		n, r := n, PolCapOffice(n)
+		prev := "commissaire"
+		if n > 1 {
+			prev = "bureau_" + itoa(n-1)
+		}
+		p.ups = append(p.ups, &Upgrade{Key: k("bureau_" + itoa(n)), Name: "Bureau de capitaine", Max: 1, Costs: []float64{PlacePrice(survRank(n))},
+			Desc: func(int) string {
+				return "Un capitaine y surveillera un lieu par vidéosurveillance : il peut faire arrêter les voleurs."
+			}})
+		p.ups = append(p.ups, &Upgrade{Key: k("capitaine_" + itoa(n)), Name: "Capitaine", Max: 1, Pts: "comptable", Costs: []float64{float64(CaptCost(n))},
+			Desc: func(int) string {
+				return "Formé avec des points du lycée, il surveille un lieu par vidéosurveillance (case « Vidéosurveillance » du hall)."
+			}})
+		p.Spots = append(p.Spots, &Spot{ID: "bureau_" + itoa(n), Label: "Bureau", Needs: prev, Zone: Rect{r.C().X - 70, r.C().Y - 65, 140, 130},
+			Done: func(int) string { return tr.F("Bureau n° {n} construit !", "n", itoa(n)) }})
+		p.Spots = append(p.Spots, &Spot{ID: "capitaine_" + itoa(n), Label: "Capitaine", Needs: "bureau_" + itoa(n), Zone: Rect{r.C().X - 70, r.Y + r.H - 140, 140, 130},
+			Done: func(int) string { return tr.F("Capitaine n° {n} formé !", "n", itoa(n)) }})
+	}
+	for n := 1; n <= PolCellN; n++ {
+		n, r := n, PolCell(n)
+		prev := "commissaire"
+		if n > 1 {
+			prev = "cellule_" + itoa(n-1)
+		}
+		p.ups = append(p.ups, &Upgrade{Key: k("cellule_" + itoa(n)), Name: "Cellule de garde à vue", Max: 1, Costs: []float64{math.Round(PlacePrice(survRank(n)) / 2)},
+			Desc: func(int) string {
+				return "Elle garde 5 voleurs arrêtés pendant 2 heures (même jeu fermé) : pendant ce temps, ils n'attaquent plus."
+			}})
+		p.Spots = append(p.Spots, &Spot{ID: "cellule_" + itoa(n), Label: "Cellule", Needs: prev, Zone: Rect{r.C().X - 70, r.C().Y - 65, 140, 130},
+			Done: func(int) string { return "Nouvelle cellule de garde à vue !" }})
+	}
+	p.setupYardH(PolYardX+650, PolParkY) // (de l'autre côté de la route, comme au port)
 	return p
 }
 
@@ -263,6 +366,12 @@ func (g *Game) BuyDouble(k int) bool {
 // parking quand ils ne patrouillent pas.
 func (p *Place) stepPolice(dt float64, active bool) {
 	g := p.g
+	if n := g.Levels[p.key("lieutenants")]; n > 0 { // (une partie d'avant : un lieutenant par voiture)
+		for k := 1; k <= min(n, PolCars()); k++ {
+			g.Levels[p.key("lieutenant_"+itoa(k))] = 1
+		}
+		delete(g.Levels, p.key("lieutenants"))
+	}
 	if g.HasChief() && g.Levels[p.key("voiture_1")] == 0 {
 		g.Levels[p.key("voiture_1")] = 1 // (la première voiture est offerte avec le commissaire)
 	}
@@ -327,4 +436,150 @@ func (g *Game) openPolice() {
 	}
 	pol.Owned = true
 	g.emit(Event{Kind: EvLevel, Text: "Le commissariat ouvre ses portes (offert) ! Il lui faut un commissaire."})
+}
+
+// ---------------------------------------------------------------- vidéosurveillance, garde à vue
+
+// CaptCost : points du lycée pour former le capitaine n° n (50, 500, 5 000… : ×10).
+func CaptCost(n int) int { return 50 * int(math.Pow(10, float64(n-1))) }
+
+// PolOfficeOwned : le bureau n° n est-il construit ?
+func (g *Game) PolOfficeOwned(n int) bool { return g.Levels["commissariat.bureau_"+itoa(n)] > 0 }
+
+// PolCaptain : le capitaine du bureau n° n est-il formé ?
+func (g *Game) PolCaptain(n int) bool { return g.Levels["commissariat.capitaine_"+itoa(n)] > 0 }
+
+// PolWatching : le capitaine n° n travaille-t-il (commissaire, bureau, capitaine) ?
+func (g *Game) PolWatching(n int) bool { return g.HasChief() && g.PolOfficeOwned(n) && g.PolCaptain(n) }
+
+// PolCamera : le lieu que surveille le capitaine n° n ("" : aucun).
+func (g *Game) PolCamera(n int) string {
+	r := g.Levels["commissariat.camera_"+itoa(n)]
+	top := TopRow()
+	if r < 1 || r > len(top) {
+		return ""
+	}
+	return top[r-1]
+}
+
+// SetCamera : le capitaine n° n surveille ce lieu ("" : aucun). Un capitaine par lieu.
+func (g *Game) SetCamera(n int, id string) {
+	if id != "" {
+		for c := 1; c <= PolOffices(); c++ {
+			if g.PolCamera(c) == id {
+				delete(g.Levels, "commissariat.camera_"+itoa(c))
+			}
+		}
+	}
+	if r := PriceRank(id); id != "" && r > 0 {
+		g.Levels["commissariat.camera_"+itoa(n)] = r
+	} else {
+		delete(g.Levels, "commissariat.camera_"+itoa(n))
+	}
+}
+
+// CameraOf : le capitaine qui surveille ce lieu (0 : aucun).
+func (g *Game) CameraOf(id string) int {
+	for n := 1; n <= PolOffices(); n++ {
+		if g.PolWatching(n) && g.PolCamera(n) == id {
+			return n
+		}
+	}
+	return 0
+}
+
+// VideoMax : les points du primaire au plus dans un bureau (99 % de plus : 100 %).
+const VideoMax = 990
+
+// CatchChance : la chance que le capitaine n° n fasse arrêter les voleurs (1 %, +1 % tous les
+// 10 points du primaire placés dans SON bureau, 100 % au plus).
+func (g *Game) CatchChance(n int) float64 {
+	return math.Min(1, 0.01+float64(g.Levels["commissariat.video_"+itoa(n)])/1000)
+}
+
+// BuyVideo : des techniciens pour le bureau n° n (pts points du primaire, par 10).
+func (g *Game) BuyVideo(n, pts int) bool {
+	key := "commissariat.video_" + itoa(n)
+	pts = min(pts, VideoMax-g.Levels[key])
+	if pts <= 0 || !g.PolOfficeOwned(n) || g.Points("ouvrier") < pts {
+		return false
+	}
+	g.Levels["pts.ouvrier"] -= pts
+	g.Levels[key] += pts
+	return true
+}
+
+// PolCellsOwned : le nombre de cellules de garde à vue.
+func (g *Game) PolCellsOwned() int {
+	n := 0
+	for c := 1; c <= PolCellN; c++ {
+		if g.Levels["commissariat.cellule_"+itoa(c)] > 0 {
+			n++
+		}
+	}
+	return n
+}
+
+// Custody : des voleurs en garde à vue (relâchés au bout de 2 heures, même jeu fermé).
+type Custody struct {
+	N    int
+	Left float64
+}
+
+// CustodyTime : 2 heures.
+const CustodyTime = 2 * 3600.0
+
+// InCustody : le nombre de voleurs en garde à vue.
+func (g *Game) InCustody() int {
+	n := 0
+	for _, c := range g.Custody {
+		n += c.N
+	}
+	return n
+}
+
+// CellRoom : les places libres en garde à vue.
+func (g *Game) CellRoom() int { return max(0, g.PolCellsOwned()*PolCellCap-g.InCustody()) }
+
+// arrest : les voleurs repérés sont arrêtés à leur départ (s'il y a de la place en cellule).
+func (g *Game) arrest(id string, n int, left float64) {
+	at := V{}
+	if p := g.Place(id); p != nil {
+		at = p.Gate
+	}
+	k := min(n, g.CellRoom())
+	if k <= 0 {
+		g.emit(Event{Kind: EvLevel, Place: id, Pos: at, Text: "La vidéosurveillance a repéré les voleurs, mais il n'y a pas de place en garde à vue : ils restent libres."})
+		return
+	}
+	g.Custody = append(g.Custody, &Custody{N: k, Left: left})
+	g.Levels["commissariat.arrestations"] += k
+	g.emit(Event{Kind: EvLevel, Place: id, Pos: at, Text: tr.F("Grâce à la vidéosurveillance, {n} voleur(s) arrêté(s) en partant : garde à vue pendant 2 heures.", "n", itoa(k))})
+}
+
+// stepCustody : le temps de la garde à vue s'écoule ; au bout, les voleurs sont relâchés.
+func (g *Game) stepCustody(dt float64) {
+	keep := g.Custody[:0]
+	for _, c := range g.Custody {
+		if c.Left -= dt; c.Left > 0 {
+			keep = append(keep, c)
+		} else {
+			g.emit(Event{Kind: EvLevel, Text: tr.F("Fin de la garde à vue : {n} voleur(s) relâché(s).", "n", itoa(c.N))})
+		}
+	}
+	g.Custody = keep
+}
+
+// GardeSave : la garde à vue, dans la sauvegarde.
+type GardeSave struct {
+	N     int
+	Reste float64
+}
+
+func (g *Game) custodySave() []GardeSave {
+	var out []GardeSave
+	for _, c := range g.Custody {
+		out = append(out, GardeSave{N: c.N, Reste: c.Left})
+	}
+	return out
 }

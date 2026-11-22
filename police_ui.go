@@ -33,11 +33,16 @@ func (g *game) policeHUD(dst *ebiten.Image) {
 	}
 	pl := g.sim.Player
 	in := sim.PolPatrolZone().Has(pl.Pos)
-	if in && !pl.Moving && !g.polZoneIn && g.panel == panelNone {
+	vin := sim.PolVideoZone().Has(pl.Pos)
+	if (in || vin) && !pl.Moving && !g.polZoneIn && g.panel == panelNone {
 		g.polZoneIn = true
+		g.polTab = 0
+		if vin {
+			g.polTab = 1
+		}
 		g.openPanel(panelPolice)
 	}
-	if !in {
+	if !in && !vin {
 		g.polZoneIn = false
 	}
 	// un clic sur le parking ouvre aussi le menu
@@ -46,7 +51,7 @@ func (g *game) policeHUD(dst *ebiten.Image) {
 	x1, y1 := g.worldCam.P(bn.X+bn.W+sim.PolParkM, sim.PolParkY+sim.PolParkH)
 	s := cam.s
 	if g.panel == panelNone {
-		g.addButton(float64(x0)/s, float64(y0)/s, float64(x1-x0)/s, float64(y1-y0)/s, func() { g.openPanel(panelPolice) })
+		g.addButton(float64(x0)/s, float64(y0)/s, float64(x1-x0)/s, float64(y1-y0)/s, func() { g.polTab = 0; g.openPanel(panelPolice) })
 		g.btns[len(g.btns)-1].danger = true // (pas en restant dessus : seulement d'un clic)
 	}
 }
@@ -55,15 +60,30 @@ func (g *game) policeHUD(dst *ebiten.Image) {
 func (g *game) drawPolicePanel(dst *ebiten.Image) {
 	gs := g.sim
 	n := sim.PolCars()
-	w, h := math.Min(1500, scr.VW-60), 900.0
-	x, y := g.panelFrame(dst, "Patrouilles", w, h)
+	w, h := math.Min(1500, scr.VW-60), 960.0
+	x, y := g.panelFrame(dst, "Commissariat", w, h)
+	// deux onglets : les voitures (lieutenants), la vidéosurveillance (capitaines)
+	for i, lbl := range []string{"Patrouilles", "Vidéosurveillance"} {
+		i := i
+		col := uint32(0x8a9ab8)
+		if g.polTab == i {
+			col = 0x2b6cd6
+		}
+		g.btn(dst, lbl, x+w/2-370+float64(i)*380, y+14, 360, 60, col, true, func() { g.polTab = i })
+	}
+	y += 70
+	h -= 70
+	if g.polTab == 1 {
+		g.drawVideoTab(dst, x, y, w, h)
+		return
+	}
 	say(dst, "Choisis une voiture à gauche, puis le lieu où elle patrouille : les voleurs n'y viendront plus.", x+w/2, y+34, 20, false, 0, rgb(0x5a4a3a))
 	if g.polSel < 1 || g.polSel > n {
 		g.polSel, g.polSlot = 1, 0
 	}
 	lw := 560.0
 	lx, ly := x+30, y+80
-	ch := math.Min(230, (h-200)/float64(n))
+	ch := math.Min(230, (h-200)/float64(n)-10)
 	for k := 1; k <= n; k++ {
 		k := k
 		cy := ly + float64(k-1)*(ch+10)
@@ -182,6 +202,7 @@ var polTutoPages = []string{
 	"Le commissariat protège la ville des voleurs. Il est offert, mais il ne fonctionne qu'avec un commissaire : il ne s'achète pas avec de l'argent, il coûte 10 points d'université (l'école). Sa case est dans son bureau.",
 	"Avec le commissaire, la première voiture de police est offerte. Les suivantes s'achètent au parking. Une voiture ne roule qu'avec son lieutenant : il se forme avec des points du collège, sur la case sous sa voiture (10 points pour la première voiture, puis 50, puis 250…). Un lieutenant sans patrouille erre sur le parking en sifflotant.",
 	"Sur le parking, la case « Patrouilles » (ou un clic sur le parking) ouvre le menu des voitures : choisis le lieu où chacune patrouille. Ce lieu ne peut plus être attaqué. Avec des mécaniciens (points du primaire), une voiture protège un deuxième lieu.",
+	"Dans les bureaux, à gauche, les capitaines (points du lycée) surveillent chacun un lieu par vidéosurveillance (case du hall). S'ils repèrent les voleurs, ceux-ci sont arrêtés en partant et passent 2 heures en garde à vue, à droite, s'il y a une cellule libre.",
 }
 
 func (g *game) drawPoliceTuto(dst *ebiten.Image) {
@@ -203,4 +224,110 @@ func (g *game) drawPoliceTuto(dst *ebiten.Image) {
 	} else {
 		g.btn(dst, "C'est compris !", x+w/2-150, y+h-130, 300, 70, 0x2fa86b, true, func() { g.closePanel() })
 	}
+}
+
+// drawVideoTab : à gauche les bureaux des capitaines, à droite les lieux ; en bas, la garde à vue.
+func (g *game) drawVideoTab(dst *ebiten.Image, x, y, w, h float64) {
+	gs := g.sim
+	n := sim.PolOffices()
+	say(dst, "Choisis un capitaine à gauche, puis le lieu qu'il surveille : il peut faire arrêter les voleurs.", x+w/2, y+34, 20, false, 0, rgb(0x5a4a3a))
+	if g.vidSel < 1 || g.vidSel > n {
+		g.vidSel = 1
+	}
+	lw := 640.0
+	lx, ly := x+30, y+70
+	ch := math.Min(130, (h-230)/float64(n)-8)
+	for k := 1; k <= n; k++ {
+		k := k
+		cy := ly + float64(k-1)*(ch+8)
+		bg := uint32(0xf1e6d2)
+		if g.vidSel == k {
+			bg = 0xd9e6f7
+		}
+		roundRect(dst, lx, cy, lw, ch, 16, rgb(bg))
+		say(dst, tr.F("Bureau n° {n}", "n", itoa(k)), lx+20, cy+24, 21, true, -1, rgb(0x2b3a5a))
+		switch {
+		case !gs.PolOfficeOwned(k):
+			sayFit(dst, "Pas encore construit (bureaux des capitaines)", lx+20, cy+ch/2+16, 17, false, -1, lw-40, rgb(0x5a4a3a))
+			continue
+		case !gs.PolCaptain(k):
+			sayFit(dst, "Il lui faut son capitaine (case dans son bureau)", lx+20, cy+ch/2+16, 17, false, -1, lw-40, rgb(0x5a4a3a))
+			continue
+		}
+		lbl := "Aucun lieu"
+		if id := gs.PolCamera(k); id != "" {
+			lbl = mapNames[id]
+		}
+		col := uint32(0x8a9ab8)
+		if g.vidSel == k {
+			col = 0x2b6cd6
+		}
+		g.btn(dst, lbl, lx+200, cy+6, 220, 50, col, true, func() { g.vidSel = k })
+		p := int(math.Round(100 * gs.CatchChance(k)))
+		say(dst, tr.F("Chance d'arrêter les voleurs : {p} %", "p", itoa(p)), lx+20, cy+ch-26, 17, false, -1, rgb(0x5a4a3a))
+		if p < 100 { // des techniciens : 10 points du primaire pour +1 %, dans CE bureau
+			for i, pts := range []int{10, 100} {
+				pts := pts
+				ok := gs.Points("ouvrier") >= pts
+				g.btn(dst, tr.F("+{p} % : {prix}", "p", itoa(pts/10), "prix", ptsPrice("ouvrier", pts)), lx+lw-210, cy+6+float64(i)*(ch/2-2), 200, ch/2-12, 0x2fa86b, ok, func() {
+					if gs.BuyVideo(k, pts) {
+						g.snd.play(sBuy)
+					}
+				})
+			}
+		}
+	}
+	// à droite : les lieux
+	rx := lx + lw + 40
+	rw := x + w - 30 - rx
+	say(dst, tr.F("Bureau n° {n} : quel lieu surveille-t-il ?", "n", itoa(g.vidSel)), rx+rw/2, ly+10, 22, true, 0, rgb(0x2b3a5a))
+	var ids []string
+	for _, id := range sim.TopRow() {
+		if q := gs.Place(id); q != nil && q.Owned {
+			ids = append(ids, id)
+		}
+	}
+	cols := 2
+	bw := (rw - float64(cols-1)*14) / float64(cols)
+	can := gs.PolWatching(g.vidSel)
+	for i, id := range ids {
+		id := id
+		bx := rx + float64(i%cols)*(bw+14)
+		by := ly + 50 + float64(i/cols)*74
+		col := uint32(0x5b7fd6)
+		mine := gs.PolCamera(g.vidSel) == id
+		other := 0
+		for c := 1; c <= sim.PolOffices(); c++ {
+			if c != g.vidSel && gs.PolCamera(c) == id {
+				other = c
+			}
+		}
+		switch {
+		case mine:
+			col = 0x2fa86b
+		case other > 0 || g.patrolledBy(id) > 0:
+			col = 0x9a8ab8
+		}
+		g.btn(dst, mapNames[id], bx, by, bw, 58, col, can, func() {
+			if mine {
+				gs.SetCamera(g.vidSel, "")
+			} else {
+				gs.SetCamera(g.vidSel, id)
+			}
+		})
+		switch {
+		case other > 0 && !mine:
+			sayFit(dst, tr.F("bureau n° {n}", "n", itoa(other)), bx+bw/2, by+68, 13, false, 0, bw, rgb(0x6a5a8a))
+		case g.patrolledBy(id) > 0:
+			sayFit(dst, tr.F("voiture n° {n}", "n", itoa(g.patrolledBy(id))), bx+bw/2, by+68, 13, false, 0, bw, rgb(0x6a5a8a))
+		}
+	}
+	// la garde à vue
+	places := gs.PolCellsOwned() * sim.PolCellCap
+	txt := tr.F("Garde à vue : {n} voleur(s) sur {m} place(s). Voleurs en liberté : {v}.", "n", itoa(gs.InCustody()), "m", itoa(places), "v", itoa(gs.Thieves()))
+	if places == 0 {
+		txt = tr.F("Aucune cellule de garde à vue : les voleurs repérés restent libres. Voleurs en liberté : {v}.", "v", itoa(gs.Thieves()))
+	}
+	tr.Seen(txt)
+	sayFit(dst, txt, x+w/2, y+h-130, 20, true, 0, w-60, rgb(0x2b3a5a))
 }

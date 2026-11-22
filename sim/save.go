@@ -22,6 +22,7 @@ type Save struct {
 	Commande *Order            `json:",omitempty"` // commande spéciale en cours (le temps s'arrête jeu fermé)
 	Cadeau   *Boost            `json:",omitempty"` // cadeau d'une commande en cours (en pause jeu fermé)
 	Vol      *TheftSave        `json:",omitempty"` // vol en cours (en pause jeu fermé : quitter ne chasse pas les voleurs)
+	Garde    []GardeSave       `json:",omitempty"` // les voleurs en garde à vue (commissariat)
 	Favoris  map[string]string `json:",omitempty"` // touches 1 à 9 et 0 → lieu
 }
 
@@ -47,7 +48,7 @@ type PlaceSave struct {
 
 func (g *Game) Snapshot(unix int64) *Save {
 	s := &Save{Version: SaveVersion, Money: g.Money, Levels: g.Levels, Outfit: g.Outfit, Owned: g.Owned, Stats: g.Stats,
-		Rate: g.RateOffline(), Unix: unix, Places: map[string]*PlaceSave{}, Badges: g.Badges, Commande: g.Order, Cadeau: g.Boost, Favoris: g.Fav, Vol: g.theftSave()}
+		Rate: g.RateOffline(), Unix: unix, Places: map[string]*PlaceSave{}, Badges: g.Badges, Commande: g.Order, Cadeau: g.Boost, Favoris: g.Fav, Vol: g.theftSave(), Garde: g.custodySave()}
 	for _, p := range g.Places {
 		ps := &PlaceSave{Paid: map[string]float64{}, Stock: map[string]int{}, Pile: map[string]int{}, Buf: map[string][]int{}, Pousses: map[string]int{}, PoussePaye: map[string]float64{}, NiveauPaye: map[string]float64{}, StockPaye: map[string]float64{}, CasePaye: map[string]float64{}}
 		// les montants payés sont écrits sans le coefficient du lieu (prices.go) :
@@ -409,6 +410,16 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 		g.income = append(g.income, incomeRec{t: g.T, a: s.Rate * 60})
 	}
 	g.Boost = s.Cadeau // (après les gains d'absence : un cadeau ne travaille pas jeu fermé)
+	g.Custody = nil
+	for _, c := range s.Garde { // (la garde à vue s'écoule aussi jeu fermé)
+		left := c.Reste
+		if s.Unix > 0 && nowUnix > s.Unix {
+			left -= float64(nowUnix - s.Unix)
+		}
+		if left > 0 && c.N > 0 {
+			g.Custody = append(g.Custody, &Custody{N: c.N, Left: left})
+		}
+	}
 	if s.Vol != nil && s.Unix > 0 && nowUnix > s.Unix {
 		s.Vol.Reste -= float64(nowUnix - s.Unix) // (le temps du vol s'écoule aussi jeu fermé)
 	}

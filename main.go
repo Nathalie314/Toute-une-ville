@@ -80,6 +80,8 @@ type game struct {
 	polSel    int       // menu des patrouilles : la voiture choisie (1, 2…)
 	polSlot   int       // … et sa case (0 ou 1)
 	polTuto   int       // tutoriel du commissariat : 0 la question, puis la page
+	polTab    int       // menu du commissariat : 0 les patrouilles, 1 la vidéosurveillance
+	vidSel    int       // … le bureau de capitaine choisi (1, 2…)
 	polZoneIn bool      // le joueur est sur la case des patrouilles (le menu s'est ouvert)
 	worldCam  view      // la caméra du monde (pour cliquer sur un endroit du lieu)
 	gains     gainsView // la page des gains par lieu (calculée à son ouverture)

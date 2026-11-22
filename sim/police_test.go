@@ -1,6 +1,9 @@
 package sim
 
-import "testing"
+import (
+	"math"
+	"testing"
+)
 
 // TestCommissariat : il s'ouvre avec le supermarché ; commissaire (université), voiture offerte,
 // lieutenant (collège), patrouille : le lieu protégé n'a plus de voleurs.
@@ -87,5 +90,66 @@ func TestCommissariat(t *testing.T) {
 	}
 	if c := pol.SpotUpgrade(pol.spot("voiture_4")).Cost(0); c != PlacePrice(12) {
 		t.Fatalf("4e voiture : %.0f (12e lieu : %.0f)", c, PlacePrice(12))
+	}
+}
+
+// TestVideosurveillance : bureaux (prix des lieux 3, 6, 7, 10…), capitaine (lycée), arrestation à la
+// sortie, garde à vue (2 h, même jeu fermé), moins de voleurs en ville pendant ce temps.
+func TestVideosurveillance(t *testing.T) {
+	if r := []int{survRank(1), survRank(2), survRank(3), survRank(4), survRank(5), survRank(6), survRank(7)}; r[0] != 3 || r[1] != 6 || r[2] != 7 || r[3] != 10 || r[4] != 11 || r[5] != 14 || r[6] != 15 {
+		t.Fatalf("rangs des bureaux : %v", r)
+	}
+	if PolOffices() != 6 {
+		t.Fatalf("%d bureaux (14 lieux : 6)", PolOffices())
+	}
+	g := NewGame()
+	g.Place("super").Owned = true
+	g.Step(1.0 / 30)
+	pol := g.Place("commissariat")
+	if c := pol.SpotUpgrade(pol.spot("bureau_2")).Cost(0); c != PlacePrice(6) {
+		t.Fatalf("bureau n° 2 : %.0f (lieu 6 : %.0f)", c, PlacePrice(6))
+	}
+	if c := pol.SpotUpgrade(pol.spot("cellule_1")).Cost(0); c != math.Round(PlacePrice(3)/2) {
+		t.Fatalf("cellule n° 1 : %.0f", c)
+	}
+	lv := g.Levels
+	lv["commissariat.commissaire"], lv["commissariat.bureau_1"], lv["commissariat.capitaine_1"] = 1, 1, 1
+	g.SetCamera(1, "ferme")
+	lv["pts.ouvrier"] = 2000
+	if !g.BuyVideo(1, 2000) || g.CatchChance(1) != 1 || g.Points("ouvrier") != 2000-VideoMax {
+		t.Fatalf("techniciens : chance %.2f, points %d", g.CatchChance(1), g.Points("ouvrier"))
+	}
+	avant := g.Thieves()
+	// sans cellule : repérés, mais libres
+	g.StartTheft("ferme")
+	if !g.Theft.Spotted {
+		t.Fatal("voleurs non repérés à 100 %")
+	}
+	for g.Theft != nil {
+		g.Step(1.0 / 30)
+	}
+	if g.InCustody() != 0 {
+		t.Fatal("arrêtés sans cellule")
+	}
+	// une cellule : 5 voleurs en garde à vue
+	lv["commissariat.cellule_1"] = 1
+	g.StartTheft("ferme")
+	for g.Theft != nil {
+		g.Step(1.0 / 30)
+	}
+	if g.InCustody() != 5 || g.Thieves() != avant-5 {
+		t.Fatalf("garde à vue : %d, voleurs %d (avant %d)", g.InCustody(), g.Thieves(), avant)
+	}
+	// une heure plus tard (jeu fermé) : toujours là ; trois heures : relâchés
+	s := g.Snapshot(1000)
+	h := NewGame()
+	h.Restore(s, 1000+3600)
+	if h.InCustody() != 5 {
+		t.Fatalf("après une heure : %d en garde à vue", h.InCustody())
+	}
+	h2 := NewGame()
+	h2.Restore(s, 1000+3*3600)
+	if h2.InCustody() != 0 {
+		t.Fatalf("après trois heures : %d en garde à vue", h2.InCustody())
 	}
 }

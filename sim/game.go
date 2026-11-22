@@ -133,7 +133,8 @@ type incomeRec struct {
 }
 
 type Game struct {
-	Theft    *Theft                  // le vol en cours (événements ; pas sauvegardé)
+	Theft    *Theft                  // le vol en cours (événements)
+	Custody  []*Custody              // des voleurs en garde à vue (commissariat)
 	comingTo map[string]*[NItems]int // (palletRoom : ce qui arrive vers chaque lieu, recalculé à chaque pas)
 	comingT  float64
 	stepping string // lieu en train d'avancer (pour les événements)
@@ -395,6 +396,7 @@ func (g *Game) Step(dt float64) {
 	g.stepTrucks(dt)
 	g.stepRayonDiag(dt)
 	g.openPolice() // (avec le supermarché)
+	g.stepCustody(dt)
 	g.stepOrders(dt)
 	g.stepBoost(dt)
 	g.badgeT += dt

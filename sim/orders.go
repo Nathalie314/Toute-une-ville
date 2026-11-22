@@ -149,7 +149,7 @@ func (g *Game) eventGroups(id string) []eventGroup {
 	if owned("parc") && g.parcOrderAt(id) != nil { // le parc d'attractions
 		gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.parcOrderAt(id) }, false})
 	}
-	if g.thievesActive() && !g.Patrolled(id) { // les voleurs : partout, dès que le supermarché est ouvert (sauf sous la protection d'une patrouille)
+	if g.thievesActive() && !g.Patrolled(id) && g.Thieves() > 0 { // les voleurs : partout, dès que le supermarché est ouvert (sauf sous la protection d'une patrouille)
 		gs = append(gs, eventGroup{float64(g.Thieves()), nil, true})
 	}
 	return gs
