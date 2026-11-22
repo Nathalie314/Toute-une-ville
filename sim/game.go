@@ -327,7 +327,7 @@ func (g *Game) RateOffline() float64 {
 	crep := 0.0
 	vol := ""
 	if g.Theft != nil {
-		vol = g.Theft.Place // (des voleurs : ce lieu reste arrêté pendant l'absence, le vol reprendra au retour)
+		vol = g.Theft.Place // (des voleurs : ce lieu rapporte seulement après leur départ, TheftSave.Taux)
 	}
 	for _, x := range g.income {
 		if (x.place == "creperie" || x.place == "parc" || (vol != "" && x.place == vol)) && x.t >= g.T-900 {

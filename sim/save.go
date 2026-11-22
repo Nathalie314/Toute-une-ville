@@ -386,7 +386,11 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 		if nf > 0 {
 			f *= 1 + fid/float64(nf)
 		}
-		offline = math.Round(s.Rate * secs * f)
+		rate := s.Rate * secs
+		if v := s.Vol; v != nil && secs > v.Reste {
+			rate += v.Taux * (secs - v.Reste) // (les voleurs sont partis pendant l'absence : le lieu a repris ensuite)
+		}
+		offline = math.Round(rate * f)
 		if offline > 0 {
 			g.Money += offline
 			g.Stats.Earned += offline
@@ -404,8 +408,11 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 	if s.Rate > 0 {
 		g.income = append(g.income, incomeRec{t: g.T, a: s.Rate * 60})
 	}
-	g.Boost = s.Cadeau    // (après les gains d'absence : un cadeau ne travaille pas jeu fermé)
-	g.theftRestore(s.Vol) // (le vol reprend là où il en était)
+	g.Boost = s.Cadeau // (après les gains d'absence : un cadeau ne travaille pas jeu fermé)
+	if s.Vol != nil && s.Unix > 0 && nowUnix > s.Unix {
+		s.Vol.Reste -= float64(nowUnix - s.Unix) // (le temps du vol s'écoule aussi jeu fermé)
+	}
+	g.theftRestore(s.Vol) // (s'il en reste, les voleurs sont toujours là)
 	g.sessionStart = g.T
 	return
 }

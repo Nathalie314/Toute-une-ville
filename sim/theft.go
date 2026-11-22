@@ -17,7 +17,8 @@ import (
 // chargement et restent sur leur base ; plus aucun camion ne part ni n'arrive. Les champs
 // poussent et les animaux produisent toujours. Cinq voleurs en noir (visage découvert : la
 // vidéosurveillance servira) vident chaque caisse une fois : une minute des gains du lieu.
-// Les événements n'arrivent que pendant qu'on joue (un vol n'est pas sauvegardé).
+// À la crêperie, sans caisse, ils raflent les pourboires laissés sur les tables.
+// Les événements n'arrivent que pendant qu'on joue ; un vol en cours est sauvegardé (TheftSave).
 
 const (
 	thievesBase    = 50
@@ -34,7 +35,8 @@ type Theft struct {
 	Robbers []*Robber
 	Stolen  float64 // ce qui a été pris dans les caisses
 	robbed  map[int]bool
-	targets []V // les caisses (ou, sans caisse, quelques points du lieu)
+	targets []V          // les caisses (ou, sans caisse, quelques points du lieu)
+	tables  []*CrepTable // à la crêperie : les tables, dont ils raflent les pourboires
 	hasRegs bool
 }
 
@@ -99,6 +101,14 @@ func (g *Game) startTheftQuiet(id string, d float64) {
 	for _, s := range p.Stations {
 		if s.Kind == Register && s.Built {
 			th.targets = append(th.targets, s.Body.C().Add(V{0, -60}))
+		}
+	}
+	if p.Crep != nil { // (pas de caisse à la crêperie : les pourboires laissés sur les tables)
+		for _, t := range p.Crep.Tables {
+			if t.St == nil || t.St.Built {
+				th.tables = append(th.tables, t)
+				th.targets = append(th.targets, t.Pos.Add(V{0, -70}))
+			}
 		}
 	}
 	if p.Parc != nil {
@@ -189,8 +199,8 @@ func (g *Game) stepTheft(dt float64) {
 		}
 		if r.target < 0 { // la caisse suivante pas encore vidée (ou un point où rôder)
 			r.target = (i + int(th.Total-th.Left)/20) % len(th.targets)
-			for k := range th.targets {
-				if th.hasRegs && !th.robbed[k] {
+			for k := range th.targets { // (la suivante qu'aucun autre voleur ne vise déjà)
+				if th.hasRegs && !th.robbed[k] && !th.aimed(k, r) {
 					r.target = k
 					break
 				}
@@ -201,7 +211,11 @@ func (g *Game) stepTheft(dt float64) {
 			r.Moving = false
 			if th.hasRegs && !th.robbed[r.target] {
 				th.robbed[r.target] = true
-				g.robRegister(p, th, th.targets[r.target])
+				if th.tables != nil {
+					g.robTips(p, th, th.tables[r.target])
+				} else {
+					g.robRegister(p, th, th.targets[r.target])
+				}
 			}
 			r.waitT = 4 + 3*g.rng.Float64()
 			r.target = -1
@@ -222,6 +236,16 @@ func (g *Game) stepTheft(dt float64) {
 	}
 }
 
+// aimed : un autre voleur vise-t-il déjà cette caisse ?
+func (th *Theft) aimed(k int, me *Robber) bool {
+	for _, o := range th.Robbers {
+		if o != me && o.target == k {
+			return true
+		}
+	}
+	return false
+}
+
 // robRegister : une caisse vidée : une minute des gains du lieu (si le joueur a de quoi).
 func (g *Game) robRegister(p *Place, th *Theft, at V) {
 	earn, span := g.EarningsByPlace(300)
@@ -236,6 +260,17 @@ func (g *Game) robRegister(p *Place, th *Theft, at V) {
 	g.Money -= a
 	th.Stolen += a
 	g.emit(Event{Kind: EvLevel, Place: p.ID, Pos: at, Text: tr.F("Les voleurs ont vidé une caisse : −{prix}", "prix", moneyText(a))})
+}
+
+// robTips : à la crêperie, les voleurs raflent les pourboires laissés sur une table.
+func (g *Game) robTips(p *Place, th *Theft, t *CrepTable) {
+	if t.Tips <= 0 {
+		return
+	}
+	a := t.Tips
+	t.Tips = 0
+	th.Stolen += a
+	g.emit(Event{Kind: EvLevel, Place: p.ID, Pos: t.Pos, Text: tr.F("Les voleurs ont raflé les pourboires d'une table : −{prix}", "prix", moneyText(a))})
 }
 
 // hideWorker : pendant un vol, l'employé court se réfugier au vestiaire.
@@ -262,12 +297,14 @@ func (g *Game) StartTheft(id string) {
 	}
 }
 
-// TheftSave : un vol en cours, dans la sauvegarde. Il est en pause jeu fermé : en revenant, les
-// voleurs sont toujours là, avec le temps qu'il leur restait (quitter le jeu ne les chasse pas).
+// TheftSave : un vol en cours, dans la sauvegarde. Son temps s'écoule aussi jeu fermé : les
+// voleurs partent à l'heure prévue. Revenir avant, c'est les retrouver (quitter ne les chasse pas) ;
+// pendant l'absence, le lieu ne perd que le reste du vol, puis rapporte comme d'habitude (Taux).
 type TheftSave struct {
 	Lieu    string
 	Reste   float64
 	Duree   float64
+	Taux    float64 `json:",omitempty"` // ce que le lieu rapporte par seconde (retiré de Save.Rate)
 	Vole    float64 `json:",omitempty"`
 	Caisses []int   `json:",omitempty"` // les caisses déjà vidées
 }
@@ -277,13 +314,24 @@ func (g *Game) theftSave() *TheftSave {
 	if th == nil {
 		return nil
 	}
-	ts := &TheftSave{Lieu: th.Place, Reste: th.Left, Duree: th.Total, Vole: th.Stolen}
+	ts := &TheftSave{Lieu: th.Place, Reste: th.Left, Duree: th.Total, Vole: th.Stolen, Taux: g.placeRate(th.Place)}
 	for k, done := range th.robbed {
 		if done {
 			ts.Caisses = append(ts.Caisses, k)
 		}
 	}
 	return ts
+}
+
+// placeRate : ce que ce lieu a rapporté par seconde ces 15 dernières minutes (comme RateOffline).
+func (g *Game) placeRate(id string) float64 {
+	a := 0.0
+	for _, x := range g.income {
+		if x.place == id && x.t >= g.T-900 {
+			a += x.a
+		}
+	}
+	return a / math.Min(900, math.Max(60, g.T))
 }
 
 func (g *Game) theftRestore(ts *TheftSave) {

@@ -1679,3 +1679,9 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   10 min après). Outil : CAPVOL=1 (captures). Test : TestVol.
 - Vol sauvegardé (Save.Vol : lieu, temps restant, caisses déjà vidées) et en pause jeu fermé : quitter puis revenir ne chasse plus les voleurs (« Les voleurs sont toujours là… »). Test : TestVolSauvegarde.
 - Hors ligne pendant un vol : le lieu attaqué ne compte pas dans les gains d'absence (RateOffline l'exclut, comme la crêperie et le parc) ; il reste arrêté, le vol reprend au retour. Test : TestVolHorsLigne.
+- Vol et absence (demande : « décompter le temps hors ligne de l'attaque ») : le temps du vol s'écoule aussi jeu fermé.
+  Revenir avant la fin : les voleurs sont toujours là (pour le temps restant) et le lieu n'a rien rapporté. Revenir après :
+  ils sont partis, et le lieu a rapporté normalement une fois le vol fini (TheftSave.Taux : son revenu par seconde,
+  retiré de Save.Rate, rendu pour le temps d'absence au-delà du reste du vol). Tests : TestVolSauvegarde, TestVolHorsLigneRetour.
+- Crêperie (pas de caisse) : les voleurs raflent les pourboires laissés sur les tables (robTips). Les cinq voleurs se
+  répartissent les caisses/tables (aimed) au lieu de viser tous la même. Test : TestVolPourboires.
