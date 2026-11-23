@@ -1786,3 +1786,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   Calcul de risque au début (avec la joueuse) : boulangerie tirée 1 fois sur 5, incendie 10/235 → ≈ 1/118 par
   événement (≈ un incendie toutes les 12-13 h de jeu à ce stade, sans PPI).
 - Voleurs (précision de la joueuse) : 50 à l'ouverture du supermarché, puis +5 par lieu débloqué ENSUITE (ni la ferme ni le supermarché ne comptent ; afterSuper).
+- Panneaux d'urgence (demande) : « 18 » à droite du bureau du commandant (caserne), « 17 » dans le bureau du commissaire (emergencySign).

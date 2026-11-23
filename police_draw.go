@@ -173,6 +173,7 @@ func (g *game) policeDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable) [
 		if g.sim.HasChief() {
 			drawPerson(dst, V{X: dx, Y: dy - 12}, V{Y: 1}, 0, false, chiefLook(), nil)
 		}
+		emergencySign(dst, off.X+off.W-100, off.Y+50, "17", polBlue) // (le numéro de la police)
 		fx := off.X + 40 // le drapeau
 		rect(dst, fx, off.Y+60, 5, 150, rgb(0x9a9a9a))
 		rect(dst, fx+5, off.Y+64, 26, 46, rgb(0x2045a8))

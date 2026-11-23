@@ -95,6 +95,7 @@ func (g *game) caserneDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable) 
 		roundRect(dst, dx-150, dy, 300, 70, 8, rgb(0x6e4322))
 		roundRect(dst, dx-110, dy+16, 70, 44, 4, rgb(0xf3ead8))
 	})
+	add(dx+230, c.Y+90, func() { emergencySign(dst, dx+230, c.Y+20, "18", fireRed) }) // (le numéro des pompiers)
 	if gs.HasCommander() {
 		add(dx, dy-5, func() {
 			lk := firemanLook(1)
@@ -338,4 +339,12 @@ func (g *game) drawCasernePanel(dst *ebiten.Image) {
 			}
 		})
 	}
+}
+
+// emergencySign : un grand panneau avec un numéro d'urgence (18 les pompiers, 17 la police).
+func emergencySign(dst *ebiten.Image, x, y float64, num string, col uint32) {
+	roundRect(dst, x-46, y+6, 92, 64, 12, rgba(0x000000, 0.2))
+	roundRect(dst, x-46, y, 92, 64, 12, rgb(0xffffff))
+	roundRect(dst, x-40, y+6, 80, 52, 9, rgb(col))
+	say(dst, num, x, y+33, 38, true, 0, rgb(0xffffff))
 }
