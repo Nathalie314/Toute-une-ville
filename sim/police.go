@@ -249,7 +249,7 @@ func newPolice(g *Game) *Place {
 		}
 		p.ups = append(p.ups, &Upgrade{Key: k("cellule_" + itoa(n)), Name: "Cellule de garde à vue", Max: 1, Costs: []float64{math.Round(PlacePrice(survRank(n)) / 2)},
 			Desc: func(int) string {
-				return "Elle garde 5 voleurs arrêtés pendant 2 heures (même jeu fermé) : pendant ce temps, ils n'attaquent plus."
+				return "Elle garde 5 voleurs arrêtés pendant 30 minutes (même jeu fermé) : pendant ce temps, ils n'attaquent plus."
 			}})
 		p.Spots = append(p.Spots, &Spot{ID: "cellule_" + itoa(n), Label: "Cellule", Needs: prev, Zone: Rect{r.C().X - 70, r.C().Y - 65, 140, 130},
 			Done: func(int) string { return "Nouvelle cellule de garde à vue !" }})
@@ -536,14 +536,14 @@ func (g *Game) PolCellsOwned() int {
 	return n
 }
 
-// Custody : des voleurs en garde à vue (relâchés au bout de 2 heures, même jeu fermé).
+// Custody : des voleurs en garde à vue (relâchés au bout de 30 minutes, même jeu fermé).
 type Custody struct {
 	N    int
 	Left float64
 }
 
-// CustodyTime : 2 heures.
-const CustodyTime = 2 * 3600.0
+// CustodyTime : 30 minutes (demande ; 2 heures avant).
+const CustodyTime = 30 * 60.0
 
 // InCustody : le nombre de voleurs en garde à vue.
 func (g *Game) InCustody() int {
@@ -570,7 +570,7 @@ func (g *Game) arrest(id string, n int, left float64) {
 	}
 	g.Custody = append(g.Custody, &Custody{N: k, Left: left})
 	g.Levels["commissariat.arrestations"] += k
-	g.emit(Event{Kind: EvLevel, Place: id, Pos: at, Text: tr.F("Grâce à la vidéosurveillance, {n} voleur(s) arrêté(s) en partant : garde à vue pendant 2 heures.", "n", itoa(k))})
+	g.emit(Event{Kind: EvLevel, Place: id, Pos: at, Text: tr.F("Grâce à la vidéosurveillance, {n} voleur(s) arrêté(s) en partant : garde à vue pendant 30 minutes.", "n", itoa(k))})
 }
 
 // stepCustody : le temps de la garde à vue s'écoule ; au bout, les voleurs sont relâchés.
@@ -610,4 +610,51 @@ func (g *Game) PatrolAssigned(id string) int {
 		}
 	}
 	return 0
+}
+
+// RankPrice : le prix d'achat du lieu n° r de la rangée du haut (son vrai prix s'il existe ;
+// sinon celui que donnera la courbe des prix : prévu pour les lieux à venir).
+func (g *Game) RankPrice(r int) float64 {
+	if top := TopRow(); r >= 1 && r <= len(top) {
+		if q := g.Place(top[r-1]); q != nil {
+			return q.Price
+		}
+	}
+	return PlacePrice(r)
+}
+
+// policePrices : les voitures, les bureaux et les cellules au prix réel des lieux de la carte
+// (PlacePrice donne 0 avant le 4e lieu : le 1er bureau, au prix de la crèmerie, était gratuit).
+func (g *Game) policePrices() {
+	p := g.Place("commissariat")
+	if p == nil {
+		return
+	}
+	for _, u := range p.ups {
+		var n int
+		switch {
+		case scanN(u.Key, "commissariat.voiture_", &n):
+			u.Costs = []float64{g.RankPrice(4 * (n - 1))}
+		case scanN(u.Key, "commissariat.bureau_", &n):
+			u.Costs = []float64{g.RankPrice(survRank(n))}
+		case scanN(u.Key, "commissariat.cellule_", &n):
+			u.Costs = []float64{math.Round(g.RankPrice(survRank(n)) / 2)}
+		}
+	}
+}
+
+// scanN : « préfixe » suivi d'un nombre ?
+func scanN(key, prefix string, n *int) bool {
+	if len(key) <= len(prefix) || key[:len(prefix)] != prefix {
+		return false
+	}
+	v := 0
+	for _, c := range key[len(prefix):] {
+		if c < '0' || c > '9' {
+			return false
+		}
+		v = v*10 + int(c-'0')
+	}
+	*n = v
+	return true
 }

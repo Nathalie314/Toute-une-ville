@@ -120,7 +120,7 @@ func placeHelp(id string) []string {
 			"Des mécaniciens (points du primaire : 100 fois les points de son lieutenant) permettent à une voiture de protéger un deuxième lieu.",
 			"À gauche du bâtiment, les bureaux des capitaines : chacun coûte le prix d'un lieu de la carte (le 3e, puis le 6e, le 7e, le 10e…). Le capitaine se forme sur la case de son bureau, avec des points du lycée (50, puis 500, puis 5 000…).",
 			"La case « Vidéosurveillance » du hall ouvre le menu des capitaines : chacun surveille un lieu. Quand des voleurs y attaquent, il a une chance de les repérer (1 %, puis +1 % tous les 10 points du primaire placés dans son bureau) : ils volent quand même, mais sont arrêtés en partant.",
-			"Les voleurs arrêtés vont en garde à vue (à droite du bâtiment ; 5 par cellule, 10 cellules au plus) pendant 2 heures, même jeu fermé : pendant ce temps, ils n'attaquent plus. Sans place libre, ils restent libres.",
+			"Les voleurs arrêtés vont en garde à vue (à droite du bâtiment ; 5 par cellule, 10 cellules au plus) pendant 30 minutes, même jeu fermé : pendant ce temps, ils n'attaquent plus. Sans place libre, ils restent libres.",
 		}
 	case "huilerie":
 		return []string{

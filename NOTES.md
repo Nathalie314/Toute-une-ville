@@ -1731,3 +1731,5 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Commissariat aéré (demande) : deux rangées de bureaux et de cellules séparées par un couloir horizontal (PolCorH) ; le hall descend jusqu'en bas, ses portes de côté ouvrent sur les couloirs ; plus d'espace entre bureaux (PolOffGap) et cellules (PolCellGap) ; les barreaux des cellules côté couloir. Bâtiment remonté (PolBldY 480).
 - L'objectif (en haut de l'écran) ne vise que les lieux de la rangée du haut (demande : plus de « Objectif : le commissariat »).
 - Carte : pas de « ! » sur une tuile fermée (le commissariat, gratuit, en avait un dès le début : 0 € « achetable »).
+- Correctif : le 1er bureau de capitaine et la 1re cellule étaient gratuits (PlacePrice vaut 0 avant le 4e lieu). Les voitures, bureaux et cellules suivent maintenant le vrai prix du lieu de ce rang (RankPrice, policePrices) : 1er bureau 22 000 € (crèmerie), 1re cellule 11 000 €.
+- Garde à vue : 30 minutes au lieu de 2 heures (demande, avec l'arrivée de la prison).
