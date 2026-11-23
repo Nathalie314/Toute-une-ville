@@ -38,6 +38,8 @@ func giftOf(who string) string {
 		return "police"
 	case whoPrison:
 		return "prison"
+	case whoCaserne:
+		return "caserne"
 	case "le maire":
 		return "maire"
 	case "le garagiste":
@@ -101,6 +103,8 @@ func giftDesc(kind, place string, m int) string {
 		return tr.F("policiers {n} fois moins chers en points d'école", "n", itoa(m))
 	case "prison":
 		return tr.F("réinsertion {n} fois plus efficace à la prison", "n", itoa(m))
+	case "caserne":
+		return tr.F("points de prévention incendie {n} fois plus rapides", "n", itoa(m))
 	case "maire":
 		if m == 2 {
 			return tr.T("tous les lieux à moitié prix")
@@ -173,6 +177,10 @@ func (b *Boost) Text() string {
 		return tr.F("Réinsertion ×{n}", "n", itoa(m))
 	case "prison_malus":
 		return tr.T("Réinsertion ÷2")
+	case "caserne":
+		return tr.F("PPI ×{n}", "n", itoa(m))
+	case "caserne_malus":
+		return tr.T("PPI ÷2")
 	case "maire":
 		if m == 2 {
 			return tr.T("Lieux à moitié prix")
@@ -332,7 +340,7 @@ func (o *Order) dur() float64 {
 // (parc, cantine : « l'école forme 2 fois moins vite pendant 5 min ») ; "" sinon.
 func (o *Order) FailText() string {
 	switch o.Gift {
-	case "parc", "ecole", "police", "prison":
+	case "parc", "ecole", "police", "prison", "caserne":
 		b := &Boost{Kind: o.Gift + "_malus"}
 		return tr.F("{cadeau} pendant {duree}", "cadeau", lowerFirst(b.Text()), "duree", durText(BoostTime))
 	}

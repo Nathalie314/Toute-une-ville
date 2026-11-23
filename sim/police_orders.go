@@ -93,6 +93,8 @@ func (g *Game) policeOrder(at string) *Order {
 		return g.crewOrder(whoPolice, at, [][2]int{{int(Fraisier), c}, {int(TarteCitron), k}, {int(Eclair), l}})
 	case "exotique":
 		return g.crewOrder(whoPolice, at, [][2]int{{int(CafeMoulu), c + k + l}})
+	case "creperie": // deux crêpes par policier, une par voleur en garde à vue
+		return g.crewOrder(whoPolice, at, [][2]int{{int(CrepeNature), 2*(c+k+l) + g.InCustody()}})
 	}
 	return nil
 }
@@ -109,6 +111,8 @@ func (g *Game) prisonOrder(at string) *Order {
 		return g.crewOrder(whoPrison, at, [][2]int{{int(Pain), in}, {int(Croissant), st}, {int(PainChoco), w}})
 	case "cremerie":
 		return g.crewOrder(whoPrison, at, [][2]int{{int(Yaourt), in}, {int(Fromage), st}, {int(FromageBrebis), w}})
+	case "creperie": // deux crêpes par employé (le directeur compris), une par détenu
+		return g.crewOrder(whoPrison, at, [][2]int{{int(CrepeNature), 2*(st+w) + in}})
 	case "boucherie":
 		if cantine {
 			return g.crewOrder(whoPrison, at, [][2]int{{int(SteakHache), in}, {int(RotiBoeuf), st}, {int(FoieGras), w}})
@@ -144,4 +148,56 @@ func (g *Game) reinsertMult(lvl int) int {
 		return lvl / 2
 	}
 	return lvl
+}
+
+// whoCaserne : la caserne de pompiers (ses commandes : dès que son commandant est là).
+const whoCaserne = "la caserne de pompiers"
+
+// caserneCrew : le commandant, les chargés de prévention, les pompiers (les conducteurs des camions).
+func (g *Game) caserneCrew() (chief, prev, drivers int) {
+	if !g.HasCommander() {
+		return 0, 0, 0
+	}
+	for k := 1; k <= CasOffN; k++ {
+		if g.Levels["caserne.bureau_"+itoa(k)] > 0 && g.Levels["caserne.charge_"+itoa(k)] > 0 {
+			prev++
+		}
+	}
+	for k := 1; k <= CasTruckN; k++ {
+		if g.TruckReady(k) {
+			drivers++
+		}
+	}
+	return 1, prev, drivers
+}
+
+// caserneOrder : la commande de la caserne dans ce lieu (le commandant, les chargés de prévention,
+// les conducteurs des camions : chacun selon son rang ; nil : rien à y commander).
+func (g *Game) caserneOrder(at string) *Order {
+	c, pv, d := g.caserneCrew()
+	if c == 0 {
+		return nil
+	}
+	switch at {
+	case "boulangerie":
+		return g.crewOrder(whoCaserne, at, [][2]int{{int(Brioche), c}, {int(PainChoco), pv}, {int(Croissant), d}})
+	case "cremerie":
+		return g.crewOrder(whoCaserne, at, [][2]int{{int(FromageBrebis), c}, {int(FromageChevre), pv}, {int(Yaourt), d}})
+	case "patisserie":
+		return g.crewOrder(whoCaserne, at, [][2]int{{int(Fraisier), c}, {int(TarteCitron), pv}, {int(Gateau), d}})
+	case "creperie": // deux crêpes par pompier, quel que soit son grade
+		return g.crewOrder(whoCaserne, at, [][2]int{{int(CrepeNature), 2 * (c + pv + d)}})
+	}
+	return nil
+}
+
+// ppiMult : le cadeau de la caserne sur la vitesse des PPI.
+func (g *Game) ppiMult() float64 {
+	if g.Boosted("caserne", "") {
+		return float64(g.Boost.Mul())
+	}
+	if g.Boosted("caserne_malus", "") {
+		return 0.5
+	}
+	return 1
 }
