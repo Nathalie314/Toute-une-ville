@@ -87,8 +87,11 @@ func (u *Upgrade) Cost(lvl int) float64 {
 	} else {
 		c = math.Round(u.Base * math.Pow(u.Mult, float64(lvl)))
 	}
-	if u.Pts != "" {
-		return c // (des points : ni coefficient ni négociation)
+	if u.Pts != "" { // (des points : ni coefficient ni négociation ; le cadeau du commissariat)
+		if PtsMult != nil {
+			c = math.Ceil(c * PtsMult(u.Key))
+		}
+		return c
 	}
 	if CostScale != nil {
 		if s := CostScale(u.Key); s != 1 {
@@ -106,6 +109,9 @@ var CostScale func(key string) float64
 
 // CostMult : réduction des prix (négociation, points de lycée), selon le lieu de l'amélioration.
 var CostMult func(key string) float64
+
+// PtsMult : un multiplicateur du prix en points d'école (le cadeau du commissariat) ; nil : 1.
+var PtsMult func(key string) float64
 
 var NightHours = []float64{1, 2, 4, 8, 12, 24}
 
@@ -214,6 +220,7 @@ func NewGame() *Game {
 	// supermarché garde ses prix), puis les prix selon le rang du lieu sur la carte
 	g.fixRayonCosts()
 	CostScale = g.keyScale
+	PtsMult = g.ptsMult
 	g.applyMapPrices()
 	g.superPrices()  // (rayons et magasiniers : au palier du lieu qui fournit chaque produit)
 	g.policePrices() // (au prix réel des lieux de la carte : la crèmerie ne coûte pas 0)

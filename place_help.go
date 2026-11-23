@@ -118,6 +118,7 @@ func placeHelp(id string) []string {
 			"Chaque voiture a besoin de son lieutenant, formé avec des points du collège sur la case sous la voiture (10, puis 50, puis 250…). Un lieutenant sans patrouille erre sur le parking en sifflotant.",
 			"La case « Patrouilles » du parking (ou un clic sur le parking) ouvre le menu des voitures : une voiture qui patrouille dans un lieu le protège, les voleurs n'y viennent plus. On l'y voit passer de temps en temps.",
 			"Des mécaniciens (points du primaire : 100 fois les points de son lieutenant) permettent à une voiture de protéger un deuxième lieu.",
+			"Commandes du commissariat, selon les rangs : à la boulangerie (brioche du commissaire, pains au chocolat des capitaines, croissants des lieutenants, baguettes des voleurs en garde à vue), à la pâtisserie (fraisier, tartes au citron meringuées, éclairs au café) et à la ferme exotique (un café moulu par policier). Livrée : les policiers coûtent 2 fois moins de points d'école ; ratée : 2 fois plus.",
 			"À gauche du bâtiment, les bureaux des capitaines : chacun coûte le prix d'un lieu de la carte (le 3e, puis le 6e, le 7e, le 10e…). Le capitaine se forme sur la case de son bureau, avec des points du lycée (50, puis 500, puis 5 000…).",
 			"La case « Vidéosurveillance » du hall ouvre le menu des capitaines : chacun surveille un lieu. Quand des voleurs y attaquent, il a une chance de les repérer (1 %, puis +1 % tous les 10 points du primaire placés dans son bureau) : ils volent quand même, mais sont arrêtés en partant.",
 			"Les voleurs arrêtés vont en garde à vue (à droite du bâtiment ; 5 par cellule, 10 cellules au plus) pendant 30 minutes, même jeu fermé : pendant ce temps, ils n'attaquent plus. Sans place libre, ils restent libres.",
@@ -125,6 +126,7 @@ func placeHelp(id string) []string {
 	case "prison":
 		return []string{
 			"La prison s'ouvre (offerte) dès qu'un premier groupe de voleurs est mis en garde à vue. Rien n'y fonctionne sans son directeur : 100 points d'université. Comme le commissariat, elle ne tourne que pendant que tu joues.",
+			"Commandes de la prison (détenus, personnel, directeur) : à la boulangerie (baguettes, croissants, pain au chocolat), à la crèmerie (yaourts, fromages de vache, fromage de brebis) ; avec la cantine, à la boucherie (steaks hachés, rôtis de bœuf, foie gras) et à la ferme (pommes de terre, salades, fraises). Livrée : chaque besoin rempli retire 2 fois plus de points de récidive ; ratée : 2 fois moins.",
 			"Un fourgon (au garage, sous la route ; 5 au plus) va chercher un voleur en garde à vue dès qu'une cellule est libre : 1 minute à l'aller, 1 minute au retour.",
 			"Un prisonnier par cellule (20 au plus). Un surveillant (points du lycée) garde deux cellules : pas de cellule sans son surveillant.",
 			"Un prisonnier reste 1 h 30 et arrive avec 100 points de récidive. Aux minutes 10, 20… 80, il essaie de remplir un de ses besoins, du plus rare au plus facile : la psy, l'assistant social, sa famille, le travail, le sport, se laver, manger, dormir (sa cellule).",
