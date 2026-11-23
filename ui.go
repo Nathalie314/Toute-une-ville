@@ -915,7 +915,7 @@ func (g *game) drawHelp(dst *ebiten.Image) {
 		"• À côté des bâtiments : « Niveau » (plus rapide) et « Stock + » (stocks plus grands).",
 		"• Chaque zone a ses ouvriers (case sous le champ). Les quais des camions : un drone par étal, ou toi.",
 		"• L'école (offerte) forme des élèves : chacun qui part te donne un point, à répartir dans tes lieux depuis la mairie.",
-		"• Zone grise réservée au joueur : hélicoptère vers les autres lieux (ou touches 1 à 9 et 0 : tes favoris, à choisir sur la carte ; Tab : carte de la ville), vestiaire (P), V : mairie.",
+		"• Zone grise réservée au joueur : hélicoptère vers les autres lieux (ou touches 1 à 9 et 0 : tes favoris, à choisir sur la carte ; Tab : carte de la ville), vestiaire (P), V : mairie, O : patrouilles, C : vidéosurveillance.",
 		"• Tu n'arrives pas à te débarrasser de quelque chose ? Arrête-toi au compost, tout à droite.",
 		"• Supermarché, boulangerie, crèmerie, glacier (sur la carte) : chacun a son quai à la ferme, un camion y emmène les produits.",
 		"• La réputation (étoiles) monte avec les clients contents et attire du monde. B : tes badges.",

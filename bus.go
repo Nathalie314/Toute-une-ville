@@ -93,6 +93,19 @@ func (g *game) updateBus(dt float64) {
 		g.openPanel(panelWardrobe)
 		return
 	}
+	// O : les patrouilles, C : la vidéosurveillance (le menu du commissariat, de partout)
+	if o, c := inpututil.IsKeyJustPressed(ebiten.KeyO), inpututil.IsKeyJustPressed(ebiten.KeyC); o || c {
+		if pol := g.sim.Place("commissariat"); pol == nil || !pol.Owned || !g.sim.HasChief() {
+			g.toast("Il faut d'abord un commissaire au commissariat.", "")
+			return
+		}
+		g.polTab = 0
+		if c {
+			g.polTab = 1
+		}
+		g.openPanel(panelPolice)
+		return
+	}
 	p := g.sim.Cur
 	if g.scene != scenePlace || p == nil {
 		g.busT = 0

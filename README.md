@@ -40,6 +40,10 @@ La partie est enregistrée automatiquement, dans un fichier à côté du jeu (`T
 | 1 à 9, 0 | Aller dans un lieu favori |
 | , ou ? | Aide |
 | B | Badges |
+| V | Mairie |
+| P | Personnage |
+| O | Patrouilles (commissariat) |
+| C | Vidéosurveillance (commissariat) |
 | $ | Gestion de l'argent (tableau des gains) |
 | Échap | Quitter le jeu (la partie est enregistrée) |
 | M | Couper le son (les boutons du son coupent aussi séparément les sons du jeu, le téléphone, la musique) |
@@ -133,6 +137,10 @@ Your game is saved automatically, in a file next to the game (`ToutUneVille_sauv
 | 1 to 9, 0 | Go to a favourite place |
 | , or ? | Help |
 | B | Badges |
+| V | City Hall |
+| P | Character |
+| O | Patrols (police station) |
+| C | CCTV (police station) |
 | $ | Money management (earnings table) |
 | Esc | Quit the game (your game is saved) |
 | M | Mute (the sound buttons can also mute the game sounds, the phone, the music separately) |
