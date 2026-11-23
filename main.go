@@ -59,7 +59,8 @@ const (
 	panelStart     // première partie : « Bienvenue… » (Jouer ou Tutoriel)
 	panelPolice    // le parking du commissariat : les patrouilles
 	panelPoliceTuto
-	panelPrison // la prison : les améliorations (points d'école)
+	panelPrison  // la prison : les améliorations (points d'école)
+	panelCaserne // la caserne : la prévention (PPI), les camions
 )
 
 type button struct {
@@ -85,6 +86,8 @@ type game struct {
 	vidSel     int       // … le bureau de capitaine choisi (1, 2…)
 	polZoneIn  bool      // le joueur est sur la case des patrouilles (le menu s'est ouvert)
 	prisZoneIn bool      // … sur la case des améliorations de la prison
+	casZoneIn  bool      // … sur une case du hall de la caserne
+	casTab     int       // menu de la caserne : 0 la prévention, 1 les camions
 	worldCam   view      // la caméra du monde (pour cliquer sur un endroit du lieu)
 	gains      gainsView // la page des gains par lieu (calculée à son ouverture)
 	zoom       float64
@@ -467,6 +470,8 @@ func (g *game) Draw(screen *ebiten.Image) {
 		g.drawPoliceTuto(dst)
 	case panelPrison:
 		g.drawPrisonPanel(dst)
+	case panelCaserne:
+		g.drawCasernePanel(dst)
 	}
 	g.drawTuto(dst)
 	g.drawHand(dst)

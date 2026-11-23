@@ -289,6 +289,8 @@ func (g *game) drawGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		g.policeGround(dst, p, tl, br)
 	case "prison":
 		g.prisonGround(dst, p, tl, br)
+	case "caserne":
+		g.caserneGround(dst, p, tl, br)
 	default:
 		g.workshopGround(dst, p, tl, br)
 	}

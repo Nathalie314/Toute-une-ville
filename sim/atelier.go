@@ -48,7 +48,7 @@ var bakerySpec = workshopSpec{
 	id: "boulangerie", name: "La boulangerie", price: 50000, seed: 31,
 	inputs: []Item{Farine, FarineMais, Oeuf, Lait, Beurre, SucrePoudre, Chocolat},
 	recipes: []recipe{
-		{"four_baguette", "Tradition", Pain, []Item{Farine}, 3, 0, "", ""},
+		{"four_baguette", "Tradition", Pain, []Item{Farine}, 3, 800, "Farine de blé → baguette.", ""}, // (plus offert : un incendie peut le détruire, il se rachète)
 		{"pain_mie", "Pain de mie", PainMie, []Item{Farine}, 3.5, 1500, "Farine de blé → pain de mie.", ""},
 		{"four_mais", "Baguette maïs", BaguetteMais, []Item{FarineMais}, 3, 2500, "Farine de maïs → baguette de maïs.", ""},
 		{"four_mele", "Pain blé-maïs", PainMele, []Item{Farine, FarineMais}, 4, 5000, "Les deux farines ensemble.", ""},
@@ -326,7 +326,7 @@ func newWorkshop(g *Game, sp workshopSpec) *Place {
 func placeName(id string) string {
 	return map[string]string{"ferme": "la ferme", "super": "le supermarché", "boulangerie": "la boulangerie",
 		"cremerie": "la crèmerie", "glacier": "le glacier", "ecole": "l'école",
-		"elevage": "la ferme d'élevage", "boucherie": "la boucherie-charcuterie", "exotique": "la ferme exotique", "domaine": "le domaine", "creperie": "la crêperie", "patisserie": "la pâtisserie", "parc": "le parc d'attractions", "huilerie": "l'huilerie", "commissariat": "le commissariat", "prison": "la prison"}[id]
+		"elevage": "la ferme d'élevage", "boucherie": "la boucherie-charcuterie", "exotique": "la ferme exotique", "domaine": "le domaine", "creperie": "la crêperie", "patisserie": "la pâtisserie", "parc": "le parc d'attractions", "huilerie": "l'huilerie", "commissariat": "le commissariat", "prison": "la prison", "caserne": "la caserne de pompiers"}[id]
 }
 
 // needsMet : « lieu » (acheté) ou « lieu:station » (station construite), séparés par des virgules.

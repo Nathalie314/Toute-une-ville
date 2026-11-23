@@ -410,7 +410,19 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 	if s.Rate > 0 {
 		g.income = append(g.income, incomeRec{t: g.T, a: s.Rate * 60})
 	}
-	g.Boost = s.Cadeau // (après les gains d'absence : un cadeau ne travaille pas jeu fermé)
+	g.Boost = s.Cadeau                // (après les gains d'absence : un cadeau ne travaille pas jeu fermé)
+	if g.Levels["migr.depart"] == 0 { // (une partie d'avant : le four de la boulangerie et la rôtisserie étaient offerts)
+		for _, ps := range [][2]string{{"boulangerie", "four_baguette"}, {"boucherie", "rotisserie"}} {
+			if p := g.Place(ps[0]); p != nil && p.Owned {
+				for _, u := range p.Unlocks {
+					if u.ID == ps[1] && !u.Done {
+						p.complete(u)
+					}
+				}
+			}
+		}
+		g.Levels["migr.depart"] = 1
+	}
 	g.Custody = nil
 	g.prisonRestore(s.Prison)
 	for _, c := range s.Garde { // (le commissariat ne fonctionne pas jeu fermé : la garde à vue reprend où elle en était)

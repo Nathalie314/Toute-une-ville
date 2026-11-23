@@ -42,12 +42,22 @@ func (g *game) drawTheftHUD(dst *ebiten.Image, x, y float64) {
 	k := 0.5 + 0.5*math.Sin(g.t*5)
 	roundRect(dst, x, y, w, h, 16, rgba(0x5a1010, 0.85))
 	roundRect(dst, x+10, y+6, w-20, 26, 8, rgba(0xd9342b, 0.8+0.2*k))
-	sayFit(dst, tr.F("Vol en cours : {nom}", "nom", tr.T(busNames[th.Place])), x+w/2, y+19, 16, true, 0, w-36, rgb(0xffffff))
+	title := tr.F("Vol en cours : {nom}", "nom", tr.T(busNames[th.Place]))
+	if th.Fire {
+		title = tr.F("Incendie : {nom}", "nom", tr.T(busNames[th.Place]))
+	}
+	sayFit(dst, title, x+w/2, y+19, 16, true, 0, w-36, rgb(0xffffff))
 	m, sec := int(th.Left)/60, int(th.Left)%60
 	ts := itoa(m) + ":" + map[bool]string{true: "0", false: ""}[sec < 10] + itoa(sec)
-	sayFit(dst, tr.T("Tout est arrêté. Les voleurs partiront dans :"), x+20, y+52, 15, false, -1, w-110, rgb(0xffd9d9))
+	sub := tr.T("Tout est arrêté. Les voleurs partiront dans :")
+	if th.Fire {
+		sub = tr.T("Tout le monde fuit. Le feu sera éteint dans :")
+	}
+	sayFit(dst, sub, x+20, y+52, 15, false, -1, w-110, rgb(0xffd9d9))
 	say(dst, ts, x+w-16, y+52, 20, true, 1, rgb(0xffffff))
 	switch {
+	case th.Fire:
+		sayFit(dst, tr.F("Les pompiers sauveront {n} élément(s).", "n", itoa(g.sim.SaveCapacity())), x+20, y+82, 15, true, -1, w-40, rgb(0xffe066))
 	case th.Spotted:
 		sayFit(dst, "Repérés par la vidéosurveillance : la police les attend !", x+20, y+82, 15, true, -1, w-40, rgb(0x9fe0ff))
 	case th.Stolen > 0:

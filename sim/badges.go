@@ -547,6 +547,17 @@ func init() {
 			Check: func(g *Game) bool { return g.Levels["prison.reinseres"] > 0 }},
 		Badge{ID: "prison_cent", Place: "prison", Name: "Ville plus sûre", Desc: "100 prisonniers réinsérés.", Icon: IconHeart,
 			Check: func(g *Game) bool { return g.Levels["prison.reinseres"] >= 100 }})
+	// la caserne de pompiers
+	B(Badge{ID: "caserne_ouvert", Place: "caserne", Name: "Sirène", Desc: "Ouvrir la caserne de pompiers (elle s'ouvre avec la boulangerie).", Icon: IconStar,
+		Check: func(g *Game) bool { return g.Place("caserne").Owned }},
+		Badge{ID: "caserne_commandant", Place: "caserne", Name: "Mon commandant", Desc: "Faire venir le commandant des pompiers.", Icon: IconWorker,
+			Check: func(g *Game) bool { return g.HasCommander() }},
+		Badge{ID: "caserne_camions", Place: "caserne", Name: "Grande échelle", Desc: "Avoir 5 camions de pompiers, chacun avec son pompier.", Icon: IconTruck,
+			Check: func(g *Game) bool { return g.TrucksReady() >= CasTruckN }},
+		Badge{ID: "caserne_sauve", Place: "caserne", Name: "Sauvé des flammes", Desc: "Les pompiers sauvent quelque chose d'un incendie.", Icon: IconHeart,
+			Check: func(g *Game) bool { return g.Levels["caserne.sauves"] > 0 }},
+		Badge{ID: "caserne_evite", Place: "caserne", Name: "Mieux vaut prévenir", Desc: "La prévention évite un incendie.", Icon: IconStar,
+			Check: func(g *Game) bool { return g.Levels["caserne.evites"] > 0 }})
 	// le parc d'attractions
 	parc := func(g *Game) *Place { return g.Place("parc") }
 	B(placeBadges("parc", "parc d'attractions", "Ticket d'entrée", "Tout le parc", "Équipe au complet", "Parc étoilé", 1000, IconHeart)...)

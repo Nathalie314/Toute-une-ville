@@ -775,7 +775,7 @@ func (p *Place) cooks() bool {
 
 // sells : lieux qui reçoivent des clients.
 func (p *Place) sells() bool {
-	return p.ID != "ecole" && p.ID != "elevage" && p.ID != "huilerie" && p.ID != "commissariat" && p.ID != "prison"
+	return p.ID != "ecole" && p.ID != "elevage" && p.ID != "huilerie" && p.ID != "commissariat" && p.ID != "prison" && p.ID != "caserne"
 }
 
 // EarnsMoney : le lieu gagne-t-il de l'argent (des clients) ? L'école, la ferme
@@ -784,7 +784,7 @@ func (p *Place) EarnsMoney() bool { return p.sells() }
 
 // hasStaff : lieux qui ont des employés (marche, charge).
 func (p *Place) hasStaff() bool {
-	return p.ID != "ecole" && p.ID != "parc" && p.ID != "commissariat" && p.ID != "prison"
+	return p.ID != "ecole" && p.ID != "parc" && p.ID != "commissariat" && p.ID != "prison" && p.ID != "caserne"
 } // (au parc, personne ne marche)
 
 // hasOrders : lieux où l'on livre des commandes.
@@ -918,6 +918,9 @@ func (p *Place) PointKinds() []PointKind {
 		add("pts_logist", "comptable", "Logistique", "Commandes", "Plus de temps pour livrer les commandes (+1 % par point).", pctVal)
 	}
 	// université
+	if p.ID == "caserne" {
+		add("pts_prevention", "formation", "Formation", "Chargés de prévention", "Les chargés de prévention rapportent leurs PPI plus vite (+1 % par point).", pctVal)
+	}
 	if p.ID == "ecole" {
 		add("pts_formation", "formation", "Formation", "Vitesse", "Les formations vont plus vite (+1 % par point).", pctVal)
 		add("pts_pedagogie", "formation", "Pédagogie", "Réussite", "Moins d'élèves échouent.",

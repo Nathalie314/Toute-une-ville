@@ -15,7 +15,7 @@ func TestVol(t *testing.T) {
 	for i := 0; i < 30*60; i++ {
 		g.Step(1.0 / 30)
 	}
-	if g.Thieves() != thievesBase+thievesPerLieu*2 {
+	if g.Thieves() != thievesBase { // (50 à l'ouverture du supermarché ; +5 par lieu débloqué ensuite)
 		t.Fatalf("voleurs : %d", g.Thieves())
 	}
 	g.StartTheft("ferme")

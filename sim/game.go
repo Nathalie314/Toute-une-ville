@@ -200,7 +200,7 @@ func NewGame() *Game {
 	for k, v := range DefaultFav {
 		g.Fav[k] = v
 	}
-	g.Places = []*Place{newFarm(g), newSuper(g), newWorkshop(g, bakerySpec), newWorkshop(g, cremerieSpec), newWorkshop(g, iceSpec), newSchool(g), newElevage(g), newBoucherie(g), newExotic(g), newPort(g), newDomaine(g), newCreperie(g), newWorkshop(g, patisserieSpec), newParc(g), newHuilerie(g), newPolice(g), newPrison(g)}
+	g.Places = []*Place{newFarm(g), newSuper(g), newWorkshop(g, bakerySpec), newWorkshop(g, cremerieSpec), newWorkshop(g, iceSpec), newSchool(g), newElevage(g), newBoucherie(g), newExotic(g), newPort(g), newDomaine(g), newCreperie(g), newWorkshop(g, patisserieSpec), newParc(g), newHuilerie(g), newPolice(g), newPrison(g), newCaserne(g)}
 	g.sortPlaces()
 	for _, p := range g.Places {
 		p.applyCaps()
@@ -231,7 +231,8 @@ func NewGame() *Game {
 	}
 	g.Levels[AvocatierKey] = 1
 	g.Levels[RayonsAgrumesKey] = 1
-	g.Levels[AbattoirsKey] = 1 // (les abattoirs de la ferme d'élevage s'achètent à part)
+	g.Levels["migr.depart"] = 1 // (une nouvelle partie achète son premier four)
+	g.Levels[AbattoirsKey] = 1  // (les abattoirs de la ferme d'élevage s'achètent à part)
 	g.Player = &Agent{Kind: PlayerAgent, Face: V{0, 1}}
 	g.Enter(g.Places[0])
 	g.Money = 0
@@ -241,7 +242,7 @@ func NewGame() *Game {
 // MapOrder : les lieux dans l'ordre de la carte de la ville (ui.go, drawMap). Il
 // fixe l'ordre des listes (points d'école…) ; les prix suivent PriceRank (la rangée
 // du haut, sans l'école). Un nouveau lieu se met ici, à sa place sur la carte.
-var MapOrder = []string{"ferme", "ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "port", "elevage", "boucherie", "domaine", "creperie", "patisserie", "parc", "huilerie", "commissariat", "prison"}
+var MapOrder = []string{"ferme", "ecole", "super", "cremerie", "exotique", "boulangerie", "glacier", "port", "elevage", "boucherie", "domaine", "creperie", "patisserie", "parc", "huilerie", "commissariat", "prison", "caserne"}
 
 // PriceRank : le rang du lieu dans la rangée du haut de la carte (les lieux qui rapportent ou
 // produisent : 1 ma ferme, 2 le supermarché, 3 la crèmerie…) ; c'est lui qui fixe les prix.
@@ -405,7 +406,8 @@ func (g *Game) Step(dt float64) {
 	g.stepRayonDiag(dt)
 	g.openPolice() // (avec le supermarché)
 	g.stepCustody(dt)
-	g.openPrison() // (avec la première garde à vue)
+	g.openPrison()  // (avec la première garde à vue)
+	g.openCaserne() // (avec la boulangerie)
 	g.stepOrders(dt)
 	g.stepBoost(dt)
 	g.badgeT += dt
