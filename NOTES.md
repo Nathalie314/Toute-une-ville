@@ -1801,3 +1801,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   boulangerie brioche / pain au chocolat / croissant ; crèmerie fromage de brebis / de chèvre / yaourt ; pâtisserie
   fraisier / tarte au citron meringuée / gâteau au chocolat. Livrée : PPI ×2 (ppiMult) ; ratée : ÷2.
   Test : TestCommandesCaserne.
+- Bulles d'aide (demande) : plus de « sachets de graines » ni de « replanter » pour les légumes de la serre (ils repoussent tout seuls) : nouvelle bulle du déblocage des colonnes de la serre.

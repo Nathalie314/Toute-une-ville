@@ -305,7 +305,7 @@ func newFarm(g *Game) *Place {
 	unlock("chevrerie", "Chèvrerie", 3500, "Les chèvres mangent du blé : lait de chèvre.")
 	unlock("bergerie", "Bergerie", 5000, "Les brebis mangent du blé : lait de brebis.")
 	for _, c := range ColumnOrder {
-		hint := "Va chercher les sachets de graines au pied de la colonne : il faut replanter après chaque récolte."
+		hint := "Un légume de la serre : il repousse tout seul après chaque récolte. Achète des cases au-dessus pour en avoir plus."
 		if c.fruit {
 			hint = "Un arbre : on récolte sans replanter. Achète des cases au-dessus pour en avoir plus."
 		}
