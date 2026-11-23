@@ -44,7 +44,7 @@ func (g *game) elevageGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	say(dst, "CHAMBRE FROIDE", cx1-120, 1300, 16, true, 0, rgba(0x2b4a66, 0.7))
 	// pistes des drones
 	roundRect(dst, 140, 1335, cx1-140, 125, 20, rgba(0x8a8f96, 0.35))
-	road(dst, tl, br, 1640)
+	road(dst, tl, br, sim.RoadY)
 	// la route du haut : les camions de ma ferme y roulent jusqu'à la réserve
 	rect(dst, tl.X-10, 10, br.X-tl.X+20, 100, rgb(0x6b6f74))
 	for x := math.Floor(tl.X/120) * 120; x < br.X+120; x += 120 {
@@ -248,23 +248,23 @@ func drawFridge(dst *ebiten.Image, g *game, s *sim.Station) {
 // drawFridgeTruck : le camion frigorifique (caisse blanche, flocon).
 func drawFridgeTruck(dst *ebiten.Image, cx, cy float64, busy bool) {
 	ellipse(dst, cx, cy+38, 120, 10, rgba(0x000000, 0.25))
-	roundRect(dst, cx-124, cy-48, 166, 80, 6, rgb(0xfafcff))
-	rect(dst, cx-124, cy-48, 166, 10, rgb(0x2b6cd6))
-	roundRect(dst, cx-112, cy-62, 40, 16, 4, rgb(0x8a949c)) // groupe froid
-	sayFit(dst, "FRIGORIFIQUE", cx-41, cy-16, 16, true, 0, 150, rgb(0x2b6cd6))
+	roundRect(dst, truckRX(cx, -124, 166), cy-48, 166, 80, 6, rgb(0xfafcff))
+	rect(dst, truckRX(cx, -124, 166), cy-48, 166, 10, rgb(0x2b6cd6))
+	roundRect(dst, truckRX(cx, -112, 40), cy-62, 40, 16, 4, rgb(0x8a949c)) // groupe froid
+	sayFit(dst, "FRIGORIFIQUE", truckX(cx, -41), cy-16, 16, true, 0, 150, rgb(0x2b6cd6))
 	label := "ÉLEVAGE"
 	if truckFrom == "boucherie" {
 		label = "BOUCHERIE"
 	}
-	sayFit(dst, label, cx-41, cy+8, 15, true, 0, 150, rgb(0x8a2a2a))
-	roundRect(dst, cx+42, cy-22, 70, 54, 10, rgb(0x2b6cd6))
-	rect(dst, cx+68, cy-14, 34, 20, rgb(0x9fd3ff))
+	sayFit(dst, label, truckX(cx, -41), cy+8, 15, true, 0, 150, rgb(0x8a2a2a))
+	roundRect(dst, truckRX(cx, +42, 70), cy-22, 70, 54, 10, rgb(0x2b6cd6))
+	rect(dst, truckRX(cx, +68, 34), cy-14, 34, 20, rgb(0x9fd3ff))
 	for _, wx := range []float64{-85, -10, 80} {
-		circle(dst, cx+wx, cy+34, 15, rgb(0x2b2b2b))
-		circle(dst, cx+wx, cy+34, 6, rgb(0x999999))
+		circle(dst, truckX(cx, wx), cy+34, 15, rgb(0x2b2b2b))
+		circle(dst, truckX(cx, wx), cy+34, 6, rgb(0x999999))
 	}
 	if busy {
-		circle(dst, cx+118, cy+10, 6, rgb(0xffd23f))
+		circle(dst, truckX(cx, +118), cy+10, 6, rgb(0xffd23f))
 	}
 }
 

@@ -312,7 +312,7 @@ func (g *Game) SupplyBonus(level int) float64 {
 }
 
 func newSchool(g *Game) *Place {
-	p := &Place{ID: "ecole", Name: "L'école", W: SchoolW, H: 1800, g: g, rng: rand.New(rand.NewSource(31)), Rep: 3, Price: schoolPrice, SellMult: 1}
+	p := &Place{ID: "ecole", Name: "L'école", W: SchoolW, H: roadY + 300, g: g, rng: rand.New(rand.NewSource(31)), Rep: 3, Price: schoolPrice, SellMult: 1}
 	acc := SchoolAccueil()
 	gx := acc.C().X
 	p.SpawnL = V{350, roadY + 40}

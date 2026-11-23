@@ -126,7 +126,7 @@ const (
 	PrisRoomH    = 380.0
 	PrisRoomGap  = 60.0
 	PrisBldY     = 100.0
-	PrisParkY    = 1880.0 // sous la route : la zone du joueur, puis le garage des fourgons
+	PrisParkY    = roadY + 240 // sous la route : la zone du joueur, puis le garage des fourgons
 	PrisYardX    = 300.0
 	PrisGarageX0 = PrisYardX + 2150 + 200
 	PrisBayW     = 300.0

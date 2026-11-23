@@ -330,7 +330,7 @@ const (
 	CasBayW    = 280.0
 	CasBayGap  = 50.0
 	CasYardX   = 300.0
-	CasParkY   = 1880.0
+	CasParkY   = roadY + 240
 	PPITime    = 2 * 3600.0 // un PPI toutes les 2 heures, par chargé de prévention
 	casBldH    = 60 + CasOffH + CasCorH + CasOffH + 60
 	casOffCols = 3

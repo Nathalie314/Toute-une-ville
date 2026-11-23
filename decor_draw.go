@@ -136,7 +136,7 @@ func (g *game) placeDecor(p *sim.Place) *decorCache {
 		for _, s := range p.Parks {
 			x0, x1 = math.Min(x0, s.Pos.X), math.Max(x1, s.Pos.X)
 		}
-		block(sim.Rect{X: x0 - 200, Y: 1640 + 150, W: x1 - x0 + 400, H: p.H - 1640}, 60)
+		block(sim.Rect{X: x0 - 200, Y: sim.RoadY + 150, W: x1 - x0 + 400, H: p.H - sim.RoadY}, 60)
 	}
 	flush()
 	cam = saved
@@ -294,6 +294,7 @@ func (g *game) drawGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	default:
 		g.workshopGround(dst, p, tl, br)
 	}
+	drawLayBy(dst, p)
 	drawParking(dst, p, tl, br)
 	g.drawYard(dst, p)
 }

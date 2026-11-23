@@ -34,7 +34,7 @@ const (
 	PolCorH    = 200.0                                 // le couloir (bureaux des capitaines, garde à vue)
 	PolOffGap  = 50.0                                  // entre deux bureaux de capitaines
 	PolCellGap = 34.0                                  // entre deux cellules
-	PolParkY   = 1880.0                                // sous la route : la zone du joueur à gauche, le parking des voitures à droite
+	PolParkY   = roadY + 240                           // sous la route : la zone du joueur à gauche, le parking des voitures à droite
 	PolYardX   = 300.0                                 // le bord gauche de la zone du joueur (à l'horizontale, 2150 de large)
 	PolParkX0  = PolYardX + 2150 + 200                 // le bord gauche du parking
 	PolParkH   = 540.0                                 // (sous chaque place : la case de son lieutenant)

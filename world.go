@@ -1900,7 +1900,7 @@ func (g *game) farmGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 		line(dst, x, 1042, x, 1498, 1.5, rgba(0xb59f78, 0.35))
 	}
 	// --- route
-	road(dst, tl, br, 1640)
+	road(dst, tl, br, sim.RoadY)
 	// allée du portail (entre la caisse et l'étal du maïs)
 	gx := sim.FarmGateX
 	rect(dst, gx-70, 1500, 140, 140, rgb(0xcfb894))
@@ -1983,7 +1983,7 @@ func (g *game) workshopGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	}
 	L := p.Lift // (crèmerie : le bâtiment monte plus haut, son intérieur aussi)
 	rect(dst, tl.X-10, 10-L, br.X-tl.X+20, 100, rgb(0x6b6f74))
-	road(dst, tl, br, 1640)
+	road(dst, tl, br, sim.RoadY)
 	// (le bâtiment commence à x = 20 : les cases de la caissière, des vitrines et de la caisse sont dedans)
 	slab(dst, 20, 130-L, p.W-100, 1400+L, 6, 16, 0x8a8478)
 	rect(dst, 36, 146-L, p.W-132, 270, rgb(0xb9b3a8)) // réserve
@@ -2028,48 +2028,48 @@ func drawTruck(dst *ebiten.Image, cx, cy float64, busy bool) {
 		return
 	}
 	ellipse(dst, cx, cy+38, 120, 10, rgba(0x000000, 0.25))
-	roundRect(dst, cx-120, cy-42, 160, 74, 8, rgb(0xf3ead8))
+	roundRect(dst, truckRX(cx, -120, 160), cy-42, 160, 74, 8, rgb(0xf3ead8))
 	label := map[string]string{"ferme": "MA FERME", "boulangerie": "BOULANGERIE", "cremerie": "CRÈMERIE", "glacier": "GLACIER", "boucherie": "BOUCHERIE", "exotique": "EXOTIQUE", "port": "LE PORT", "elevage": "ÉLEVAGE", "domaine": "LE DOMAINE", "patisserie": "PÂTISSERIE", "huilerie": "L'HUILERIE"}[truckFrom]
 	if label == "" {
 		label = "MA FERME"
 	}
-	sayFit(dst, label, cx-40, cy-6, 20, true, 0, 150, rgb(0x2fa86b))
-	roundRect(dst, cx+40, cy-22, 70, 54, 10, rgb(0x2fa86b))
-	rect(dst, cx+66, cy-14, 34, 20, rgb(0x9fd3ff))
+	sayFit(dst, label, truckX(cx, -40), cy-6, 20, true, 0, 150, rgb(0x2fa86b))
+	roundRect(dst, truckRX(cx, +40, 70), cy-22, 70, 54, 10, rgb(0x2fa86b))
+	rect(dst, truckRX(cx, +66, 34), cy-14, 34, 20, rgb(0x9fd3ff))
 	for _, wx := range []float64{-85, -10, 80} {
-		circle(dst, cx+wx, cy+34, 15, rgb(0x2b2b2b))
-		circle(dst, cx+wx, cy+34, 6, rgb(0x999999))
+		circle(dst, truckX(cx, wx), cy+34, 15, rgb(0x2b2b2b))
+		circle(dst, truckX(cx, wx), cy+34, 6, rgb(0x999999))
 	}
 	if busy {
-		circle(dst, cx+118, cy+10, 6, rgb(0xffd23f))
+		circle(dst, truckX(cx, +118), cy+10, 6, rgb(0xffd23f))
 	}
 }
 
 // drawMilkTruck : le camion-citerne de lait (de la ferme à la crèmerie), vu de côté, comme drawTruck.
 func drawMilkTruck(dst *ebiten.Image, cx, cy float64, busy bool) {
 	ellipse(dst, cx, cy+38, 120, 10, rgba(0x000000, 0.25))
-	rect(dst, cx-118, cy+18, 160, 12, rgb(0x5a5f66)) // le châssis
+	rect(dst, truckRX(cx, -118, 160), cy+18, 160, 12, rgb(0x5a5f66)) // le châssis
 	// la citerne : un grand cylindre d'inox, couché
-	roundRect(dst, cx-122, cy-44, 166, 66, 33, rgb(0xc9d3dc))
-	roundRect(dst, cx-116, cy-40, 154, 22, 11, rgb(0xeef3f7)) // le reflet
-	for _, x := range []float64{-70, -10} {                   // les cerclages
+	roundRect(dst, truckRX(cx, -122, 166), cy-44, 166, 66, 33, rgb(0xc9d3dc))
+	roundRect(dst, truckRX(cx, -116, 154), cy-40, 154, 22, 11, rgb(0xeef3f7)) // le reflet
+	for _, x := range []float64{-70, -10} {                                   // les cerclages
 		rect(dst, cx+x, cy-44, 5, 66, rgb(0xa9b6c2))
 	}
 	for _, x := range []float64{-95, -40} { // les trous d'homme, sur le dessus
 		roundRect(dst, cx+x, cy-52, 22, 10, 4, rgb(0x8a97a4))
 	}
-	roundRect(dst, cx-100, cy-16, 120, 26, 8, rgba(0xffffff, 0.9))
-	say(dst, "LAIT", cx-40, cy-3, 18, true, 0, rgb(0x2b5a8a))
-	sayFit(dst, "MA FERME", cx-40, cy+14, 12, true, 0, 100, rgb(0x2fa86b))
+	roundRect(dst, truckRX(cx, -100, 120), cy-16, 120, 26, 8, rgba(0xffffff, 0.9))
+	say(dst, "LAIT", truckX(cx, -40), cy-3, 18, true, 0, rgb(0x2b5a8a))
+	sayFit(dst, "MA FERME", truckX(cx, -40), cy+14, 12, true, 0, 100, rgb(0x2fa86b))
 	// la cabine, comme les autres camions de la ferme
-	roundRect(dst, cx+40, cy-22, 70, 54, 10, rgb(0x2fa86b))
-	rect(dst, cx+66, cy-14, 34, 20, rgb(0x9fd3ff))
+	roundRect(dst, truckRX(cx, +40, 70), cy-22, 70, 54, 10, rgb(0x2fa86b))
+	rect(dst, truckRX(cx, +66, 34), cy-14, 34, 20, rgb(0x9fd3ff))
 	for _, wx := range []float64{-85, -10, 80} {
-		circle(dst, cx+wx, cy+34, 15, rgb(0x2b2b2b))
-		circle(dst, cx+wx, cy+34, 6, rgb(0x999999))
+		circle(dst, truckX(cx, wx), cy+34, 15, rgb(0x2b2b2b))
+		circle(dst, truckX(cx, wx), cy+34, 6, rgb(0x999999))
 	}
 	if busy {
-		circle(dst, cx+118, cy+10, 6, rgb(0xffd23f))
+		circle(dst, truckX(cx, +118), cy+10, 6, rgb(0xffd23f))
 	}
 }
 
@@ -2263,23 +2263,60 @@ func (g *game) drawDock(dst *ebiten.Image, s *sim.Station) {
 	truckFrom, truckTo = s.PlaceID(), s.To
 	defer func() { truckFrom, truckTo = "ferme", "" }()
 	e := every - left // temps depuis le dernier départ
-	x0, y0 := b.C().X, b.Y+90
-	truck := func(x float64) {
-		scaled(x, y0, 0.75, func() { drawTruck(dst, x, y0, true) })
+	// le camion se gare dans la voie de livraison, sous les quais ; il roule sur la voie du haut,
+	// vers la gauche : il arrive par la droite et repart vers la gauche (comme au port)
+	truckLeft = true
+	defer func() { truckLeft = false }()
+	x0, park, lane := b.C().X, sim.RoadY-62, sim.RoadY+35
+	truck := func(x, y float64) {
+		scaled(x, y, 0.75, func() { drawTruck(dst, x, y, true) })
 	}
-	// le camion qui vient de partir s'éloigne vers la droite
-	if e < 2.5 {
-		f := e / 2.5
-		truck(x0 + 2200*f*f)
+	// (des départs rapprochés : les camions roulent vite, et passent le plus clair de leur temps
+	// rangés au quai, pas sur la route)
+	go1 := math.Min(2.5, every*0.15) // le départ
+	at0, at1 := go1*0.6, go1*0.6+math.Min(3, every*0.2)
+	if e < go1 { // le camion qui vient de partir rejoint la route et s'éloigne vers la gauche
+		f := e / go1
+		truck(x0-2200*f*f, park+(lane-park)*math.Min(1, f*3))
 	}
-	// le suivant arrive par la gauche, puis attend au quai
 	switch {
-	case e >= 4.5:
-		scaled(x0, y0, 0.75, func() { drawTruck(dst, x0, y0, left < 2) })
-		sayOutlined(dst, "Départ dans "+itoa(int(left))+" s", x0, b.Y+140, 16, 0, rgb(0xffffff), rgb(0x2b2b2b))
-	case e >= 1.5:
-		f := (e - 1.5) / 3
-		truck(x0 - 2200*(1-f)*(1-f))
+	case e >= at1: // le suivant attend au quai
+		scaled(x0, park, 0.75, func() { drawTruck(dst, x0, park, left < 2) })
+		sayOutlined(dst, "Départ dans "+itoa(int(left))+" s", x0, park+50, 16, 0, rgb(0xffffff), rgb(0x2b2b2b))
+	case e >= at0: // il arrive par la droite, puis se range dans la voie de livraison
+		f := (e - at0) / (at1 - at0)
+		truck(x0+2200*(1-f)*(1-f), lane+(park-lane)*math.Max(0, (f-0.66)*3))
+	}
+}
+
+// drawLayBy : la voie de livraison des camions, entre les quais et la route (le trottoir y est
+// coupé ; les camions s'y rangent sans gêner les voitures).
+func drawLayBy(dst *ebiten.Image, p *sim.Place) {
+	if p.ID == "domaine" || p.ID == "port" || p.ID == "exotique" {
+		return // (la route des camions y est verticale, ou ce sont des bateaux)
+	}
+	x0, x1 := math.Inf(1), math.Inf(-1)
+	for _, s := range p.Stations {
+		if s.Kind == sim.Dock {
+			x0, x1 = math.Min(x0, s.Body.X), math.Max(x1, s.Body.X+s.Body.W)
+		}
+	}
+	if x1 < x0 {
+		return
+	}
+	x0, x1 = x0-220, x1+220
+	y0, y1 := sim.RoadY-122, sim.RoadY
+	asphalt := rgb(0x62666b)
+	rect(dst, x0, y0, x1-x0, y1-y0+2, asphalt)
+	// les deux bouts en biais (on y entre, on en sort en douceur)
+	polygon(dst, []V{{X: x0, Y: y0}, {X: x0, Y: y1}, {X: x0 - 160, Y: y1}}, asphalt)
+	polygon(dst, []V{{X: x1, Y: y0}, {X: x1 + 160, Y: y1}, {X: x1, Y: y1}}, asphalt)
+	rect(dst, x0, y0-6, x1-x0, 6, rgb(0x93928a)) // (la bordure, côté quais)
+	for x := x0 + 20; x < x1-20; x += 60 {       // la ligne pointillée qui la sépare de la route
+		rect(dst, x, y1-3, 30, 5, rgba(0xffffff, 0.8))
+	}
+	for x := x0 + 140; x < x1-100; x += 700 {
+		say(dst, "LIVRAISONS", x, y0+60, 22, true, 0, rgba(0xffffff, 0.35))
 	}
 }
 
@@ -2406,4 +2443,24 @@ func drawPaperBag(dst *ebiten.Image, pos, face V, items []sim.Item, walkT float6
 	line(dst, x-6, y+12, x-7, y+25, 1.2, rgba(0x8a6a44, 0.5)) // les plis
 	line(dst, x+6, y+12, x+7, y+25, 1.2, rgba(0x8a6a44, 0.5))
 	circle(dst, x, y+4, 5, rgb(skin)) // la main qui le tient
+}
+
+// truckLeft : les camions dessinés de profil regardent vers la gauche (ils roulent sur la voie du
+// haut, vers la gauche : les quais des ateliers).
+var truckLeft bool
+
+// truckX : un point du camion (décalé de a depuis son centre), retourné s'il va vers la gauche.
+func truckX(cx, a float64) float64 {
+	if truckLeft {
+		return cx - a
+	}
+	return cx + a
+}
+
+// truckRX : le bord gauche d'un rectangle du camion (décalé de a, large de w).
+func truckRX(cx, a, w float64) float64 {
+	if truckLeft {
+		return cx - a - w
+	}
+	return cx + a
 }

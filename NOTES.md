@@ -1787,3 +1787,11 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   événement (≈ un incendie toutes les 12-13 h de jeu à ce stade, sans PPI).
 - Voleurs (précision de la joueuse) : 50 à l'ouverture du supermarché, puis +5 par lieu débloqué ENSUITE (ni la ferme ni le supermarché ne comptent ; afterSuper).
 - Panneaux d'urgence (demande) : « 18 » à droite du bureau du commandant (caserne), « 17 » dans le bureau du commissaire (emergencySign).
+- Voie de livraison (demande : « les voitures traversent les camions à l'arrêt ») : la route du bas est descendue de
+  120 dans tous les lieux (roadY 1640 → 1760 ; sim.RoadY pour le dessin ; ce qui était sous la route suit : zones
+  du joueur du commissariat, de la prison, de la caserne et du supermarché à roadY + 240 / + 210). Sous les quais
+  des ateliers (et de la ferme, de l'élevage, de l'huilerie), une voie de livraison (drawLayBy, entre les quais et la
+  route, en biais aux deux bouts). Les camions roulent dans le bon sens : sur la voie du haut, vers la gauche
+  (truckLeft retourne drawTruck, le camion-citerne et le frigorifique) : ils arrivent par la droite, se rangent
+  dans la voie de livraison, puis repartent vers la gauche ; avec des départs rapprochés, ils roulent plus vite et
+  restent surtout rangés.

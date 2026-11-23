@@ -24,12 +24,12 @@ func firemanLook(n int) look {
 
 func (g *game) caserneGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	gs := g.sim
-	road(dst, tl, br, 1640)
+	road(dst, tl, br, sim.RoadY)
 	bx, by, bw, bh := sim.CasBldX, sim.CasBldY, sim.CasBldW, sim.CasBldH
 	door := V{X: sim.CasHall().C().X, Y: by + bh}
-	rect(dst, door.X-90, door.Y, 180, 1624-door.Y, rgb(0xd6d2c8))
+	rect(dst, door.X-90, door.Y, 180, sim.RoadY-16-door.Y, rgb(0xd6d2c8))
 	gar := sim.CasGarage()
-	rect(dst, gar.X, by+bh, gar.W, 1624-by-bh, rgb(0x6a6e73)) // (la sortie des camions, jusqu'à la route)
+	rect(dst, gar.X, by+bh, gar.W, sim.RoadY-16-by-bh, rgb(0x6a6e73)) // (la sortie des camions, jusqu'à la route)
 	slab(dst, bx, by, bw, bh, 8, 16, 0xa0453a)
 	c, h := sim.CasChief(), sim.CasHall()
 	rect(dst, c.X, c.Y, c.W, c.H, rgb(0xc9a477))
@@ -208,7 +208,7 @@ func (g *game) fireDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable) []d
 	if n > 0 && el > 8 {
 		for i := 0; i < n; i++ {
 			x := p.Gate.X - float64(n-1)*130 + float64(i)*260
-			y := 1770.0
+			y := sim.RoadY + 130
 			ds = append(ds, drawable{x: x, y: y + 20, fn: func() {
 				drawFireTruckSide(dst, x, y, 1, t)
 				for j := 0; j < 6; j++ { // l'eau

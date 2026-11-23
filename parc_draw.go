@@ -11,7 +11,7 @@ import (
 // Le parc d'attractions : allées, entrée et caisses, parking, attractions
 // (elles grandissent avec leur taille), visiteurs.
 
-const parcRoadY = 1640.0
+const parcRoadY = sim.RoadY
 
 // parcGround : le sol du parc (pelouse déjà dessinée) : allées, place de
 // l'entrée, route, parking.

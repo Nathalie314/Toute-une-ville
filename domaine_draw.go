@@ -55,12 +55,12 @@ func (g *game) domaineGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	// les réserves de jus, à gauche du quai du supermarché (une dalle qui le rejoint)
 	roundRect(dst, sim.DomJusX-40, sim.DomJusY-120, sim.DomPalX-sim.DomJusX+60, 340, 20, rgba(0xb9b3a8, 0.6))
 	// --- la route du bas, puis la route verticale des camions (elle la rejoint)
-	road(dst, tl, br, 1640)
+	road(dst, tl, br, sim.RoadY)
 	x0 := sim.DomRoadX
 	top := math.Min(tl.Y-20, sim.DomTop-200)
-	rect(dst, x0-12, top, 12, 1640-top, rgb(0xb0b0a8))
-	rect(dst, x0, top, sim.DomRoadW, 1640-top+150, rgb(0x6b6f74))
-	rect(dst, x0+sim.DomRoadW, top, 12, 1640-top, rgb(0xb0b0a8))
+	rect(dst, x0-12, top, 12, sim.RoadY-top, rgb(0xb0b0a8))
+	rect(dst, x0, top, sim.DomRoadW, sim.RoadY-top+150, rgb(0x6b6f74))
+	rect(dst, x0+sim.DomRoadW, top, 12, sim.RoadY-top, rgb(0xb0b0a8))
 	for y := math.Floor(top/160) * 160; y < 1620; y += 160 {
 		rect(dst, x0+sim.DomRoadW/2-4, y, 8, 80, rgb(0xf2f2e6))
 	}

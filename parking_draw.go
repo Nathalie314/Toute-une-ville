@@ -18,7 +18,7 @@ func drawParking(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	if len(p.Parks) == 0 || p.ID == "super" || p.ID == "parc" || p.ID == "port" {
 		return // (le supermarché a son propre parking ; le port aussi, le long de sa route verticale)
 	}
-	const roadY = 1640.0
+	const roadY = sim.RoadY
 	x0, x1, gx := p.ParkX()
 	// trottoir tout du long
 	rect(dst, tl.X-10, roadY+162, br.X-tl.X+20, sim.ParkTop-roadY-162, rgb(0xc9c3b8))
