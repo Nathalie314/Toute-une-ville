@@ -1733,3 +1733,26 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
 - Carte : pas de « ! » sur une tuile fermée (le commissariat, gratuit, en avait un dès le début : 0 € « achetable »).
 - Correctif : le 1er bureau de capitaine et la 1re cellule étaient gratuits (PlacePrice vaut 0 avant le 4e lieu). Les voitures, bureaux et cellules suivent maintenant le vrai prix du lieu de ce rang (RankPrice, policePrices) : 1er bureau 22 000 € (crèmerie), 1re cellule 11 000 €.
 - Garde à vue : 30 minutes au lieu de 2 heures (demande, avec l'arrivée de la prison).
+- LA PRISON (demande, avec ses règles) : sim/prison.go, prison_draw.go. Rangée du bas, après le commissariat. Offerte,
+  elle s'ouvre avec la première garde à vue (commissariat.arrestations). Elle ne tourne que pendant qu'on joue (comme le
+  commissariat désormais : la garde à vue ne s'écoule plus jeu fermé ; 30 minutes). Tout est dans Levels (prison.xxx) ;
+  les détenus et les fourgons en route dans Save.Prison.
+  - Disposition : au-dessus de la route, le bâtiment dans son mur d'enceinte : deux quartiers de 10 cellules (deux
+    rangées face à face, un couloir ; le surveillant n° k entre ses cellules 2k−1 et 2k), au centre la direction (en
+    haut), la psy et l'assistant social, deux cours ; sous le grand couloir : cantine, salle de bain, 5 salles des
+    familles, salle de sport, salle de travail. Sous la route : la zone du joueur, le garage des 5 fourgons.
+  - Directeur : 100 points d'université (case dans son bureau). Ensuite TOUT s'achète, dans l'ordre qu'on veut
+    (demande), au prix fixe du tableau (selon son numéro) : seule une cellule demande son surveillant, et
+    l'équipement d'une salle la salle. Fourgons 8, 16, 32, 64, 128 M€ ; cellules 8 M€ ×1,25 ; cantine 64 M€ (tables
+    16/32/64 M€ : 4, 4 et 2 places) ; salle de bain 64 M€ (cabines 8 M€ ×1,25) ; sport 128 M€ (8 équipements, 10
+    places, 16 M€ ×1,25) ; familles 32 M€ ×2 ; travail 256 M€ (postes 16 M€ ×1,25) ; surveillants 10, 20, 40… points
+    du lycée ; psy et assistant social 1 000 points d'université.
+  - Fourgon : il emmène un voleur de la garde à vue dès qu'une cellule (gardée) est libre ; 1 min aller, 1 min retour.
+  - Détenu : 100 points de récidive, 90 minutes. Aux minutes 10…80, il essaie ses besoins non remplis : psy et AS
+    d'abord, puis du besoin qui a le moins de places au plus (selon les achats ; needOrder), dormir en dernier ; il
+    prend le premier qui a une place libre (5 min sur place, −niveau de la pièce) ; aucun : +10. Niveaux : 10 au plus,
+    10 × n points le niveau n (menu « Améliorations » du grand couloir) : chaque cellule (lit, lavabo, toilettes,
+    armoire, miroir, tapis, table, chaise, télévision, console) et chaque cabine (primaire), cantine et sport
+    (collège), chaque salle des familles et salle de travail (lycée) ; psy et AS : niveau 10. Au mieux 20 points à la
+    sortie : 80 % de chances. Sortie : tirage 1–100 > points → réinséré (prison.reinseres : un voleur de moins pour
+    toujours, Thieves) ; sinon récidiviste. Test : TestPrison. Captures : CAPPRIS=1 (équipée), 2 (et son menu).

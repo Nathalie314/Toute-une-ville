@@ -122,6 +122,15 @@ func placeHelp(id string) []string {
 			"La case « Vidéosurveillance » du hall ouvre le menu des capitaines : chacun surveille un lieu. Quand des voleurs y attaquent, il a une chance de les repérer (1 %, puis +1 % tous les 10 points du primaire placés dans son bureau) : ils volent quand même, mais sont arrêtés en partant.",
 			"Les voleurs arrêtés vont en garde à vue (à droite du bâtiment ; 5 par cellule, 10 cellules au plus) pendant 30 minutes, même jeu fermé : pendant ce temps, ils n'attaquent plus. Sans place libre, ils restent libres.",
 		}
+	case "prison":
+		return []string{
+			"La prison s'ouvre (offerte) dès qu'un premier groupe de voleurs est mis en garde à vue. Rien n'y fonctionne sans son directeur : 100 points d'université. Comme le commissariat, elle ne tourne que pendant que tu joues.",
+			"Un fourgon (au garage, sous la route ; 5 au plus) va chercher un voleur en garde à vue dès qu'une cellule est libre : 1 minute à l'aller, 1 minute au retour.",
+			"Un prisonnier par cellule (20 au plus). Un surveillant (points du lycée) garde deux cellules : pas de cellule sans son surveillant.",
+			"Un prisonnier reste 1 h 30 et arrive avec 100 points de récidive. Aux minutes 10, 20… 80, il essaie de remplir un de ses besoins, du plus rare au plus facile : la psy, l'assistant social, sa famille, le travail, le sport, se laver, manger, dormir (sa cellule).",
+			"S'il y a une place, il y va 5 minutes et perd autant de points que le niveau de la pièce ; sinon, il en gagne 10. À sa sortie, un tirage de 1 à 100 : au-dessus de ses points, il est réinséré et la ville compte un voleur de moins pour toujours ; sinon, il retourne voler.",
+			"La case « Améliorations » du grand couloir ouvre le menu des niveaux (10 au plus) : chaque cellule et chaque cabine (primaire), la cantine et la salle de sport (collège), chaque salle des familles et la salle de travail (lycée). La psy et l'assistant social (1 000 points d'université chacun) comptent au niveau 10.",
+		}
 	case "huilerie":
 		return []string{
 			"L'huilerie ne reçoit pas de clients et ne prend pas de commandes : tout part en camion.",

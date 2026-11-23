@@ -152,7 +152,7 @@ func TestVideosurveillance(t *testing.T) {
 	if g.InCustody() != 5 || g.Thieves() != avant-5 {
 		t.Fatalf("garde à vue : %d, voleurs %d (avant %d)", g.InCustody(), g.Thieves(), avant)
 	}
-	// dix minutes plus tard (jeu fermé) : toujours là ; trois heures : relâchés
+	// jeu fermé, la garde à vue ne s'écoule pas ; en jouant, ils sont relâchés au bout de 30 minutes
 	s := g.Snapshot(1000)
 	h := NewGame()
 	h.Restore(s, 1000+600)
@@ -160,8 +160,14 @@ func TestVideosurveillance(t *testing.T) {
 		t.Fatalf("après dix minutes : %d en garde à vue", h.InCustody())
 	}
 	h2 := NewGame()
-	h2.Restore(s, 1000+3*3600)
+	h2.Restore(s, 1000+3*3600) // (le commissariat ne tourne pas jeu fermé : ils y sont toujours)
+	if h2.InCustody() != 5 || h2.Custody[0].Left != s.Garde[0].Reste {
+		t.Fatalf("après trois heures jeu fermé : %d en garde à vue", h2.InCustody())
+	}
+	for i := 0; i < 30*int(CustodyTime+5); i++ {
+		h2.Step(1.0 / 30)
+	}
 	if h2.InCustody() != 0 {
-		t.Fatalf("après trois heures : %d en garde à vue", h2.InCustody())
+		t.Fatalf("après la garde à vue : %d", h2.InCustody())
 	}
 }

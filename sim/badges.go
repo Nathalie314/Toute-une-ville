@@ -536,6 +536,17 @@ func init() {
 				}
 				return false
 			}})
+	// la prison
+	B(Badge{ID: "prison_ouvert", Place: "prison", Name: "Derrière les barreaux", Desc: "Ouvrir la prison (elle s'ouvre avec la première garde à vue).", Icon: IconStar,
+		Check: func(g *Game) bool { return g.Place("prison").Owned }},
+		Badge{ID: "prison_directeur", Place: "prison", Name: "Monsieur le directeur", Desc: "Faire venir le directeur de la prison.", Icon: IconWorker,
+			Check: func(g *Game) bool { return g.HasWarden() }},
+		Badge{ID: "prison_cellules", Place: "prison", Name: "Quartier de haute sécurité", Desc: "Acheter les 20 cellules.", Icon: IconStar,
+			Check: func(g *Game) bool { return g.prisLv("cellule_"+itoa(PrisCellN)) > 0 }},
+		Badge{ID: "prison_reinsere", Place: "prison", Name: "Une seconde chance", Desc: "Un prisonnier sort réinséré.", Icon: IconHeart,
+			Check: func(g *Game) bool { return g.Levels["prison.reinseres"] > 0 }},
+		Badge{ID: "prison_cent", Place: "prison", Name: "Ville plus sûre", Desc: "100 prisonniers réinsérés.", Icon: IconHeart,
+			Check: func(g *Game) bool { return g.Levels["prison.reinseres"] >= 100 }})
 	// le parc d'attractions
 	parc := func(g *Game) *Place { return g.Place("parc") }
 	B(placeBadges("parc", "parc d'attractions", "Ticket d'entrée", "Tout le parc", "Équipe au complet", "Parc étoilé", 1000, IconHeart)...)

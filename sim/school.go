@@ -775,7 +775,7 @@ func (p *Place) cooks() bool {
 
 // sells : lieux qui reçoivent des clients.
 func (p *Place) sells() bool {
-	return p.ID != "ecole" && p.ID != "elevage" && p.ID != "huilerie" && p.ID != "commissariat"
+	return p.ID != "ecole" && p.ID != "elevage" && p.ID != "huilerie" && p.ID != "commissariat" && p.ID != "prison"
 }
 
 // EarnsMoney : le lieu gagne-t-il de l'argent (des clients) ? L'école, la ferme
@@ -783,7 +783,9 @@ func (p *Place) sells() bool {
 func (p *Place) EarnsMoney() bool { return p.sells() }
 
 // hasStaff : lieux qui ont des employés (marche, charge).
-func (p *Place) hasStaff() bool { return p.ID != "ecole" && p.ID != "parc" && p.ID != "commissariat" } // (au parc, personne ne marche)
+func (p *Place) hasStaff() bool {
+	return p.ID != "ecole" && p.ID != "parc" && p.ID != "commissariat" && p.ID != "prison"
+} // (au parc, personne ne marche)
 
 // hasOrders : lieux où l'on livre des commandes.
 func (p *Place) hasOrders() bool { return p.Station("commande") != nil }

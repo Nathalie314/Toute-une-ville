@@ -344,6 +344,7 @@ type Place struct {
 	Parc           *Parc     // parc d'attractions : attractions, caisses, visiteurs
 	Crep           *Creperie // crêperie : tables, clients, serveurs
 	Pol            *Police   // commissariat : commissaire, lieutenants
+	Pris           *Prison   // prison : détenus, fourgons
 
 	spawnT   float64
 	queueSeq int
@@ -453,6 +454,10 @@ func (p *Place) step(dt float64, active bool) {
 	}
 	if p.Pol != nil {
 		p.stepPolice(dt, active)
+		return
+	}
+	if p.Pris != nil {
+		p.stepPrison(dt, active)
 		return
 	}
 	if p.Crep != nil {
@@ -618,7 +623,7 @@ func (p *Place) step(dt float64, active bool) {
 // NoRep : pas de réputation ici (pas de clients : la ferme d'élevage ; un restaurant,
 // où la jauge de bonheur décide des pourboires : la crêperie).
 func (p *Place) NoRep() bool {
-	return p.Crep != nil || p.ID == "elevage" || p.ID == "huilerie" || p.Pol != nil
+	return p.Crep != nil || p.ID == "elevage" || p.ID == "huilerie" || p.Pol != nil || p.Pris != nil
 }
 
 // ShopMaxCust : dans un petit magasin, 10 clients au plus en même temps
@@ -1374,6 +1379,10 @@ func (p *Place) SpotVisible(sp *Spot) bool {
 	if sp.Room != nil {
 		u := p.SpotUpgrade(sp)
 		return sp.Room.built && p.g.Levels[u.Key] < u.Max
+	}
+	if p.Pris != nil { // (à la prison : tant qu'il reste à acheter, une fois ce qui précède acheté)
+		u := p.SpotUpgrade(sp)
+		return u != nil && p.g.Levels[u.Key] < u.Max && p.prisSpotOK(sp.ID)
 	}
 	if p.Pol != nil { // (au commissariat : tant qu'il reste à acheter, une fois le précédent acheté)
 		u := p.SpotUpgrade(sp)

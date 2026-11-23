@@ -23,6 +23,7 @@ type Save struct {
 	Cadeau   *Boost            `json:",omitempty"` // cadeau d'une commande en cours (en pause jeu fermé)
 	Vol      *TheftSave        `json:",omitempty"` // vol en cours (en pause jeu fermé : quitter ne chasse pas les voleurs)
 	Garde    []GardeSave       `json:",omitempty"` // les voleurs en garde à vue (commissariat)
+	Prison   *PrisonSave       `json:",omitempty"` // la prison : ses détenus, ses fourgons en route
 	Favoris  map[string]string `json:",omitempty"` // touches 1 à 9 et 0 → lieu
 }
 
@@ -48,7 +49,7 @@ type PlaceSave struct {
 
 func (g *Game) Snapshot(unix int64) *Save {
 	s := &Save{Version: SaveVersion, Money: g.Money, Levels: g.Levels, Outfit: g.Outfit, Owned: g.Owned, Stats: g.Stats,
-		Rate: g.RateOffline(), Unix: unix, Places: map[string]*PlaceSave{}, Badges: g.Badges, Commande: g.Order, Cadeau: g.Boost, Favoris: g.Fav, Vol: g.theftSave(), Garde: g.custodySave()}
+		Rate: g.RateOffline(), Unix: unix, Places: map[string]*PlaceSave{}, Badges: g.Badges, Commande: g.Order, Cadeau: g.Boost, Favoris: g.Fav, Vol: g.theftSave(), Garde: g.custodySave(), Prison: g.prisonSave()}
 	for _, p := range g.Places {
 		ps := &PlaceSave{Paid: map[string]float64{}, Stock: map[string]int{}, Pile: map[string]int{}, Buf: map[string][]int{}, Pousses: map[string]int{}, PoussePaye: map[string]float64{}, NiveauPaye: map[string]float64{}, StockPaye: map[string]float64{}, CasePaye: map[string]float64{}}
 		// les montants payés sont écrits sans le coefficient du lieu (prices.go) :
@@ -411,11 +412,9 @@ func (g *Game) Restore(s *Save, nowUnix int64) (offline, secs float64) {
 	}
 	g.Boost = s.Cadeau // (après les gains d'absence : un cadeau ne travaille pas jeu fermé)
 	g.Custody = nil
-	for _, c := range s.Garde { // (la garde à vue s'écoule aussi jeu fermé)
+	g.prisonRestore(s.Prison)
+	for _, c := range s.Garde { // (le commissariat ne fonctionne pas jeu fermé : la garde à vue reprend où elle en était)
 		left := c.Reste
-		if s.Unix > 0 && nowUnix > s.Unix {
-			left -= float64(nowUnix - s.Unix)
-		}
 		if left > 0 && c.N > 0 {
 			g.Custody = append(g.Custody, &Custody{N: c.N, Left: left})
 		}

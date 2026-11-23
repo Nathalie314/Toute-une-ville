@@ -68,7 +68,9 @@ func (g *Game) TopOwned() int {
 
 // Thieves : le nombre de voleurs dans la ville.
 // (ceux qui sont en garde à vue n'en font plus partie : ils ne peuvent plus attaquer)
-func (g *Game) Thieves() int { return max(0, thievesBase+thievesPerLieu*g.TopOwned()-g.InCustody()) }
+func (g *Game) Thieves() int {
+	return max(0, thievesBase+thievesPerLieu*g.TopOwned()-g.InCustody()-g.PrisonHeld()-g.Levels["prison.reinseres"])
+}
 
 // thievesActive : les voleurs sont-ils arrivés en ville (le supermarché est ouvert) ?
 func (g *Game) thievesActive() bool {
@@ -381,7 +383,7 @@ func (g *Game) theftRestore(ts *TheftSave) {
 			if n == 0 {
 				n = robbersN
 			}
-			g.arrest(ts.Lieu, n, CustodyTime+ts.Reste)
+			g.arrest(ts.Lieu, n, CustodyTime) // (la garde à vue commence au retour : rien ne tourne jeu fermé)
 		}
 		return
 	}

@@ -87,6 +87,28 @@ func newSaveShots(dir, file string) *saveShots {
 				}, func(g *game) string { g.closePanel(); return "" })
 			}
 		}
+		if os.Getenv("CAPPRIS") != "" { // CAPPRIS=1 : une prison bien équipée, avec des détenus
+			lv := g.sim.Levels
+			lv["commissariat.arrestations"] = 5
+			g.sim.Place("prison").Owned = true
+			for _, k := range []string{"directeur", "surveillant_1", "surveillant_2", "surveillant_3", "cellule_1", "cellule_2", "cellule_3", "cellule_4", "cellule_5",
+				"fourgon_1", "fourgon_2", "cantine", "table_1", "table_2", "bains", "cabine_1", "cabine_2", "cabine_3", "sport", "agres_1", "agres_2", "agres_6",
+				"famille_1", "famille_2", "travail", "poste_1", "poste_2", "psy", "as"} {
+				lv["prison."+k] = 1
+			}
+			lv["prison.niv_cellule_1"], lv["prison.niv_cellule_2"], lv["prison.niv_cantine"] = 10, 4, 3
+			g.sim.Custody = append(g.sim.Custody, &sim.Custody{N: 5, Left: 1500})
+			for i := 0; i < 30*60*12; i++ { // (12 minutes : les détenus vivent leur vie)
+				g.sim.Step(1.0 / 30)
+			}
+			if os.Getenv("CAPPRIS") == "2" {
+				s.queue = append(s.queue, func(g *game) string {
+					g.goPlace(g.sim.Place("prison"))
+					g.openPanel(panelPrison)
+					return "prison_menu"
+				}, func(g *game) string { g.closePanel(); return "" })
+			}
+		}
 		if os.Getenv("CAPMAP") != "" { // CAPMAP=1 : la carte de la ville d'abord
 			s.queue = append(s.queue, func(g *game) string {
 				g.goMap()
