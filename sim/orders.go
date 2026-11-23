@@ -110,7 +110,7 @@ const (
 )
 
 // BottomRow : les lieux de la rangée du bas de la carte (ni argent ni marchandises).
-var BottomRow = map[string]bool{"ecole": true, "commissariat": true, "prison": true, "hopital": true}
+var BottomRow = map[string]bool{"ecole": true, "commissariat": true, "prison": true, "caserne": true, "hopital": true}
 
 // TopRow : les lieux de la rangée du haut de la carte, dans l'ordre (l'école est en bas).
 func TopRow() []string {
@@ -128,6 +128,7 @@ type eventGroup struct {
 	poids float64
 	gen   func() *Order
 	vol   bool // les voleurs (gen est nil : on lance un vol)
+	feu   bool // un incendie (gen est nil : le feu prend… ou non)
 }
 
 // eventGroups : les groupes possibles dans ce lieu (vide : rien ne s'y passe encore).
@@ -136,27 +137,30 @@ func (g *Game) eventGroups(id string) []eventGroup {
 	owned := func(id string) bool { q := g.Place(id); return q != nil && q.Owned }
 	switch id { // les particuliers : dans les lieux qui vendent et prennent des commandes
 	case "ferme":
-		gs = append(gs, eventGroup{poidsGroupe, g.farmOrder, false})
+		gs = append(gs, eventGroup{poids: poidsGroupe, gen: g.farmOrder})
 	case "boulangerie", "cremerie", "glacier", "exotique", "port", "domaine", "patisserie", "boucherie":
-		gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.shopOrder(id) }, false})
+		gs = append(gs, eventGroup{poids: poidsGroupe, gen: func() *Order { return g.shopOrder(id) }})
 	}
 	if owned("ecole") { // la cantine de l'école
 		switch id {
 		case "boulangerie", "cremerie", "glacier", "creperie":
-			gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.schoolOrder(id) }, false})
+			gs = append(gs, eventGroup{poids: poidsGroupe, gen: func() *Order { return g.schoolOrder(id) }})
 		}
 	}
 	if owned("parc") && g.parcOrderAt(id) != nil { // le parc d'attractions
-		gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.parcOrderAt(id) }, false})
+		gs = append(gs, eventGroup{poids: poidsGroupe, gen: func() *Order { return g.parcOrderAt(id) }})
+	}
+	if n := g.HotZones(id); n > 0 && g.firesActive() { // les incendies (10 par zone chaude)
+		gs = append(gs, eventGroup{poids: float64(10 * n), feu: true})
 	}
 	if o := g.policeOrder(id); o != nil { // le commissariat
-		gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.policeOrder(id) }, false})
+		gs = append(gs, eventGroup{poids: poidsGroupe, gen: func() *Order { return g.policeOrder(id) }})
 	}
 	if o := g.prisonOrder(id); o != nil { // la prison
-		gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.prisonOrder(id) }, false})
+		gs = append(gs, eventGroup{poids: poidsGroupe, gen: func() *Order { return g.prisonOrder(id) }})
 	}
 	if g.thievesActive() && !g.Patrolled(id) && g.Thieves() > 0 { // les voleurs : partout, dès que le supermarché est ouvert (sauf sous la protection d'une patrouille)
-		gs = append(gs, eventGroup{float64(g.Thieves()), nil, true})
+		gs = append(gs, eventGroup{poids: float64(g.Thieves()), vol: true})
 	}
 	return gs
 }
@@ -189,6 +193,10 @@ func (g *Game) nextEvent() (o *Order, vol bool) {
 	}
 	if pick.vol {
 		g.startTheft(id)
+		return nil, true
+	}
+	if pick.feu {
+		g.tryFire(id)
 		return nil, true
 	}
 	return pick.gen(), false

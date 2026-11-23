@@ -87,6 +87,20 @@ func newSaveShots(dir, file string) *saveShots {
 				}, func(g *game) string { g.closePanel(); return "" })
 			}
 		}
+		if v := os.Getenv("CAPCAS"); v != "" { // CAPCAS=1 : une caserne équipée (2 : et son menu)
+			lv := g.sim.Levels
+			for _, k := range []string{"commandant", "bureau_1", "bureau_2", "charge_1", "camion_1", "camion_2", "pompier_1", "pompier_2"} {
+				lv["caserne."+k] = 1
+			}
+			lv["pts.ppi"] = 35
+			if v == "2" {
+				s.queue = append(s.queue, func(g *game) string {
+					g.goPlace(g.sim.Place("caserne"))
+					g.openPanel(panelCaserne)
+					return "caserne_menu"
+				}, func(g *game) string { g.casTab = 1; return "caserne_camions" }, func(g *game) string { g.closePanel(); return "" })
+			}
+		}
 		if os.Getenv("CAPPRIS") != "" { // CAPPRIS=1 : une prison bien équipée, avec des détenus
 			lv := g.sim.Levels
 			lv["commissariat.arrestations"] = 5
@@ -151,6 +165,9 @@ func newSaveShots(dir, file string) *saveShots {
 						g.goPlace(p)
 						if k == 0 && os.Getenv("CAPVOL") != "" { // CAPVOL=1 : des voleurs attaquent le lieu
 							g.sim.StartTheft(p.ID)
+						}
+						if k == 0 && os.Getenv("CAPFEU") != "" { // CAPFEU=1 : le lieu prend feu
+							g.sim.StartFire(p.ID)
 						}
 						if k > 0 {
 							for t := 0.0; t < envF("CAPDT", 3); t += 1.0 / 30 {

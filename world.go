@@ -258,6 +258,10 @@ func (g *game) drawWorld(dst *ebiten.Image, p *sim.Place) {
 	if p.Pris != nil {
 		ds = g.prisonDrawables(dst, p, ds)
 	}
+	if p.Cas != nil {
+		ds = g.caserneDrawables(dst, p, ds)
+	}
+	ds = g.fireDrawables(dst, p, ds)   // (un lieu qui brûle)
 	ds = g.patrolDrawables(dst, p, ds) // (un lieu protégé : la patrouille passe)
 	ds = decorDrawables(dst, dec, ds, tl, br, p.ID == "exotique")
 	if p.ID == "exotique" {

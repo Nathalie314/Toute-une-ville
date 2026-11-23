@@ -123,6 +123,14 @@ func placeHelp(id string) []string {
 			"La case « Vidéosurveillance » du hall ouvre le menu des capitaines : chacun surveille un lieu. Quand des voleurs y attaquent, il a une chance de les repérer (1 %, puis +1 % tous les 10 points du primaire placés dans son bureau) : ils volent quand même, mais sont arrêtés en partant.",
 			"Les voleurs arrêtés vont en garde à vue (à droite du bâtiment ; 5 par cellule, 10 cellules au plus) pendant 30 minutes, même jeu fermé : pendant ce temps, ils n'attaquent plus. Sans place libre, ils restent libres.",
 		}
+	case "caserne":
+		return []string{
+			"La caserne s'ouvre (offerte) avec la boulangerie, en même temps que les incendies. Rien n'y fonctionne sans le commandant : 50 points d'université (sa case est dans son bureau). Comme le commissariat, elle ne tourne que pendant que tu joues.",
+			"Un lieu qui a des zones chaudes (fours, plaques de cuisson) peut prendre feu : la boulangerie, la pâtisserie, la crêperie, la boucherie (rôtisserie, foie gras, jambons, pâtés) et le domaine (distilleries, alambic). Plus il en a, plus le risque est grand.",
+			"Un incendie dure 1 minute : tout le monde fuit, toi aussi. À la fin, tout ce que les pompiers n'ont pas sauvé est détruit : machines, tables, stocks, drones, employés. Le lieu revient à son point de départ (il reste à toi, ses points d'école aussi).",
+			"La prévention (à gauche) : des bureaux, leurs chargés de prévention (points du lycée). Chacun rapporte 1 point de prévention incendie (PPI) toutes les 2 heures, plus vite avec des points d'université placés sur la caserne. La case « Prévention » du hall répartit les PPI : chaque lieu part de 100 % de risque, −1 % tous les 10 PPI, 10 % au moins.",
+			"L'action (à droite) : jusqu'à 5 camions, chacun avec son pompier (points du collège). Pendant un incendie, chaque camion sauve 1 élément (+1 tous les 1 000 points du primaire, case « Camions » du hall) : la caissière, puis les employés, puis les objets du plus cher au moins cher.",
+		}
 	case "prison":
 		return []string{
 			"La prison s'ouvre (offerte) dès qu'un premier groupe de voleurs est mis en garde à vue. Rien n'y fonctionne sans son directeur : 100 points d'université. Comme le commissariat, elle ne tourne que pendant que tu joues.",

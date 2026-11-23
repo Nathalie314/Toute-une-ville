@@ -37,6 +37,7 @@ type Theft struct {
 	Robbers []*Robber
 	Stolen  float64 // ce qui a été pris dans les caisses
 	robbed  map[int]bool
+	Fire    bool         // un incendie (pas de voleurs : à la fin, le lieu brûle ; fire.go)
 	Spotted bool         // repérés par la vidéosurveillance : ils seront arrêtés en partant
 	targets []V          // les caisses (ou, sans caisse, quelques points du lieu)
 	tables  []*CrepTable // à la crêperie : les tables, dont ils raflent les pourboires
@@ -197,6 +198,13 @@ func (g *Game) stepTheft(dt float64) {
 	th.Left -= dt
 	if th.Left <= 0 || p == nil {
 		g.Theft = nil
+		if th.Fire { // (l'incendie s'éteint : ce qui n'est pas sauvé est détruit)
+			if p != nil {
+				g.burn(p)
+			}
+			g.orderT = g.eventGap()
+			return
+		}
 		if th.Spotted {
 			g.arrest(th.Place, len(th.Robbers), CustodyTime)
 		}
@@ -211,6 +219,9 @@ func (g *Game) stepTheft(dt float64) {
 	}
 	if th.Scared {
 		g.playerFlee(p, dt)
+	}
+	if th.Fire {
+		return
 	}
 	for i, r := range th.Robbers {
 		if r.waitT > 0 {
@@ -346,6 +357,7 @@ type TheftSave struct {
 	Caisses []int   `json:",omitempty"` // les caisses déjà vidées
 	Repere  bool    `json:",omitempty"` // repérés par la vidéosurveillance
 	Voleurs int     `json:",omitempty"` // combien ils sont (0 : 5)
+	Feu     bool    `json:",omitempty"` // un incendie
 }
 
 func (g *Game) theftSave() *TheftSave {
@@ -353,7 +365,7 @@ func (g *Game) theftSave() *TheftSave {
 	if th == nil {
 		return nil
 	}
-	ts := &TheftSave{Lieu: th.Place, Reste: th.Left, Duree: th.Total, Vole: th.Stolen, Taux: g.placeRate(th.Place), Repere: th.Spotted, Voleurs: len(th.Robbers)}
+	ts := &TheftSave{Lieu: th.Place, Reste: th.Left, Duree: th.Total, Vole: th.Stolen, Taux: g.placeRate(th.Place), Repere: th.Spotted, Voleurs: len(th.Robbers), Feu: th.Fire}
 	for k, done := range th.robbed {
 		if done {
 			ts.Caisses = append(ts.Caisses, k)
@@ -375,6 +387,23 @@ func (g *Game) placeRate(id string) float64 {
 
 func (g *Game) theftRestore(ts *TheftSave) {
 	if ts == nil {
+		return
+	}
+	if ts.Feu { // un incendie : fini pendant l'absence, le lieu a brûlé ; sinon, il brûle encore
+		p := g.Place(ts.Lieu)
+		if p == nil || !p.Owned {
+			return
+		}
+		if ts.Reste <= 0 {
+			g.burn(p)
+			return
+		}
+		g.Order = nil
+		g.Theft = &Theft{Place: ts.Lieu, Left: math.Min(ts.Reste, ts.Duree), Total: ts.Duree, Fire: true, robbed: map[int]bool{}}
+		for _, w := range p.Workers {
+			w.Hidden = true
+		}
+		g.emit(Event{Kind: EvLevel, Place: p.ID, Pos: p.Gate, Text: tr.F("Le feu brûle toujours {alieu} : encore {duree}.", "alieu", placeAt(p.ID), "lieu", theName(p.ID), "duree", durText(ts.Reste))})
 		return
 	}
 	if ts.Reste <= 0 { // (ils sont partis pendant l'absence : arrêtés en partant, s'ils étaient repérés)

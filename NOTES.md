@@ -1764,3 +1764,19 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   directeur : boulangerie baguette / croissant / pain au chocolat ; crèmerie yaourt / fromage de vache / de brebis ;
   avec la cantine : boucherie steak haché / rôti de bœuf / foie gras, ferme pommes de terre / salade / fraises.
   Livrée : besoins ×2 (reinsertMult) ; ratée : ÷2. Pas de minimum. Test : TestCommandesPolicePrison.
+- INCENDIES ET CASERNE DE POMPIERS (demande ; sim/fire.go, caserne_draw.go). Dès la boulangerie : un groupe « incendie »
+  dans le tirage, poids 10 × zones chaudes achetées (boulangerie et pâtisserie : toutes leurs machines ; crêperie : ses
+  crêpières ; boucherie : rôtisserie, foie gras, jambons, pâtés ; domaine : distilleries de whisky et de vodka,
+  alambic ; pas la ferme exotique, en plein air). Le feu prend avec la chance FireRisk = 1 − PPI/1000 (10 % au moins) ;
+  sinon « un début d'incendie… la prévention… ». L'incendie est un Theft avec Fire (1 minute) : tout le monde fuit, le
+  joueur court à sa zone ; il finit aussi jeu fermé (comme un vol). À la fin (burn) : les camions prêts sauvent
+  SaveCapacity éléments, dans l'ordre caissière, employés, objets (Unlocks) du plus cher au moins cher ; le reste est
+  détruit : déblocages défaits, niveaux et stocks agrandis des machines (même celle de départ) remis à zéro, tous les
+  stocks vidés, drones, étals, entrepôt et cases remis à zéro (sauf les employés sauvés). Le lieu reste acheté ; ses
+  points d'école restent.
+  - Caserne (rangée du bas, offerte avec la boulangerie) : commandant 50 points d'université ; prévention (à gauche) :
+    6 bureaux (100 000 € ×4) et leurs chargés (lycée 20 ×3) ; chacun rapporte 1 PPI toutes les 2 heures (+1 % par point
+    d'université placé sur la caserne : menu des points d'école) ; action (à droite) : 5 camions (200 000 € ×5) et leurs
+    pompiers (collège 10 ×5) ; chaque camion sauve 1 élément, +1 par 1 000 points du primaire (menu « Camions »), au
+    plus de quoi sauver ensemble le plus grand lieu à risque (TruckLvlMax, calculé). Menu « Prévention » : PPI par lieu
+    (900 au plus). Ne tourne que jeu ouvert. Tests : TestIncendie. Captures : CAPCAS=1/2, CAPFEU=1.
