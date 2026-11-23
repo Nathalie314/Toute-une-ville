@@ -1756,3 +1756,11 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
     (collège), chaque salle des familles et salle de travail (lycée) ; psy et AS : niveau 10. Au mieux 20 points à la
     sortie : 80 % de chances. Sortie : tirage 1–100 > points → réinséré (prison.reinseres : un voleur de moins pour
     toujours, Thieves) ; sinon récidiviste. Test : TestPrison. Captures : CAPPRIS=1 (équipée), 2 (et son menu).
+- Commandes du commissariat et de la prison (demande ; sim/police_orders.go) : deux groupes de plus dans le tirage
+  (poids 50, comme la cantine), selon les gens présents et leur rang. Commissariat (avec son commissaire) :
+  boulangerie brioche / pain au chocolat (capitaines) / croissant (lieutenants) / baguette (voleurs en garde à vue) ;
+  pâtisserie fraisier / tarte au citron meringuée / éclair au café ; ferme exotique un café moulu par policier.
+  Livrée : policiers ÷2 en points d'école (PtsMult) ; ratée : ×2. Prison (avec son directeur) : détenus / personnel /
+  directeur : boulangerie baguette / croissant / pain au chocolat ; crèmerie yaourt / fromage de vache / de brebis ;
+  avec la cantine : boucherie steak haché / rôti de bœuf / foie gras, ferme pommes de terre / salade / fraises.
+  Livrée : besoins ×2 (reinsertMult) ; ratée : ÷2. Pas de minimum. Test : TestCommandesPolicePrison.

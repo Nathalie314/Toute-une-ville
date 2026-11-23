@@ -719,7 +719,7 @@ func (p *Place) askNeed(pr *Prisoner) {
 			continue
 		}
 		pr.Done[n] = true
-		pr.Recid -= lvl
+		pr.Recid -= p.g.reinsertMult(lvl) // (le cadeau de la prison : ×2)
 		pr.Need, pr.Slot = n, s
 		if n == NeedDormir { // (il reste dans sa cellule)
 			pr.State, pr.Left = psDo, PrisActTime

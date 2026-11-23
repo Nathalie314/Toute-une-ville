@@ -149,6 +149,12 @@ func (g *Game) eventGroups(id string) []eventGroup {
 	if owned("parc") && g.parcOrderAt(id) != nil { // le parc d'attractions
 		gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.parcOrderAt(id) }, false})
 	}
+	if o := g.policeOrder(id); o != nil { // le commissariat
+		gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.policeOrder(id) }, false})
+	}
+	if o := g.prisonOrder(id); o != nil { // la prison
+		gs = append(gs, eventGroup{poidsGroupe, func() *Order { return g.prisonOrder(id) }, false})
+	}
 	if g.thievesActive() && !g.Patrolled(id) && g.Thieves() > 0 { // les voleurs : partout, dès que le supermarché est ouvert (sauf sous la protection d'une patrouille)
 		gs = append(gs, eventGroup{float64(g.Thieves()), nil, true})
 	}
@@ -215,7 +221,7 @@ func (g *Game) stepOrders(dt float64) {
 			// commande ratée : le lieu perd une étoile de réputation ; celles du parc et de la
 			// cantine ont leur propre pénalité (5 min, jamais allongées), sans double peine
 			switch o.Gift {
-			case "parc", "ecole":
+			case "parc", "ecole", "police", "prison":
 				g.Boost = &Boost{Kind: o.Gift + "_malus", Left: BoostTime, Total: BoostTime}
 				txt += " " + tr.F("(pénalité : {quoi} pendant {duree})", "quoi", lowerFirst(g.Boost.Text()), "duree", durText(BoostTime))
 			default:
