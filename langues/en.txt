@@ -374,6 +374,7 @@ Donne du blé aux vaches : elles donnent du lait. = Feed wheat to the cows: they
 Les chèvres mangent du blé : lait de chèvre. = Goats eat wheat: goat milk.
 Les brebis mangent du blé : lait de brebis. = Ewes eat wheat: sheep milk.
 Un arbre : on récolte sans replanter. Achète des cases au-dessus pour en avoir plus. = A tree: you harvest without replanting. Buy spots above it to get more.
+Un légume de la serre : il repousse tout seul après chaque récolte. Achète des cases au-dessus pour en avoir plus. = A greenhouse vegetable: it grows back on its own after each harvest. Buy spots above it to get more.
 La serre ! {suite} = The greenhouse! {suite}
 Les fleurs nourrissent les abeilles. = Flowers feed the bees.
 Les abeilles transforment les fleurs en miel. = Bees turn flowers into honey.
