@@ -113,7 +113,7 @@ const (
 var SuperMaxClients = 290
 
 // SuperYardY : haut de la zone du joueur (sous la route du bas).
-const SuperYardY = 1850.0
+const SuperYardY = roadY + 210
 
 // superStaff : magasiniers pour le badge « Équipe de choc » (un espace en a autant que de rayons).
 const superStaff = 4
@@ -153,12 +153,12 @@ func init() {
 }
 
 func newSuper(g *Game) *Place {
-	p := &Place{ID: "super", Name: "Le supermarché", W: SuperW, H: 2300, g: g, rng: rand.New(rand.NewSource(23)),
+	p := &Place{ID: "super", Name: "Le supermarché", W: SuperW, H: roadY + 660, g: g, rng: rand.New(rand.NewSource(23)),
 		Rep: 3, Price: superPrice, SellMult: 1, SpawnBase: 5.5, WantMax: 3, MaxCust: 50, LeaveOff: V{140, 0}, OnlyStocked: true, RepGain: 0.004}
 	p.Gate = V{SuperCartX + 150, 1520}
 	p.Inside = V{SuperBX1 - 60, 1530}
-	p.SpawnL = V{-300, 1700}
-	p.SpawnR = V{SuperW + 300, 1700}
+	p.SpawnL = V{-300, roadY + 60}
+	p.SpawnR = V{SuperW + 300, roadY + 60}
 	p.RestSpot = V{SuperBX1 - 300, 1250}
 	// les clients ne vont jamais dans l'entrepôt
 	p.NoCust = []Rect{{SuperBX0, 130, SuperBX1 - SuperBX0, 456 - 130}}

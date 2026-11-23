@@ -38,7 +38,7 @@ func (g *game) huilerieGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	roundRect(dst, 100, 1060, p.W-200, 30, 14, path)
 	// pistes des drones, jusqu'au quai
 	roundRect(dst, 380, 1320, p.W-760, 140, 20, rgba(0x8a8f96, 0.35))
-	road(dst, tl, br, 1640)
+	road(dst, tl, br, sim.RoadY)
 	gx := p.Gate.X
 	rect(dst, gx-70, 1500, 140, 140, path)
 	roundRect(dst, gx-140, 1475, 280, 46, 8, rgb(0x6a6a22))

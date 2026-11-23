@@ -14,7 +14,7 @@ var levelFloor = []uint32{0xfff1c9, 0xdff2d0, 0xd8e9f7, 0xe8dcf5}
 var levelCol = []uint32{0xf1c40f, 0x2ecc71, 0x3498db, 0x8e44ad}
 
 func (g *game) schoolGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
-	road(dst, tl, br, 1640)
+	road(dst, tl, br, sim.RoadY)
 	W := sim.SchoolW
 	// l'enceinte de l'école
 	slab(dst, 80, 110, W-120, 1430, 6, 16, 0x9c9488)

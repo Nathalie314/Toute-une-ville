@@ -69,9 +69,9 @@ func (g *game) crepGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	roundRect(dst, sim.CrepBX1-6, sim.CrepTerDY-80, 40, 160, 10, rgb(0x6e4322))  // terrasse
 	roundRect(dst, sim.CrepBX0-34, 1260, 40, 150, 10, rgb(0x6e4322))             // vers la zone du joueur
 	// devant : le trottoir (on y attend une table) et l'allée jusqu'au passage piéton
-	rect(dst, sim.CrepBX0-30, sim.CrepBotY+26, sim.CrepTerX1-sim.CrepBX0+60, 1640-sim.CrepBotY-26, rgb(0xd5cfc4))
+	rect(dst, sim.CrepBX0-30, sim.CrepBotY+26, sim.CrepTerX1-sim.CrepBX0+60, sim.RoadY-sim.CrepBotY-26, rgb(0xd5cfc4))
 	for x := sim.CrepBX0 - 30.0; x < sim.CrepTerX1+30; x += 90 {
-		line(dst, x, sim.CrepBotY+26, x, 1640, 1.2, rgba(0x9a948a, 0.5))
+		line(dst, x, sim.CrepBotY+26, x, sim.RoadY, 1.2, rgba(0x9a948a, 0.5))
 	}
 	// l'enseigne au-dessus de la porte
 	roundRect(dst, sim.CrepDoorX-150, sim.CrepBotY-70, 300, 48, 10, rgb(0x1f4f8a))
@@ -93,7 +93,7 @@ func (g *game) crepGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	} else {
 		dashedRect(dst, tx0, 300, tx1-tx0, sim.CrepBotY-280, 4, 18, 0, rgba(0xffffff, 0.5))
 	}
-	road(dst, tl, br, 1640)
+	road(dst, tl, br, sim.RoadY)
 	g.backTruck(dst, p)
 }
 

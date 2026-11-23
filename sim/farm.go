@@ -16,7 +16,7 @@ const (
 	bldH   = 170.0
 	shelfY = 1130.0
 	shelfH = 66.0
-	roadY  = 1640.0
+	roadY  = 1760.0 // (1640 avant : descendue de 120 pour la voie de livraison des camions, sous les quais)
 )
 
 // la serre, le verger et les fleurs (avant le décalage de la cour)
@@ -576,3 +576,7 @@ func (p *Place) teamRest(id string) V {
 
 // HireLock : plus utilisé (l'embauche est libre ; seuls les prix guident).
 func (p *Place) HireLock(sp *Spot) string { return "" }
+
+// RoadY : le haut de la route du bas (la route va de RoadY à RoadY + 150 ; la voie de livraison
+// des camions est juste au-dessus, sous les quais).
+const RoadY = roadY

@@ -40,13 +40,13 @@ func chiefLook() look {
 
 func (g *game) policeGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	gx := p.Gate.X
-	road(dst, tl, br, 1640)
+	road(dst, tl, br, sim.RoadY)
 	// l'allée, de la porte à la route ; de l'autre côté, l'entrée du parking
 	path := rgb(0xd6d2c8)
-	rect(dst, gx-90, sim.PolBldY+sim.PolBldH, 180, 1624-sim.PolBldY-sim.PolBldH, path)
+	rect(dst, gx-90, sim.PolBldY+sim.PolBldH, 180, sim.RoadY-16-sim.PolBldY-sim.PolBldH, path)
 	b1, bn := sim.PolBay(1), sim.PolBay(sim.PolCars())
 	px0, px1 := b1.X-sim.PolParkM, bn.X+bn.W+sim.PolParkM
-	rect(dst, (px0+px1)/2-110, 1790, 220, sim.PolParkY-1790, rgb(0x55595e))
+	rect(dst, (px0+px1)/2-110, sim.RoadY+150, 220, sim.PolParkY-sim.RoadY-150, rgb(0x55595e))
 	// le parking des voitures de police
 	slab(dst, px0, sim.PolParkY, px1-px0, sim.PolParkH, 14, 6, 0x5d6166)
 	for k := 1; k <= sim.PolCars(); k++ {
@@ -173,7 +173,8 @@ func (g *game) policeDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable) [
 		if g.sim.HasChief() {
 			drawPerson(dst, V{X: dx, Y: dy - 12}, V{Y: 1}, 0, false, chiefLook(), nil)
 		}
-		fx := off.X + 40 // le drapeau
+		emergencySign(dst, off.X+off.W-100, off.Y+50, "17", polBlue) // (le numéro de la police)
+		fx := off.X + 40                                             // le drapeau
 		rect(dst, fx, off.Y+60, 5, 150, rgb(0x9a9a9a))
 		rect(dst, fx+5, off.Y+64, 26, 46, rgb(0x2045a8))
 		rect(dst, fx+31, off.Y+64, 26, 46, rgb(0xffffff))
@@ -374,10 +375,10 @@ func (g *game) patrolDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable) [
 	x0, x1 := p.MinX()-200, p.MaxX()+200
 	if n%2 == 0 { // vers la droite, sur la voie du bas
 		x := x0 + (x1-x0)*k
-		ds = append(ds, drawable{x: x, y: 1750 + 20, fn: func() { drawPoliceCarSide(dst, x, 1770, 1, t) }})
+		ds = append(ds, drawable{x: x, y: sim.RoadY + 130, fn: func() { drawPoliceCarSide(dst, x, sim.RoadY+130, 1, t) }})
 	} else {
 		x := x1 - (x1-x0)*k
-		ds = append(ds, drawable{x: x, y: 1680 + 20, fn: func() { drawPoliceCarSide(dst, x, 1700, -1, t) }})
+		ds = append(ds, drawable{x: x, y: sim.RoadY + 60, fn: func() { drawPoliceCarSide(dst, x, sim.RoadY+60, -1, t) }})
 	}
 	return ds
 }

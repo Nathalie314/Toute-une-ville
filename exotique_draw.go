@@ -56,7 +56,7 @@ func (g *game) exoticGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	for x := 120.0; x < p.W-140; x += 70 {
 		line(dst, x, 1042, x, 1498, 1.5, rgba(0xc9a46a, 0.45))
 	}
-	road(dst, tl, br, 1640)
+	road(dst, tl, br, sim.RoadY)
 	rect(dst, 1180, 1500, 140, 140, rgb(0xe9d7a8))
 	// clôture en bambou
 	fence := func(x1, x2 float64) {

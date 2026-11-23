@@ -33,10 +33,10 @@ func drawSuperGround(dst *ebiten.Image, g *game, p *sim.Place, tl, br V) {
 	for x := math.Floor(tl.X/120) * 120; x < br.X+120; x += 120 {
 		rect(dst, x, 58, 60, 4, rgba(0xf2f2e6, 0.8))
 	}
-	road(dst, tl, br, 1640)
+	road(dst, tl, br, sim.RoadY)
 	// passage piéton : de la zone du joueur (sous la route) jusqu'aux caddies
 	cxp := sim.SuperCartX + 150
-	rect(dst, cxp-90, sim.SuperFloorY1+16, 180, 1640-sim.SuperFloorY1-16, rgb(0xb0b0a8))
+	rect(dst, cxp-90, sim.SuperFloorY1+16, 180, sim.RoadY-sim.SuperFloorY1-16, rgb(0xb0b0a8))
 	for k := 0; k < 7; k++ {
 		rect(dst, cxp-80, 1648+float64(k)*20, 160, 11, rgba(0xf2f2e6, 0.95))
 	}

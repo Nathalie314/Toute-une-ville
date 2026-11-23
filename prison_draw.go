@@ -35,13 +35,13 @@ func guardLook(n int) look {
 func (g *game) prisonGround(dst *ebiten.Image, p *sim.Place, tl, br V) {
 	gs := g.sim
 	lv := func(k string) int { return gs.Levels["prison."+k] }
-	road(dst, tl, br, 1640)
+	road(dst, tl, br, sim.RoadY)
 	door := V{X: p.Gate.X, Y: sim.PrisBldY + sim.PrisBldH}
-	rect(dst, door.X-90, door.Y, 180, 1624-door.Y, rgb(0xd6d2c8))
+	rect(dst, door.X-90, door.Y, 180, sim.RoadY-16-door.Y, rgb(0xd6d2c8))
 	// le garage des fourgons, sous la route
 	b1, bn := sim.PrisBay(1), sim.PrisBay(sim.PrisVanN)
 	gx0, gx1 := b1.X-sim.PrisGarageM, bn.X+bn.W+sim.PrisGarageM
-	rect(dst, (gx0+gx1)/2-110, 1790, 220, sim.PrisParkY-1790, rgb(0x55595e))
+	rect(dst, (gx0+gx1)/2-110, sim.RoadY+150, 220, sim.PrisParkY-sim.RoadY-150, rgb(0x55595e))
 	slab(dst, gx0, sim.PrisParkY, gx1-gx0, sim.PrisGarageH, 14, 6, 0x5d6166)
 	for k := 1; k <= sim.PrisVanN; k++ {
 		b := sim.PrisBay(k)
@@ -324,7 +324,7 @@ func (g *game) prisonDrawables(dst *ebiten.Image, p *sim.Place, ds []drawable) [
 			default:
 				continue
 			}
-			y := 1700.0
+			y := sim.RoadY + 60
 			add(x, y+20, func() { drawPrisonVanSide(dst, x, y, -1) })
 		}
 	}
