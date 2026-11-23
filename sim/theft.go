@@ -8,7 +8,7 @@ import (
 
 // LES VOLEURS (événements, étape 2). Dès que le supermarché est ouvert, les voleurs font partie
 // des groupes qui peuvent se manifester dans un lieu de la rangée du haut (eventGroups) : 50,
-// plus 5 par lieu débloqué de la rangée du haut (ils attaquent par 5 ; plus la ville grossit,
+// plus 5 par lieu débloqué ensuite dans la rangée du haut (ni la ferme ni le supermarché ; ils attaquent par 5 ; plus la ville grossit,
 // plus elle les attire). Un vol dure autant de minutes qu'il y a de lieux débloqués en haut.
 //
 // Pendant un vol, dans le lieu attaqué : les clients fuient en jetant leurs achats, sans payer ;
@@ -70,7 +70,19 @@ func (g *Game) TopOwned() int {
 // Thieves : le nombre de voleurs dans la ville.
 // (ceux qui sont en garde à vue n'en font plus partie : ils ne peuvent plus attaquer)
 func (g *Game) Thieves() int {
-	return max(0, thievesBase+thievesPerLieu*g.TopOwned()-g.InCustody()-g.PrisonHeld()-g.Levels["prison.reinseres"])
+	return max(0, thievesBase+thievesPerLieu*g.afterSuper()-g.InCustody()-g.PrisonHeld()-g.Levels["prison.reinseres"])
+}
+
+// afterSuper : les lieux de la rangée du haut débloqués après le supermarché (la ferme et le
+// supermarché ne comptent pas : 50 voleurs à son ouverture, puis 5 de plus par lieu).
+func (g *Game) afterSuper() int {
+	n := 0
+	for _, id := range TopRow() {
+		if q := g.Place(id); q != nil && q.Owned && id != "ferme" && id != "super" {
+			n++
+		}
+	}
+	return n
 }
 
 // thievesActive : les voleurs sont-ils arrivés en ville (le supermarché est ouvert) ?

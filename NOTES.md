@@ -1785,3 +1785,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   prix des deux lieux. Une partie d'avant les garde (migration migr.depart dans Restore). Test : TestFourDepartAncienne.
   Calcul de risque au début (avec la joueuse) : boulangerie tirée 1 fois sur 5, incendie 10/235 → ≈ 1/118 par
   événement (≈ un incendie toutes les 12-13 h de jeu à ce stade, sans PPI).
+- Voleurs (précision de la joueuse) : 50 à l'ouverture du supermarché, puis +5 par lieu débloqué ENSUITE (ni la ferme ni le supermarché ne comptent ; afterSuper).

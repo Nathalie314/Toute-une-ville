@@ -102,7 +102,7 @@ func (g *Game) orderBox(o *Order) (*Place, *Station) {
 // de la carte (ceux qui rapportent ou produisent) est tiré au sort parmi ceux qui sont débloqués,
 // tous à égalité ; puis, dans ce lieu, l'un des groupes qui peuvent s'y manifester, selon leur
 // poids : les particuliers (50), la cantine de l'école (50), le parc d'attractions (50) ; plus
-// tard, les voleurs (50 + 5 par lieu débloqué).
+// tard, les voleurs (50 à l'ouverture du supermarché, + 5 par lieu débloqué ensuite).
 const (
 	eventGapMin = 60.0
 	eventGapMax = 600.0
