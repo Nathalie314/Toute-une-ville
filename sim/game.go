@@ -231,7 +231,8 @@ func NewGame() *Game {
 	}
 	g.Levels[AvocatierKey] = 1
 	g.Levels[RayonsAgrumesKey] = 1
-	g.Levels[AbattoirsKey] = 1 // (les abattoirs de la ferme d'élevage s'achètent à part)
+	g.Levels["migr.depart"] = 1 // (une nouvelle partie achète son premier four)
+	g.Levels[AbattoirsKey] = 1  // (les abattoirs de la ferme d'élevage s'achètent à part)
 	g.Player = &Agent{Kind: PlayerAgent, Face: V{0, 1}}
 	g.Enter(g.Places[0])
 	g.Money = 0

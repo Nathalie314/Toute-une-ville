@@ -48,7 +48,7 @@ var bakerySpec = workshopSpec{
 	id: "boulangerie", name: "La boulangerie", price: 50000, seed: 31,
 	inputs: []Item{Farine, FarineMais, Oeuf, Lait, Beurre, SucrePoudre, Chocolat},
 	recipes: []recipe{
-		{"four_baguette", "Tradition", Pain, []Item{Farine}, 3, 0, "", ""},
+		{"four_baguette", "Tradition", Pain, []Item{Farine}, 3, 800, "Farine de blé → baguette.", ""}, // (plus offert : un incendie peut le détruire, il se rachète)
 		{"pain_mie", "Pain de mie", PainMie, []Item{Farine}, 3.5, 1500, "Farine de blé → pain de mie.", ""},
 		{"four_mais", "Baguette maïs", BaguetteMais, []Item{FarineMais}, 3, 2500, "Farine de maïs → baguette de maïs.", ""},
 		{"four_mele", "Pain blé-maïs", PainMele, []Item{Farine, FarineMais}, 4, 5000, "Les deux farines ensemble.", ""},

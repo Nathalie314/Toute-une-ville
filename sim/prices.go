@@ -66,7 +66,12 @@ const palier = 1.2
 const palierFrom = 3
 
 // extension : budget en plus d'un lieu agrandi après coup (1 : aucun).
-var extension = map[string]float64{}
+var extension = map[string]float64{
+	// le premier four de la boulangerie (800) et la rôtisserie (10 000) ne sont plus offerts (incendies) :
+	// le budget du lieu grandit d'autant, ses autres prix ne bougent pas
+	"boulangerie": 108800.0 / 108000,
+	"boucherie":   900000.0 / 890000,
+}
 
 // nextPrice : le prix du lieu qui suit sur la carte (pour le dernier : deux fois le sien).
 func nextPrice(r int) float64 { return PlacePrice(r + 1) }

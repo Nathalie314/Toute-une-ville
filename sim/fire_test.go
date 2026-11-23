@@ -12,7 +12,7 @@ func TestIncendie(t *testing.T) {
 	if !g.Place("caserne").Owned {
 		t.Fatal("la caserne ne s'ouvre pas avec la boulangerie")
 	}
-	for _, id := range []string{"pain_mie", "brioches", "croissants"} {
+	for _, id := range []string{"four_baguette", "pain_mie", "brioches", "croissants"} {
 		for _, u := range b.Unlocks {
 			if u.ID == id {
 				b.complete(u)
@@ -43,8 +43,8 @@ func TestIncendie(t *testing.T) {
 	if lv["boulangerie.caissiere"] != 1 || lv["boulangerie.ouvriers"] != 2 || lv["boulangerie.etals"] != 0 {
 		t.Fatalf("après le feu : caissière %d, ouvriers %d, étals %d", lv["boulangerie.caissiere"], lv["boulangerie.ouvriers"], lv["boulangerie.etals"])
 	}
-	if b.Station("croissants").Built || b.Station("croissants").Pile != 0 || !b.Station("four_baguette").Built || g.HotZones("boulangerie") != 1 {
-		t.Fatal("les fours achetés devaient brûler (le four de départ reste)")
+	if b.Station("croissants").Built || b.Station("croissants").Pile != 0 || b.Station("four_baguette").Built || g.HotZones("boulangerie") != 0 {
+		t.Fatal("tous les fours devaient brûler, même celui de départ")
 	}
 	// un camion de plus : il sauve le four le plus cher
 	for _, u := range b.Unlocks {
@@ -60,5 +60,26 @@ func TestIncendie(t *testing.T) {
 	hb := h.Place("boulangerie")
 	if h.Theft != nil || !hb.Station("brioches").Built || hb.Station("pain_mie").Built {
 		t.Fatalf("incendie fini jeu fermé : il fallait sauver les brioches (le plus cher) et perdre le pain de mie")
+	}
+}
+
+// TestFourDepartAncienne : une partie d'avant garde son four de départ (il était offert).
+func TestFourDepartAncienne(t *testing.T) {
+	g := NewGame()
+	g.Place("boulangerie").Owned = true
+	s := g.Snapshot(1000)
+	delete(s.Levels, "migr.depart") // (une sauvegarde d'avant les incendies)
+	h := NewGame()
+	h.Restore(s, 1000)
+	if !h.Place("boulangerie").Station("four_baguette").Built {
+		t.Fatal("le four de départ d'une ancienne partie a disparu")
+	}
+	n := NewGame()
+	n.Place("boulangerie").Owned = true
+	s = n.Snapshot(1000)
+	h = NewGame()
+	h.Restore(s, 1000)
+	if h.Place("boulangerie").Station("four_baguette").Built {
+		t.Fatal("une nouvelle partie doit acheter son premier four")
 	}
 }

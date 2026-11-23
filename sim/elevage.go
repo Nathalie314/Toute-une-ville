@@ -283,7 +283,7 @@ var boucherieSpec = workshopSpec{
 	id: "boucherie", name: "La boucherie-charcuterie", price: boucheriePrice, seed: 59,
 	inputs: []Item{PouletAbattu, CanardAbattu, Boeuf, VeauCarcasse, MoutonCarcasse, AgneauCarcasse, Porc},
 	recipes: []recipe{
-		{"rotisserie", "Rôtisserie", PouletRoti, []Item{PouletAbattu}, 5, 0, "", ""}, // (la préparation des poulets n'existe plus : la rôtisserie est offerte)
+		{"rotisserie", "Rôtisserie", PouletRoti, []Item{PouletAbattu}, 5, 10000, "Les poulets de la ferme d'élevage deviennent des poulets rôtis.", ""}, // (plus offerte : un incendie peut la détruire, elle se rachète)
 		{"cuisses", "Cuisses de poulet", CuissePoulet, []Item{PouletAbattu}, 4, 20000, "Avec les poulets de la ferme d'élevage.", ""},
 		{"pilons", "Pilons de poulet", PilonPoulet, []Item{PouletAbattu}, 4, 25000, "Avec les poulets de la ferme d'élevage.", ""},
 		{"aiguillettes", "Aiguillettes de canard", Aiguillettes, []Item{CanardAbattu}, 4, 30000, "Avec les canards de la ferme d'élevage.", "elevage:abattoir_canard"},

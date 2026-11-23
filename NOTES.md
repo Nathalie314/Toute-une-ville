@@ -1780,3 +1780,8 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
     pompiers (collège 10 ×5) ; chaque camion sauve 1 élément, +1 par 1 000 points du primaire (menu « Camions »), au
     plus de quoi sauver ensemble le plus grand lieu à risque (TruckLvlMax, calculé). Menu « Prévention » : PPI par lieu
     (900 au plus). Ne tourne que jeu ouvert. Tests : TestIncendie. Captures : CAPCAS=1/2, CAPFEU=1.
+- Incendies (demande) : le premier four de la boulangerie (800 €) et la rôtisserie de la boucherie (10 000 €) ne sont
+  plus offerts : un incendie peut les détruire, ils se rachètent. extension[boulangerie|boucherie] garde les autres
+  prix des deux lieux. Une partie d'avant les garde (migration migr.depart dans Restore). Test : TestFourDepartAncienne.
+  Calcul de risque au début (avec la joueuse) : boulangerie tirée 1 fois sur 5, incendie 10/235 → ≈ 1/118 par
+  événement (≈ un incendie toutes les 12-13 h de jeu à ce stade, sans PPI).
