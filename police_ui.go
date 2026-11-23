@@ -193,7 +193,7 @@ var polTutoPages = []string{
 	"Le commissariat protège la ville des voleurs. Il est offert, mais il ne fonctionne qu'avec un commissaire : il ne s'achète pas avec de l'argent, il coûte 10 points d'université (l'école). Sa case est dans son bureau.",
 	"Avec le commissaire, la première voiture de police est offerte. Les suivantes s'achètent au parking. Une voiture ne roule qu'avec son lieutenant : il se forme avec des points du collège, sur la case sous sa voiture (10 points pour la première voiture, puis 50, puis 250…). Un lieutenant sans patrouille erre sur le parking en sifflotant.",
 	"Sur le parking, la case « Patrouilles » (ou un clic sur le parking) ouvre le menu des voitures : choisis le lieu où chacune patrouille. Ce lieu ne peut plus être attaqué. Avec des mécaniciens (points du primaire), une voiture protège un deuxième lieu.",
-	"Dans les bureaux, à gauche, les capitaines (points du lycée) surveillent chacun un lieu par vidéosurveillance (case du hall). S'ils repèrent les voleurs, ceux-ci sont arrêtés en partant et passent 2 heures en garde à vue, à droite, s'il y a une cellule libre.",
+	"Dans les bureaux, à gauche, les capitaines (points du lycée) surveillent chacun un lieu par vidéosurveillance (case du hall). S'ils repèrent les voleurs, ceux-ci sont arrêtés en partant et passent 30 minutes en garde à vue, à droite, s'il y a une cellule libre.",
 }
 
 func (g *game) drawPoliceTuto(dst *ebiten.Image) {
