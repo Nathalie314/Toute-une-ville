@@ -459,7 +459,9 @@ func (g *Game) PrevOfficers() int {
 }
 
 // PPIRate : la vitesse des chargés (+1 % par point d'université placé sur la caserne).
-func (g *Game) PPIRate() float64 { return 1 + float64(g.Levels["caserne.pts_prevention"])/100 }
+func (g *Game) PPIRate() float64 {
+	return (1 + float64(g.Levels["caserne.pts_prevention"])/100) * g.ppiMult() // (et le cadeau de ses commandes)
+}
 
 // PPI : les points de prévention incendie à répartir.
 func (g *Game) PPI() int { return g.Levels["pts.ppi"] }

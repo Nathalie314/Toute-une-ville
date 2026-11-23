@@ -1795,3 +1795,9 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   (truckLeft retourne drawTruck, le camion-citerne et le frigorifique) : ils arrivent par la droite, se rangent
   dans la voie de livraison, puis repartent vers la gauche ; avec des départs rapprochés, ils roulent plus vite et
   restent surtout rangés.
+- Commandes (demande) : la crêperie reçoit aussi des crêpes nature : commissariat 2 par policier + 1 par voleur en
+  garde à vue ; prison 2 par employé (directeur compris) + 1 par détenu ; caserne 2 par pompier (tous grades). La
+  caserne commande aussi (dès son commandant), selon les rangs (commandant / chargés de prévention / conducteurs) :
+  boulangerie brioche / pain au chocolat / croissant ; crèmerie fromage de brebis / de chèvre / yaourt ; pâtisserie
+  fraisier / tarte au citron meringuée / gâteau au chocolat. Livrée : PPI ×2 (ppiMult) ; ratée : ÷2.
+  Test : TestCommandesCaserne.

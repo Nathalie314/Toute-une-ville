@@ -156,6 +156,9 @@ func (g *Game) eventGroups(id string) []eventGroup {
 	if o := g.policeOrder(id); o != nil { // le commissariat
 		gs = append(gs, eventGroup{poids: poidsGroupe, gen: func() *Order { return g.policeOrder(id) }})
 	}
+	if o := g.caserneOrder(id); o != nil { // la caserne de pompiers
+		gs = append(gs, eventGroup{poids: poidsGroupe, gen: func() *Order { return g.caserneOrder(id) }})
+	}
 	if o := g.prisonOrder(id); o != nil { // la prison
 		gs = append(gs, eventGroup{poids: poidsGroupe, gen: func() *Order { return g.prisonOrder(id) }})
 	}
@@ -229,7 +232,7 @@ func (g *Game) stepOrders(dt float64) {
 			// commande ratée : le lieu perd une étoile de réputation ; celles du parc et de la
 			// cantine ont leur propre pénalité (5 min, jamais allongées), sans double peine
 			switch o.Gift {
-			case "parc", "ecole", "police", "prison":
+			case "parc", "ecole", "police", "prison", "caserne":
 				g.Boost = &Boost{Kind: o.Gift + "_malus", Left: BoostTime, Total: BoostTime}
 				txt += " " + tr.F("(pénalité : {quoi} pendant {duree})", "quoi", lowerFirst(g.Boost.Text()), "duree", durText(BoostTime))
 			default:

@@ -56,3 +56,40 @@ func TestCommandesPolicePrison(t *testing.T) {
 		t.Fatal("cadeau de la prison")
 	}
 }
+
+// TestCommandesCaserne : les menus des pompiers selon les rangs ; les crêpes ; le cadeau (PPI ×2).
+func TestCommandesCaserne(t *testing.T) {
+	g := NewGame()
+	lv := g.Levels
+	if g.caserneOrder("boulangerie") != nil {
+		t.Fatal("une commande sans commandant")
+	}
+	lv["caserne.commandant"], lv["caserne.bureau_1"], lv["caserne.charge_1"], lv["caserne.bureau_2"], lv["caserne.charge_2"] = 1, 1, 1, 1, 1
+	lv["caserne.camion_1"], lv["caserne.pompier_1"] = 1, 1
+	want := map[Item]int{Brioche: 1, PainChoco: 2, Croissant: 1}
+	for _, l := range g.caserneOrder("boulangerie").Lines {
+		if want[l.It] != l.N {
+			t.Fatalf("boulangerie de la caserne : %v", g.caserneOrder("boulangerie").Lines)
+		}
+	}
+	if o := g.caserneOrder("creperie"); o.Lines[0].It != CrepeNature || o.Lines[0].N != 8 {
+		t.Fatalf("crêpes de la caserne : %v", o.Lines)
+	}
+	base := g.PPIRate()
+	g.Boost = &Boost{Kind: "caserne", Left: 100, Total: 100}
+	if g.PPIRate() != 2*base {
+		t.Fatal("cadeau de la caserne : PPI ×2")
+	}
+	// crêpes du commissariat et de la prison
+	g.Boost = nil
+	lv["commissariat.commissaire"], lv["commissariat.lieutenant_1"] = 1, 1
+	g.Custody = []*Custody{{N: 3, Left: 100}}
+	if o := g.policeOrder("creperie"); o.Lines[0].N != 2*2+3 {
+		t.Fatalf("crêpes du commissariat : %v", o.Lines)
+	}
+	lv["prison.directeur"], lv["prison.surveillant_1"] = 1, 1
+	g.Place("prison").Pris.Pris = []*Prisoner{{Cell: 1}}
+	if o := g.prisonOrder("creperie"); o.Lines[0].N != 2*2+1 {
+		t.Fatalf("crêpes de la prison : %v", o.Lines)
+	}
+}
