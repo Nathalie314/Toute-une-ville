@@ -297,6 +297,7 @@ func (g *Game) burn(p *Place) {
 		// tous les stocks brûlent
 		s.Pile, s.Pile2, s.Stock = 0, 0, 0
 		s.Buf = [NItems]int{}
+		s.claim = [NItems]int{} // (les livraisons promises par les employés partis : plus personne ne les fera)
 		s.Drones = nil
 	}
 	// les employés partent, traumatisés (ceux qui sont sauvés reviennent)

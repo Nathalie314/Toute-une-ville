@@ -1803,3 +1803,4 @@ avec une sauvegarde existante (lieux, stations et niveaux absents : valeurs par 
   Test : TestCommandesCaserne.
 - Bulles d'aide (demande) : plus de « sachets de graines » ni de « replanter » pour les légumes de la serre (ils repoussent tout seuls) : nouvelle bulle du déblocage des colonnes de la serre.
 - Raccourcis (demande) : O ouvre le menu des patrouilles, C celui de la vidéosurveillance (S, demandé, déplace déjà le personnage : ZQSD/WASD), de partout, dès que le commissaire est là. Aide et README.
+- Correctif incendie (signalé) : les livraisons promises (Station.claim) par les employés partis restaient accrochées aux machines : le four racheté se croyait livré et les nouveaux employés l'ignoraient. burn les efface. (Elles ne sont pas sauvegardées : recharger la partie débloquait déjà.) Test : TestIncendieLivraisons.

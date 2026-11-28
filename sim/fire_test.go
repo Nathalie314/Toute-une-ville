@@ -83,3 +83,36 @@ func TestFourDepartAncienne(t *testing.T) {
 		t.Fatal("une nouvelle partie doit acheter son premier four")
 	}
 }
+
+// TestIncendieLivraisons : après l'incendie, les nouveaux employés approvisionnent le four racheté
+// (les livraisons promises par les employés partis ne le bloquent plus).
+func TestIncendieLivraisons(t *testing.T) {
+	g := NewGame()
+	b := g.Place("boulangerie")
+	b.Owned = true
+	for _, u := range b.Unlocks {
+		if u.ID == "four_baguette" {
+			b.complete(u)
+		}
+	}
+	b.Station("four_baguette").claim[Farine] += 12 // (un boulanger était en route avec de la farine)
+	g.burn(b)
+	for _, u := range b.Unlocks {
+		if u.ID == "four_baguette" {
+			b.complete(u)
+		}
+	}
+	g.Levels["boulangerie.ouvriers"] = 1
+	for _, st := range b.Stations {
+		if st.Kind == Pallet && st.Item == Farine {
+			st.Pile = 40
+		}
+	}
+	before := g.Stats.Made["Baguette"]
+	for i := 0; i < 30*120; i++ {
+		g.Step(1.0 / 30)
+	}
+	if g.Stats.Made["Baguette"] == before {
+		t.Fatal("le four racheté après l'incendie ne reçoit pas de farine")
+	}
+}
